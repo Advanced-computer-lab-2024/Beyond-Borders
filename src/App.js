@@ -5,6 +5,9 @@ mongoose.set('strictQuery', false);
 require("dotenv").config(); //load enviironment variables
 //const {createUser,getUsers, updateUser, deleteUser} = require("./Routes/userController");
 const {createTourist} = require("./Routes/TouristController");
+const {createUnregisteredAdvertiser} = require("./Routes/UnregisteredAdvertiserController");
+const {createUnregisteredTourGuide} = require("./Routes/UnregisteredTourGuideController");
+const {createUnregisteredSeller} = require("./Routes/UnregisteredSellerController");
 //importing a set of functions
 const MongoURI = process.env.MONGO_URI ;
 
@@ -43,6 +46,9 @@ app.get("/home", (req, res) => {
 
 app.use(express.json())
 app.post("/addTourist", createTourist);
+app.post("/addUnregisteredTourGuide", createUnregisteredTourGuide);
+app.post("/addUnregisteredSeller", createUnregisteredSeller);
+app.post("/addUnregisteredAdvertiser", createUnregisteredAdvertiser);
 // app.get("/users", getUsers);
 // app.put("/updateUser", updateUser);
 // app.delete("/deleteUser", deleteUser);
