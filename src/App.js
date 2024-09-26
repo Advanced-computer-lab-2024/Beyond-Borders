@@ -3,7 +3,8 @@ const express = require("express"); //importing express
 const mongoose = require('mongoose'); //importing mongoose
 mongoose.set('strictQuery', false);
 require("dotenv").config(); //load enviironment variables
-const {createUser,getUsers, updateUser, deleteUser} = require("./Routes/userController");
+//const {createUser,getUsers, updateUser, deleteUser} = require("./Routes/userController");
+const {createTourist} = require("./Routes/TouristController");
 //importing a set of functions
 const MongoURI = process.env.MONGO_URI ;
 
@@ -41,10 +42,10 @@ app.get("/home", (req, res) => {
 // #Routing to userController here
 
 app.use(express.json())
-app.post("/addUser",createUser);
-app.get("/users", getUsers);
-app.put("/updateUser", updateUser);
-app.delete("/deleteUser", deleteUser);
+app.post("/addTourist", createTourist);
+// app.get("/users", getUsers);
+// app.put("/updateUser", updateUser);
+// app.delete("/deleteUser", deleteUser);
 
 
 /*

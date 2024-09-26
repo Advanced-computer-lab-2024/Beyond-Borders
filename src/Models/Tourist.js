@@ -1,0 +1,32 @@
+const mongoose = require('mongoose');
+const Schema = mongoose.Schema;
+
+const userSchema = new Schema({
+  Email: {
+    type: String,
+    required: true,
+  },
+  Username: {
+    type: String,
+    required: true
+  },
+  Password: {
+    type: String,
+    required: true,
+  },
+  MobileNumber: {
+    type: String,
+    required: true,
+  },
+  DoB: {
+    type: Date,
+    required: true,
+  },
+  Occupation: {
+    type: String,
+    required: true,
+  }
+}, { timestamps: true }); //adds 2 more field (Created At:) & (Updated At:)
+
+const Tourist = mongoose.model('Tourist', userSchema);
+module.exports = Tourist;
