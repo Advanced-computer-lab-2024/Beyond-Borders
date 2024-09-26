@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
-const userSchema = new Schema({
+const TouristSchema = new Schema({
   Email: {
     type: String,
     required: true,
@@ -28,5 +28,5 @@ const userSchema = new Schema({
   }
 }, { timestamps: true }); //adds 2 more field (Created At:) & (Updated At:)
 
-const Tourist = mongoose.model('Tourist', userSchema);
+const Tourist = mongoose.model('Tourist', TouristSchema);
 module.exports = Tourist;
