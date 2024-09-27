@@ -4,10 +4,10 @@ const { default: mongoose } = require('mongoose');
 
 const createTourist = async(req,res) => {
    //Destructure Name, Email, Age from the request body
-   const{Email,Username,Password,MobileNumber,DoB,Occupation} = req.body;
+   const{Email,Username,Password,MobileNumber,DoB,Nationality,Occupation} = req.body;
    try{
       //add a new user to the database with Name, Email and Age
-      const user = await TouristModel.create({Email,Username,Password,MobileNumber,DoB,Occupation});
+      const user = await TouristModel.create({Email,Username,Password,MobileNumber,DoB,Nationality,Occupation});
       //Send the created use as a JSON response with a 200 OK status 
       res.status(200).json({msg:"Tourist is created!"});
       //res.status(200).json(user);

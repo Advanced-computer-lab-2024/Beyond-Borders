@@ -21,6 +21,10 @@ const TouristSchema = new Schema({
   DoB: {
     type: Date,
     required: true,
+  }, 
+  Nationality: {
+    type: String,
+    required: true,
   },
   Occupation: {
     type: String,
