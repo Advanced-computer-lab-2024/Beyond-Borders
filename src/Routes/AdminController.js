@@ -9,6 +9,11 @@ const createNewAdmin = async(req,res) => {
    //Destructure Name, Email, Age from the request body
    const{Username,Password} = req.body;
    try{
+      // Check if a user with the same Username already exists
+      const existingUser = await NewAdminModel.findOne({ Username });
+      if (existingUser) {
+          return res.status(400).json({ error: "Username already exists!" });
+      }
       //add a new user to the database with Name, Email and Age
       const user = await NewAdminModel.create({Username,Password});
       //Send the created use as a JSON response with a 200 OK status 
@@ -24,6 +29,11 @@ const createNewTourismGoverner = async(req,res) => {
     //Destructure Name, Email, Age from the request body
     const{Username,Password} = req.body;
     try{
+        // Check if a user with the same Username already exists
+        const existingUser = await NewTourismGoverner.findOne({ Username });
+        if (existingUser) {
+            return res.status(400).json({ error: "Username already exists!" });
+        }
        //add a new user to the database with Name, Email and Age
        const user = await NewTourismGoverner.create({Username,Password});
        //Send the created use as a JSON response with a 200 OK status 
