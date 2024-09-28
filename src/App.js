@@ -55,14 +55,11 @@ app.post("/addTourismGovernor", createNewTourismGoverner);
 app.post("/addAdmin", createNewAdmin);
 app.post("/addProduct", createNewProduct);
 app.put("/editProduct", editProduct);
-<<<<<<< HEAD
 app.post("/acceptSeller", acceptSeller);
 app.post("/rejectSeller", rejectSeller);
-=======
 app.get("/viewTourist", getTourist);
 app.put("/updateTourist", updateTourist);
 
->>>>>>> dc32e9dfce11e0b4defb7f6084ac0733da0cb6bc
 
 // app.get("/users", getUsers);
 // app.put("/updateUser", updateUser);
