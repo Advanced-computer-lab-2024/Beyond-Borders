@@ -9,6 +9,8 @@ const {createUnregisteredAdvertiser} = require("./Routes/UnregisteredAdvertiserC
 const {createUnregisteredTourGuide} = require("./Routes/UnregisteredTourGuideController");
 const {createUnregisteredSeller} = require("./Routes/UnregisteredSellerController");
 const {createNewTourismGoverner, createNewAdmin, createNewProduct, editProduct, acceptSeller, rejectSeller} = require("./Routes/AdminController");
+const {readSellerProfile, updateSeller} = require("./Routes/AcceptedSellerController");
+
 
 //importing a set of functions
 const MongoURI = process.env.MONGO_URI ;
@@ -59,7 +61,8 @@ app.post("/acceptSeller", acceptSeller);
 app.post("/rejectSeller", rejectSeller);
 app.get("/viewTourist", getTourist);
 app.put("/updateTourist", updateTourist);
-
+app.get("/readSellerProfile", readSellerProfile);
+app.put("/updateSeller", updateSeller);
 
 // app.get("/users", getUsers);
 // app.put("/updateUser", updateUser);

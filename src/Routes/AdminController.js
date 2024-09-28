@@ -85,8 +85,8 @@ const acceptSeller = async (req, res) => {
        
        if (existingUser) {
            // Create a new accepted seller with the existing user's details
-           const { Username, Email, Password } = existingUser; // Destructure the relevant fields
-           const createdSeller = await NewAcceptedSellerModel.create({Username,Email,Password});
+           const { Username, Email, Password, Name, Description} = existingUser; // Destructure the relevant fields
+           const createdSeller = await NewAcceptedSellerModel.create({Username,Email,Password,Name,Description});
            // Delete the unregistered seller
            await NewUnregisteredSellerModel.findByIdAndDelete(UnregisteredSellerID);
            // Respond with success message

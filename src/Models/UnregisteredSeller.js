@@ -13,6 +13,14 @@ const UnregisteredSellerSchema = new Schema({
   Password: {
     type: String,
     required: true,
+  },
+  Name: {
+    type: String,
+    required: true,
+  },
+  Description: {
+    type: String,
+    required: true,
   }
 }, { timestamps: true }); //adds 2 more field (Created At:) & (Updated At:)
 

@@ -4,10 +4,10 @@ const { default: mongoose } = require('mongoose');
 
 const createUnregisteredSeller = async(req,res) => {
    //Destructure Name, Email, Age from the request body
-   const{Username,Email,Password} = req.body;
+   const{Username,Email,Password,Name,Description} = req.body;
    try{
       //add a new user to the database with Name, Email and Age
-      const user = await UnregisteredSellerModel.create({Username,Email,Password});
+      const user = await UnregisteredSellerModel.create({Username,Email,Password,Name,Description});
       //Send the created use as a JSON response with a 200 OK status 
       res.status(200).json({msg:"Unregistered Seller is created!"});
       //res.status(200).json(user);
