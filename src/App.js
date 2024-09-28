@@ -9,7 +9,7 @@ const {createUnregisteredAdvertiser} = require("./Routes/UnregisteredAdvertiserC
 const {createUnregisteredTourGuide} = require("./Routes/UnregisteredTourGuideController");
 const {createUnregisteredSeller} = require("./Routes/UnregisteredSellerController");
 const {createNewTourismGoverner, createNewAdmin, createNewProduct, editProduct} = require("./Routes/AdminController");
-
+const{createTourGuide, ReadTourGuideProfile , UpdateTourGuideEmail , UpdateTourGuidePassword, UpdateTourGuideMobileNum , UpdateTourGuideYearsofExperience ,UpdateTourGuidePreviousWork , UpdateTourGuideUserName,} = require("./Routes/TourGuideController")
 //importing a set of functions
 const MongoURI = process.env.MONGO_URI ;
 
@@ -55,6 +55,14 @@ app.post("/addTourismGovernor", createNewTourismGoverner);
 app.post("/addAdmin", createNewAdmin);
 app.post("/addProduct", createNewProduct);
 app.put("/editProduct", editProduct);
+app.post("/addTourGuide",createTourGuide);
+app.get("/TourGuideProfile",ReadTourGuideProfile);
+app.put("/updateTourGuideEmail",UpdateTourGuideEmail);
+app.put("/updateTourGuidePasword",UpdateTourGuidePassword);
+app.put("/updateTourGuideMobileNumber",UpdateTourGuideMobileNum);
+app.put("/updateTourGuideYearsofExperience",UpdateTourGuideYearsofExperience);
+app.put("/updateTourGuidePreviousWork",UpdateTourGuidePreviousWork);
+app.put("/updateTourGuideUsername",UpdateTourGuideUserName);
 
 // app.get("/users", getUsers);
 // app.put("/updateUser", updateUser);
