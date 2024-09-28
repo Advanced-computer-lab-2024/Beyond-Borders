@@ -56,6 +56,8 @@ app.post("/addAdmin", createNewAdmin);
 app.post("/addProduct", createNewProduct);
 app.put("/editProduct", editProduct);
 
+
+
 // app.get("/users", getUsers);
 // app.put("/updateUser", updateUser);
 // app.delete("/deleteUser", deleteUser);
