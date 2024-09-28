@@ -144,11 +144,29 @@ const createNewCategory = async(req,res) => {
 
 const readAllActivityCategories = async (req, res) => {
    try {
-       const categories = await NewActivityCategoryModel.find(); // Fetch all categories
-       res.status(200).json(categories); // Respond with the categories
+       const categories = await NewActivityCategoryModel.find(); //Fetch all categories
+       res.status(200).json(categories);
    } catch (error) {
-       res.status(500).json({ error: error.message }); // Handle any errors
+       res.status(400).json({ error: error.message }); 
    }
 };
 
-module.exports = {createNewAdmin, createNewTourismGoverner, createNewProduct, editProduct, acceptSeller, rejectSeller, createNewCategory, readAllActivityCategories};
+const updateCategory = async (req, res) => {
+   const {oldCategoryName,newCategoryName} = req.body;
+   try {
+       // Find the category by the old name and update it
+       const updatedCategory = await NewActivityCategoryModel.findOneAndUpdate(
+           {NameOfCategory: oldCategoryName}, //Find the category with the old name 
+           {NameOfCategory: newCategoryName}, //Update the category name
+           {new: true} // Return the updated document
+       );
+       if (!updatedCategory) {
+           return res.status(404).json({ error: "Category not found." }); // Handle case where category does not exist
+       }
+       res.status(200).json(updatedCategory);
+   } catch (error) {
+       res.status(400).json({ error: error.message });
+   }
+};
+
+module.exports = {createNewAdmin, createNewTourismGoverner, createNewProduct, editProduct, acceptSeller, rejectSeller, createNewCategory, readAllActivityCategories, updateCategory};
