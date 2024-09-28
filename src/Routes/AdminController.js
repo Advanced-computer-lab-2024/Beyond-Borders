@@ -4,6 +4,7 @@ const NewTourismGoverner = require('../Models/TourismGoverner.js');
 const NewProduct = require('../Models/Product.js');
 const NewUnregisteredSellerModel = require('../Models/UnregisteredSeller.js');
 const NewAcceptedSellerModel = require('../Models/AcceptedSeller.js');
+const NewActivityCategoryModel = require('../Models/ActivityCategory.js');
 
 
 const { default: mongoose } = require('mongoose');
@@ -121,5 +122,24 @@ const rejectSeller = async (req, res) => {
    }
 };
 
+const createNewCategory = async(req,res) => {
+   //Destructure Name, Email, Age from the request body
+   const{CategoryName} = req.body;
+   try{
+      // Check if a user with the same Username already exists
+      const existingCategory = await NewActivityCategoryModel.findOne({CategoryName});
+      if (existingCategory) {
+          return res.status(400).json({ error: "Category already exists!" });
+      }
+      //add a new category to the database with Name, Email and Age
+      const category = await NewActivityCategoryModel.create({CategoryName});
+      //Send the created use as a JSON response with a 200 OK status 
+      res.status(200).json({msg:"New Category is created!"});
+      //res.status(200).json(user);
+   } catch (error){
+      //If an error occurs, send a 400 Bad Request status with the error message
+      res.status(400).json({ error: error.message});
+   }
+}
 
-module.exports = {createNewAdmin, createNewTourismGoverner, createNewProduct, editProduct, acceptSeller, rejectSeller};
+module.exports = {createNewAdmin, createNewTourismGoverner, createNewProduct, editProduct, acceptSeller, rejectSeller, createNewCategory};
