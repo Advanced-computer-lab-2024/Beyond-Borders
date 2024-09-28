@@ -169,4 +169,22 @@ const updateCategory = async (req, res) => {
    }
 };
 
-module.exports = {createNewAdmin, createNewTourismGoverner, createNewProduct, editProduct, acceptSeller, rejectSeller, createNewCategory, readAllActivityCategories, updateCategory};
+const deleteActivityCategory = async (req, res) => {
+   const { CategoryName } = req.body;
+
+   try {
+       const category = await NewActivityCategoryModel.findOne({NameOfCategory: CategoryName});
+       if (category) {
+         await NewActivityCategoryModel.findOneAndDelete({NameOfCategory: CategoryName});
+         res.status(200).json({ msg: "Category has been deleted!" });
+      }
+       else {
+         return res.status(404).json({ error: "Category not found." }); // Handle case where category does not exist
+       }
+     //res.status(200).json(updatedCategory);
+ } catch (error) {
+     res.status(400).json({ error: error.message });
+ }
+};
+
+module.exports = {createNewAdmin, createNewTourismGoverner, createNewProduct, editProduct, acceptSeller, rejectSeller, createNewCategory, readAllActivityCategories, updateCategory, deleteActivityCategory};
