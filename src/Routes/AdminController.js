@@ -124,15 +124,15 @@ const rejectSeller = async (req, res) => {
 
 const createNewCategory = async(req,res) => {
    //Destructure Name, Email, Age from the request body
-   const{CategoryName} = req.body;
+   const{NameOfCategory} = req.body;
    try{
       // Check if a user with the same Username already exists
-      const existingCategory = await NewActivityCategoryModel.findOne({CategoryName});
+      const existingCategory = await NewActivityCategoryModel.findOne({NameOfCategory});
       if (existingCategory) {
           return res.status(400).json({ error: "Category already exists!" });
       }
       //add a new category to the database with Name, Email and Age
-      const category = await NewActivityCategoryModel.create({CategoryName});
+      const category = await NewActivityCategoryModel.create({NameOfCategory});
       //Send the created use as a JSON response with a 200 OK status 
       res.status(200).json({msg:"New Category is created!"});
       //res.status(200).json(user);
