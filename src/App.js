@@ -64,6 +64,11 @@ app.put("/updateTourist", updateTourist);
 app.get("/readSellerProfile", readSellerProfile);
 app.put("/updateSeller", updateSeller);
 
+
+app.use(express.static('public')); //shaghal el html
+
+
+
 // app.get("/users", getUsers);
 // app.put("/updateUser", updateUser);
 // app.delete("/deleteUser", deleteUser);

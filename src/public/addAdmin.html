@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Adding Admin</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            padding: 20px;
+            margin: 0;
+        }
+        .container {
+            max-width: 600px;
+            margin: auto;
+            background: #fff;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        h2 {
+            text-align: center;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        button {
+            background-color: #28a745;
+            color: white;
+            padding: 10px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+        }
+        button:hover {
+            background-color: #218838;
+        }
+        .message {
+            margin-top: 20px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Adding Admin</h2>
+    <form id="adminForm">
+        <div class="form-group">
+            <label for="username">Username:</label>
+            <input type="text" id="username" required>
+        </div>
+        <div class="form-group">
+            <label for="password">Password:</label>
+            <input type="password" id="password" required>
+        </div>
+        <button type="submit">Add</button>
+    </form>
+    <div id="responseMessage" class="message"></div>
+</div>
+
+<script>
+    document.getElementById('adminForm').addEventListener('submit', async function(event) {
+        event.preventDefault(); // Prevent form submission
+
+        const responseMessage = document.getElementById('responseMessage');
+        responseMessage.textContent = ''; // Clear previous messages
+
+        const formData = {
+            Username: document.getElementById('username').value,
+            Password: document.getElementById('password').value,
+        };
+
+        try {
+            const response = await fetch('/addAdmin', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(formData)
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                responseMessage.textContent = 'Admin added successfully!';
+                responseMessage.style.color = 'green';
+            } else {
+                responseMessage.textContent = `Error: ${result.error}`;
+                responseMessage.style.color = 'red';
+            }
+        } catch (error) {
+            responseMessage.textContent = 'An error occurred. Please try again.';
+            responseMessage.style.color = 'red';
+        }
+    });
+</script>
+
+
+<!--http://localhost:8000/addAdmin.html--> <!-- link el html page-->
+
+</body>
+</html>

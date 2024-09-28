@@ -75,6 +75,8 @@ const getTourist = async (req, res) => {
         res.status(400).json({ error: error.message });
       }
     };
+
+
     
     
     /* const searchActivities = async (req, res) => {
@@ -125,6 +127,9 @@ const getTourist = async (req, res) => {
 
 
     }*/
+
+      
+   
 
     
 
