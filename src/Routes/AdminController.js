@@ -142,4 +142,13 @@ const createNewCategory = async(req,res) => {
    }
 }
 
-module.exports = {createNewAdmin, createNewTourismGoverner, createNewProduct, editProduct, acceptSeller, rejectSeller, createNewCategory};
+const readAllActivityCategories = async (req, res) => {
+   try {
+       const categories = await NewActivityCategoryModel.find(); // Fetch all categories
+       res.status(200).json(categories); // Respond with the categories
+   } catch (error) {
+       res.status(500).json({ error: error.message }); // Handle any errors
+   }
+};
+
+module.exports = {createNewAdmin, createNewTourismGoverner, createNewProduct, editProduct, acceptSeller, rejectSeller, createNewCategory, readAllActivityCategories};
