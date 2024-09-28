@@ -8,7 +8,7 @@ const {createTourist,getTourist, updateTourist} = require("./Routes/TouristContr
 const {createUnregisteredAdvertiser} = require("./Routes/UnregisteredAdvertiserController");
 const {createUnregisteredTourGuide} = require("./Routes/UnregisteredTourGuideController");
 const {createUnregisteredSeller} = require("./Routes/UnregisteredSellerController");
-const {createNewTourismGoverner, createNewAdmin, createNewProduct, editProduct, acceptSeller, rejectSeller} = require("./Routes/AdminController");
+const {createNewTourismGoverner, createNewAdmin, createNewProduct, editProduct, acceptSeller, rejectSeller, createNewCategory} = require("./Routes/AdminController");
 const {readSellerProfile, updateSeller} = require("./Routes/AcceptedSellerController");
 
 
@@ -63,12 +63,7 @@ app.get("/viewTourist", getTourist);
 app.put("/updateTourist", updateTourist);
 app.get("/readSellerProfile", readSellerProfile);
 app.put("/updateSeller", updateSeller);
-
-
-app.use(express.static('public')); //shaghal el html
-
-
-
+app.post("/createNewCategory", createNewCategory);
 // app.get("/users", getUsers);
 // app.put("/updateUser", updateUser);
 // app.delete("/deleteUser", deleteUser);
