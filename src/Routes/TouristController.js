@@ -19,9 +19,10 @@ const createTourist = async(req,res) => {
 
 const getTourist = async (req, res) => {
    //retrieve all users from the database
+   const{_id} = req.body;
    try{
       //add a new user to the database with Name, Email and Age
-      const user = await TouristModel.findById();
+      const user = await TouristModel.findById({_id});
       //Send the created use as a JSON response with a 200 OK status 
       //res.status(200).json({msg:"user is created"});
       res.status(200).json(user);
