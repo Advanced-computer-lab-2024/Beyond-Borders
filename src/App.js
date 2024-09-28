@@ -68,6 +68,8 @@ app.post("/createNewCategory", createNewCategory);
 // app.put("/updateUser", updateUser);
 // app.delete("/deleteUser", deleteUser);
 
+app.use(express.static('public')); //shaghal el html
+
 
 /*
                                                     End of your code
