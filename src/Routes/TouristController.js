@@ -1,5 +1,8 @@
 // #Task route solution
 const TouristModel = require('../Models/Tourist.js');
+//const ActivityModel = require('../Models/Activity.js');
+//const MuseumModel = require('../Models/Museum.js');
+//const ItineraryModel = require('../Models/Itinerary.js');
 const { default: mongoose } = require('mongoose');
 
 const createTourist = async(req,res) => {
@@ -73,6 +76,56 @@ const getTourist = async (req, res) => {
       }
     };
     
+    
+    /* const searchActivities = async (req, res) => {
+      //retrieve all users from the database
+      const{_id} = req.body;
+      try{
+      //add a new user to the database with Name, Email and Age
+      const user = await TouristModel.find({});
+      //Send the created use as a JSON response with a 200 OK status 
+      //res.status(200).json({msg:"user is created"});
+      res.status(200).json(user);
+   } catch (error){
+      //If an error occurs, send a 400 Bad Request status with the error message
+      res.status(400).json({ error: error.message});
+   }
+  }*/
+
+   /*const viewUpcomingEvents = async (req, res) => {
+      try {
+        const currentDate = new Date();  // Get the current date
+    
+        // Query to find documents where the date is greater than or equal to the current date
+        const dateQuery = { date: { $gte: currentDate } };
+    
+        // Fetch upcoming activities, itineraries, and museums in parallel
+        const [upcomingActivities, upcomingItineraries, upcomingMuseums] = await Promise.all([
+          ActivityModel.find(dateQuery),   // Fetch activities with a future date
+          ItineraryModel.find(dateQuery),  // Fetch itineraries with a future date
+          MuseumModel.find(dateQuery)      // Fetch museums with a future date
+        ]);
+    
+        // Combine results into a single response object
+        const upcomingEvents = {
+          activities: upcomingActivities,
+          itineraries: upcomingItineraries,
+          museums: upcomingMuseums
+        };
+    
+        // Send the combined upcoming events as the response
+        res.status(200).json(upcomingEvents);
+      } catch (error) {
+        // Handle any errors that occur during the fetch
+        res.status(500).json({ error: error.message });
+      }
+    };*/
+    
+    /*const sortEvents = async (req, res) => {
+
+
+    }*/
+
     
 
 
