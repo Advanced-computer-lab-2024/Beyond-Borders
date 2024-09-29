@@ -29,6 +29,11 @@ const TouristSchema = new Schema({
   Occupation: {
     type: String,
     required: true,
+  },
+  Wallet: {
+    type: Number,
+    required: false
+    
   }
 }, { timestamps: true }); //adds 2 more field (Created At:) & (Updated At:)
 

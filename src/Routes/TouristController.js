@@ -19,7 +19,7 @@ const createTourist = async(req,res) => {
       else{
          await AllUsernamesModel.create({Username});
          //add a new user to the database with Name, Email and Age
-         const user = await TouristModel.create({Email,Username,Password,MobileNumber,DoB,Nationality,Occupation});
+         const user = await TouristModel.create({Email,Username,Password,MobileNumber,DoB,Nationality,Occupation,Wallet: 0});
          //Send the created use as a JSON response with a 200 OK status 
          res.status(200).json({msg:"Tourist is created!"});
          //res.status(200).json(user);
@@ -127,6 +127,10 @@ const createTourist = async(req,res) => {
           if (req.body.DoB) {
             delete req.body.DoB;
             return res.status(404).json({ msg: "Cannot update Date of Birth" });
+          }
+          if (req.body.Wallet) {
+            delete req.body.Wallet;
+            return res.status(404).json({ msg: "Cannot update the wallet" });
           }
   
           // Find and update the tourist with the fields provided in req.body (excluding Username and DoB)
