@@ -7,6 +7,8 @@ const NewAcceptedSellerModel = require('../Models/AcceptedSeller.js');
 const NewActivityCategoryModel = require('../Models/ActivityCategory.js');
 const AllUsernamesModel = require('../Models/AllUsernames.js');
 const AllTouristModel = require('../Models/Tourist.js');
+const TagsModel = require('../Models/Tags.js');
+
 
 
 
@@ -166,10 +168,39 @@ const createNewCategory = async(req,res) => {
    }
 }
 
+const createNewTag = async(req,res) => {
+   //Destructure Name, Email, Age from the request body
+   const{NameOfTags} = req.body;
+   try{
+      // Check if a user with the same Username already exists
+      const existingTag = await TagsModel.findOne({NameOfTags});
+      if (existingTag) {
+          return res.status(400).json({ error: "Tag already exists!" });
+      }
+      //add a new category to the database with Name, Email and Age
+      const newTag = await TagsModel.create({NameOfTags});
+      //Send the created use as a JSON response with a 200 OK status 
+      res.status(200).json({msg:"New Tag is created!"});
+      //res.status(200).json(user);
+   } catch (error){
+      //If an error occurs, send a 400 Bad Request status with the error message
+      res.status(400).json({ error: error.message});
+   }
+}
+
 const readAllActivityCategories = async (req, res) => {
    try {
        const categories = await NewActivityCategoryModel.find(); //Fetch all categories
        res.status(200).json(categories);
+   } catch (error) {
+       res.status(400).json({ error: error.message }); 
+   }
+};
+
+const readAllTags = async (req, res) => {
+   try {
+       const tags = await TagsModel.find(); //Fetch all categories
+       res.status(200).json(tags);
    } catch (error) {
        res.status(400).json({ error: error.message }); 
    }
@@ -193,6 +224,24 @@ const updateCategory = async (req, res) => {
    }
 };
 
+const updateTag = async (req, res) => {
+   const {oldTagName,newTagName} = req.body;
+   try {
+       // Find the category by the old name and update it
+       const updatedTag = await TagsModel.findOneAndUpdate(
+           {NameOfTags: oldTagName}, //Find the category with the old name 
+           {NameOfTags: newTagName}, //Update the category name
+           {new: true} // Return the updated document
+       );
+       if (!updatedTag) {
+           return res.status(404).json({ error: "Tag not found." }); // Handle case where category does not exist
+       }
+       res.status(200).json(updatedTag);
+   } catch (error) {
+       res.status(400).json({ error: error.message });
+   }
+};
+
 const deleteActivityCategory = async (req, res) => {
    const { CategoryName } = req.body;
 
@@ -204,6 +253,24 @@ const deleteActivityCategory = async (req, res) => {
       }
        else {
          return res.status(404).json({ error: "Category not found." }); // Handle case where category does not exist
+       }
+     //res.status(200).json(updatedCategory);
+ } catch (error) {
+     res.status(400).json({ error: error.message });
+ }
+};
+
+const deleteTag = async (req, res) => {
+   const { TagName } = req.body;
+
+   try {
+       const tag = await TagsModel.findOne({NameOfTags: TagName});
+       if (tag) {
+         await TagsModel.findOneAndDelete({NameOfTags: TagName});
+         res.status(200).json({ msg: "Tag has been deleted!" });
+      }
+       else {
+         return res.status(404).json({ error: "Tag not found." }); // Handle case where category does not exist
        }
      //res.status(200).json(updatedCategory);
  } catch (error) {
@@ -270,4 +337,4 @@ const searchProductAdmin = async (req, res) => {
    }
 };
 
-module.exports = {createNewAdmin, createNewTourismGoverner, createNewProduct, editProduct, acceptSeller, rejectSeller, createNewCategory, readAllActivityCategories, updateCategory, deleteActivityCategory, deleteAccount, searchProductAdmin};
+module.exports = {createNewAdmin, createNewTourismGoverner, createNewProduct, editProduct, acceptSeller, rejectSeller, createNewCategory, readAllActivityCategories, updateCategory, deleteActivityCategory, deleteAccount, searchProductAdmin, createNewTag, readAllTags, updateTag, deleteTag};
