@@ -60,12 +60,12 @@ const createNewTourismGoverner = async(req,res) => {
 
  const createNewProduct = async(req,res) => {
    //Destructure Name, Email, Age from the request body
-   const{Description,Price,Quantity, Seller,Picture} = req.body;
+   const{Name,Description,Price,Quantity, Seller,Picture} = req.body;
    try{
       const existingSeller = await NewAcceptedSellerModel.findOne({ Username: Seller });
        if (existingSeller) {
          //add a new user to the database with Name, Email and Age
-         const user = await NewProduct.create({Description,Price,Quantity, Seller,Picture, Reviews: "",Ratings: 0});
+         const user = await NewProduct.create({Name,Description,Price,Quantity, Seller,Picture, Reviews: "",Ratings: 0});
          //Send the created use as a JSON response with a 200 OK status 
          res.status(200).json({msg:"New Product is created!"});
          //res.status(200).json(user);
@@ -260,4 +260,14 @@ const deleteAccount = async (req, res) => {
    }
 };
 
-module.exports = {createNewAdmin, createNewTourismGoverner, createNewProduct, editProduct, acceptSeller, rejectSeller, createNewCategory, readAllActivityCategories, updateCategory, deleteActivityCategory, deleteAccount};
+const searchProductAdmin = async (req, res) => {
+   const {ProductName} = req.body;
+   try {
+       const fetchedProduct = await NewProduct.findOne({Name: ProductName}); //Fetch all categories
+       res.status(200).json(fetchedProduct);
+   } catch (error) {
+      res.status(200).json({ msg: "There is no product with this name!" });
+   }
+};
+
+module.exports = {createNewAdmin, createNewTourismGoverner, createNewProduct, editProduct, acceptSeller, rejectSeller, createNewCategory, readAllActivityCategories, updateCategory, deleteActivityCategory, deleteAccount, searchProductAdmin};

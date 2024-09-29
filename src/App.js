@@ -9,8 +9,8 @@ const {createTourist,getTourist, updateTourist} = require("./Routes/TouristContr
 const {createUnregisteredAdvertiser} = require("./Routes/UnregisteredAdvertiserController");
 const {createUnregisteredTourGuide} = require("./Routes/UnregisteredTourGuideController");
 const {createUnregisteredSeller} = require("./Routes/UnregisteredSellerController");
-const {createNewTourismGoverner, createNewAdmin, createNewProduct, editProduct, acceptSeller, rejectSeller, createNewCategory, readAllActivityCategories,updateCategory, deleteActivityCategory, deleteAccount} = require("./Routes/AdminController");
-const {readSellerProfile, updateSeller, editProductSeller, createNewProductSeller} = require("./Routes/AcceptedSellerController");
+const {createNewTourismGoverner, createNewAdmin, createNewProduct, editProduct, acceptSeller, rejectSeller, createNewCategory, readAllActivityCategories,updateCategory, deleteActivityCategory, deleteAccount, searchProductAdmin} = require("./Routes/AdminController");
+const {readSellerProfile, updateSeller, editProductSeller, createNewProductSeller, searchProductSeller} = require("./Routes/AcceptedSellerController");
 
 
 
@@ -78,6 +78,9 @@ app.get("/readAllActivityCategories", readAllActivityCategories);
 app.put("/updateCategory", updateCategory);
 app.post("/deleteActivityCategory", deleteActivityCategory);
 app.post("/deleteAccount", deleteAccount);
+app.get("/searchProductAdmin", searchProductAdmin);
+app.get("/searchProductSeller", searchProductSeller);
+
 
 app.post("/addTourGuide",createTourGuide);
 app.get("/TourGuideProfile",ReadTourGuideProfile);
