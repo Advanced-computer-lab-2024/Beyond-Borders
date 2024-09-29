@@ -11,7 +11,7 @@ const {createUnregisteredTourGuide} = require("./Routes/UnregisteredTourGuideCon
 const {createUnregisteredSeller} = require("./Routes/UnregisteredSellerController");
 const {createNewTourismGoverner, createNewAdmin, createNewProduct, editProduct, acceptSeller, rejectSeller, createNewCategory, readAllActivityCategories,updateCategory, deleteActivityCategory, deleteAccount, searchProductAdmin, createNewTag, readAllTags, updateTag, deleteTag, createNewActivity} = require("./Routes/AdminController");
 const {readSellerProfile, updateSeller, editProductSeller, createNewProductSeller, searchProductSeller} = require("./Routes/AcceptedSellerController");
-
+const {createNewHistoricalTag} = require("./Routes/TourismGovernorController");
 
 
 //const {createNewTourismGoverner, createNewAdmin, createNewProduct, editProduct} = require("./Routes/AdminController");
@@ -95,6 +95,7 @@ app.put("/updateTourGuideMobileNumber",UpdateTourGuideMobileNum);
 app.put("/updateTourGuideYearsofExperience",UpdateTourGuideYearsofExperience);
 app.put("/updateTourGuidePreviousWork",UpdateTourGuidePreviousWork);
 app.put("/updateTourGuideUsername",UpdateTourGuideUserName);
+app.post("/createHistoricalTag", createNewHistoricalTag);
 
 // app.get("/users", getUsers);
 // app.put("/updateUser", updateUser);
