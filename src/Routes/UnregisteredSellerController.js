@@ -1,5 +1,7 @@
 // #Task route solution
 const UnregisteredSellerModel = require('../Models/UnregisteredSeller.js');
+const AllUsernamesModel = require('../Models/AllUsernames.js');
+
 const { default: mongoose } = require('mongoose');
 
 const createUnregisteredSeller = async(req,res) => {
@@ -7,11 +9,12 @@ const createUnregisteredSeller = async(req,res) => {
    const{Username,Email,Password,Name,Description} = req.body;
    try{
       // Check if a user with the same Username already exists
-      const existingUser = await UnregisteredSellerModel.findOne({ Username });
+      const existingUser = await AllUsernamesModel.findOne({ Username });
       if (existingUser) {
           return res.status(400).json({ error: "Username already exists!" });
       }
       else{
+         await AllUsernamesModel.create({Username});
          //add a new user to the database with Name, Email and Age
          const user = await UnregisteredSellerModel.create({Username,Email,Password,Name,Description});
          //Send the created use as a JSON response with a 200 OK status 

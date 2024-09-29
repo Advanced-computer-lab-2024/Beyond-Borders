@@ -1,5 +1,7 @@
 // #Task route solution
 const TouristModel = require('../Models/Tourist.js');
+const AllUsernamesModel = require('../Models/AllUsernames.js');
+
 //const ActivityModel = require('../Models/Activity.js');
 //const MuseumModel = require('../Models/Museum.js');
 //const ItineraryModel = require('../Models/Itinerary.js');
@@ -10,11 +12,12 @@ const createTourist = async(req,res) => {
    const{Email,Username,Password,MobileNumber,DoB,Nationality,Occupation} = req.body;
    try{
       // Check if a user with the same Username already exists
-      const existingUser = await TouristModel.findOne({ Username });
+      const existingUser = await AllUsernamesModel.findOne({ Username });
       if (existingUser) {
          return res.status(400).json({ error: "Username already exists!" });
       }
       else{
+         await AllUsernamesModel.create({Username});
          //add a new user to the database with Name, Email and Age
          const user = await TouristModel.create({Email,Username,Password,MobileNumber,DoB,Nationality,Occupation});
          //Send the created use as a JSON response with a 200 OK status 

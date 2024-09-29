@@ -5,6 +5,8 @@ const NewProduct = require('../Models/Product.js');
 const NewUnregisteredSellerModel = require('../Models/UnregisteredSeller.js');
 const NewAcceptedSellerModel = require('../Models/AcceptedSeller.js');
 const NewActivityCategoryModel = require('../Models/ActivityCategory.js');
+const AllUsernamesModel = require('../Models/AllUsernames.js');
+
 
 
 const { default: mongoose } = require('mongoose');
@@ -14,15 +16,18 @@ const createNewAdmin = async(req,res) => {
    const{Username,Password} = req.body;
    try{
       // Check if a user with the same Username already exists
-      const existingUser = await NewAdminModel.findOne({ Username });
+      const existingUser = await AllUsernamesModel.findOne({Username});
       if (existingUser) {
           return res.status(400).json({ error: "Username already exists!" });
       }
-      //add a new user to the database with Name, Email and Age
-      const user = await NewAdminModel.create({Username,Password});
-      //Send the created use as a JSON response with a 200 OK status 
-      res.status(200).json({msg:"New admin is created!"});
-      //res.status(200).json(user);
+      else{
+         await AllUsernamesModel.create({Username});
+         //add a new user to the database with Name, Email and Age
+         const user = await NewAdminModel.create({Username,Password});
+         //Send the created use as a JSON response with a 200 OK status 
+         res.status(200).json({msg:"New admin is created!"});
+         //res.status(200).json(user);
+      }
    } catch (error){
       //If an error occurs, send a 400 Bad Request status with the error message
       res.status(400).json({ error: error.message});
@@ -34,15 +39,18 @@ const createNewTourismGoverner = async(req,res) => {
     const{Username,Password} = req.body;
     try{
         // Check if a user with the same Username already exists
-        const existingUser = await NewTourismGoverner.findOne({ Username });
+        const existingUser = await AllUsernamesModel.findOne({ Username });
         if (existingUser) {
             return res.status(400).json({ error: "Username already exists!" });
         }
-       //add a new user to the database with Name, Email and Age
-       const user = await NewTourismGoverner.create({Username,Password});
-       //Send the created use as a JSON response with a 200 OK status 
-       res.status(200).json({msg:"New Tourism Governer is created!"});
-       //res.status(200).json(user);
+        else{
+         await AllUsernamesModel.create({Username});
+         //add a new user to the database with Name, Email and Age
+         const user = await NewTourismGoverner.create({Username,Password});
+         //Send the created use as a JSON response with a 200 OK status 
+         res.status(200).json({msg:"New Tourism Governer is created!"});
+         //res.status(200).json(user);
+        }
     } catch (error){
        //If an error occurs, send a 400 Bad Request status with the error message
        res.status(400).json({ error: error.message});
@@ -109,6 +117,9 @@ const rejectSeller = async (req, res) => {
        const existingUser = await NewUnregisteredSellerModel.findById(UnregisteredSellerID);
        
        if (existingUser) {
+            // Extract Username
+            const {Username, Email, Password} = existingUser;
+            await AllUsernamesModel.findOneAndDelete({Username});
            // Delete the unregistered seller
            await NewUnregisteredSellerModel.findByIdAndDelete(UnregisteredSellerID);
            // Respond with success message
