@@ -391,35 +391,35 @@ const searchProductAdmin = async (req, res) => {
    }
 };
 
-const createNewActivity = async (req, res) => {
-   // Destructure fields from the request body
-   const { AdvertiserName, Name, Date, Time, SpecialDiscount, BookingOpen, Price, Location, Category, Tags } = req.body;
+// const createNewActivity = async (req, res) => {
+//    // Destructure fields from the request body
+//    const { AdvertiserName, Name, Date, Time, SpecialDiscount, BookingOpen, Price, Location, Category, Tags } = req.body;
  
-   try {
-     // Check if the category exists
-     const existingCategory = await NewActivityCategoryModel.findOne({ NameOfCategory: Category });
-     if (!existingCategory) {
-       return res.status(400).json({ error: "Selected category does not exist!" });
-     }
+//    try {
+//      // Check if the category exists
+//      const existingCategory = await NewActivityCategoryModel.findOne({ NameOfCategory: Category });
+//      if (!existingCategory) {
+//        return res.status(400).json({ error: "Selected category does not exist!" });
+//      }
  
-     // Check if all provided tags exist
-     const existingTags = await TagsModel.find({ NameOfTags: { $in: Tags } });
-     if (existingTags.length !== Tags.length) {
-       return res.status(400).json({ error: "One or more tags do not exist!" });
-     }
+//      // Check if all provided tags exist
+//      const existingTags = await TagsModel.find({ NameOfTags: { $in: Tags } });
+//      if (existingTags.length !== Tags.length) {
+//        return res.status(400).json({ error: "One or more tags do not exist!" });
+//      }
  
-     // Create the new activity
-     const newActivity = await ActivityModel.create({AdvertiserName,Name,Date,Time,SpecialDiscount,BookingOpen,
-       Price,Location,Category,Tags});
+//      // Create the new activity
+//      const newActivity = await ActivityModel.create({AdvertiserName,Name,Date,Time,SpecialDiscount,BookingOpen,
+//        Price,Location,Category,Tags});
  
-     // Send the created activity as a JSON response with a 200 OK status
-     res.status(200).json({ msg: "New activity is created!", activity: newActivity });
+//      // Send the created activity as a JSON response with a 200 OK status
+//      res.status(200).json({ msg: "New activity is created!", activity: newActivity });
      
-   } catch (error) {
-     // If an error occurs, send a 400 Bad Request status with the error message
-     res.status(400).json({ error: error.message });
-   }
- };
+//    } catch (error) {
+//      // If an error occurs, send a 400 Bad Request status with the error message
+//      res.status(400).json({ error: error.message });
+//    }
+//  };
  
 
-module.exports = {createNewAdmin, createNewTourismGoverner, createNewProduct, editProduct, acceptSeller, rejectSeller, createNewCategory, readAllActivityCategories, updateCategory, deleteActivityCategory, deleteAccount, searchProductAdmin, createNewTag, readAllTags, updateTag, deleteTag, createNewActivity};
+module.exports = {createNewAdmin, createNewTourismGoverner, createNewProduct, editProduct, acceptSeller, rejectSeller, createNewCategory, readAllActivityCategories, updateCategory, deleteActivityCategory, deleteAccount, searchProductAdmin, createNewTag, readAllTags, updateTag, deleteTag};

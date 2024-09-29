@@ -15,7 +15,7 @@ const {createNewHistoricalTag} = require("./Routes/TourismGovernorController");
 
 
 //const {createNewTourismGoverner, createNewAdmin, createNewProduct, editProduct} = require("./Routes/AdminController");
-const{createTourGuide, ReadTourGuideProfile , UpdateTourGuideEmail , UpdateTourGuidePassword, UpdateTourGuideMobileNum , UpdateTourGuideYearsofExperience ,UpdateTourGuidePreviousWork , UpdateTourGuideUserName} = require("./Routes/TourGuideController")
+const{createTourGuide, ReadTourGuideProfile , UpdateTourGuideEmail , UpdateTourGuidePassword, UpdateTourGuideMobileNum , UpdateTourGuideYearsofExperience ,UpdateTourGuidePreviousWork , UpdateTourGuideUserName, createItineraryAsTourGuide, readItineraryAsTourGuide, updateItineraryAsTourGuide, deleteItineraryAsTourGuide} = require("./Routes/TourGuideController")
 //importing a set of functions
 const MongoURI = process.env.MONGO_URI ;
 
@@ -85,7 +85,7 @@ app.post("/deleteAccount", deleteAccount);
 app.get("/searchProductAdmin", searchProductAdmin);
 app.get("/searchProductSeller", searchProductSeller);
 app.get("/searchProductTourist", searchProductTourist);
-app.post("/createNewActivity", createNewActivity);
+// app.post("/createNewActivity", createNewActivity);
 
 app.post("/addTourGuide",createTourGuide);
 app.get("/TourGuideProfile",ReadTourGuideProfile);
@@ -96,12 +96,18 @@ app.put("/updateTourGuideYearsofExperience",UpdateTourGuideYearsofExperience);
 app.put("/updateTourGuidePreviousWork",UpdateTourGuidePreviousWork);
 app.put("/updateTourGuideUsername",UpdateTourGuideUserName);
 app.post("/createHistoricalTag", createNewHistoricalTag);
+// Itinerary
+app.post("/createItinerary",createItineraryAsTourGuide);
+app.get("/readItinerary",readItineraryAsTourGuide);
+app.put("/updateItinerary",updateItineraryAsTourGuide);
+app.delete("/deleteItinerary",deleteItineraryAsTourGuide);
 
 // app.get("/users", getUsers);
 // app.put("/updateUser", updateUser);
 // app.delete("/deleteUser", deleteUser);
 
 app.use(express.static('public')); //shaghal el html
+
 
 
 /*
