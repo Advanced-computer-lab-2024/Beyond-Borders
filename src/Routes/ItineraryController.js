@@ -1,4 +1,4 @@
-const ItineraryModel = require('../Models/itinerary.js');
+const ItineraryModel = require('../Models/Itinerary.js');
 const { default: mongoose } = require('mongoose');
 
 
