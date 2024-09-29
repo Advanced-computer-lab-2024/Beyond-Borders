@@ -43,6 +43,21 @@ const updateSeller = async (req, res) => {
     }
   };
 
+  const createNewProductSeller = async(req,res) => {
+    //Destructure Name, Email, Age from the request body
+    const{Description,Price,Quantity, Seller,Picture} = req.body;
+    try{
+          //add a new user to the database with Name, Email and Age
+          const user = await NewProduct.create({Description,Price,Quantity, Seller,Picture, Reviews: "",Ratings: 0});
+          //Send the created use as a JSON response with a 200 OK status 
+          res.status(200).json({msg:"New Product is created!"});
+          //res.status(200).json(user);
+    } catch (error){
+       //If an error occurs, send a 400 Bad Request status with the error message
+       res.status(400).json({ error: error.message});
+    }
+ }
+
   const editProductSeller = async (req, res) => {
     const {ProductID} = req.body;  // Extract the _id from the request body
     //update a user in the database
@@ -70,4 +85,4 @@ const updateSeller = async (req, res) => {
       }
     };
 
-module.exports = {readSellerProfile, updateSeller, editProductSeller};
+module.exports = {readSellerProfile, updateSeller, editProductSeller, createNewProductSeller};
