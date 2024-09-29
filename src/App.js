@@ -8,12 +8,12 @@ const {createTourist,getTourist, updateTourist} = require("./Routes/TouristContr
 const {createUnregisteredAdvertiser} = require("./Routes/UnregisteredAdvertiserController");
 const {createUnregisteredTourGuide} = require("./Routes/UnregisteredTourGuideController");
 const {createUnregisteredSeller} = require("./Routes/UnregisteredSellerController");
-const {createNewTourismGoverner, createNewAdmin, createNewProduct, editProduct, acceptSeller, rejectSeller, createNewCategory, readAllActivityCategories,updateCategory, deleteActivityCategory} = require("./Routes/AdminController");
+const {createNewTourismGoverner, createNewAdmin, createNewProduct, editProduct, acceptSeller, rejectSeller, createNewCategory, readAllActivityCategories,updateCategory, deleteActivityCategory, deleteAccount} = require("./Routes/AdminController");
 const {readSellerProfile, updateSeller} = require("./Routes/AcceptedSellerController");
 
 
 //const {createNewTourismGoverner, createNewAdmin, createNewProduct, editProduct} = require("./Routes/AdminController");
-const{createTourGuide, ReadTourGuideProfile , UpdateTourGuideEmail , UpdateTourGuidePassword, UpdateTourGuideMobileNum , UpdateTourGuideYearsofExperience ,UpdateTourGuidePreviousWork , UpdateTourGuideUserName,} = require("./Routes/TourGuideController")
+const{createTourGuide, ReadTourGuideProfile , UpdateTourGuideEmail , UpdateTourGuidePassword, UpdateTourGuideMobileNum , UpdateTourGuideYearsofExperience ,UpdateTourGuidePreviousWork , UpdateTourGuideUserName} = require("./Routes/TourGuideController")
 //importing a set of functions
 const MongoURI = process.env.MONGO_URI ;
 
@@ -69,6 +69,8 @@ app.post("/createNewCategory", createNewCategory);
 app.get("/readAllActivityCategories", readAllActivityCategories);
 app.put("/updateCategory", updateCategory);
 app.post("/deleteActivityCategory", deleteActivityCategory);
+app.post("/deleteAccount", deleteAccount);
+
 app.post("/addTourGuide",createTourGuide);
 app.get("/TourGuideProfile",ReadTourGuideProfile);
 app.put("/updateTourGuideEmail",UpdateTourGuideEmail);

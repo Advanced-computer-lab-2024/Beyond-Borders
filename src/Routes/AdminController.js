@@ -6,6 +6,7 @@ const NewUnregisteredSellerModel = require('../Models/UnregisteredSeller.js');
 const NewAcceptedSellerModel = require('../Models/AcceptedSeller.js');
 const NewActivityCategoryModel = require('../Models/ActivityCategory.js');
 const AllUsernamesModel = require('../Models/AllUsernames.js');
+const AllTouristModel = require('../Models/Tourist.js');
 
 
 
@@ -199,19 +200,47 @@ const deleteActivityCategory = async (req, res) => {
 };
 
 const deleteAccount = async (req, res) => {
-   const { UnregisteredSellerID } = req.body;
+   const {Username} = req.body;
 
    try {
        // Find the unregistered seller by ID
-       const existingUser = await NewUnregisteredSellerModel.findById(UnregisteredSellerID);
+       const existingUser = await AllUsernamesModel.findOne({Username});
        
        if (existingUser) {
-           // Delete the unregistered seller
-           await NewUnregisteredSellerModel.findByIdAndDelete(UnregisteredSellerID);
+           // Delete username from AllUsernames Model
+           await AllUsernamesModel.findOneAndDelete({Username});
+           const existingTourist = await AllTouristModel.findOne({Username});
+           //const existingTourGuide = await AllTouristModel.findOne({Username});
+           const existingAdmin = await NewAdminModel.findOne({Username});
+           const existingSeller = await NewAcceptedSellerModel.findOne({Username});
+           //const existingAdvertiser = await AllTouristModel.findOne({Username});
+           const existingTourismGovernor = await NewTourismGoverner.findOne({Username});
+           if (existingTourist) {
+               await AllTouristModel.findOneAndDelete({Username});
+           }
+           else if(existingAdmin){
+               await NewAdminModel.findOneAndDelete({Username});
+           }
+           else if(existingSeller){
+               await NewAcceptedSellerModel.findOneAndDelete({Username});
+           }
+           else if(existingTourismGovernor){
+               await NewTourismGoverner.findOneAndDelete({Username});
+           }
+           //Redudant else
+           else{
+               res.status(404).json({ error: "Account with this username doest not exist." });
+           }
+         //   else if(){
+            
+         //   }
+         //   else if(){
+            
+         //   }
            // Respond with success message
-           res.status(200).json({ msg: "Seller has been rejected!" });
+           res.status(200).json({ msg: "Account has been deleted!" });
        } else {
-           res.status(404).json({ error: "Unregistered seller not found." });
+           res.status(404).json({ error: "Account with this username doest not exist." });
        }
    } catch (error) {
        // Handle any errors that occur during the process
@@ -219,4 +248,4 @@ const deleteAccount = async (req, res) => {
    }
 };
 
-module.exports = {createNewAdmin, createNewTourismGoverner, createNewProduct, editProduct, acceptSeller, rejectSeller, createNewCategory, readAllActivityCategories, updateCategory, deleteActivityCategory};
+module.exports = {createNewAdmin, createNewTourismGoverner, createNewProduct, editProduct, acceptSeller, rejectSeller, createNewCategory, readAllActivityCategories, updateCategory, deleteActivityCategory, deleteAccount};
