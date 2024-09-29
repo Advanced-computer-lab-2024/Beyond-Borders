@@ -187,4 +187,25 @@ const deleteActivityCategory = async (req, res) => {
  }
 };
 
+const deleteAccount = async (req, res) => {
+   const { UnregisteredSellerID } = req.body;
+
+   try {
+       // Find the unregistered seller by ID
+       const existingUser = await NewUnregisteredSellerModel.findById(UnregisteredSellerID);
+       
+       if (existingUser) {
+           // Delete the unregistered seller
+           await NewUnregisteredSellerModel.findByIdAndDelete(UnregisteredSellerID);
+           // Respond with success message
+           res.status(200).json({ msg: "Seller has been rejected!" });
+       } else {
+           res.status(404).json({ error: "Unregistered seller not found." });
+       }
+   } catch (error) {
+       // Handle any errors that occur during the process
+       res.status(400).json({ error: error.message });
+   }
+};
+
 module.exports = {createNewAdmin, createNewTourismGoverner, createNewProduct, editProduct, acceptSeller, rejectSeller, createNewCategory, readAllActivityCategories, updateCategory, deleteActivityCategory};

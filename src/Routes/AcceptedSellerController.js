@@ -19,6 +19,10 @@ const updateSeller = async (req, res) => {
     const { _id } = req.body;  // Extract the _id from the request body
   
     try {
+        if (req.body.Username) {
+            delete req.body.Username;
+            return res.status(404).json({ msg: "Cannot update username" });
+          }
       // Find and update the tourist with the fields provided in req.body
       const updatedSeller = await AcceptedSellerModel.findByIdAndUpdate(_id, req.body, {
         new: true,            // Return the updated document
