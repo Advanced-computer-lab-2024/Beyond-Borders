@@ -156,7 +156,7 @@ const createTourist = async(req,res) => {
       }
   };
 
-    
+
     
     
     /* const searchActivities = async (req, res) => {
@@ -209,9 +209,17 @@ const createTourist = async(req,res) => {
     }*/
 
       
-   
+      const searchProductTourist = async (req, res) => {
+         const {ProductName} = req.body;
+         try {
+             const fetchedProduct = await NewProduct.findOne({Name: ProductName}); //Fetch all categories
+             res.status(200).json(fetchedProduct);
+         } catch (error) {
+            res.status(200).json({ msg: "There is no product with this name!" });
+         }
+      };
 
     
 
 
-module.exports = {createTourist, getTourist, updateTourist};
+module.exports = {createTourist, getTourist, updateTourist, searchProductTourist};
