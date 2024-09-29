@@ -12,7 +12,7 @@ const {createUnregisteredSeller} = require("./Routes/UnregisteredSellerControlle
 const {createNewTourismGoverner, createNewAdmin, createNewProduct, editProduct, acceptSeller, rejectSeller, createNewCategory, readAllActivityCategories,updateCategory, deleteActivityCategory, deleteAccount, searchProductAdmin, createNewTag, readAllTags, updateTag, deleteTag, createNewActivity} = require("./Routes/AdminController");
 const {readSellerProfile, updateSeller, editProductSeller, createNewProductSeller, searchProductSeller} = require("./Routes/AcceptedSellerController");
 const {createNewHistoricalTag} = require("./Routes/TourismGovernorController");
-
+const{createAdvertiser , ReadAdvertiserProfile , updateAdvertiser} = require("./Routes/AdvertiserController");
 
 //const {createNewTourismGoverner, createNewAdmin, createNewProduct, editProduct} = require("./Routes/AdminController");
 const{createTourGuide, ReadTourGuideProfile , UpdateTourGuideEmail , UpdateTourGuidePassword, UpdateTourGuideMobileNum , UpdateTourGuideYearsofExperience ,UpdateTourGuidePreviousWork , UpdateTourGuideUserName, createItineraryAsTourGuide, readItineraryAsTourGuide, updateItineraryAsTourGuide, deleteItineraryAsTourGuide} = require("./Routes/TourGuideController")
@@ -85,8 +85,8 @@ app.post("/deleteAccount", deleteAccount);
 app.get("/searchProductAdmin", searchProductAdmin);
 app.get("/searchProductSeller", searchProductSeller);
 app.get("/searchProductTourist", searchProductTourist);
-// app.post("/createNewActivity", createNewActivity);
-
+app.post("/createNewActivity", createNewActivity);
+//Tour Guide
 app.post("/addTourGuide",createTourGuide);
 app.get("/TourGuideProfile",ReadTourGuideProfile);
 app.put("/updateTourGuideEmail",UpdateTourGuideEmail);
@@ -95,12 +95,18 @@ app.put("/updateTourGuideMobileNumber",UpdateTourGuideMobileNum);
 app.put("/updateTourGuideYearsofExperience",UpdateTourGuideYearsofExperience);
 app.put("/updateTourGuidePreviousWork",UpdateTourGuidePreviousWork);
 app.put("/updateTourGuideUsername",UpdateTourGuideUserName);
+//Tourist Governer
 app.post("/createHistoricalTag", createNewHistoricalTag);
 // Itinerary
 app.post("/createItinerary",createItineraryAsTourGuide);
 app.get("/readItinerary",readItineraryAsTourGuide);
 app.put("/updateItinerary",updateItineraryAsTourGuide);
 app.delete("/deleteItinerary",deleteItineraryAsTourGuide);
+//Advertiser
+app.post("/addAdvertiser",createAdvertiser);
+app.get("/AdvertiserProfile",ReadAdvertiserProfile);
+app.put("/updateAdvertiserProfile",updateAdvertiser);
+
 
 // app.get("/users", getUsers);
 // app.put("/updateUser", updateUser);
