@@ -152,7 +152,7 @@ const createTourist = async(req,res) => {
       }
   };
 
-
+    
     
     
     /* const searchActivities = async (req, res) => {

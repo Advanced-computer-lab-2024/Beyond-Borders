@@ -1,5 +1,6 @@
 // External variables
 const express = require("express"); //importing express
+const path = require('path');
 const mongoose = require('mongoose'); //importing mongoose
 mongoose.set('strictQuery', false);
 require("dotenv").config(); //load enviironment variables
@@ -8,8 +9,9 @@ const {createTourist,getTourist, updateTourist} = require("./Routes/TouristContr
 const {createUnregisteredAdvertiser} = require("./Routes/UnregisteredAdvertiserController");
 const {createUnregisteredTourGuide} = require("./Routes/UnregisteredTourGuideController");
 const {createUnregisteredSeller} = require("./Routes/UnregisteredSellerController");
-const {createNewTourismGoverner, createNewAdmin, createNewProduct, editProduct, acceptSeller, rejectSeller, createNewCategory, readAllActivityCategories,updateCategory, deleteActivityCategory, deleteAccount} = require("./Routes/AdminController");
-const {readSellerProfile, updateSeller} = require("./Routes/AcceptedSellerController");
+const {createNewTourismGoverner, createNewAdmin, createNewProduct, editProduct, acceptSeller, rejectSeller, createNewCategory, readAllActivityCategories,updateCategory, deleteActivityCategory, deleteAccount, searchProductAdmin} = require("./Routes/AdminController");
+const {readSellerProfile, updateSeller, editProductSeller, createNewProductSeller, searchProductSeller} = require("./Routes/AcceptedSellerController");
+
 
 
 //const {createNewTourismGoverner, createNewAdmin, createNewProduct, editProduct} = require("./Routes/AdminController");
@@ -22,6 +24,10 @@ const MongoURI = process.env.MONGO_URI ;
 const app = express(); //initialize express app
 const port = process.env.PORT || "8000"; //kda kda local host fa msh hayefre2
 const user = require('./Models/User'); //transparent so not used in javaScript
+
+// Serve static files from the 'public' directory
+app.use('/images', express.static(path.join(__dirname, 'public')));
+
 // #Importing the userController
 
 
@@ -58,7 +64,9 @@ app.post("/addUnregisteredAdvertiser", createUnregisteredAdvertiser);
 app.post("/addTourismGovernor", createNewTourismGoverner);
 app.post("/addAdmin", createNewAdmin);
 app.post("/addProduct", createNewProduct);
+app.post("/addProductSeller", createNewProductSeller);
 app.put("/editProduct", editProduct);
+app.put("/editProductSeller", editProductSeller);
 app.post("/acceptSeller", acceptSeller);
 app.post("/rejectSeller", rejectSeller);
 app.get("/viewTourist", getTourist);
@@ -70,6 +78,9 @@ app.get("/readAllActivityCategories", readAllActivityCategories);
 app.put("/updateCategory", updateCategory);
 app.post("/deleteActivityCategory", deleteActivityCategory);
 app.post("/deleteAccount", deleteAccount);
+app.get("/searchProductAdmin", searchProductAdmin);
+app.get("/searchProductSeller", searchProductSeller);
+
 
 app.post("/addTourGuide",createTourGuide);
 app.get("/TourGuideProfile",ReadTourGuideProfile);

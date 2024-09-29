@@ -60,13 +60,19 @@ const createNewTourismGoverner = async(req,res) => {
 
  const createNewProduct = async(req,res) => {
    //Destructure Name, Email, Age from the request body
-   const{Details,Price,Quantity} = req.body;
+   const{Name,Description,Price,Quantity, Seller,Picture} = req.body;
    try{
-      //add a new user to the database with Name, Email and Age
-      const user = await NewProduct.create({Details,Price,Quantity});
-      //Send the created use as a JSON response with a 200 OK status 
-      res.status(200).json({msg:"New Product is created!"});
-      //res.status(200).json(user);
+      const existingSeller = await NewAcceptedSellerModel.findOne({ Username: Seller });
+       if (existingSeller) {
+         //add a new user to the database with Name, Email and Age
+         const user = await NewProduct.create({Name,Description,Price,Quantity, Seller,Picture, Reviews: "",Ratings: 0});
+         //Send the created use as a JSON response with a 200 OK status 
+         res.status(200).json({msg:"New Product is created!"});
+         //res.status(200).json(user);
+       }
+      else{
+         res.status(400).json({msg:"This seller does not exist!"});
+      }
    } catch (error){
       //If an error occurs, send a 400 Bad Request status with the error message
       res.status(400).json({ error: error.message});
@@ -74,17 +80,23 @@ const createNewTourismGoverner = async(req,res) => {
 }
 
 const editProduct = async (req, res) => {
+   const {ProductID} = req.body;  // Extract the _id from the request body
    //update a user in the database
    try{
-      const{_id,Details,Price} = req.body;
-      const user = await NewProduct.findOneAndUpdate({_id: _id}, {Details,Price}, {new: true});
-      res.status(200).json(user);
-   } catch (error){
-      //If an error occurs, send a 400 Bad Request status with the error message
-      res.status(400).json({ error: error.message});
-   }
-   
-}
+      if (req.body.Seller) {
+         delete req.body.Seller;
+         return res.status(404).json({ msg: "Cannot update seller" });
+      }
+       const updatedProduct = await NewProduct.findByIdAndUpdate(ProductID, req.body, {
+         new: true,            // Return the updated document
+         runValidators: true,  // Ensure the updates respect schema validation rules
+       });
+       res.status(200).json(updatedProduct);
+     } catch (error) {
+       // Send a 400 error with the error message if something goes wrong
+       res.status(400).json({ error: error.message });
+     }
+   };
 
 const acceptSeller = async (req, res) => {
    const { UnregisteredSellerID } = req.body;
@@ -248,4 +260,14 @@ const deleteAccount = async (req, res) => {
    }
 };
 
-module.exports = {createNewAdmin, createNewTourismGoverner, createNewProduct, editProduct, acceptSeller, rejectSeller, createNewCategory, readAllActivityCategories, updateCategory, deleteActivityCategory, deleteAccount};
+const searchProductAdmin = async (req, res) => {
+   const {ProductName} = req.body;
+   try {
+       const fetchedProduct = await NewProduct.findOne({Name: ProductName}); //Fetch all categories
+       res.status(200).json(fetchedProduct);
+   } catch (error) {
+      res.status(200).json({ msg: "There is no product with this name!" });
+   }
+};
+
+module.exports = {createNewAdmin, createNewTourismGoverner, createNewProduct, editProduct, acceptSeller, rejectSeller, createNewCategory, readAllActivityCategories, updateCategory, deleteActivityCategory, deleteAccount, searchProductAdmin};
