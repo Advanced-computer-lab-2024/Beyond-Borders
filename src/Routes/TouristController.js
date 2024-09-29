@@ -30,7 +30,7 @@ const createTourist = async(req,res) => {
    }
 }
 
-const getTourist = async (req, res) => {
+/*const getTourist = async (req, res) => {
    //retrieve all users from the database
    const{_id} = req.body;
    try{
@@ -43,7 +43,27 @@ const getTourist = async (req, res) => {
       //If an error occurs, send a 400 Bad Request status with the error message
       res.status(400).json({ error: error.message});
    }
-  }
+  }*/
+
+  const getTourist = async (req, res) => {
+   // Retrieve the Username from the request body
+   const { Username } = req.body;
+   try {
+       // Find the tourist by Username
+       const user = await TouristModel.findOne({ Username }); // Use findOne to search by Username
+
+       // If no user is found, send a 404 response
+       if (!user) {
+           return res.status(404).json({ msg: "Tourist not found" });
+       }
+
+       // Send the found user as a JSON response with a 200 OK status
+       res.status(200).json(user);
+   } catch (error) {
+       // If an error occurs, send a 400 Bad Request status with the error message
+       res.status(400).json({ error: error.message });
+   }
+};
 
   /*const updateTourist = async (req, res) => {
    //update a user in the database
@@ -57,7 +77,7 @@ const getTourist = async (req, res) => {
    }
    
   }*/
-   const updateTourist = async (req, res) => {
+   /*const updateTourist = async (req, res) => {
       const { _id } = req.body;  // Extract the _id from the request body
     
       try {
@@ -84,7 +104,53 @@ const getTourist = async (req, res) => {
         // Send a 400 error with the error message if something goes wrong
         res.status(400).json({ error: error.message });
       }
-    };
+    };*/
+
+    const updateTourist = async (req, res) => {
+      const { Username } = req.body;  // Extract the Username from the request body
+  
+      try {
+          // Ensure that Username is provided
+          if (!Username) {
+              return res.status(400).json({ msg: "Username is required to update tourist." });
+          }
+  
+          // Create a new object for updates, excluding the Username and DoB
+          const { DoB, _id, ...updateData } = req.body; // Use rest operator to get the rest of the fields
+  
+          // Prevent updating Username
+          if (updateData.Username) {
+              delete updateData.Username; // Prevent updating Username
+          }
+  
+          // Prevent updating DoB
+          if (req.body.DoB) {
+            delete req.body.DoB;
+            return res.status(404).json({ msg: "Cannot update Date of Birth" });
+          }
+  
+          // Find and update the tourist with the fields provided in req.body (excluding Username and DoB)
+          const updatedTourist = await TouristModel.findOneAndUpdate(
+              { Username }, // Find by Username
+              updateData,   // Update with the rest of the fields
+              {
+                  new: true,            // Return the updated document
+                  runValidators: true,  // Ensure the updates respect schema validation rules
+              }
+          );
+  
+          // If no tourist is found with the given Username, send a 404 response
+          if (!updatedTourist) {
+              return res.status(404).json({ msg: "Tourist not found" });
+          }
+  
+          // Send back the updated tourist data
+          res.status(200).json(updatedTourist);
+      } catch (error) {
+          // Send a 400 error with the error message if something goes wrong
+          res.status(400).json({ error: error.message });
+      }
+  };
 
 
     
