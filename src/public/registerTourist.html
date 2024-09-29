@@ -91,7 +91,7 @@
     <div id="responseMessage" class="message"></div>
 </div>
 
-<script>
+<!-- <script>
     document.getElementById('touristForm').addEventListener('submit', async function(event) {
         event.preventDefault(); // Prevent form submission
 
@@ -131,7 +131,56 @@
             responseMessage.style.color = 'red';
         }
     });
+</script> -->
+
+
+
+
+<script>
+    document.getElementById('touristForm').addEventListener('submit', async function(event) {
+        event.preventDefault(); // Prevent form submission
+
+        const responseMessage = document.getElementById('responseMessage');
+        responseMessage.textContent = ''; // Clear previous messages
+
+        const formData = {
+            Email: document.getElementById('email').value,
+            Username: document.getElementById('username').value,
+            Password: document.getElementById('password').value,
+            MobileNumber: document.getElementById('mobileNumber').value,
+            DoB: document.getElementById('dob').value,
+            Nationality: document.getElementById('nationality').value,
+            Occupation: document.getElementById('occupation').value
+        };
+
+        try {
+            const response = await fetch('/addTourist', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(formData)
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                // Store the tourist data in local storage
+                localStorage.setItem('touristData', JSON.stringify(formData));
+
+                responseMessage.textContent = 'Tourist registered successfully!';
+                responseMessage.style.color = 'green';
+            } else {
+                responseMessage.textContent = `Error: ${result.error}`;
+                responseMessage.style.color = 'red';
+            }
+        } catch (error) {
+            responseMessage.textContent = 'An error occurred. Please try again.';
+            responseMessage.style.color = 'red';
+        }
+    });
 </script>
+
 
 
 <!--http://localhost:8000/registerTourist.html--> <!-- link el html page-->
