@@ -1,5 +1,6 @@
 // External variables
 const express = require("express"); //importing express
+const path = require('path');
 const mongoose = require('mongoose'); //importing mongoose
 mongoose.set('strictQuery', false);
 require("dotenv").config(); //load enviironment variables
@@ -12,6 +13,7 @@ const {createNewTourismGoverner, createNewAdmin, createNewProduct, editProduct, 
 const {readSellerProfile, updateSeller} = require("./Routes/AcceptedSellerController");
 
 
+
 //const {createNewTourismGoverner, createNewAdmin, createNewProduct, editProduct} = require("./Routes/AdminController");
 const{createTourGuide, ReadTourGuideProfile , UpdateTourGuideEmail , UpdateTourGuidePassword, UpdateTourGuideMobileNum , UpdateTourGuideYearsofExperience ,UpdateTourGuidePreviousWork , UpdateTourGuideUserName} = require("./Routes/TourGuideController")
 //importing a set of functions
@@ -22,6 +24,10 @@ const MongoURI = process.env.MONGO_URI ;
 const app = express(); //initialize express app
 const port = process.env.PORT || "8000"; //kda kda local host fa msh hayefre2
 const user = require('./Models/User'); //transparent so not used in javaScript
+
+// Serve static files from the 'public' directory
+app.use('/images', express.static(path.join(__dirname, 'public')));
+
 // #Importing the userController
 
 
