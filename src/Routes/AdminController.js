@@ -80,17 +80,23 @@ const createNewTourismGoverner = async(req,res) => {
 }
 
 const editProduct = async (req, res) => {
+   const {ProductID} = req.body;  // Extract the _id from the request body
    //update a user in the database
    try{
-      const{_id,Details,Price} = req.body;
-      const user = await NewProduct.findOneAndUpdate({_id: _id}, {Details,Price}, {new: true});
-      res.status(200).json(user);
-   } catch (error){
-      //If an error occurs, send a 400 Bad Request status with the error message
-      res.status(400).json({ error: error.message});
-   }
-   
-}
+      if (req.body.Seller) {
+         delete req.body.Seller;
+         return res.status(404).json({ msg: "Cannot update seller" });
+      }
+       const updatedProduct = await NewProduct.findByIdAndUpdate(ProductID, req.body, {
+         new: true,            // Return the updated document
+         runValidators: true,  // Ensure the updates respect schema validation rules
+       });
+       res.status(200).json(updatedProduct);
+     } catch (error) {
+       // Send a 400 error with the error message if something goes wrong
+       res.status(400).json({ error: error.message });
+     }
+   };
 
 const acceptSeller = async (req, res) => {
    const { UnregisteredSellerID } = req.body;

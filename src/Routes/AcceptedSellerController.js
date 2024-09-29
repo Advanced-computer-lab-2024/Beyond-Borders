@@ -1,5 +1,6 @@
 // #Task route solution
 const AcceptedSellerModel = require('../Models/AcceptedSeller.js');
+const NewProduct = require('../Models/Product.js');
 const { default: mongoose } = require('mongoose');
 
 const readSellerProfile = async(req,res) => {
@@ -42,4 +43,31 @@ const updateSeller = async (req, res) => {
     }
   };
 
-module.exports = {readSellerProfile, updateSeller};
+  const editProductSeller = async (req, res) => {
+    const {ProductID} = req.body;  // Extract the _id from the request body
+    //update a user in the database
+    try{
+        if (req.body.Seller) {
+            delete req.body.Seller;
+            return res.status(404).json({ msg: "Cannot edit seller" });
+        }
+       if (req.body.Reviews) {
+            delete req.body.Reviews;
+            return res.status(404).json({ msg: "Cannot edit Reviews" });
+        }
+        if (req.body.Ratings) {
+            delete req.body.Ratings;
+            return res.status(404).json({ msg: "Cannot edit Ratings" });
+        }
+        const updatedProduct = await NewProduct.findByIdAndUpdate(ProductID, req.body, {
+          new: true,            // Return the updated document
+          runValidators: true,  // Ensure the updates respect schema validation rules
+        });
+        res.status(200).json(updatedProduct);
+      } catch (error) {
+        // Send a 400 error with the error message if something goes wrong
+        res.status(400).json({ error: error.message });
+      }
+    };
+
+module.exports = {readSellerProfile, updateSeller, editProductSeller};
