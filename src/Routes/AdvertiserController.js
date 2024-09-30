@@ -24,7 +24,7 @@ const createAdvertiser = async(req,res) => {
           // return user; // Return the full user object if needed
          }
          else{
-             res.status(400).json({error : "Tour guide does not exist"});
+             res.status(400).json({error : "Advertiser does not exist"});
      
          }
        } catch (error) {
@@ -57,5 +57,6 @@ const createAdvertiser = async(req,res) => {
           res.status(400).json({ error: error.message });
         }
       };
-      
+    
+
       module.exports = {createAdvertiser , ReadAdvertiserProfile , updateAdvertiser};

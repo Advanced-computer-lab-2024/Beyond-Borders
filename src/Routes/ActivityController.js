@@ -1,7 +1,5 @@
 const ActivityModel = require('../Models/Activity.js');
-
-
-
+const { default: mongoose } = require('mongoose');
 const createNewActivity = async (req, res) => {
     // Destructure fields from the request body
     const { AdvertiserName, Name, Date, Time, SpecialDiscount, BookingOpen, Price, Location, Category, Tags } = req.body;
