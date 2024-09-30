@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Select Registration Type</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            padding: 20px;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            font-size: 20;
+        }
+        .container {
+            
+            background: #fff;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            width: 600px;
+            height: 500px;
+        }
+        h2 {
+            margin-bottom: 20px;
+        }
+        button {
+            background-color: #28a745;
+            color: white;
+            padding: 10px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 10px 0;
+            width: 90%;
+            margin-bottom: 20px;
+        }
+        button:hover {
+            background-color: #218838;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Select Registration Type</h2>
+    <button onclick="redirectTo('tourist')">Register as Tourist</button>
+    <button onclick="redirectTo('guide')">Register as Tour Guide</button>
+    <button onclick="redirectTo('seller')">Register as Seller</button>
+    <button onclick="redirectTo('advertiser')">Register as Advertiser</button>
+    <button onclick="redirectTo('admin')">Register as Admin</button>
+</div>
+
+<script>
+    function redirectTo(role) {
+        switch(role) {
+            case 'tourist':
+                window.location.href = 'registerTourist.html'; 
+                break;
+            case 'guide':
+                window.location.href = 'registerTourGuide.html'; 
+                break;
+            case 'seller':
+                window.location.href = 'registerSeller.html'; 
+            case 'advertiser':
+                window.location.href = 'registerAdvertiser.html'; 
+                break;
+            case 'admin':
+                window.location.href = 'addAdmin.html'; 
+                break;
+            default:
+                console.error('Unknown role:', role);
+        }
+    }
+</script>
+
+</body>
+</html>
