@@ -22,10 +22,15 @@ const createNewHistoricalTag = async(req,res) => {
     }
  };
 // Museums and historical places part as a Tourism governer
-const{CreateMuseumsAndHistoricalPlaces, getMuseumPlaceById, updateMuseumPlace ,deleteMuseumPlacebyID ,getMuseumsByAuthor} = require('./MuseumsAndHistoricalPlacesController');
+const{CreateMuseumsAndHistoricalPlaces} = require('./MuseumsAndHistoricalPlacesController');
+const{getMuseumPlaceById} = require('./MuseumsAndHistoricalPlacesController');
+const{updateMuseumPlace} = require('./MuseumsAndHistoricalPlacesController');
+const{deleteMuseumPlacebyID} = require('./MuseumsAndHistoricalPlacesController');
+const{getMuseumsByAuthor} = require('./MuseumsAndHistoricalPlacesController');
+
 const createMuseumsAsTourismGoverner = async(req,res) => {
    try{
-    await CreateMuseumsAndHistoricalPlaces(req.res);
+    await CreateMuseumsAndHistoricalPlaces(req,res);
    }  
    catch(error){
     res.status(500).json({error : error.msg});
