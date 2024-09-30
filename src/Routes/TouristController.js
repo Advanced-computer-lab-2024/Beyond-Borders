@@ -107,43 +107,28 @@ const createTourist = async(req,res) => {
     };*/
 
     const updateTourist = async (req, res) => {
-      const { Username } = req.body;  // Extract the Username from the request body
+      console.log('Request Body:', req.body);  // Log the request body
+      const { Username } = req.body;  // Extract the username from the request body
   
       try {
-          // Ensure that Username is provided
+          // Check if the Username is present
           if (!Username) {
-              return res.status(400).json({ msg: "Username is required to update tourist." });
+              return res.status(400).json({ msg: "Username is required" });
           }
   
-          // Create a new object for updates, excluding the Username and DoB
-          const { DoB, _id, ...updateData } = req.body; // Use rest operator to get the rest of the fields
+          // Remove 'Username' from the request body to prevent its update
+          const { Username: usernameToUpdate, ...updateFields } = req.body;
   
-          // Prevent updating Username
-          if (updateData.Username) {
-              delete updateData.Username; // Prevent updating Username
-          }
-  
-          // Prevent updating DoB
-          if (req.body.DoB) {
-            delete req.body.DoB;
-            return res.status(404).json({ msg: "Cannot update Date of Birth" });
-          }
-          if (req.body.Wallet) {
-            delete req.body.Wallet;
-            return res.status(404).json({ msg: "Cannot update the wallet" });
-          }
-  
-          // Find and update the tourist with the fields provided in req.body (excluding Username and DoB)
+          // Find and update the tourist with the provided username
           const updatedTourist = await TouristModel.findOneAndUpdate(
-              { Username }, // Find by Username
-              updateData,   // Update with the rest of the fields
-              {
+              { Username },  // Find by Username
+              updateFields, {
                   new: true,            // Return the updated document
                   runValidators: true,  // Ensure the updates respect schema validation rules
               }
           );
   
-          // If no tourist is found with the given Username, send a 404 response
+          // If no tourist is found with the given username, send a 404 response
           if (!updatedTourist) {
               return res.status(404).json({ msg: "Tourist not found" });
           }
@@ -151,11 +136,13 @@ const createTourist = async(req,res) => {
           // Send back the updated tourist data
           res.status(200).json(updatedTourist);
       } catch (error) {
-          // Send a 400 error with the error message if something goes wrong
-          res.status(400).json({ error: error.message });
+          // Log the error for better debugging
+          console.error('Update Error:', error);
+          res.status(500).json({ error: error.message }); // Changed to 500 for server errors
       }
   };
-
+  
+  
 
     
     

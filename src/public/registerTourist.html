@@ -123,7 +123,7 @@
                 responseMessage.textContent = 'Tourist registered successfully!';
                 responseMessage.style.color = 'green';
             } else {
-                responseMessage.textContent = `Error: ${result.error}`;
+                responseMessage.textContent = Error: ${result.error};
                 responseMessage.style.color = 'red';
             }
         } catch (error) {
@@ -133,9 +133,6 @@
     });
 </script> -->
 
-
-
-
 <script>
     document.getElementById('touristForm').addEventListener('submit', async function(event) {
         event.preventDefault(); // Prevent form submission
@@ -143,38 +140,45 @@
         const responseMessage = document.getElementById('responseMessage');
         responseMessage.textContent = ''; // Clear previous messages
 
+        // Collect form data
         const formData = {
             Email: document.getElementById('email').value,
-            Username: document.getElementById('username').value,
+            Username: document.getElementById('username').value, 
             Password: document.getElementById('password').value,
-            MobileNumber: document.getElementById('mobileNumber').value,
+            MobileNumber: document.getElementById('mobileNumber').value, 
             DoB: document.getElementById('dob').value,
             Nationality: document.getElementById('nationality').value,
             Occupation: document.getElementById('occupation').value
         };
 
         try {
+            // Send the POST request to register the tourist
             const response = await fetch('/addTourist', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify(formData)
+                body: JSON.stringify(formData) // Convert form data to JSON
             });
 
-            const result = await response.json();
+            const result = await response.json(); // Parse the response
 
-            if (response.ok) {
-                // Store the tourist data in local storage
-                localStorage.setItem('touristData', JSON.stringify(formData));
+            // Check if the response is successful and contains an ID
+            if (response.ok && result._id) {
+                localStorage.setItem('touristId', result._id); // Store the ID
+                localStorage.setItem('touristData', JSON.stringify(result)); // Store the full data
 
-                responseMessage.textContent = 'Tourist registered successfully!';
+                // Show the success message
+                responseMessage.textContent = 'Tourist registered successfully!'; // Corrected
                 responseMessage.style.color = 'green';
             } else {
-                responseMessage.textContent = `Error: ${result.error}`;
+                // Handle errors or cases where the ID is not returned
+                responseMessage.textContent = `Error: ${result.error || 'Failed to register tourist.'}`; // Corrected
                 responseMessage.style.color = 'red';
             }
         } catch (error) {
+            // Handle fetch errors
+            console.error('Fetch error:', error); // Log the error
             responseMessage.textContent = 'An error occurred. Please try again.';
             responseMessage.style.color = 'red';
         }
@@ -183,7 +187,8 @@
 
 
 
-<!--http://localhost:8000/registerTourist.html--> <!-- link el html page-->
+
+
 
 </body>
 </html>
