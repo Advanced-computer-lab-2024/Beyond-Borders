@@ -75,40 +75,29 @@ const createTourist = async (req, res) => {
    }
 };
 
-  /*const updateTourist = async (req, res) => {
-   //update a user in the database
-   try{
-      const{_id} = req.body;
-      const updatedTourist = await TouristModel.findByIdAndUpdate(_id, req.body, {new: true});
-      res.status(200).json(user);
-   } catch (error){
-      //If an error occurs, send a 400 Bad Request status with the error message
-      res.status(400).json({ error: error.message});
-   }
-   
-  }*/
+  
    /*const updateTourist = async (req, res) => {
-      const { _id } = req.body;  // Extract the _id from the request body
-    
+      const { _id } = req.body;
       try {
-        // Remove 'Username' from the request body to prevent its update
         if (req.body.Username) {
           delete req.body.Username;
           return res.status(404).json({ msg: "Cannot update username" });
         }
-    
-        // Find and update the tourist with the fields provided in req.body (excluding Username)
+        if (req.body.DoB) {
+          delete req.body.DoB;
+          return res.status(404).json({ msg: "Cannot update date of birth" });
+        }
+        if (req.body.Wallet) {
+          delete req.body.Wallet;
+          return res.status(404).json({ msg: "Cannot update wallet" });
+        }
         const updatedTourist = await TouristModel.findByIdAndUpdate(_id, req.body, {
           new: true,            // Return the updated document
           runValidators: true,  // Ensure the updates respect schema validation rules
         });
-    
-        // If no tourist is found with the given ID, send a 404 response
         if (!updatedTourist) {
           return res.status(404).json({ msg: "Tourist not found" });
         }
-    
-        // Send back the updated tourist data
         res.status(200).json(updatedTourist);
       } catch (error) {
         // Send a 400 error with the error message if something goes wrong
@@ -117,41 +106,42 @@ const createTourist = async (req, res) => {
     };*/
 
     const updateTourist = async (req, res) => {
-      console.log('Request Body:', req.body);  // Log the request body
-      const { Username } = req.body;  // Extract the username from the request body
-  
+      const { Username } = req.body; 
+      if (!Username) {
+          return res.status(400).json({ msg: "Username is required" });
+      }
+      const updateFields = { ...req.body }; 
+      if (updateFields.Username) {
+          delete updateFields.Username;
+      }
+      if (updateFields.DoB) {
+          delete updateFields.DoB;
+          return res.status(404).json({ msg: "Cannot update date of birth " }); 
+      }
+      if (updateFields.Wallet) {
+          delete updateFields.Wallet;
+          return res.status(404).json({ msg: "Cannot update wallet " }); 
+      }
       try {
-          // Check if the Username is present
-          if (!Username) {
-              return res.status(400).json({ msg: "Username is required" });
-          }
-  
-          // Remove 'Username' from the request body to prevent its update
-          const { Username: usernameToUpdate, ...updateFields } = req.body;
-  
-          // Find and update the tourist with the provided username
           const updatedTourist = await TouristModel.findOneAndUpdate(
-              { Username },  // Find by Username
-              updateFields, {
-                  new: true,            // Return the updated document
-                  runValidators: true,  // Ensure the updates respect schema validation rules
+              { Username }, 
+              updateFields, 
+              {
+                  new: true,            
+                  runValidators: true,  
               }
           );
-  
-          // If no tourist is found with the given username, send a 404 response
           if (!updatedTourist) {
               return res.status(404).json({ msg: "Tourist not found" });
           }
-  
-          // Send back the updated tourist data
           res.status(200).json(updatedTourist);
       } catch (error) {
-          // Log the error for better debugging
-          console.error('Update Error:', error);
-          res.status(500).json({ error: error.message }); // Changed to 500 for server errors
+          // Send a 400 error with the error message if something goes wrong
+          res.status(400).json({ error: error.message });
       }
   };
-  
+
+    
   
 
     
