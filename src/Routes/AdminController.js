@@ -11,7 +11,8 @@ const TagsModel = require('../Models/Tags.js');
 const ActivityModel = require('../Models/Activity.js');
 const NewUnregisteredTourGuideModel = require('../Models/UnregisteredTourGuide.js');
 const NewAcceptedTourGuideModel = require('../Models/TourGuide.js');
-
+const NewUnregisteredAdvertiserModel = require('../Models/UnregisteredAdvertiser.js');
+const NewAcceptedAdvertiserModel = require('../Models/Advertiser.js');
 
 
 
@@ -153,6 +154,30 @@ const acceptTourGuide = async (req, res) => {
     }
  };
 
+ const acceptAdvertiser = async (req, res) => {
+    const {AdvertiserUsername} = req.body;
+ 
+    try {
+        // Find the unregistered seller by ID
+        const existingUser = await NewUnregisteredAdvertiserModel.findOne({Username: AdvertiserUsername});
+        
+        if (existingUser) {
+            // Create a new accepted seller with the existing user's details
+            const {Username,Email,Password,Website,Hotline,CompanyProfile} = existingUser; // Destructure the relevant fields
+            const createdSeller = await NewAcceptedAdvertiserModel.create({Username,Email,Password,Website,Hotline,CompanyProfile});
+            // Delete the unregistered seller
+            await NewUnregisteredAdvertiserModel.findOneAndDelete({Username: AdvertiserUsername});
+            // Respond with success message
+            res.status(200).json({ msg: "Advertiser has been accepted!" });
+        } else {
+            res.status(404).json({ error: "Unregistered Advertiser not found." });
+        }
+    } catch (error) {
+        // Handle any errors that occur during the process
+        res.status(400).json({ error: error.message });
+    }
+ };
+
 const rejectSeller = async (req, res) => {
    const { UnregisteredSellerID } = req.body;
 
@@ -194,6 +219,30 @@ const rejectTourGuide = async (req, res) => {
             res.status(200).json({ msg: "Tour Guide has been rejected!" });
         } else {
             res.status(404).json({ error: "Tour Guide not found." });
+        }
+    } catch (error) {
+        // Handle any errors that occur during the process
+        res.status(400).json({ error: error.message });
+    }
+ };
+
+ const rejectAdvertiser = async (req, res) => {
+    const {AdvertiserUsername} = req.body;
+ 
+    try {
+        // Find the unregistered seller by ID
+        const existingUser = await NewUnregisteredAdvertiserModel.findOne({Username: AdvertiserUsername});
+        
+        if (existingUser) {
+             // Extract Username
+             const {Username} = existingUser;
+             await AllUsernamesModel.findOneAndDelete({Username});
+            // Delete the unregistered seller
+            await NewUnregisteredAdvertiserModel.findOneAndDelete({Username: AdvertiserUsername});
+            // Respond with success message
+            res.status(200).json({ msg: "Advertiser has been rejected!" });
+        } else {
+            res.status(404).json({ error: "Advertiser not found." });
         }
     } catch (error) {
         // Handle any errors that occur during the process
@@ -473,4 +522,4 @@ const searchProductAdmin = async (req, res) => {
 //  };
  
 
-module.exports = {createNewAdmin, createNewTourismGoverner, createNewProduct, editProduct, acceptSeller, rejectSeller, createNewCategory, readAllActivityCategories, updateCategory, deleteActivityCategory, deleteAccount, searchProductAdmin, createNewTag, readAllTags, updateTag, deleteTag, acceptTourGuide, rejectTourGuide};
+module.exports = {createNewAdmin, createNewTourismGoverner, createNewProduct, editProduct, acceptSeller, rejectSeller, createNewCategory, readAllActivityCategories, updateCategory, deleteActivityCategory, deleteAccount, searchProductAdmin, createNewTag, readAllTags, updateTag, deleteTag, acceptTourGuide, rejectTourGuide, acceptAdvertiser, rejectAdvertiser};

@@ -10,10 +10,10 @@ const {createTourist,getTourist, updateTourist, searchProductTourist} = require(
 const {createUnregisteredAdvertiser} = require("./Routes/UnregisteredAdvertiserController");
 const {createUnregisteredTourGuide} = require("./Routes/UnregisteredTourGuideController");
 const {createUnregisteredSeller} = require("./Routes/UnregisteredSellerController");
-const {createNewTourismGoverner, createNewAdmin, createNewProduct, editProduct, acceptSeller, rejectSeller, createNewCategory, readAllActivityCategories,updateCategory, deleteActivityCategory, deleteAccount, searchProductAdmin, createNewTag, readAllTags, updateTag, deleteTag, acceptTourGuide, rejectTourGuide} = require("./Routes/AdminController");
+const {createNewTourismGoverner, createNewAdmin, createNewProduct, editProduct, acceptSeller, rejectSeller, createNewCategory, readAllActivityCategories,updateCategory, deleteActivityCategory, deleteAccount, searchProductAdmin, createNewTag, readAllTags, updateTag, deleteTag, acceptTourGuide, rejectTourGuide, acceptAdvertiser, rejectAdvertiser} = require("./Routes/AdminController");
 const {readSellerProfile, updateSeller, editProductSeller, createNewProductSeller, searchProductSeller} = require("./Routes/AcceptedSellerController");
 const {createNewHistoricalTag,createMuseumsAsTourismGoverner,getMuseumPlaceByIdAsTourismGoverner,updateMuseumPlaceAsTourismGoverner,deleteMuseumPlaceAsTourismGoverner,getMuseumsByAuthorAsTourismGoverner} = require("./Routes/TourismGovernorController");
-const{createAdvertiser , ReadAdvertiserProfile , updateAdvertiser} = require("./Routes/AdvertiserController");
+const{ReadAdvertiserProfile , updateAdvertiser} = require("./Routes/AdvertiserController");
 
 //const {createNewTourismGoverner, createNewAdmin, createNewProduct, editProduct} = require("./Routes/AdminController");
 const{ReadTourGuideProfile , UpdateTourGuideEmail , UpdateTourGuidePassword, UpdateTourGuideMobileNum , UpdateTourGuideYearsofExperience ,UpdateTourGuidePreviousWork, createItineraryAsTourGuide, readItineraryAsTourGuide, updateItineraryAsTourGuide, deleteItineraryAsTourGuide, updateTourGuideProfile} = require("./Routes/TourGuideController")
@@ -70,8 +70,10 @@ app.put("/editProduct", editProduct);
 app.put("/editProductSeller", editProductSeller);
 app.post("/acceptSeller", acceptSeller);
 app.post("/acceptTourGuide", acceptTourGuide);
+app.post("/acceptAdvertiser", acceptAdvertiser);
 app.post("/rejectSeller", rejectSeller);
 app.post("/rejectTourGuide", rejectTourGuide);
+app.post("/rejectAdvertiser", rejectAdvertiser);
 app.get("/viewTourist", getTourist);
 app.put("/updateTourist", updateTourist);
 app.get("/readSellerProfile", readSellerProfile);
@@ -113,7 +115,7 @@ app.get("/readItinerary",readItineraryAsTourGuide);
 app.put("/updateItinerary",updateItineraryAsTourGuide);
 app.delete("/deleteItinerary",deleteItineraryAsTourGuide);
 //Advertiser
-app.post("/addAdvertiser",createAdvertiser);
+//app.post("/addAdvertiser",createAdvertiser);
 app.get("/AdvertiserProfile",ReadAdvertiserProfile);
 app.put("/updateAdvertiserProfile",updateAdvertiser);
 
