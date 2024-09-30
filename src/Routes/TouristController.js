@@ -2,7 +2,7 @@
 const TouristModel = require('../Models/Tourist.js');
 const AllUsernamesModel = require('../Models/AllUsernames.js');
 
-//const ActivityModel = require('../Models/Activity.js');
+const ActivityModel = require('../Models/Activity.js');
 //const MuseumModel = require('../Models/Museum.js');
 //const ItineraryModel = require('../Models/Itinerary.js');
 const { default: mongoose } = require('mongoose');
@@ -206,7 +206,64 @@ const createTourist = async (req, res) => {
          }
       };
 
+      /*const filterUpcomingActivities = async (req, res) => {
+        const { category, price, date } = req.query; // Get filters from the request query
+      
+        // Create a base query for upcoming activities
+        const query = {
+          Date: { $gte: new Date() }, // Ensure the activities are upcoming
+        };
+      
+        // Add filters to the query if they are provided
+        if (category) {
+          query.Category = category;
+        }
+      
+        if (date) {
+          query.Date = { $gte: new Date(date) }; // Filter for activities on or after the specified date
+        }
+      
+        console.log('Query:', query); // Debugging: Log the constructed query
+      
+        try {
+          const upcomingActivities = await ActivityModel.find(query).sort({ Date: 1 });
+          res.status(200).json(upcomingActivities); // Send response with activities
+        } catch (error) {
+          console.error('Error fetching upcoming activities:', error);
+          res.status(500).json({ message: 'Internal server error' }); // Send error response
+        }
+      };*/
+
+      const filterActivities = async (req, res) => {
+        const { Category, Price, Date } = req.body; // Extract category and price from the request body
+        const query = {}; // Initialize an empty query object
+        
+        if (Category) {
+          query.Category = Category; 
+        }
+        if (Price) {
+          query.Price = Price;
+        }
+        if (Date) {
+          query.Date = Date; 
+        }
+      
+        try {
+          const fetchedActivities = await ActivityModel.find(query); // Fetch activities based on the constructed query
+          if (fetchedActivities.length === 0) {
+            return res.status(404).json({ msg: "No activities found for the given criteria!" });
+          }
+          res.status(200).json(fetchedActivities); // Respond with the fetched activities
+        } catch (error) {
+          console.error('Error fetching activities:', error);
+          res.status(500).json({ msg: "An error occurred while fetching activities." });
+        }
+      };
+
+
+
+
     
 
 
-module.exports = {createTourist, getTourist, updateTourist, searchProductTourist};
+module.exports = {createTourist, getTourist, updateTourist, searchProductTourist, filterActivities};
