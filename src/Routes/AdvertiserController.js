@@ -1,4 +1,9 @@
 const AdvertiserModel = require('../Models/Advertiser.js');
+const ActivityModel = require('../Models/Activity.js');
+const TagsModel = require('../Models/Tags.js');
+const NewActivityCategoryModel = require('../Models/ActivityCategory.js');
+
+
 const { default: mongoose } = require('mongoose');
 
 // const createAdvertiser = async(req,res) => {
@@ -49,5 +54,59 @@ const { default: mongoose } = require('mongoose');
         }
       };
     
+      const createNewActivity = async (req, res) => {
+        // Destructure fields from the request body
+        const { AdvertiserName, Name, Date, Time, SpecialDiscount, BookingOpen, Price, Location, Category, Tags } = req.body;
+      
+        try {
+          // Check if the category exists
+          const existingCategory = await NewActivityCategoryModel.findOne({ NameOfCategory: Category });
+          if (!existingCategory) {
+            return res.status(400).json({ error: "Selected category does not exist!" });
+          }
+      
+          // Check if all provided tags exist
+          const existingTags = await TagsModel.find({ NameOfTags: { $in: Tags } });
+          if (existingTags.length !== Tags.length) {
+            return res.status(400).json({ error: "One or more tags do not exist!" });
+          }
 
-      module.exports = {ReadAdvertiserProfile , updateAdvertiser};
+          // Check if an activity with the same name already exists
+          const existingActivity = await ActivityModel.findOne({ Name: Name });
+          if (existingActivity) {
+              return res.status(400).json({ error: "Activity with this name already exists!" });
+          }
+      
+          // Create the new activity
+          const newActivity = await ActivityModel.create({AdvertiserName,Name,Date,Time,SpecialDiscount,BookingOpen,
+            Price,Location,Category,Tags});
+      
+          // Send the created activity as a JSON response with a 200 OK status
+          res.status(200).json({ msg: "New activity is created!"});
+          
+        } catch (error) {
+          // If an error occurs, send a 400 Bad Request status with the error message
+          res.status(400).json({ error: error.message });
+        }
+      };
+
+      const readActivity = async (req, res) => {
+        // Destructure fields from the request body
+        const {Name} = req.body;
+      
+        try {
+          // Check if an activity with the same name already exists
+          const existingActivity = await ActivityModel.findOne({ Name: Name });
+          if (existingActivity) {
+            res.status(200).json(existingActivity);
+          }
+          else{
+            res.status(400).json({ error: "no activity with this name!" });
+          }
+        } catch (error) {
+          // If an error occurs, send a 400 Bad Request status with the error message
+          res.status(400).json({ error: error.message });
+        }
+      };
+
+      module.exports = {ReadAdvertiserProfile , updateAdvertiser, createNewActivity, readActivity};
