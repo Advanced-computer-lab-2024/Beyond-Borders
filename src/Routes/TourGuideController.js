@@ -152,6 +152,76 @@ const  UpdateTourGuidePassword = async(req,res) =>{
         catch(error){
             res.status(400).json({error : error.message});
         }
+
+
+
     }
 
-module.exports = {createTourGuide, ReadTourGuideProfile , UpdateTourGuideEmail , UpdateTourGuidePassword, UpdateTourGuideMobileNum , UpdateTourGuideYearsofExperience ,UpdateTourGuidePreviousWork , UpdateTourGuideUserName};
+
+
+
+    // Itinerary Part As A TourGuide
+    const { createItinerary } = require('./ItineraryController');
+    const { readItineraryByTitle } = require('./ItineraryController');
+    const { updateItineraryByTitle } = require('./ItineraryController');
+    const { deleteItineraryByTitle } = require('./ItineraryController');
+
+// Assuming the tour guide will have other methods too, like managing itineraries
+
+const createItineraryAsTourGuide = async (req, res) => {
+  try {
+    // You can add any additional logic specific to the tour guide here (e.g., verify the tour guide's role)
+
+    // Call the existing createItinerary method and pass the req, res objects
+    await createItinerary(req, res);
+    
+  } catch (error) {
+    res.status(500).json({ error: "An error occurred while creating the itinerary." });
+  }
+};
+// Import the Itinerary model
+const ItineraryModel = require('../Models/Itinerary.js');
+
+// Search itineraries by title
+
+const readItineraryAsTourGuide = async (req, res) => {
+    try {
+      // You can add any additional logic specific to the tour guide here (e.g., verify the tour guide's role)
+      
+      // Call the existing readItineraryByTitle method and pass the req, res objects
+      await readItineraryByTitle(req, res);
+      
+    } catch (error) {
+      res.status(500).json({ error: "An error occurred while retrieving the itinerary." });
+    }
+  };
+  const updateItineraryAsTourGuide = async (req, res) => {
+    try {
+      // You can add any additional logic specific to the tour guide here (e.g., verify the tour guide's role)
+      
+      // Call the existing updateItineraryByTitle method and pass the req, res objects
+      await updateItineraryByTitle(req, res);
+      
+    } catch (error) {
+      res.status(500).json({ error: "An error occurred while updating the itinerary." });
+    }
+  };
+  const deleteItineraryAsTourGuide = async (req, res) => {
+    try {
+      // You can add any additional logic specific to the tour guide here (e.g., verify the tour guide's role)
+      
+      // Call the existing deleteItineraryByTitle method and pass the req, res objects
+      await deleteItineraryByTitle(req, res);
+      
+    } catch (error) {
+      res.status(500).json({ error: "An error occurred while deleting the itinerary." });
+    }
+  };
+  
+  
+
+  
+  
+
+
+module.exports = {createTourGuide, ReadTourGuideProfile , UpdateTourGuideEmail , UpdateTourGuidePassword, UpdateTourGuideMobileNum , UpdateTourGuideYearsofExperience ,UpdateTourGuidePreviousWork , UpdateTourGuideUserName,createItineraryAsTourGuide,readItineraryAsTourGuide,updateItineraryAsTourGuide,deleteItineraryAsTourGuide};

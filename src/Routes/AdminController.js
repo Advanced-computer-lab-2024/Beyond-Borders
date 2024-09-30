@@ -220,65 +220,117 @@ const updateCategory = async (req, res) => {
        if (!updatedCategory) {
            return res.status(404).json({ error: "Category not found." }); // Handle case where category does not exist
        }
+       // Update the Category field in all Activities that have this old category name
+       await ActivityModel.updateMany(
+         { Category: oldCategoryName }, // Find activities with the old category
+         { Category: newCategoryName } // Update the category to the new name
+     );
        res.status(200).json(updatedCategory);
    } catch (error) {
        res.status(400).json({ error: error.message });
    }
 };
 
+// const updateTag = async (req, res) => {
+//    const {oldTagName,newTagName} = req.body;
+//    try {
+//        // Find the category by the old name and update it
+//        const updatedTag = await TagsModel.findOneAndUpdate(
+//            {NameOfTags: oldTagName}, //Find the category with the old name 
+//            {NameOfTags: newTagName}, //Update the category name
+//            {new: true} // Return the updated document
+//        );
+//        if (!updatedTag) {
+//            return res.status(404).json({ error: "Tag not found." }); // Handle case where category does not exist
+//        }
+//        await ActivityModel.updateMany(
+//          { NameOfTags: oldTagName }, // Find activities that have the old tag
+//          { $set: { NameOfTags: { $map: { input: "$Tags", as: "tag", in: { $cond: { if: { $eq: ["$$tag", oldTagName] }, then: newTagName, else: "$$tag" } } } } } } // Replace old tag with new tag
+//      );
+//        res.status(200).json(updatedTag);
+//    } catch (error) {
+//        res.status(400).json({ error: error.message });
+//    }
+// };
+
 const updateTag = async (req, res) => {
-   const {oldTagName,newTagName} = req.body;
-   try {
-       // Find the category by the old name and update it
-       const updatedTag = await TagsModel.findOneAndUpdate(
-           {NameOfTags: oldTagName}, //Find the category with the old name 
-           {NameOfTags: newTagName}, //Update the category name
-           {new: true} // Return the updated document
-       );
-       if (!updatedTag) {
-           return res.status(404).json({ error: "Tag not found." }); // Handle case where category does not exist
-       }
-       res.status(200).json(updatedTag);
-   } catch (error) {
-       res.status(400).json({ error: error.message });
-   }
+    const { oldTagName, newTagName } = req.body;
+    
+    try {
+        // Step 1: Update the tag in the TagsModel
+        const updatedTag = await TagsModel.findOneAndUpdate(
+            { NameOfTags: oldTagName },
+            { NameOfTags: newTagName },
+            { new: true }
+        );
+
+        if (!updatedTag) {
+            return res.status(404).json({ error: "Tag not found." });
+        }
+
+        // Step 2: Update activities that have the old tag
+        const activities = await ActivityModel.find({ Tags: oldTagName });
+
+        // Loop through each activity and update the Tags array
+        for (const activity of activities) {
+            const updatedTags = activity.Tags.map(tag =>
+                tag === oldTagName ? newTagName : tag
+            );
+
+            // Save the updated activity
+            await ActivityModel.findByIdAndUpdate(activity._id, { Tags: updatedTags });
+        }
+
+        res.status(200).json({ msg: "Tag and related activities updated successfully." });
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
 };
+
 
 const deleteActivityCategory = async (req, res) => {
-   const { CategoryName } = req.body;
+    const { CategoryName } = req.body;
 
-   try {
-       const category = await NewActivityCategoryModel.findOne({NameOfCategory: CategoryName});
-       if (category) {
-         await NewActivityCategoryModel.findOneAndDelete({NameOfCategory: CategoryName});
-         res.status(200).json({ msg: "Category has been deleted!" });
-      }
-       else {
-         return res.status(404).json({ error: "Category not found." }); // Handle case where category does not exist
-       }
-     //res.status(200).json(updatedCategory);
- } catch (error) {
-     res.status(400).json({ error: error.message });
- }
+    try {
+        const category = await NewActivityCategoryModel.findOne({ NameOfCategory: CategoryName });
+        if (!category) {
+            return res.status(404).json({ error: "Category not found." });
+        }
+        await NewActivityCategoryModel.findOneAndDelete({ NameOfCategory: CategoryName });
+        await ActivityModel.deleteMany({ Category: CategoryName }); // Delete activities with this category
+
+        res.status(200).json({ msg: "Category has been deleted and associated activities removed!" });
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
 };
+
 
 const deleteTag = async (req, res) => {
-   const { TagName } = req.body;
+    const { TagName } = req.body;
 
-   try {
-       const tag = await TagsModel.findOne({NameOfTags: TagName});
-       if (tag) {
-         await TagsModel.findOneAndDelete({NameOfTags: TagName});
-         res.status(200).json({ msg: "Tag has been deleted!" });
-      }
-       else {
-         return res.status(404).json({ error: "Tag not found." }); // Handle case where category does not exist
-       }
-     //res.status(200).json(updatedCategory);
- } catch (error) {
-     res.status(400).json({ error: error.message });
- }
+    try {
+        // Step 1: Check if the tag exists
+        const tag = await TagsModel.findOne({ NameOfTags: TagName });
+        if (!tag) {
+            return res.status(404).json({ error: "Tag not found." });
+        }
+
+        // Step 2: Delete the tag from TagsModel
+        await TagsModel.findOneAndDelete({ NameOfTags: TagName });
+
+        // Step 3: Update activities to remove the deleted tag
+        await ActivityModel.updateMany(
+            { Tags: TagName }, // Find activities that have the tag
+            { $pull: { Tags: TagName } } // Remove the tag from the Tags array
+        );
+
+        res.status(200).json({ msg: "Tag has been deleted and removed from activities!" });
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
 };
+
 
 const deleteAccount = async (req, res) => {
    const {Username} = req.body;
@@ -339,35 +391,35 @@ const searchProductAdmin = async (req, res) => {
    }
 };
 
-const createNewActivity = async (req, res) => {
-   // Destructure fields from the request body
-   const { AdvertiserName, Name, Date, Time, SpecialDiscount, BookingOpen, Price, Location, Category, Tags } = req.body;
+// const createNewActivity = async (req, res) => {
+//    // Destructure fields from the request body
+//    const { AdvertiserName, Name, Date, Time, SpecialDiscount, BookingOpen, Price, Location, Category, Tags } = req.body;
  
-   try {
-     // Check if the category exists
-     const existingCategory = await NewActivityCategoryModel.findOne({ NameOfCategory: Category });
-     if (!existingCategory) {
-       return res.status(400).json({ error: "Selected category does not exist!" });
-     }
+//    try {
+//      // Check if the category exists
+//      const existingCategory = await NewActivityCategoryModel.findOne({ NameOfCategory: Category });
+//      if (!existingCategory) {
+//        return res.status(400).json({ error: "Selected category does not exist!" });
+//      }
  
-     // Check if all provided tags exist
-     const existingTags = await TagsModel.find({ NameOfTags: { $in: Tags } });
-     if (existingTags.length !== Tags.length) {
-       return res.status(400).json({ error: "One or more tags do not exist!" });
-     }
+//      // Check if all provided tags exist
+//      const existingTags = await TagsModel.find({ NameOfTags: { $in: Tags } });
+//      if (existingTags.length !== Tags.length) {
+//        return res.status(400).json({ error: "One or more tags do not exist!" });
+//      }
  
-     // Create the new activity
-     const newActivity = await ActivityModel.create({AdvertiserName,Name,Date,Time,SpecialDiscount,BookingOpen,
-       Price,Location,Category,Tags});
+//      // Create the new activity
+//      const newActivity = await ActivityModel.create({AdvertiserName,Name,Date,Time,SpecialDiscount,BookingOpen,
+//        Price,Location,Category,Tags});
  
-     // Send the created activity as a JSON response with a 200 OK status
-     res.status(200).json({ msg: "New activity is created!", activity: newActivity });
+//      // Send the created activity as a JSON response with a 200 OK status
+//      res.status(200).json({ msg: "New activity is created!", activity: newActivity });
      
-   } catch (error) {
-     // If an error occurs, send a 400 Bad Request status with the error message
-     res.status(400).json({ error: error.message });
-   }
- };
+//    } catch (error) {
+//      // If an error occurs, send a 400 Bad Request status with the error message
+//      res.status(400).json({ error: error.message });
+//    }
+//  };
  
 
-module.exports = {createNewAdmin, createNewTourismGoverner, createNewProduct, editProduct, acceptSeller, rejectSeller, createNewCategory, readAllActivityCategories, updateCategory, deleteActivityCategory, deleteAccount, searchProductAdmin, createNewTag, readAllTags, updateTag, deleteTag, createNewActivity};
+module.exports = {createNewAdmin, createNewTourismGoverner, createNewProduct, editProduct, acceptSeller, rejectSeller, createNewCategory, readAllActivityCategories, updateCategory, deleteActivityCategory, deleteAccount, searchProductAdmin, createNewTag, readAllTags, updateTag, deleteTag};

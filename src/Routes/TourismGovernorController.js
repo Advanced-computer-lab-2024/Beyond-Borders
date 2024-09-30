@@ -21,8 +21,48 @@ const createNewHistoricalTag = async(req,res) => {
        res.status(400).json({ error: error.message});
     }
  };
-
-
+// Museums and historical places part as a Tourism governer
+const{CreateMuseumsAndHistoricalPlaces, getMuseumPlaceById, updateMuseumPlace ,deleteMuseumPlacebyID ,getMuseumsByAuthor} = require('./MuseumsAndHistoricalPlacesController');
+const createMuseumsAsTourismGoverner = async(req,res) => {
+   try{
+    await CreateMuseumsAndHistoricalPlaces(req.res);
+   }  
+   catch(error){
+    res.status(500).json({error : error.msg});
+   }
+}
+const getMuseumPlaceByIdAsTourismGoverner = async(req,res) =>{
+   try{
+      await getMuseumPlaceById(req,res);
+   }
+   catch(error){
+      res.status(500).json({error: error.msg})
+   }
+}
+const updateMuseumPlaceAsTourismGoverner = async(req,res) =>{
+   try{
+      await updateMuseumPlace(req,res);
+   }
+   catch(error){
+      res.status(500).json({error: error.msg});
+   }
+}
+const deleteMuseumPlaceAsTourismGoverner = async(req,res) =>{
+   try{
+      await deleteMuseumPlacebyID(req,res);
+   }
+   catch(error){
+      res.status(500).json({error : error.msg});
+   }
+}
+const getMuseumsByAuthorAsTourismGoverner = async(req,res) =>{
+   try{
+      await getMuseumsByAuthor(req,res);
+   }
+   catch(error){
+      res.status(500).json({error : error.msg})
+   }
+}
  
 
- module.exports = {createNewHistoricalTag};
+ module.exports = {createNewHistoricalTag,createMuseumsAsTourismGoverner,getMuseumPlaceByIdAsTourismGoverner,updateMuseumPlaceAsTourismGoverner,deleteMuseumPlaceAsTourismGoverner,getMuseumsByAuthorAsTourismGoverner};

@@ -8,7 +8,7 @@ const itinerarySchema = new mongoose.Schema({
       location: String,
       timeline: String,         // E.g., "Day 1: 9:00 AM - 11:00 AM"
       duration: Number,      // Duration of the activity in hours
-      required:true
+      
     }
    
   ] ,
@@ -18,6 +18,7 @@ const itinerarySchema = new mongoose.Schema({
   accessibility: { type: Boolean, default: false }, // Is the tour accessible?
   pickupLocation: { type: String },           // Pickup location (optional)
   dropoffLocation: { type: String },          // Drop-off location (optional)
+  isBooked: {type:Boolean},
   createdAt: { type: Date, default: Date.now },// Auto timestamp
 },{ timestamps: true });
 
