@@ -1,6 +1,7 @@
 // External variables
 const express = require("express"); //importing express
 const path = require('path');
+
 const mongoose = require('mongoose'); //importing mongoose
 mongoose.set('strictQuery', false);
 require("dotenv").config(); //load enviironment variables
