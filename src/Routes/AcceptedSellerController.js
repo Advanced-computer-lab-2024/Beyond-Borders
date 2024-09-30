@@ -29,16 +29,8 @@ const updateSeller = async (req, res) => {
         new: true,            // Return the updated document
         runValidators: true,  // Ensure the updates respect schema validation rules
       });
-  
-      // If no seller is found with the given ID, send a 404 response
-    //   if (!updatedTourist) {
-    //     return res.status(404).json({ msg: "Seller not found" });
-    //   }
-  
-      // Send back the updated tourist data
       res.status(200).json(updatedSeller);
     } catch (error) {
-      // Send a 400 error with the error message if something goes wrong
       res.status(400).json({ error: error.message });
     }
   };
