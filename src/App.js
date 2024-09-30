@@ -10,13 +10,13 @@ const {createTourist,getTourist, updateTourist, searchProductTourist} = require(
 const {createUnregisteredAdvertiser} = require("./Routes/UnregisteredAdvertiserController");
 const {createUnregisteredTourGuide} = require("./Routes/UnregisteredTourGuideController");
 const {createUnregisteredSeller} = require("./Routes/UnregisteredSellerController");
-const {createNewTourismGoverner, createNewAdmin, createNewProduct, editProduct, acceptSeller, rejectSeller, createNewCategory, readAllActivityCategories,updateCategory, deleteActivityCategory, deleteAccount, searchProductAdmin, createNewTag, readAllTags, updateTag, deleteTag} = require("./Routes/AdminController");
+const {createNewTourismGoverner, createNewAdmin, createNewProduct, editProduct, acceptSeller, rejectSeller, createNewCategory, readAllActivityCategories,updateCategory, deleteActivityCategory, deleteAccount, searchProductAdmin, createNewTag, readAllTags, updateTag, deleteTag, acceptTourGuide} = require("./Routes/AdminController");
 const {readSellerProfile, updateSeller, editProductSeller, createNewProductSeller, searchProductSeller} = require("./Routes/AcceptedSellerController");
 const {createNewHistoricalTag,createMuseumsAsTourismGoverner,getMuseumPlaceByIdAsTourismGoverner,updateMuseumPlaceAsTourismGoverner,deleteMuseumPlaceAsTourismGoverner,getMuseumsByAuthorAsTourismGoverner} = require("./Routes/TourismGovernorController");
 const{createAdvertiser , ReadAdvertiserProfile , updateAdvertiser} = require("./Routes/AdvertiserController");
 
 //const {createNewTourismGoverner, createNewAdmin, createNewProduct, editProduct} = require("./Routes/AdminController");
-const{createTourGuide, ReadTourGuideProfile , UpdateTourGuideEmail , UpdateTourGuidePassword, UpdateTourGuideMobileNum , UpdateTourGuideYearsofExperience ,UpdateTourGuidePreviousWork , UpdateTourGuideUserName, createItineraryAsTourGuide, readItineraryAsTourGuide, updateItineraryAsTourGuide, deleteItineraryAsTourGuide} = require("./Routes/TourGuideController")
+const{ReadTourGuideProfile , UpdateTourGuideEmail , UpdateTourGuidePassword, UpdateTourGuideMobileNum , UpdateTourGuideYearsofExperience ,UpdateTourGuidePreviousWork, createItineraryAsTourGuide, readItineraryAsTourGuide, updateItineraryAsTourGuide, deleteItineraryAsTourGuide, updateTourGuideProfile} = require("./Routes/TourGuideController")
 //importing a set of functions
 const MongoURI = process.env.MONGO_URI ;
 
@@ -69,6 +69,7 @@ app.post("/addProductSeller", createNewProductSeller);
 app.put("/editProduct", editProduct);
 app.put("/editProductSeller", editProductSeller);
 app.post("/acceptSeller", acceptSeller);
+app.post("/acceptTourGuide", acceptTourGuide);
 app.post("/rejectSeller", rejectSeller);
 app.get("/viewTourist", getTourist);
 app.put("/updateTourist", updateTourist);
@@ -86,16 +87,18 @@ app.post("/deleteAccount", deleteAccount);
 app.get("/searchProductAdmin", searchProductAdmin);
 app.get("/searchProductSeller", searchProductSeller);
 app.get("/searchProductTourist", searchProductTourist);
+app.put("/updateTourGuideProfile", updateTourGuideProfile);
+
 //app.post("/createNewActivity", createNewActivity);
 //Tour Guide
-app.post("/addTourGuide",createTourGuide);
+//app.post("/addTourGuide",createTourGuide);
 app.get("/TourGuideProfile",ReadTourGuideProfile);
 app.put("/updateTourGuideEmail",UpdateTourGuideEmail);
 app.put("/updateTourGuidePasword",UpdateTourGuidePassword);
 app.put("/updateTourGuideMobileNumber",UpdateTourGuideMobileNum);
 app.put("/updateTourGuideYearsofExperience",UpdateTourGuideYearsofExperience);
 app.put("/updateTourGuidePreviousWork",UpdateTourGuidePreviousWork);
-app.put("/updateTourGuideUsername",UpdateTourGuideUserName);
+//app.put("/updateTourGuideUsername",UpdateTourGuideUserName);
 //Tourist Governer
 app.post("/createHistoricalTag", createNewHistoricalTag);
 app.post("/addMuseumOrHistoricalPlace" , createMuseumsAsTourismGoverner);

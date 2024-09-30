@@ -9,6 +9,9 @@ const AllUsernamesModel = require('../Models/AllUsernames.js');
 const AllTouristModel = require('../Models/Tourist.js');
 const TagsModel = require('../Models/Tags.js');
 const ActivityModel = require('../Models/Activity.js');
+const NewUnregisteredTourGuideModel = require('../Models/UnregisteredTourGuide.js');
+const NewAcceptedTourGuideModel = require('../Models/TourGuide.js');
+
 
 
 
@@ -103,18 +106,18 @@ const editProduct = async (req, res) => {
    };
 
 const acceptSeller = async (req, res) => {
-   const { UnregisteredSellerID } = req.body;
+   const {SellerUsername} = req.body;
 
    try {
        // Find the unregistered seller by ID
-       const existingUser = await NewUnregisteredSellerModel.findById(UnregisteredSellerID);
+       const existingUser = await NewUnregisteredSellerModel.findOne({Username : SellerUsername});
        
        if (existingUser) {
            // Create a new accepted seller with the existing user's details
            const { Username, Email, Password, Name, Description} = existingUser; // Destructure the relevant fields
            const createdSeller = await NewAcceptedSellerModel.create({Username,Email,Password,Name,Description});
            // Delete the unregistered seller
-           await NewUnregisteredSellerModel.findByIdAndDelete(UnregisteredSellerID);
+           await NewUnregisteredSellerModel.findOneAndDelete({Username : SellerUsername});
            // Respond with success message
            res.status(200).json({ msg: "Seller has been accepted!" });
        } else {
@@ -125,6 +128,30 @@ const acceptSeller = async (req, res) => {
        res.status(400).json({ error: error.message });
    }
 };
+
+const acceptTourGuide = async (req, res) => {
+    const {TourGuideUsername} = req.body;
+ 
+    try {
+        // Find the unregistered seller by ID
+        const existingUser = await NewUnregisteredTourGuideModel.findOne({Username: TourGuideUsername});
+        
+        if (existingUser) {
+            // Create a new accepted seller with the existing user's details
+            const { Username, Email, Password, MobileNum, YearsOfExperience, PreviousWork} = existingUser; // Destructure the relevant fields
+            const createdSeller = await NewAcceptedTourGuideModel.create({Username, Email, Password, MobileNum, YearsOfExperience, PreviousWork});
+            // Delete the unregistered seller
+            await NewUnregisteredTourGuideModel.findOneAndDelete({Username: TourGuideUsername});
+            // Respond with success message
+            res.status(200).json({ msg: "TourGuide has been accepted!" });
+        } else {
+            res.status(404).json({ error: "Unregistered TourGuide not found." });
+        }
+    } catch (error) {
+        // Handle any errors that occur during the process
+        res.status(400).json({ error: error.message });
+    }
+ };
 
 const rejectSeller = async (req, res) => {
    const { UnregisteredSellerID } = req.body;
@@ -422,4 +449,4 @@ const searchProductAdmin = async (req, res) => {
 //  };
  
 
-module.exports = {createNewAdmin, createNewTourismGoverner, createNewProduct, editProduct, acceptSeller, rejectSeller, createNewCategory, readAllActivityCategories, updateCategory, deleteActivityCategory, deleteAccount, searchProductAdmin, createNewTag, readAllTags, updateTag, deleteTag};
+module.exports = {createNewAdmin, createNewTourismGoverner, createNewProduct, editProduct, acceptSeller, rejectSeller, createNewCategory, readAllActivityCategories, updateCategory, deleteActivityCategory, deleteAccount, searchProductAdmin, createNewTag, readAllTags, updateTag, deleteTag, acceptTourGuide};

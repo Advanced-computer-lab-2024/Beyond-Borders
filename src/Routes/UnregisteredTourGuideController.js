@@ -6,7 +6,7 @@ const { default: mongoose } = require('mongoose');
 
 const createUnregisteredTourGuide = async(req,res) => {
    //Destructure Name, Email, Age from the request body
-   const{Username,Email,Password} = req.body;
+   const{Username, Email, Password, MobileNum, YearsOfExperience, PreviousWork} = req.body;
    try{
       // Check if a user with the same Username already exists
       const existingUser = await AllUsernamesModel.findOne({ Username });
@@ -16,7 +16,7 @@ const createUnregisteredTourGuide = async(req,res) => {
       else{
          await AllUsernamesModel.create({Username});
          //add a new user to the database with Name, Email and Age
-         const user = await UnregisteredTourGuideModel.create({Username,Email,Password});
+         const user = await UnregisteredTourGuideModel.create({Username, Email, Password, MobileNum, YearsOfExperience, PreviousWork});
          //Send the created use as a JSON response with a 200 OK status 
          res.status(200).json({msg:"Unregistered Tour Guide is created!"});
          //res.status(200).json(user);
