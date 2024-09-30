@@ -1,8 +1,8 @@
 // #Task route solution
 const TouristModel = require('../Models/Tourist.js');
 const AllUsernamesModel = require('../Models/AllUsernames.js');
-
 const ActivityModel = require('../Models/Activity.js');
+const ProductModel = require('../Models/Product.js');
 //const MuseumModel = require('../Models/Museum.js');
 //const ItineraryModel = require('../Models/Itinerary.js');
 const { default: mongoose } = require('mongoose');
@@ -260,10 +260,40 @@ const createTourist = async (req, res) => {
         }
       };
 
+      /*const filterHistoricalPlacesByTag = async (req, res) => {
+        const { HistoricalTag } = req.body; // Extract the category from the request body
+      
+        try {
+          const fetchedHistoricalTag = await MuseumModel.find({ HistoricalTag }); // Fetch activities by category
+          if (fetchedActivities.length === 0) {
+            return res.status(404).json({ msg: "No activities found for this category!" });
+          }
+          res.status(200).json(fetchedActivities); // Respond with the fetched activities
+        } catch (error) {
+          console.error('Error fetching activities:', error);
+          res.status(500).json({ msg: "An error occurred while fetching activities." });
+        }
+      };*/
+
+      const filterProductByPrice = async (req, res) => {
+        const { Price } = req.body; // Extract the category from the request body
+      
+        try {
+          const fetchedProducts = await ProductModel.find({ Price }); // Fetch activities by category
+          if (fetchedProducts.length === 0) {
+            return res.status(404).json({ msg: "No activities found for this category!" });
+          }
+          res.status(200).json(fetchedProducts); // Respond with the fetched activities
+        } catch (error) {
+          console.error('Error fetching products:', error);
+          res.status(500).json({ msg: "An error occurred while fetching products." });
+        }
+      };
+
 
 
 
     
 
 
-module.exports = {createTourist, getTourist, updateTourist, searchProductTourist, filterActivities};
+module.exports = {createTourist, getTourist, updateTourist, searchProductTourist, filterActivities, filterProductByPrice};
