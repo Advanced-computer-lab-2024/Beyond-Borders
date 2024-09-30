@@ -21,40 +21,40 @@ const createNewHistoricalTag = async(req,res) => {
        res.status(400).json({ error: error.message});
     }
  };
-// Museums and historical places part as a Tourism governer
-const{CreateMuseumsAndHistoricalPlaces} = require('./MuseumsAndHistoricalPlacesController');
-const{getMuseumPlaceById} = require('./MuseumsAndHistoricalPlacesController');
-const{updateMuseumPlace} = require('./MuseumsAndHistoricalPlacesController');
-const{deleteMuseumPlacebyID} = require('./MuseumsAndHistoricalPlacesController');
-const{getMuseumsByAuthor} = require('./MuseumsAndHistoricalPlacesController');
+// Museums part as a Tourism governer
+const{CreateMuseums} = require('./MuseumsController');
+const{getMuseumById} = require('./MuseumsController');
+const{updateMuseum} = require('./MuseumsController');
+const{deleteMuseumbyID} = require('./MuseumsController');
+const{getMuseumsByAuthor} = require('./MuseumsController');
 
 const createMuseumsAsTourismGoverner = async(req,res) => {
    try{
-    await CreateMuseumsAndHistoricalPlaces(req,res);
+    await CreateMuseums(req,res);
    }  
    catch(error){
     res.status(500).json({error : error.msg});
    }
 }
-const getMuseumPlaceByIdAsTourismGoverner = async(req,res) =>{
+const getMuseumByIdAsTourismGoverner = async(req,res) =>{
    try{
-      await getMuseumPlaceById(req,res);
+      await getMuseumById(req,res);
    }
    catch(error){
       res.status(500).json({error: error.msg})
    }
 }
-const updateMuseumPlaceAsTourismGoverner = async(req,res) =>{
+const updateMuseumAsTourismGoverner = async(req,res) =>{
    try{
-      await updateMuseumPlace(req,res);
+      await updateMuseum(req,res);
    }
    catch(error){
       res.status(500).json({error: error.msg});
    }
 }
-const deleteMuseumPlaceAsTourismGoverner = async(req,res) =>{
+const deleteMuseumAsTourismGoverner = async(req,res) =>{
    try{
-      await deleteMuseumPlacebyID(req,res);
+      await deleteMuseumbyID(req,res);
    }
    catch(error){
       res.status(500).json({error : error.msg});
@@ -68,6 +68,52 @@ const getMuseumsByAuthorAsTourismGoverner = async(req,res) =>{
       res.status(500).json({error : error.msg})
    }
 }
- 
-
- module.exports = {createNewHistoricalTag,createMuseumsAsTourismGoverner,getMuseumPlaceByIdAsTourismGoverner,updateMuseumPlaceAsTourismGoverner,deleteMuseumPlaceAsTourismGoverner,getMuseumsByAuthorAsTourismGoverner};
+ // Historical places part as a Tourism governer
+ const{CreateHistoricalPlace} = require('./HistoricalPlaceController');
+ const{getHistoricalPlacePlaceById} = require('./HistoricalPlaceController');
+ const{updateHistoricalPlace} = require('./HistoricalPlaceController');
+ const{deleteHistoricalPlacebyID} = require('./HistoricalPlaceController');
+ const{getHistoricalPlaceByAuthor} = require('./HistoricalPlaceController');
+ const createHistoricalPlaceAsTourismGoverner = async(req,res) => {
+   try{
+    await CreateHistoricalPlace(req,res);
+   }  
+   catch(error){
+    res.status(500).json({error : error.msg});
+   }
+}
+const getHistoricalPlaceByIdAsTourismGoverner = async(req,res) =>{
+   try{
+      await getHistoricalPlacePlaceById(req,res);
+   }
+   catch(error){
+      res.status(500).json({error: error.msg})
+   }
+}
+const updateHistoricalPlaceAsTourismGoverner = async(req,res) =>{
+   try{
+      await updateHistoricalPlace(req,res);
+   }
+   catch(error){
+      res.status(500).json({error: error.msg});
+   }
+}
+const deletePlaceAsTourismGoverner = async(req,res) =>{
+   try{
+      await deleteHistoricalPlacebyID(req,res);
+   }
+   catch(error){
+      res.status(500).json({error : error.msg});
+   }
+}
+const getHistoricalByAuthorAsTourismGoverner = async(req,res) =>{
+   try{
+      await getHistoricalPlaceByAuthor(req,res);
+   }
+   catch(error){
+      res.status(500).json({error : error.msg})
+   }
+}
+ module.exports = {createNewHistoricalTag,createMuseumsAsTourismGoverner,getMuseumByIdAsTourismGoverner,updateMuseumAsTourismGoverner,deleteMuseumAsTourismGoverner,getMuseumsByAuthorAsTourismGoverner
+   ,createHistoricalPlaceAsTourismGoverner , getHistoricalPlaceByIdAsTourismGoverner , updateHistoricalPlaceAsTourismGoverner , deletePlaceAsTourismGoverner , getHistoricalByAuthorAsTourismGoverner
+ };
