@@ -177,6 +177,30 @@ const rejectSeller = async (req, res) => {
    }
 };
 
+const rejectTourGuide = async (req, res) => {
+    const {TourGuideUsername} = req.body;
+ 
+    try {
+        // Find the unregistered seller by ID
+        const existingUser = await NewUnregisteredTourGuideModel.findOne({Username: TourGuideUsername});
+        
+        if (existingUser) {
+             // Extract Username
+             const {Username} = existingUser;
+             await AllUsernamesModel.findOneAndDelete({Username});
+            // Delete the unregistered seller
+            await NewUnregisteredTourGuideModel.findOneAndDelete({Username: TourGuideUsername});
+            // Respond with success message
+            res.status(200).json({ msg: "Tour Guide has been rejected!" });
+        } else {
+            res.status(404).json({ error: "Tour Guide not found." });
+        }
+    } catch (error) {
+        // Handle any errors that occur during the process
+        res.status(400).json({ error: error.message });
+    }
+ };
+
 const createNewCategory = async(req,res) => {
    //Destructure Name, Email, Age from the request body
    const{NameOfCategory} = req.body;
@@ -449,4 +473,4 @@ const searchProductAdmin = async (req, res) => {
 //  };
  
 
-module.exports = {createNewAdmin, createNewTourismGoverner, createNewProduct, editProduct, acceptSeller, rejectSeller, createNewCategory, readAllActivityCategories, updateCategory, deleteActivityCategory, deleteAccount, searchProductAdmin, createNewTag, readAllTags, updateTag, deleteTag, acceptTourGuide};
+module.exports = {createNewAdmin, createNewTourismGoverner, createNewProduct, editProduct, acceptSeller, rejectSeller, createNewCategory, readAllActivityCategories, updateCategory, deleteActivityCategory, deleteAccount, searchProductAdmin, createNewTag, readAllTags, updateTag, deleteTag, acceptTourGuide, rejectTourGuide};
