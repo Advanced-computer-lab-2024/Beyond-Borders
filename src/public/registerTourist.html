@@ -86,52 +86,15 @@
             <label for="occupation">Occupation:</label>
             <input type="text" id="occupation" required>
         </div>
+        <div class="form-group">
+            <label for="wallet">Wallet Amount:</label>
+            <input type="number" id="wallet" value="0" readonly> <!-- Wallet is initialized to 0 -->
+        </div>
+
         <button type="submit">Register</button>
     </form>
     <div id="responseMessage" class="message"></div>
 </div>
-
-<!-- <script>
-    document.getElementById('touristForm').addEventListener('submit', async function(event) {
-        event.preventDefault(); // Prevent form submission
-
-        const responseMessage = document.getElementById('responseMessage');
-        responseMessage.textContent = ''; // Clear previous messages
-
-        const formData = {
-            Email: document.getElementById('email').value,
-            Username: document.getElementById('username').value,
-            Password: document.getElementById('password').value,
-            MobileNumber: document.getElementById('mobileNumber').value,
-            DoB: document.getElementById('dob').value,
-            Nationality: document.getElementById('nationality').value,
-            Occupation: document.getElementById('occupation').value
-        };
-
-        try {
-            const response = await fetch('/addTourist', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(formData)
-            });
-
-            const result = await response.json();
-
-            if (response.ok) {
-                responseMessage.textContent = 'Tourist registered successfully!';
-                responseMessage.style.color = 'green';
-            } else {
-                responseMessage.textContent = Error: ${result.error};
-                responseMessage.style.color = 'red';
-            }
-        } catch (error) {
-            responseMessage.textContent = 'An error occurred. Please try again.';
-            responseMessage.style.color = 'red';
-        }
-    });
-</script> -->
 
 <script>
     document.getElementById('touristForm').addEventListener('submit', async function(event) {
@@ -148,7 +111,8 @@
             MobileNumber: document.getElementById('mobileNumber').value, 
             DoB: document.getElementById('dob').value,
             Nationality: document.getElementById('nationality').value,
-            Occupation: document.getElementById('occupation').value
+            Occupation: document.getElementById('occupation').value,
+            Wallet: 0 // Ensure wallet is set to 0 on the client-side as well
         };
 
         try {
@@ -158,35 +122,31 @@
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify(formData) // Convert form data to JSON
+                body: JSON.stringify(formData) // Ensure formData is correctly structured
             });
 
             const result = await response.json(); // Parse the response
 
             // Check if the response is successful and contains an ID
-            if (response.ok && result._id) {
-                localStorage.setItem('touristId', result._id); // Store the ID
-                localStorage.setItem('touristData', JSON.stringify(result)); // Store the full data
+            if (response.ok && result.user) {
+                localStorage.setItem('touristId', result.user._id); // Store the ID
+                localStorage.setItem('touristData', JSON.stringify(result.user)); // Store the full data
 
                 // Show the success message
-                responseMessage.textContent = 'Tourist registered successfully!'; // Corrected
+                responseMessage.textContent = 'Tourist registered successfully!';
                 responseMessage.style.color = 'green';
             } else {
                 // Handle errors or cases where the ID is not returned
-                responseMessage.textContent = `Error: ${result.error || 'Failed to register tourist.'}`; // Corrected
+                responseMessage.textContent = `Error: ${result.error || 'Failed to register tourist.'}`;
                 responseMessage.style.color = 'red';
             }
         } catch (error) {
             // Handle fetch errors
-            console.error('Fetch error:', error); // Log the error
             responseMessage.textContent = 'An error occurred. Please try again.';
             responseMessage.style.color = 'red';
         }
     });
 </script>
-
-
-
 
 
 

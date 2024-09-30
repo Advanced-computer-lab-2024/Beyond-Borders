@@ -6,6 +6,96 @@
     <title>Profile</title>
     <style>
         /* Your existing styles */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .profile-container {
+            background-color: white;
+            padding: 50px;
+            border-radius: 25px;
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+            width: 800px;
+            max-width: 90vw;
+            max-height: 90vh;
+            box-sizing: border-box;
+        }
+
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 36px;
+            font-size: 30px;
+            font-weight: bold;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 23px;
+            margin-left: 20px;
+        }
+
+        .form-row .form-group {
+            flex-basis: 48%;
+        }
+
+        label {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 10px;
+            width: 200px;
+        }
+
+        input[type="text"],
+        input[type="email"],
+        input[type="password"],
+        input[type="tel"],
+        input[type="date"],
+        input[type="number"] { /* Include number input for wallet */
+            padding: 10px;
+            width: 100%;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+
+        .button-container {
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            background-color: #28a745;
+            color: white;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            margin: 15px;
+        }
+
+        button:hover {
+            background-color: #218838;
+        }
     </style>
 </head>
 <body>
@@ -49,110 +139,13 @@
         <div class="form-row"> 
             <div class="form-group">
                 <label for="dob">Date of Birth:</label>
-                <input type="date" id="dob" required >
+                <input type="date" id="dob" required>
+            </div>
+            <div class="form-group">
+                <label for="wallet">Wallet Amount:</label>
+                <input type="number" id="wallet" required> <!-- New field for wallet amount -->
             </div>
         </div>
-
-
-        <style>
-            * {
-                box-sizing: border-box;
-                margin: 0;
-                padding: 0;
-            }
-    
-            body {
-                font-family: Arial, sans-serif;
-                background-color: #f5f5f5;
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                height: 100vh;
-            }
-    
-            .profile-container {
-                background-color: white;
-                padding: 50px;
-                border-radius: 25px;
-                box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
-                width: 800px;
-                max-width: 90vw;
-                max-height: 90vh;
-                box-sizing: border-box;
-            }
-    
-            h1 {
-                text-align: center;
-                color: #2c3e50;
-                margin-bottom: 36px;
-                font-size: 30px;
-                font-weight: bold;
-            }
-    
-            form {
-                display: flex;
-                flex-direction: column;
-            }
-    
-            /* New rule to place two fields horizontally in the same row */
-            .form-row {
-                display: flex;
-                justify-content: space-between;
-                margin-bottom: 23px;
-                margin-left: 20px;
-            }
-    
-            .form-row .form-group {
-                flex-basis: 48%;
-            }
-    
-            label {
-                display: flex;
-                align-items: flex-start;
-                margin-bottom: 10px;
-                width: 200px;
-            }
-    
-            input[type="text"],
-            input[type="email"],
-            input[type="password"],
-            input[type="tel"],
-            input[type="date"] {
-                padding: 10px;
-                width: 100%;
-                border: 1px solid #ccc;
-                border-radius: 5px;
-                font-size: 16px;
-            }
-    
-            #show-password {
-                margin-right: 10px;
-                cursor: pointer;
-                margin-left: 40px;
-            }
-    
-            .button-container {
-                display: flex;
-                justify-content: flex-end;
-            }
-    
-            button {
-                padding: 10px 20px;
-                border: none;
-                border-radius: 5px;
-                background-color: #28a745;
-                color: white;
-                font-size: 14px;
-                cursor: pointer;
-                transition: background-color 0.3s ease;
-                margin: 15px;
-            }
-    
-            button:hover {
-                background-color: #218838;
-            }
-        </style>
-    
 
         <div class="button-container">
             <button type="button" id="save-changes-btn">Save Changes</button>
@@ -171,51 +164,53 @@
             document.getElementById('phone').value = touristData.MobileNumber || '';
             document.getElementById('dob').value = touristData.DoB || '';
             document.getElementById('occupation').value = touristData.Occupation || '';
-           
+            document.getElementById('wallet').value = touristData.Wallet || 0; // Load wallet amount
         }
     };
 
     document.getElementById('save-changes-btn').addEventListener('click', async function() {
-    const Email = document.getElementById('email').value;
-    const MobileNumber = document.getElementById('phone').value;
-    const DoB = document.getElementById('dob').value;
-    const Nationality = document.getElementById('nationality').value;
-    const Occupation = document.getElementById('occupation').value;
+        const Email = document.getElementById('email').value;
+        const MobileNumber = document.getElementById('phone').value;
+        const DoB = document.getElementById('dob').value;
+        const Nationality = document.getElementById('nationality').value;
+        const Occupation = document.getElementById('occupation').value;
+        const Wallet = document.getElementById('wallet').value; // Get wallet amount
 
-    const updatedData = {
-        Username: document.getElementById('first-name').value, // Ensure this matches what you need
-        Email,
-        MobileNumber,
-        DoB,
-        Nationality,
-        Occupation
-    };
+        const updatedData = {
+            Username: document.getElementById('first-name').value,
+            Email,
+            MobileNumber,
+            DoB,
+            Nationality,
+            Occupation,
+            Wallet // Include wallet amount in updated data
+        };
 
-    console.log('Updated Data:', updatedData); // Log the data being sent
+        console.log('Updated Data:', updatedData); // Log the data being sent
 
-    try {
-        const response = await fetch('/updateTourist', {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(updatedData)
-        });
+        try {
+            const response = await fetch('/updateTourist', {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(updatedData)
+            });
 
-        if (!response.ok) {
-            const errorData = await response.json(); // Read the error response
-            console.error('Error response:', errorData);
-            throw new Error(errorData.error || 'Error updating tourist information');
+            if (!response.ok) {
+                const errorData = await response.json(); // Read the error response
+                console.error('Error response:', errorData);
+                throw new Error(errorData.error || 'Error updating tourist information');
+            }
+
+            const result = await response.json();
+            alert('Profile updated successfully!');
+            console.log(result);
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Failed to update profile: ' + error.message);
         }
-
-        const result = await response.json();
-        alert('Profile updated successfully!');
-        console.log(result);
-    } catch (error) {
-        console.error('Error:', error);
-        alert('Failed to update profile: ' + error.message);
-    }
-});
+    });
 </script>
 </body>
 </html>

@@ -7,28 +7,38 @@ const AllUsernamesModel = require('../Models/AllUsernames.js');
 //const ItineraryModel = require('../Models/Itinerary.js');
 const { default: mongoose } = require('mongoose');
 
-const createTourist = async(req,res) => {
-   //Destructure Name, Email, Age from the request body
-   const{Email,Username,Password,MobileNumber,DoB,Nationality,Occupation} = req.body;
-   try{
+const createTourist = async (req, res) => {
+  // Destructure Email, Username, Password, MobileNumber, DoB, Nationality, Occupation from the request body
+  const { Email, Username, Password, MobileNumber, DoB, Nationality, Occupation } = req.body;
+
+  try {
       // Check if a user with the same Username already exists
       const existingUser = await AllUsernamesModel.findOne({ Username });
       if (existingUser) {
-         return res.status(400).json({ error: "Username already exists!" });
+          return res.status(400).json({ error: "Username already exists!" });
+      } else {
+          await AllUsernamesModel.create({ Username });
+
+          // Create a new user in the database with the provided details and initialize Wallet to 0
+          const user = await TouristModel.create({
+              Email,
+              Username,
+              Password,
+              MobileNumber,
+              DoB,
+              Nationality,
+              Occupation,
+              Wallet: 0 // Initialize wallet to 0
+          });
+
+          // Send the created user as a JSON response with a 201 Created status
+          res.status(201).json({ msg: "Tourist is created!", user });
       }
-      else{
-         await AllUsernamesModel.create({Username});
-         //add a new user to the database with Name, Email and Age
-         const user = await TouristModel.create({Email,Username,Password,MobileNumber,DoB,Nationality,Occupation,Wallet: 0});
-         //Send the created use as a JSON response with a 200 OK status 
-         res.status(200).json({msg:"Tourist is created!"});
-         //res.status(200).json(user);
-      }
-   } catch (error){
-      //If an error occurs, send a 400 Bad Request status with the error message
-      res.status(400).json({ error: error.message});
-   }
-}
+  } catch (error) {
+      // If an error occurs, send a 400 Bad Request status with the error message
+      res.status(400).json({ error: error.message });
+  }
+};
 
 /*const getTourist = async (req, res) => {
    //retrieve all users from the database
