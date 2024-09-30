@@ -68,7 +68,7 @@
         input[type="password"],
         input[type="tel"],
         input[type="date"],
-        input[type="number"] { /* Include number input for wallet */
+        input[type="number"] {
             padding: 10px;
             width: 100%;
             border: 1px solid #ccc;
@@ -139,11 +139,11 @@
         <div class="form-row"> 
             <div class="form-group">
                 <label for="dob">Date of Birth:</label>
-                <input type="date" id="dob" required>
+                <input type="date" id="dob" readonly> <!-- Made readonly -->
             </div>
             <div class="form-group">
                 <label for="wallet">Wallet Amount:</label>
-                <input type="number" id="wallet" required> <!-- New field for wallet amount -->
+                <input type="number" id="wallet" disabled> <!-- Made disabled -->
             </div>
         </div>
 
@@ -162,28 +162,29 @@
             document.getElementById('email').value = touristData.Email || '';
             document.getElementById('nationality').value = touristData.Nationality || '';
             document.getElementById('phone').value = touristData.MobileNumber || '';
-            document.getElementById('dob').value = touristData.DoB || '';
+            document.getElementById('dob').value = touristData.DoB || ''; // Load DoB
             document.getElementById('occupation').value = touristData.Occupation || '';
             document.getElementById('wallet').value = touristData.Wallet || 0; // Load wallet amount
+            document.getElementById('password').value = touristData.Password || '';
+            const dob = new Date(touristData.DoB);
+            const dobFormatted = dob.toISOString().split('T')[0];
+            document.getElementById('dob').value = dobFormatted; // Load DoB
         }
     };
 
     document.getElementById('save-changes-btn').addEventListener('click', async function() {
         const Email = document.getElementById('email').value;
         const MobileNumber = document.getElementById('phone').value;
-        const DoB = document.getElementById('dob').value;
         const Nationality = document.getElementById('nationality').value;
         const Occupation = document.getElementById('occupation').value;
-        const Wallet = document.getElementById('wallet').value; // Get wallet amount
 
         const updatedData = {
             Username: document.getElementById('first-name').value,
             Email,
             MobileNumber,
-            DoB,
             Nationality,
-            Occupation,
-            Wallet // Include wallet amount in updated data
+            Occupation
+            // Excluded DoB and Wallet
         };
 
         console.log('Updated Data:', updatedData); // Log the data being sent
