@@ -79,7 +79,7 @@ const { default: mongoose } = require('mongoose');
       
           // Create the new activity
           const newActivity = await ActivityModel.create({AdvertiserName,Name,Date,Time,SpecialDiscount,BookingOpen,
-            Price,Location,Category,Tags});
+            Price,Location,Category,Tags, Rating:0});
       
           // Send the created activity as a JSON response with a 200 OK status
           res.status(200).json({ msg: "New activity is created!"});

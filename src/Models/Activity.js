@@ -30,6 +30,10 @@ const ActivitySchema = new Schema({
     type: Number,
     required: true
   },
+  Rating: {
+    type: Number,
+    required: true
+  },
   Location: {
     type: {
       type: String, // 'Point' for GeoJSON
