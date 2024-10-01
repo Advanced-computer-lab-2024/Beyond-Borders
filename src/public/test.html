@@ -22,6 +22,7 @@
             align-items: center;
             justify-content: space-between; /* Aligns items to the left */
         }
+        
 
         nav ul {
             list-style: none;
@@ -32,15 +33,22 @@
         nav ul li {
             display: inline;
         }
-        nav ul li a {
-            color: #fff;
-            text-decoration: none;
+        nav ul li a ::before{
+           
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 0;
+            width: 0%;
+            height: 3px;
+            background-color: #fff;
+            transition:all .5s;
             
         }
 
-        nav ul li a:hover {
-            color: #95d0a2;
-            text-decoration: none;
+        nav ul li a:hover::before {
+            
+            width: 100px;
         }
         
 
@@ -129,13 +137,10 @@
     <div class="nav"></div>
     <nav>
         <ul>
-            <li><a href="#home">Products</a></li>
-            <li><a href="#services">Activities</a></li>
-            <li><a href="#about">Itineraries</a></li>
-            <li><a href="#contact">Musuems</a></li>
-            <li><a href="#about">Historical Places</a></li>
-            
-        
+            <li><a href="#home">Home</a></li>
+            <li><a href="#services">Services</a></li>
+            <li><a href="#about">About</a></li>
+            <li><a href="#contact">Contact</a></li>
         </ul>
     </nav>
     <div class="button-container">
