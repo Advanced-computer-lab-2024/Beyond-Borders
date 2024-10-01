@@ -234,31 +234,79 @@ const createTourist = async (req, res) => {
         }
       };*/
 
-      const filterActivities = async (req, res) => {
-        const { Category, Price, Date } = req.body; // Extract category and price from the request body
-        const query = {}; // Initialize an empty query object
+      // const filterActivities = async (req, res) => {
+      //   const { Category, Price, Date } = req.body; // Extract category and price from the request body
+      //   const query = {}; // Initialize an empty query object
         
+      //   if (Category) {
+      //     query.Category = Category; 
+      //   }
+      //   if (Price) {
+      //     query.Price = Price;
+      //   }
+      //   if (Date) {
+      //     query.Date = Date; 
+      //   }
+      
+      //   try {
+      //     const fetchedActivities = await ActivityModel.find(query); // Fetch activities based on the constructed query
+      //     if (fetchedActivities.length === 0) {
+      //       return res.status(404).json({ msg: "No activities found for the given criteria!" });
+      //     }
+      //     res.status(200).json(fetchedActivities); // Respond with the fetched activities
+      //   } catch (error) {
+      //     console.error('Error fetching activities:', error);
+      //     res.status(500).json({ msg: "An error occurred while fetching activities." });
+      //   }
+      // };
+
+      const filterActivities = async (req, res) => {
+        const { Category, Price , InputDate} = req.body; // Extract category and price from the request body
+        const query = {}; // Initialize an empty query object
+    
+        // Get the current date and set time to midnight
+        const currentDate = new Date();
+        currentDate.setHours(0, 0, 0, 0);
+
+        if(InputDate){
+          const inputDateDate = new Date(InputDate);
+          if  (inputDateDate < currentDate){
+            return res.status(404).json({ msg: "Activities with this date have passed!" });
+          }
+          else{
+            query.Date = InputDate;
+          }
+        }
+        
+        else{
+        // Always set the date filter to only include activities on or after the current date
+        query.Date = { $gte: currentDate }; // Activities must be after today
+        }
+        // Build the query based on provided parameters
         if (Category) {
-          query.Category = Category; 
+            query.Category = Category; // Add category filter if provided
         }
         if (Price) {
-          query.Price = Price;
+            query.Price = Price; // Add price filter if provided
         }
-        if (Date) {
-          query.Date = Date; 
-        }
-      
+    
         try {
-          const fetchedActivities = await ActivityModel.find(query); // Fetch activities based on the constructed query
-          if (fetchedActivities.length === 0) {
-            return res.status(404).json({ msg: "No activities found for the given criteria!" });
-          }
-          res.status(200).json(fetchedActivities); // Respond with the fetched activities
+            const fetchedActivities = await ActivityModel.find(query); // Fetch activities based on the constructed query
+            if (fetchedActivities.length === 0) {
+                return res.status(404).json({ msg: "No activities found for the given criteria!" });
+            }
+            res.status(200).json(fetchedActivities); // Respond with the fetched activities
         } catch (error) {
-          console.error('Error fetching activities:', error);
-          res.status(500).json({ msg: "An error occurred while fetching activities." });
+            console.error('Error fetching activities:', error);
+            res.status(500).json({ msg: "An error occurred while fetching activities." });
         }
-      };
+    };
+    
+    // Example Express.js route
+    // app.post('/filter-activities', filterActivities);
+    
+    // Example Express.js route
+    // app.post('/filter-activities', filterActivities);
 
       /*const filterHistoricalPlacesByTag = async (req, res) => {
         const { HistoricalTag } = req.body; // Extract the category from the request body
