@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tourist Blog</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+            text-align: left; /* Ensures text is left-aligned */
+        }
+
+        .header {
+            background-color: #218838;
+            color: white;
+            padding: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between; /* Aligns items to the left */
+        }
+
+        nav ul {
+            list-style: none;
+            display: flex;
+            gap: 35px;
+            margin-left: 500px;
+        }
+
+        nav ul li {
+            display: inline;
+        }
+
+        nav ul li a {
+            color: #fff;
+            text-decoration: none;
+        }
+
+        nav ul li a:hover {
+            color: #95d0a2;
+            text-decoration: none;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+        }
+
+        .button-container {
+            margin-left: 15px;
+        }
+
+        .button-container button {
+            background-color: #40be5b;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 20px;
+            transition: background-color 0.3s;
+        }
+
+        .button-container button:hover {
+            background-color: #7ccf8e;
+        }
+
+        .search-container {
+            display: flex;
+            width: 60%;
+            margin: 20px auto; /* Centering the search bar */
+        }
+
+        input[type="text"] {
+            padding: 10px;
+            flex-grow: 1;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+
+        input[type="text"]::placeholder {
+            color: #999;
+        }
+
+        .search-button {
+            padding: 10px;
+            border: none;
+            border-radius: 4px;
+            background-color: #218838;
+            color: white;
+            cursor: pointer;
+            font-size: 16px;
+            margin-left: 5px;
+            transition: background-color 0.3s;
+            margin-right: 20px;
+        }
+
+        .search-button:hover {
+            background-color: #5aae6c;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: auto;
+            background: #fff;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            margin-top: 20px;
+        }
+
+        .blog-post {
+            margin-bottom: 20px; /* Space between blog posts */
+            border-bottom: 1px solid #ccc; /* Divider for posts */
+            padding-bottom: 20px; /* Padding below the post */
+        }
+
+        .blog-post h2 {
+            font-size: 20px;
+            color: #218838;
+        }
+
+        .blog-post p {
+            color: #666;
+            line-height: 1.6; /* Spacing between lines */
+        }
+
+        .date {
+            font-size: 14px;
+            color: #999;
+        }
+
+        .view-details {
+            color: #218838;
+            text-decoration: none;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <h1>Beyond Borders</h1>
+    <nav>
+        <ul>
+            <li><a href="HomePageAdmin.html">Home</a></li>
+           
+            <li><a href="AdminProduct.html">Products</a></li>
+            <li><a href="#about">Preference tags</a></li>
+            <li><a href="#contact">Tourism governor</a></li>
+            <li><a href="#about">Add admin</a></li>
+        </ul>
+    </nav>
+    <div class="button-container">
+        <button onclick="reloadProfile()">My Profile</button>
+    </div>
+</div>
+
+<div class="search-container">
+    <input type="text" id="searchBar" placeholder="Search for activities, museums, etc.">
+    <button class="search-button" onclick="performSearch()">Search</button>
+    <button class="search-button" onclick="window.location.href='AddCategory.html';">Add an activity category</button>
+
+    
+</div>
+
+<div class="container">
+    <div class="blog-post">
+        <div class="date">4 May</div>
+        <h2>Activity Category 1</h2>
+        
+        <a href="#" class="view-details">View Details</a>
+    </div>
+
+    <div class="blog-post">
+        <div class="date">5 May</div>
+        <h2>Activity Category 2</h2>
+        
+        <a href="#" class="view-details">View Details</a>
+    </div>
+
+    <!-- Add more blog posts as needed -->
+</div>
+
+<script>
+    function reloadProfile() {
+        location.href = 'TouristProfile.html'; // Navigate to the profile page
+    }
+
+    function performSearch() {
+        const query = document.getElementById('searchBar').value;
+        if (query) {
+            // Redirect to search results page or perform search logic
+            window.location.href = `search_results.html?query=${encodeURIComponent(query)}`;
+        } else {
+            alert('Please enter a search term.');
+        }
+    }
+</script>
+
+</body>
+</html>
