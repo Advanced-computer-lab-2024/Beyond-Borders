@@ -2,6 +2,8 @@ const TouristModel = require('../Models/Tourist.js');
 const AllUsernamesModel = require('../Models/AllUsernames.js');
 const ActivityModel = require('../Models/Activity.js');
 const ProductModel = require('../Models/Product.js');
+const MuseumsModel = require('../Models/Museums.js');
+
 //const MuseumModel = require('../Models/Museum.js');
 //const ItineraryModel = require('../Models/Itinerary.js');
 const { default: mongoose } = require('mongoose');
@@ -66,5 +68,25 @@ const filterActivitiesGuest = async (req, res) => {
     }
 };
 
+const getMuseumsByTagGuest = async (req, res) => {
+    try {
+        // Extract the tag from the request body
+        const { tag } = req.body;
 
-module.exports = {filterActivitiesGuest};
+        // Find museums with the specified tag
+        const museums = await MuseumsModel.find({ HistoricalTags: tag });
+
+        // Check if any museums were found
+        if (museums.length > 0) {
+            res.status(200).json(museums);
+        } else {
+            res.status(404).json({ error: "No museums found with this tag." });
+        }
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+};
+
+
+
+module.exports = {filterActivitiesGuest, getMuseumsByTagGuest};
