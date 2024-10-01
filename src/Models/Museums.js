@@ -13,7 +13,10 @@ const museumPlaceSchema = new mongoose.Schema({
   location: { type: String, required: true },         
   openingHours: { type: String, required: true },     
   ticketPrices: { type: ticketPriceSchema, required: true }  ,
-  AuthorUsername :{type : String , required: true }
+  AuthorUsername :{type : String , required: true },
+  HistoricalTags: [{
+    type: String, // Store the names of the tags
+  }]
 }, { timestamps: true });
 
 const MuseumPlace = mongoose.model('MuseumPlace', museumPlaceSchema);

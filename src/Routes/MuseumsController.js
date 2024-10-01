@@ -1,13 +1,21 @@
 const MuseumsModel = require('../Models/Museums.js');
+const TagsModel = require('../Models/HistoricalTags.js');
+
 const { default: mongoose } = require('mongoose');
 const CreateMuseums = async (req, res) => {
     try {
         // Destructure the required fields from the request body
-        const { name, description, pictures, location, openingHours, ticketPrices, AuthorUsername } = req.body;
+        const { name, description, pictures, location, openingHours, ticketPrices, AuthorUsername , HistoricalTags} = req.body;
 
         const existingMuseum = await MuseumsModel.findOne({ name: name });
         if (existingMuseum) {
             return res.status(400).json({ error: "A museum with this name already exists." });
+        }
+
+        // Check if all provided tags exist
+        const existingTags = await TagsModel.find({ NameOfHistoricalTags: { $in: HistoricalTags } });
+        if (existingTags.length !== HistoricalTags.length) {
+          return res.status(400).json({ error: "One or more tags do not exist!" });
         }
 
         // Create a new museum or historical place document in the database
@@ -48,7 +56,7 @@ const CreateMuseums = async (req, res) => {
 
   const updateMuseumByName = async (req, res) => {
     // Destructure fields from the request body
-    const {name, description, pictures, location, openingHours, ticketPrices, AuthorUsername} = req.body;
+    const {name, description, pictures, location, openingHours, ticketPrices, AuthorUsername, HistoricalTags} = req.body;
 
     try {
         // Check if the activity exists with the provided name and advertiser name
@@ -56,7 +64,13 @@ const CreateMuseums = async (req, res) => {
         if (!existingMuseum) {
             return res.status(404).json({ error: "Museum not found for the given Tourism Governer." });
         }
-
+         // If Tags are provided, check if they exist
+         if (HistoricalTags && HistoricalTags.length > 0) {
+          const existingTags = await TagsModel.find({ NameOfHistoricalTags: { $in: Tags } });
+          if (existingTags.length !== HistoricalTags.length) {
+              return res.status(400).json({ error: "One or more tags do not exist!" });
+          }
+      }
        
         // Prepare an object with the fields to update (excluding AdvertiserName and Name)
         const updateFields = {
