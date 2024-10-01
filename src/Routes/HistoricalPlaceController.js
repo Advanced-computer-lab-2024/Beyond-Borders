@@ -4,7 +4,10 @@ const CreateHistoricalPlace = async (req, res) => {
     try {
         // Destructure the required fields from the request body
         const { name, description, pictures, location, openingHours, ticketPrices, AuthorUsername } = req.body;
-
+        const existingHistoricalPlace = await HistoricalPlacesModel.findOne({ name: name });
+        if (existingHistoricalPlace) {
+            return res.status(400).json({ error: "A historical place with this name already exists." });
+        }
         // Create a new museum or historical place document in the database
         const NewHistoricalPlace = await HistoricalPlacesModel.create({
             name,
@@ -22,56 +25,68 @@ const CreateHistoricalPlace = async (req, res) => {
         // Handle validation errors or other errors
         res.status(400).json({ error: error.message }); // Use error.message to provide the correct error message
     }
-};
-
-const getHistoricalPlacePlaceById = async (req, res) => {
+}; const getHistoricalPlaceByName = async (req, res) => {
     try {
-      const HistoricalPlaceId = req.body;
-      const HistoricalPlace = await HistoricalPlacesModel.findById(HistoricalPlaceId);
+      const {HistoricalPlaceName} = req.body;
+      const HistoricalPlace = await HistoricalPlacesModel.findOne({name: HistoricalPlaceName});
   
       if (HistoricalPlace) {
         res.status(200).json(HistoricalPlace);
       } else {
-        res.status(404).json({ error : "Historical place not found" });
-      }
-    } catch (error) {
-      res.status(400).json({ error: error.message });
-    }
-  }; 
-
-  const updateHistoricalPlace = async (req, res) => {
-    try {
-      const HistoricalPlaceId = req.body;
-      const updateData = req.body;
-  
-      const updatedHistoricalPlace = await HistoricalPlacesModel.findByIdAndUpdate(
-        HistoricalPlaceId,
-        updateData,
-        { new: true, runValidators: true }
-      );
-  
-      if (updatedHistoricalPlace) {
-        res.status(200).json(updatedHistoricalPlace);
-      } else {
-        res.status(400).json({ error : "Historical place not found" });
+        res.status(404).json({ error : "Historical Place not found" });
       }
     } catch (error) {
       res.status(400).json({ error: error.message });
     }
   };
-  const deleteHistoricalPlacebyID = async (req, res) => {
+  const updateHistoricalPlace = async (req, res) => {
+    const {name, description, pictures, location, openingHours, ticketPrices, AuthorUsername} = req.body;
+
     try {
-      const HistoricalPlaceId = req.body;
-      const deletedHistoricalPlace = await HistoricalPlacesModel.findByIdAndDelete(HistoricalPlaceId);
-  
-      if (deletedHistoricalPlace) {
-        res.status(200).json({ message: 'Historical place deleted successfully' });
-      } else {
-        res.status(400).json({ error : "Historical place not found" });
-      }
+        // Check if the activity exists with the provided name and advertiser name
+        const existingHistoricalPlace = await HistoricalPlacesModel.findOne({ name: name, AuthorUsername: AuthorUsername });
+        if (!existingHistoricalPlace) {
+            return res.status(404).json({ error: "Museum not found for the given Tourism Governer." });
+        }
+
+       
+        // Prepare an object with the fields to update (excluding AdvertiserName and Name)
+        const updateFields = {
+          description, pictures, location, openingHours, ticketPrices
+        };
+
+        // Filter out any undefined values to avoid updating fields with undefined
+        Object.keys(updateFields).forEach(key => updateFields[key] === undefined && delete updateFields[key]);
+
+        // Update the activity
+        const updatedHistoricalPlace = await HistoricalPlacesModel.findOneAndUpdate(
+            { name: name, AuthorUsername: AuthorUsername }, // Find by Name and AdvertiserName
+            { $set: updateFields }, // Update only the specified fields
+            { new: true } // Return the updated document
+        );
+
+        // Send the updated activity as a JSON response with a 200 OK status
+        res.status(200).json({ msg: "Historical place updated successfully!", HistoricalPlace: updatedHistoricalPlace });
     } catch (error) {
-      res.status(400).json({ error: error.message });
+        // If an error occurs, send a 400 Bad Request status with the error message
+        res.status(400).json({ error: error.message });
     }
+  };
+  const deleteHistoricalPlacebyName = async (req, res) => {
+    try {
+        const {name,AuthorUsername} = req.body;
+  
+        // Check if the activity exists with the provided name and advertiser name
+        const existingHistoricalPlace = await HistoricalPlacesModel.findOne({ name: name, AuthorUsername: AuthorUsername });
+        if (!existingHistoricalPlace) {
+            return res.status(404).json({ error: "Historical Place not found for the given Tourism Governer." });
+        }
+        else{
+          await HistoricalPlacesModel.findOneAndDelete({ name: name});
+      }
+      } catch (error) {
+        res.status(400).json({ error: error.message });
+      }
   };
   const getHistoricalPlaceByAuthor = async (req, res) => {
     try {
@@ -88,4 +103,4 @@ const getHistoricalPlacePlaceById = async (req, res) => {
       res.status(400).json({ error: error.message });
     }
   };
-  module.exports = {CreateHistoricalPlace, getHistoricalPlacePlaceById, updateHistoricalPlace ,deleteHistoricalPlacebyID ,getHistoricalPlaceByAuthor};
+  module.exports = {CreateHistoricalPlace, updateHistoricalPlace ,getHistoricalPlaceByAuthor , deleteHistoricalPlacebyName , getHistoricalPlaceByName  };

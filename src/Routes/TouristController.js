@@ -336,7 +336,7 @@ const createTourist = async (req, res) => {
         }
       };*/
 
-      const filterProductByPriceTourist = async (req, res) => {
+      /*const filterProductByPriceTourist = async (req, res) => {
         const { Price } = req.body; // Extract the category from the request body
       
         try {
@@ -349,8 +349,46 @@ const createTourist = async (req, res) => {
           console.error('Error fetching products:', error);
           res.status(500).json({ msg: "An error occurred while fetching products." });
         }
-      };
+      };*/
 
+      const filterProductByPriceTourist = async (req, res) => {
+        const { MinimumPrice, MaximumPrice } = req.body; // Extract MinimumPrice and MaximumPrice from the request body
+      
+        // Build the query object dynamically based on the presence of MinimumPrice and MaximumPrice
+        const priceQuery = {};
+      
+        if (MinimumPrice !== undefined) {
+          priceQuery.$gte = MinimumPrice; // Add the condition for greater than or equal to MinimumPrice
+        }
+      
+        if (MaximumPrice !== undefined) {
+          priceQuery.$lte = MaximumPrice; // Add the condition for less than or equal to MaximumPrice
+        }
+      
+        if (!MinimumPrice && !MaximumPrice) {
+          return res.status(400).json({ msg: "Please provide either MinimumPrice or MaximumPrice." });
+        }
+      
+        try {
+          // Fetch products where price is within the specified range
+          const fetchedProducts = await ProductModel.find({
+            Price: priceQuery, // Apply the price query for filtering
+          });
+      
+          if (fetchedProducts.length === 0) {
+            return res.status(404).json({ msg: "No products found within the specified price range!" });
+          }
+      
+          res.status(200).json(fetchedProducts); // Respond with the fetched products
+        } catch (error) {
+          console.error('Error fetching products:', error);
+          res.status(500).json({ msg: "An error occurred while fetching products." });
+        }
+      };
+      
+
+
+      
       const ActivityRating = async (req, res) => {
         const { _id, Rating } = req.body; // Destructure _id and Rating from request body
       
