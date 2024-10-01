@@ -28,22 +28,7 @@ const CreateMuseums = async (req, res) => {
         res.status(400).json({ error: error.message }); // Use error.message to provide the correct error message
     }
 };
-
-const getMuseumById = async (req, res) => {
-    try {
-      const museumPlaceId = req.body;
-      const museumPlace = await MuseumsModel.findById(museumPlaceId);
-  
-      if (museumPlace) {
-        res.status(200).json(museumPlace);
-      } else {
-        res.status(404).json({ error : "Museum not found" });
-      }
-    } catch (error) {
-      res.status(400).json({ error: error.message });
-    }
-  }; 
-
+ 
   //YAASSIN AND AMINA
   const getMuseumByName = async (req, res) => {
     try {
@@ -59,28 +44,6 @@ const getMuseumById = async (req, res) => {
       res.status(400).json({ error: error.message });
     }
   }; 
-
-  const updateMuseum = async (req, res) => {
-    try {
-      const museumPlaceId = req.body;
-      const updateData = req.body;
-  
-      const updatedMuseumPlace = await MuseumsModel.findByIdAndUpdate(
-        museumPlaceId,
-        updateData,
-        { new: true, runValidators: true }
-      );
-  
-      if (updatedMuseumPlace) {
-        res.status(200).json(updatedMuseumPlace);
-      } else {
-        res.status(400).json({ error : "Museum not found" });
-      }
-    } catch (error) {
-      res.status(400).json({ error: error.message });
-    }
-  };
-
   //YASSIN AND AMINA
 
   const updateMuseumByName = async (req, res) => {
@@ -117,22 +80,6 @@ const getMuseumById = async (req, res) => {
         res.status(400).json({ error: error.message });
     }
 };
-
-  const deleteMuseumbyID = async (req, res) => {
-    try {
-      const museumPlaceId = req.body;
-      const deletedMuseumPlace = await MuseumsModel.findByIdAndDelete(museumPlaceId);
-  
-      if (deletedMuseumPlace) {
-        res.status(200).json({ message: 'Museum deleted successfully' });
-      } else {
-        res.status(400).json({ error : "Museum not found" });
-      }
-    } catch (error) {
-      res.status(400).json({ error: error.message });
-    }
-  };
-
   //YASSIN AND AMINA
   const deleteMuseumByName = async (req, res) => {
     try {
@@ -167,4 +114,4 @@ const getMuseumById = async (req, res) => {
       res.status(400).json({ error: error.message });
     }
   };
-  module.exports = {CreateMuseums, getMuseumById, updateMuseum ,deleteMuseumbyID ,getMuseumsByAuthor, getMuseumByName, updateMuseumByName, deleteMuseumByName};
+  module.exports = {CreateMuseums ,getMuseumsByAuthor, getMuseumByName, updateMuseumByName, deleteMuseumByName};
