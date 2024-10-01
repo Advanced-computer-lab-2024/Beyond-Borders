@@ -275,13 +275,13 @@ const createTourist = async (req, res) => {
         }
       };*/
 
-      const filterProductByPrice = async (req, res) => {
+      const filterProductByPriceTourist = async (req, res) => {
         const { Price } = req.body; // Extract the category from the request body
       
         try {
           const fetchedProducts = await ProductModel.find({ Price }); // Fetch activities by category
           if (fetchedProducts.length === 0) {
-            return res.status(404).json({ msg: "No activities found for this category!" });
+            return res.status(404).json({ msg: "No product found with this price!" });
           }
           res.status(200).json(fetchedProducts); // Respond with the fetched activities
         } catch (error) {
@@ -296,4 +296,4 @@ const createTourist = async (req, res) => {
     
 
 
-module.exports = {createTourist, getTourist, updateTourist, searchProductTourist, filterActivities, filterProductByPrice};
+module.exports = {createTourist, getTourist, updateTourist, searchProductTourist, filterActivities, filterProductByPriceTourist};

@@ -87,4 +87,19 @@ const updateSeller = async (req, res) => {
         }
      };
 
-module.exports = {readSellerProfile, updateSeller, editProductSeller, createNewProductSeller, searchProductSeller};
+     const filterProductByPriceSeller = async (req, res) => {
+      const { Price } = req.body; // Extract the category from the request body
+    
+      try {
+        const fetchedProducts = await NewProduct.find({ Price }); // Fetch activities by category
+        if (fetchedProducts.length === 0) {
+          return res.status(404).json({ msg: "No product found with this price!" });
+        }
+        res.status(200).json(fetchedProducts); // Respond with the fetched activities
+      } catch (error) {
+        console.error('Error fetching products:', error);
+        res.status(500).json({ msg: "An error occurred while fetching products." });
+      }
+    };
+
+module.exports = {readSellerProfile, updateSeller, editProductSeller, createNewProductSeller, searchProductSeller, filterProductByPriceSeller};
