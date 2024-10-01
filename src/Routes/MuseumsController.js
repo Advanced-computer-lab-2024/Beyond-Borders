@@ -151,11 +151,12 @@ const getMuseumById = async (req, res) => {
     }
   };
 
+  //FIXED
   const getMuseumsByAuthor = async (req, res) => {
     try {
-      const AuthorUsername = req.body;  // Assuming you get the author's ID from the authenticated user
+      const {AuthorUsername} = req.body;  // Assuming you get the author's ID from the authenticated user
       
-      const museums = await MuseumsModel.find({ createdBy: AuthorUsername });
+      const museums = await MuseumsModel.find({ AuthorUsername: AuthorUsername });
   
       if (!museums.length) {
         return res.status(404).json({ error : "No museums found for this author" });
