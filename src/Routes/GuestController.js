@@ -87,6 +87,28 @@ const getMuseumsByTagGuest = async (req, res) => {
     }
 };
 
+const ViewAllUpcomingActivitiesGuest = async (req, res) => {
+    try {
+      // Get today's date and set the time to midnight
+      const currentDate = new Date();
+      currentDate.setHours(0, 0, 0, 0); // Set to 00:00:00.000
+  
+      // Fetch all activities from the database
+      const activities = await ActivityModel.find(); // Fetch all activities
+  
+      // Filter activities where the Date is greater than or equal to the current date
+      const upcomingActivities = activities.filter(activity => {
+        return activity.Date >= currentDate; // Include only upcoming activities
+      });
+  
+      // Return the upcoming activities as a JSON response
+      res.json(upcomingActivities);
+    } catch (error) {
+      console.error('Error fetching upcoming activities:', error);
+      res.status(500).json({ message: 'Error fetching upcoming activities' });
+    }
+  };
 
 
-module.exports = {filterActivitiesGuest, getMuseumsByTagGuest};
+
+module.exports = {filterActivitiesGuest, getMuseumsByTagGuest,ViewAllUpcomingActivitiesGuest };
