@@ -12,8 +12,8 @@ const {createUnregisteredTourGuide} = require("./Routes/UnregisteredTourGuideCon
 const {createUnregisteredSeller} = require("./Routes/UnregisteredSellerController");
 const {createNewTourismGoverner, createNewAdmin, createNewProduct, editProduct, acceptSeller, rejectSeller, createNewCategory, readAllActivityCategories,updateCategory, deleteActivityCategory, deleteAccount, searchProductAdmin, createNewTag, readAllTags, updateTag, deleteTag, acceptTourGuide, rejectTourGuide, acceptAdvertiser, rejectAdvertiser, filterProductByPriceAdmin} = require("./Routes/AdminController");
 const {readSellerProfile, updateSeller, editProductSeller, createNewProductSeller, searchProductSeller,filterProductByPriceSeller} = require("./Routes/AcceptedSellerController");
-const {createNewHistoricalTag,createMuseumsAsTourismGoverner,getMuseumByIdAsTourismGoverner,updateMuseumAsTourismGoverner,deleteMuseumAsTourismGoverner,getMuseumsByAuthorAsTourismGoverner
-  ,createHistoricalPlaceAsTourismGoverner , getHistoricalPlaceByIdAsTourismGoverner , updateHistoricalPlaceAsTourismGoverner , deletePlaceAsTourismGoverner , getHistoricalByAuthorAsTourismGoverner, getMuseumByNameAsTourismGoverner, updateMuseumByNameAsTourismGoverner, deleteMuseumByNameAsTourismGoverner
+const {createNewHistoricalTag,createMuseumsAsTourismGoverner,getMuseumsByAuthorAsTourismGoverner
+  ,createHistoricalPlaceAsTourismGoverner , getHistoricalPlaceByNameAsTourismGoverner , updateHistoricalPlaceAsTourismGoverner , deletePlaceAsTourismGoverner , getHistoricalByAuthorAsTourismGoverner, getMuseumByNameAsTourismGoverner, updateMuseumByNameAsTourismGoverner, deleteMuseumByNameAsTourismGoverner
 } = require("./Routes/TourismGovernorController");
 const{ReadAdvertiserProfile , updateAdvertiser, createNewActivity, readActivity, updateActivity, deleteActivity} = require("./Routes/AdvertiserController");
 
@@ -113,19 +113,17 @@ app.put("/updateTourGuidePreviousWork",UpdateTourGuidePreviousWork);
 //Tourist Governer
 app.post("/createHistoricalTag", createNewHistoricalTag);
 app.post("/addMuseum" , createMuseumsAsTourismGoverner);
-app.get("/readMuseum" , getMuseumByIdAsTourismGoverner);
-app.put("/updateMuseum" , updateMuseumAsTourismGoverner);
-app.delete("/deleteMuseum" , deleteMuseumAsTourismGoverner);
+app.get("/readMuseumByName" , getMuseumByNameAsTourismGoverner);
+app.put("/updateMuseumByName" , updateMuseumByNameAsTourismGoverner);
+app.post("/deleteMuseumByName" , deleteMuseumByNameAsTourismGoverner);
 app.get("/readAllMuseums" , getMuseumsByAuthorAsTourismGoverner)
 app.post("/addHistoricalPlace" , createHistoricalPlaceAsTourismGoverner);
-app.get("/readHistoricalPlace" , getHistoricalPlaceByIdAsTourismGoverner);
+app.get("/readHistoricalPlace" , getHistoricalPlaceByNameAsTourismGoverner);
 app.put("/updateHistoricalPlace" , updateHistoricalPlaceAsTourismGoverner);
 app.delete("/deleteHistoricalPlace" , deletePlaceAsTourismGoverner);
 app.get("/readAllHistoricalPlace" , getHistoricalByAuthorAsTourismGoverner)
 
-app.get("/readMuseumByName" , getMuseumByNameAsTourismGoverner);
-app.put("/updateMuseumByName" , updateMuseumByNameAsTourismGoverner);
-app.post("/deleteMuseumByName" , deleteMuseumByNameAsTourismGoverner);
+
 
 
 
