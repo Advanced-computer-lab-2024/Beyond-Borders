@@ -109,6 +109,19 @@ const ViewAllUpcomingActivitiesGuest = async (req, res) => {
     }
   };
 
+  const ViewAllMuseumsGuest = async (req, res) => {
+    try {
+      // Fetch all museums from the database
+      const museums = await MuseumsModel.find();
+  
+      // Return the museums as a JSON response
+      res.json(museums);
+    } catch (error) {
+      console.error('Error fetching museums:', error);
+      res.status(500).json({ message: 'Error fetching museums' });
+    }
+  };
 
 
-module.exports = {filterActivitiesGuest, getMuseumsByTagGuest,ViewAllUpcomingActivitiesGuest };
+
+module.exports = {filterActivitiesGuest, getMuseumsByTagGuest,ViewAllUpcomingActivitiesGuest, ViewAllMuseumsGuest };

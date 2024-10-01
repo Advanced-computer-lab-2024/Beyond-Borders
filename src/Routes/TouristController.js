@@ -3,7 +3,7 @@ const TouristModel = require('../Models/Tourist.js');
 const AllUsernamesModel = require('../Models/AllUsernames.js');
 const ActivityModel = require('../Models/Activity.js');
 const ProductModel = require('../Models/Product.js');
-//const MuseumModel = require('../Models/Museum.js');
+const MuseumModel = require('../Models/Museums.js');
 //const ItineraryModel = require('../Models/Itinerary.js');
 const { default: mongoose } = require('mongoose');
 
@@ -460,7 +460,19 @@ const createTourist = async (req, res) => {
         res.status(500).json({ message: 'Error fetching upcoming activities' });
       }
     };
+
+    const ViewAllMuseums = async (req, res) => {
+      try {
+        // Fetch all museums from the database
+        const museums = await MuseumModel.find();
     
+        // Return the museums as a JSON response
+        res.json(museums);
+      } catch (error) {
+        console.error('Error fetching museums:', error);
+        res.status(500).json({ message: 'Error fetching museums' });
+      }
+    };
 
 
-module.exports = {createTourist, getTourist, updateTourist, searchProductTourist, filterActivities, filterProductByPriceTourist, ActivityRating, sortProductsDescendingTourist, sortProductsAscendingTourist, ViewAllUpcomingActivities};
+module.exports = {createTourist, getTourist, updateTourist, searchProductTourist, filterActivities, filterProductByPriceTourist, ActivityRating, sortProductsDescendingTourist, sortProductsAscendingTourist, ViewAllUpcomingActivities, ViewAllMuseums};
