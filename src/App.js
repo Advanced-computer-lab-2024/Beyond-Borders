@@ -16,7 +16,7 @@ const {createNewHistoricalTag,createMuseumsAsTourismGoverner,getMuseumsByAuthorA
   ,createHistoricalPlaceAsTourismGoverner , getHistoricalPlaceByNameAsTourismGoverner , updateHistoricalPlaceAsTourismGoverner , deletePlaceAsTourismGoverner , getHistoricalByAuthorAsTourismGoverner, getMuseumByNameAsTourismGoverner, updateMuseumByNameAsTourismGoverner, deleteMuseumByNameAsTourismGoverner
 } = require("./Routes/TourismGovernorController");
 const{ReadAdvertiserProfile , updateAdvertiser, createNewActivity, readActivity, updateActivity, deleteActivity, getActivitiesByAuthor} = require("./Routes/AdvertiserController");
-
+const {filterActivitiesGuest} = require("./Routes/GuestController");
 
 //const {createNewTourismGoverner, createNewAdmin, createNewProduct, editProduct} = require("./Routes/AdminController");
 const{ReadTourGuideProfile , UpdateTourGuideEmail , UpdateTourGuidePassword, UpdateTourGuideMobileNum , UpdateTourGuideYearsofExperience ,UpdateTourGuidePreviousWork, createItineraryAsTourGuide, readItineraryAsTourGuide, updateItineraryAsTourGuide, deleteItineraryAsTourGuide, updateTourGuideProfile} = require("./Routes/TourGuideController")
@@ -106,6 +106,7 @@ app.get("/sortProductsAscendingSeller", sortProductsAscendingSeller);
 app.get("/sortProductsDescendingSeller", sortProductsDescendingSeller);
 app.get("/sortProductsDescendingTourist", sortProductsDescendingTourist);
 app.get("/sortProductsAscendingTourist", sortProductsAscendingTourist);
+app.get("/filterActivitiesGuest", filterActivitiesGuest);
 
 //app.post("/createNewActivity", createNewActivity);
 //Tour Guide
