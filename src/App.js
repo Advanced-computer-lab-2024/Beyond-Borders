@@ -15,7 +15,7 @@ const {readSellerProfile, updateSeller, editProductSeller, createNewProductSelle
 const {createNewHistoricalTag,createMuseumsAsTourismGoverner,getMuseumByIdAsTourismGoverner,updateMuseumAsTourismGoverner,deleteMuseumAsTourismGoverner,getMuseumsByAuthorAsTourismGoverner
   ,createHistoricalPlaceAsTourismGoverner , getHistoricalPlaceByIdAsTourismGoverner , updateHistoricalPlaceAsTourismGoverner , deletePlaceAsTourismGoverner , getHistoricalByAuthorAsTourismGoverner, getMuseumByNameAsTourismGoverner, updateMuseumByNameAsTourismGoverner, deleteMuseumByNameAsTourismGoverner
 } = require("./Routes/TourismGovernorController");
-const{ReadAdvertiserProfile , updateAdvertiser, createNewActivity, readActivity, updateActivity, deleteActivity} = require("./Routes/AdvertiserController");
+const{ReadAdvertiserProfile , updateAdvertiser, createNewActivity, readActivity, updateActivity, deleteActivity, getActivitiesByAuthor} = require("./Routes/AdvertiserController");
 
 
 //const {createNewTourismGoverner, createNewAdmin, createNewProduct, editProduct} = require("./Routes/AdminController");
@@ -99,6 +99,8 @@ app.get("/filterProductByPriceAdmin", filterProductByPriceAdmin);
 app.get("/filterProductByPriceTourist", filterProductByPriceTourist);
 app.get("/filterProductByPriceSeller", filterProductByPriceSeller);
 app.post("/ActivityRating", ActivityRating);
+app.get("/readAllActivities" , getActivitiesByAuthor)
+
 
 //app.post("/createNewActivity", createNewActivity);
 //Tour Guide
