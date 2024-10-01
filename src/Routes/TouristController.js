@@ -3,7 +3,7 @@ const TouristModel = require('../Models/Tourist.js');
 const AllUsernamesModel = require('../Models/AllUsernames.js');
 const ActivityModel = require('../Models/Activity.js');
 const ProductModel = require('../Models/Product.js');
-//const MuseumModel = require('../Models/Museum.js');
+const MuseumModel = require('../Models/Museums.js');
 //const ItineraryModel = require('../Models/Itinerary.js');
 const { default: mongoose } = require('mongoose');
 
@@ -438,12 +438,41 @@ const createTourist = async (req, res) => {
             res.status(400).json({ error: error.message });
         }
     };
-  
 
-
-
-
+    const ViewAllUpcomingActivities = async (req, res) => {
+      try {
+        // Get today's date and set the time to midnight
+        const currentDate = new Date();
+        currentDate.setHours(0, 0, 0, 0); // Set to 00:00:00.000
     
+        // Fetch all activities from the database
+        const activities = await ActivityModel.find(); // Fetch all activities
+    
+        // Filter activities where the Date is greater than or equal to the current date
+        const upcomingActivities = activities.filter(activity => {
+          return activity.Date >= currentDate; // Include only upcoming activities
+        });
+    
+        // Return the upcoming activities as a JSON response
+        res.json(upcomingActivities);
+      } catch (error) {
+        console.error('Error fetching upcoming activities:', error);
+        res.status(500).json({ message: 'Error fetching upcoming activities' });
+      }
+    };
+
+    const ViewAllMuseums = async (req, res) => {
+      try {
+        // Fetch all museums from the database
+        const museums = await MuseumModel.find();
+    
+        // Return the museums as a JSON response
+        res.json(museums);
+      } catch (error) {
+        console.error('Error fetching museums:', error);
+        res.status(500).json({ message: 'Error fetching museums' });
+      }
+    };
 
 
-module.exports = {createTourist, getTourist, updateTourist, searchProductTourist, filterActivities, filterProductByPriceTourist, ActivityRating, sortProductsDescendingTourist, sortProductsAscendingTourist};
+module.exports = {createTourist, getTourist, updateTourist, searchProductTourist, filterActivities, filterProductByPriceTourist, ActivityRating, sortProductsDescendingTourist, sortProductsAscendingTourist, ViewAllUpcomingActivities, ViewAllMuseums};

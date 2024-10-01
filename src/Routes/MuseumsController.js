@@ -26,7 +26,8 @@ const CreateMuseums = async (req, res) => {
             location,
             openingHours,
             ticketPrices,
-            AuthorUsername
+            AuthorUsername,
+            HistoricalTags
         });
 
         // Respond with the created document and a 201 Created status
@@ -66,7 +67,7 @@ const CreateMuseums = async (req, res) => {
         }
          // If Tags are provided, check if they exist
          if (HistoricalTags && HistoricalTags.length > 0) {
-          const existingTags = await TagsModel.find({ NameOfHistoricalTags: { $in: Tags } });
+          const existingTags = await TagsModel.find({ NameOfHistoricalTags: { $in: HistoricalTags } });
           if (existingTags.length !== HistoricalTags.length) {
               return res.status(400).json({ error: "One or more tags do not exist!" });
           }
@@ -74,7 +75,7 @@ const CreateMuseums = async (req, res) => {
        
         // Prepare an object with the fields to update (excluding AdvertiserName and Name)
         const updateFields = {
-          description, pictures, location, openingHours, ticketPrices
+          description, pictures, location, openingHours, ticketPrices, HistoricalTags
         };
 
         // Filter out any undefined values to avoid updating fields with undefined
