@@ -3,175 +3,94 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tourist HomePage</title>
+    <title>About Us</title>
     <style>
         body {
             font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
             margin: 0;
             padding: 0;
-            justify-content: flex-start; /* Aligns items to the left */
-    text-align: left; /* Ensures text is left-aligned */
-
-        }
-        .header {
-            background-color: #218838;
-            color: white;
-            padding: 15px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between; /* Aligns items to the left */
-        }
-        
-
-        nav ul {
-            list-style: none;
-            display: flex;
-            gap: 35px;
-            margin-left: 500px;
-        }
-        nav ul li {
-            display: inline;
-        }
-        nav ul li a ::before{
-           
-            content: '';
-            position: absolute;
-            bottom: -10px;
-            left: 0;
-            width: 0%;
-            height: 3px;
-            background-color: #fff;
-            transition:all .5s;
-            
-        }
-
-        nav ul li a:hover::before {
-            
-            width: 100px;
-        }
-        
-
-
-
-
-        .header h1 {
-            margin: 0;
-            font-size: 24px;
-            text-align: left; /* Ensures text is left-aligned */
-        }
-        .profile-icon {
-            width: 30px;
-            height: 30px;
-            margin-right: 15px;
-        }
-        .button-container {
-            margin-left: 15px;
-        }
-        .button-container button {
-            background-color: #40be5b;
-            color: white;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 20px;
-            transition: background-color 0.3s;
-          
-            
-        }
-        .button-container button:hover {
-            background-color: #7ccf8e;
-        }
-        .search-container {
-            display: flex;
-            width: 60%;
-            margin-top: 10px;
-            margin-left: 600px;
-        }
-        input[type="text"] {
-            padding: 10px;
-            flex-grow: 1;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            font-size: 16px;
-        }
-        input[type="text"]::placeholder {
-            color: #999;
-        }
-        .search-button {
-            padding: 10px;
-            border: none;
-            border-radius: 4px;
-            background-color: #218838;
-            color: white;
-            cursor: pointer;
-            font-size: 16px;
-            margin-left: 5px;
-            transition: background-color 0.3s;
-        }
-        .search-button:hover {
-            background-color: #5aae6c;
+            background-color: #f4f4f4;
         }
         .container {
-            max-width: 800px;
-            margin: auto;
-            background: #fff;
+            max-width: 1200px;
+            margin: 20px auto;
             padding: 20px;
-            border-radius: 5px;
+            background-color: white;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            margin-top: 20px;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
         }
-
-
-       
-
-
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .header h2 {
+            font-size: 28px;
+            color: #333;
+        }
+        .header p {
+            font-size: 16px;
+            color: #666;
+        }
+        .stats {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+            text-align: center;
+        }
+        .stat-item {
+            flex: 1;
+            padding: 20px;
+            background-color: #e9f7ef;
+            border-radius: 8px;
+            margin: 0 10px;
+        }
+        .stat-item h3 {
+            font-size: 24px;
+            color: #218838;
+            margin: 0;
+        }
+        .stat-item p {
+            color: #666;
+        }
+        .image-container {
+            margin-top: 20px;
+            text-align: center;
+        }
+        .image-container img {
+            max-width: 100%;
+            border-radius: 8px;
+        }
     </style>
 </head>
 <body>
 
-<div class="header">
-   
-    <h1>Beyond Borders</h1>
-    <div class="nav"></div>
-    <nav>
-        <ul>
-            <li><a href="#home">Home</a></li>
-            <li><a href="#services">Services</a></li>
-            <li><a href="#about">About</a></li>
-            <li><a href="#contact">Contact</a></li>
-        </ul>
-    </nav>
-    <div class="button-container">
-        <button onclick="reloadProfile()">My Profile</button>
+<div class="container">
+    <div class="header">
+        <h2>We’re Passionate About Delivering Growth Services</h2>
+        <p>Our goal is to provide the right business services at the right time as companies can benefit from the created momentum and thrive for a long period of time.</p>
     </div>
+
+    <div class="stats">
+        <div class="stat-item">
+            <h3>231</h3>
+            <p>Projects Completed</p>
+        </div>
+        <div class="stat-item">
+            <h3>121</h3>
+            <p>Happy Clients</p>
+        </div>
+        <div class="stat-item">
+            <h3>159</h3>
+            <p>Issues Resolved</p>
+        </div>
     </div>
-   
+
+    <div class="image-container">
+        <img src="path/to/your/image.jpg" alt="About Us Image"> <!-- Replace with your image path -->
+    </div>
 </div>
-
-<div class="search-container">
-    <input type="text" id="searchBar" placeholder="Search for activities, musuems, etc.">
-    <button class="search-button" onclick="performSearch()">Search</button>
-</div>
-
-
-
-<script>
-    function reloadProfile() {
-        location.href = 'TouristProfile.html'; // Navigate to the profile page
-    }
-
-    function performSearch() {
-        const query = document.getElementById('searchBar').value;
-        if (query) {
-            // Redirect to search results page or perform search logic
-            window.location.href = `search_results.html?query=${encodeURIComponent(query)}`;
-        } else {
-            alert('Please enter a search term.');
-        }
-    }
-</script>
 
 </body>
 </html>
