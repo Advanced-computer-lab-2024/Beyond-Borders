@@ -13,7 +13,7 @@ const {createUnregisteredSeller} = require("./Routes/UnregisteredSellerControlle
 const {createNewTourismGoverner, createNewAdmin, createNewProduct, editProduct, acceptSeller, rejectSeller, createNewCategory, readAllActivityCategories,updateCategory, deleteActivityCategory, deleteAccount, searchProductAdmin, createNewTag, readAllTags, updateTag, deleteTag, acceptTourGuide, rejectTourGuide, acceptAdvertiser, rejectAdvertiser, filterProductByPriceAdmin} = require("./Routes/AdminController");
 const {readSellerProfile, updateSeller, editProductSeller, createNewProductSeller, searchProductSeller,filterProductByPriceSeller} = require("./Routes/AcceptedSellerController");
 const {createNewHistoricalTag,createMuseumsAsTourismGoverner,getMuseumByIdAsTourismGoverner,updateMuseumAsTourismGoverner,deleteMuseumAsTourismGoverner,getMuseumsByAuthorAsTourismGoverner
-  ,createHistoricalPlaceAsTourismGoverner , getHistoricalPlaceByIdAsTourismGoverner , updateHistoricalPlaceAsTourismGoverner , deletePlaceAsTourismGoverner , getHistoricalByAuthorAsTourismGoverner
+  ,createHistoricalPlaceAsTourismGoverner , getHistoricalPlaceByIdAsTourismGoverner , updateHistoricalPlaceAsTourismGoverner , deletePlaceAsTourismGoverner , getHistoricalByAuthorAsTourismGoverner, getMuseumByNameAsTourismGoverner, updateMuseumByNameAsTourismGoverner, deleteMuseumByNameAsTourismGoverner
 } = require("./Routes/TourismGovernorController");
 const{ReadAdvertiserProfile , updateAdvertiser, createNewActivity, readActivity, updateActivity, deleteActivity} = require("./Routes/AdvertiserController");
 
@@ -122,6 +122,12 @@ app.get("/readHistoricalPlace" , getHistoricalPlaceByIdAsTourismGoverner);
 app.put("/updateHistoricalPlace" , updateHistoricalPlaceAsTourismGoverner);
 app.delete("/deleteHistoricalPlace" , deletePlaceAsTourismGoverner);
 app.get("/readAllHistoricalPlace" , getHistoricalByAuthorAsTourismGoverner)
+
+app.get("/readMuseumByName" , getMuseumByNameAsTourismGoverner);
+app.put("/updateMuseumByName" , updateMuseumByNameAsTourismGoverner);
+app.post("/deleteMuseumByName" , deleteMuseumByNameAsTourismGoverner);
+
+
 
 // Itinerary
 app.post("/createItinerary",createItineraryAsTourGuide);
