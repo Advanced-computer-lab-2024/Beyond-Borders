@@ -107,7 +107,7 @@ const updateSeller = async (req, res) => {
       
         try {
           // Fetch products where price is within the specified range
-          const fetchedProducts = await ProductModel.find({
+          const fetchedProducts = await NewProduct.find({
             Price: priceQuery, // Apply the price query for filtering
           });
       
