@@ -536,5 +536,29 @@ const filterProductByPriceAdmin = async (req, res) => {
     }
   };
  
+  const sortProductsDescendingAdmin = async (req, res) => {
+    try {
+        // Fetch products sorted by ratings in descending order
+        const products = await NewProduct.find().sort({ Ratings: -1 });
 
-module.exports = {createNewAdmin, createNewTourismGoverner, createNewProduct, editProduct, acceptSeller, rejectSeller, createNewCategory, readAllActivityCategories, updateCategory, deleteActivityCategory, deleteAccount, searchProductAdmin, createNewTag, readAllTags, updateTag, deleteTag, acceptTourGuide, rejectTourGuide, acceptAdvertiser, rejectAdvertiser, filterProductByPriceAdmin};
+        // Respond with the sorted products
+        res.status(200).json(products);
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+};
+
+const sortProductsAscendingAdmin = async (req, res) => {
+    try {
+        // Fetch products sorted by ratings in ascending order
+        const products = await NewProduct.find().sort({ Ratings: 1 });
+
+        // Respond with the sorted products
+        res.status(200).json(products);
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+};
+
+
+module.exports = {createNewAdmin, createNewTourismGoverner, createNewProduct, editProduct, acceptSeller, rejectSeller, createNewCategory, readAllActivityCategories, updateCategory, deleteActivityCategory, deleteAccount, searchProductAdmin, createNewTag, readAllTags, updateTag, deleteTag, acceptTourGuide, rejectTourGuide, acceptAdvertiser, rejectAdvertiser, filterProductByPriceAdmin, sortProductsDescendingAdmin, sortProductsAscendingAdmin};

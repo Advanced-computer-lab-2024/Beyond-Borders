@@ -201,5 +201,6 @@ const { default: mongoose } = require('mongoose');
     }
   };
     
+  
 
       module.exports = {ReadAdvertiserProfile , updateAdvertiser, createNewActivity, readActivity, updateActivity, deleteActivity, getActivitiesByAuthor};
