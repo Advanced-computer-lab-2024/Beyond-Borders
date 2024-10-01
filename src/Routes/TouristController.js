@@ -261,33 +261,50 @@ const createTourist = async (req, res) => {
       // };
 
       const filterActivities = async (req, res) => {
-        const { Category, Price , InputDate} = req.body; // Extract category and price from the request body
+        const { Category, minPrice, maxPrice, InputDate, Rating } = req.body; // Extract parameters from the request body
         const query = {}; // Initialize an empty query object
     
         // Get the current date and set time to midnight
         const currentDate = new Date();
         currentDate.setHours(0, 0, 0, 0);
-
-        if(InputDate){
-          const inputDateDate = new Date(InputDate);
-          if  (inputDateDate < currentDate){
-            return res.status(404).json({ msg: "Activities with this date have passed!" });
-          }
-          else{
-            query.Date = InputDate;
-          }
+    
+        if (InputDate) {
+            const inputDate = new Date(InputDate);
+            inputDate.setHours(0, 0, 0, 0); // Normalize input date to midnight
+    
+            if (inputDate < currentDate) {
+                return res.status(404).json({ msg: "Activities with this date have passed!" });
+            } else {
+                query.Date = inputDate; // Set query to look for this specific date
+            }
+        } else {
+            // Always set the date filter to only include activities on or after the current date
+            query.Date = { $gte: currentDate }; // Activities must be after today
         }
-        
-        else{
-        // Always set the date filter to only include activities on or after the current date
-        query.Date = { $gte: currentDate }; // Activities must be after today
-        }
+    
         // Build the query based on provided parameters
         if (Category) {
             query.Category = Category; // Add category filter if provided
         }
-        if (Price) {
-            query.Price = Price; // Add price filter if provided
+    
+        // Add price filters based on minPrice and maxPrice
+        if (minPrice !== undefined && maxPrice !== undefined) {
+            // Both minPrice and maxPrice are provided
+            query.Price = {
+                $gte: minPrice, // Greater than or equal to minPrice
+                $lte: maxPrice  // Less than or equal to maxPrice
+            };
+        } else if (minPrice !== undefined) {
+            // Only minPrice is provided
+            query.Price = { $gte: minPrice }; // Greater than or equal to minPrice
+        } else if (maxPrice !== undefined) {
+            // Only maxPrice is provided
+            query.Price = { $lte: maxPrice }; // Less than or equal to maxPrice
+        }
+    
+        // Add rating filter if provided
+        if (Rating !== undefined) {
+            query.Rating = { $gte: Rating }; // Filter for activities with rating greater than or equal to the specified rating
         }
     
         try {
@@ -302,11 +319,7 @@ const createTourist = async (req, res) => {
         }
     };
     
-    // Example Express.js route
-    // app.post('/filter-activities', filterActivities);
     
-    // Example Express.js route
-    // app.post('/filter-activities', filterActivities);
 
       /*const filterHistoricalPlacesByTag = async (req, res) => {
         const { HistoricalTag } = req.body; // Extract the category from the request body
@@ -323,7 +336,7 @@ const createTourist = async (req, res) => {
         }
       };*/
 
-      const filterProductByPriceTourist = async (req, res) => {
+      /*const filterProductByPriceTourist = async (req, res) => {
         const { Price } = req.body; // Extract the category from the request body
       
         try {
@@ -336,7 +349,96 @@ const createTourist = async (req, res) => {
           console.error('Error fetching products:', error);
           res.status(500).json({ msg: "An error occurred while fetching products." });
         }
+      };*/
+
+      const filterProductByPriceTourist = async (req, res) => {
+        const { MinimumPrice, MaximumPrice } = req.body; // Extract MinimumPrice and MaximumPrice from the request body
+      
+        // Build the query object dynamically based on the presence of MinimumPrice and MaximumPrice
+        const priceQuery = {};
+      
+        if (MinimumPrice !== undefined) {
+          priceQuery.$gte = MinimumPrice; // Add the condition for greater than or equal to MinimumPrice
+        }
+      
+        if (MaximumPrice !== undefined) {
+          priceQuery.$lte = MaximumPrice; // Add the condition for less than or equal to MaximumPrice
+        }
+      
+        if (!MinimumPrice && !MaximumPrice) {
+          return res.status(400).json({ msg: "Please provide either MinimumPrice or MaximumPrice." });
+        }
+      
+        try {
+          // Fetch products where price is within the specified range
+          const fetchedProducts = await ProductModel.find({
+            Price: priceQuery, // Apply the price query for filtering
+          });
+      
+          if (fetchedProducts.length === 0) {
+            return res.status(404).json({ msg: "No products found within the specified price range!" });
+          }
+      
+          res.status(200).json(fetchedProducts); // Respond with the fetched products
+        } catch (error) {
+          console.error('Error fetching products:', error);
+          res.status(500).json({ msg: "An error occurred while fetching products." });
+        }
       };
+      
+
+
+      
+      const ActivityRating = async (req, res) => {
+        const { _id, Rating } = req.body; // Destructure _id and Rating from request body
+      
+        if (!_id || Rating === undefined) {
+          return res.status(400).json({ message: 'Missing _id or Rating in the request body' });
+        }
+      
+        try {
+          // Find activity by id and update the rating
+          const updatedRating = await ActivityModel.findByIdAndUpdate(
+            _id,
+            { Rating: Rating }, // Update the Rating field with the new value
+            { new: true } // Option to return the updated document
+          );
+      
+          if (!updatedRating) {
+            return res.status(404).json({ message: 'Activity not found' }); // Send a 404 if activity is not found
+          }
+      
+          return res.status(200).json({ message: 'Activity updated successfully', updatedRating });
+        } catch (error) {
+          console.error('Error updating activity rating:', error);
+          return res.status(500).json({ message: 'Server error', error: error.message });
+        }
+      };
+
+      const sortProductsDescendingTourist = async (req, res) => {
+        try {
+            // Fetch products sorted by ratings in descending order
+            const products = await ProductModel.find().sort({ Ratings: -1 });
+    
+            // Respond with the sorted products
+            res.status(200).json(products);
+        } catch (error) {
+            res.status(400).json({ error: error.message });
+        }
+    };
+    
+    const sortProductsAscendingTourist = async (req, res) => {
+        try {
+            // Fetch products sorted by ratings in ascending order
+            const products = await ProductModel.find().sort({ Ratings: 1 });
+    
+            // Respond with the sorted products
+            res.status(200).json(products);
+        } catch (error) {
+            res.status(400).json({ error: error.message });
+        }
+    };
+  
 
 
 
@@ -344,4 +446,4 @@ const createTourist = async (req, res) => {
     
 
 
-module.exports = {createTourist, getTourist, updateTourist, searchProductTourist, filterActivities, filterProductByPriceTourist};
+module.exports = {createTourist, getTourist, updateTourist, searchProductTourist, filterActivities, filterProductByPriceTourist, ActivityRating, sortProductsDescendingTourist, sortProductsAscendingTourist};

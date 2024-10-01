@@ -1,7 +1,15 @@
 const mongoose = require('mongoose');
 
 const itinerarySchema = new mongoose.Schema({
-  title: { type: String, required: true },  // Name of the itinerary or tour
+  Title: { type: String, required: true },
+  Language: { type: String, required: true },
+  Price: { type: Number, required: true },
+  availableDates: [Date],
+  pickupLocation: { type: String },
+  dropoffLocation: { type: String }, 
+  accessibility: { type: Boolean, default: false },
+  isBooked: {type:Boolean},
+
   activities: [
     {
       name: String,
@@ -11,15 +19,7 @@ const itinerarySchema = new mongoose.Schema({
       
     }
    
-  ] ,
-  language: { type: String, required: true },  // Language of the tour
-  price: { type: Number, required: true },     // Price of the tour
-  availableDates: [Date],                      // List of available dates for the tour
-  accessibility: { type: Boolean, default: false }, // Is the tour accessible?
-  pickupLocation: { type: String },           // Pickup location (optional)
-  dropoffLocation: { type: String },          // Drop-off location (optional)
-  isBooked: {type:Boolean},
-  createdAt: { type: Date, default: Date.now },// Auto timestamp
+  ] 
 },{ timestamps: true });
 
 const Itinerary = mongoose.model('Itinerary', itinerarySchema);
