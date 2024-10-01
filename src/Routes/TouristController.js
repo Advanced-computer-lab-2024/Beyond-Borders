@@ -415,7 +415,30 @@ const createTourist = async (req, res) => {
         }
       };
 
-      
+      const sortProductsDescendingTourist = async (req, res) => {
+        try {
+            // Fetch products sorted by ratings in descending order
+            const products = await ProductModel.find().sort({ Ratings: -1 });
+    
+            // Respond with the sorted products
+            res.status(200).json(products);
+        } catch (error) {
+            res.status(400).json({ error: error.message });
+        }
+    };
+    
+    const sortProductsAscendingTourist = async (req, res) => {
+        try {
+            // Fetch products sorted by ratings in ascending order
+            const products = await ProductModel.find().sort({ Ratings: 1 });
+    
+            // Respond with the sorted products
+            res.status(200).json(products);
+        } catch (error) {
+            res.status(400).json({ error: error.message });
+        }
+    };
+  
 
 
 
@@ -423,4 +446,4 @@ const createTourist = async (req, res) => {
     
 
 
-module.exports = {createTourist, getTourist, updateTourist, searchProductTourist, filterActivities, filterProductByPriceTourist, ActivityRating};
+module.exports = {createTourist, getTourist, updateTourist, searchProductTourist, filterActivities, filterProductByPriceTourist, ActivityRating, sortProductsDescendingTourist, sortProductsAscendingTourist};

@@ -122,4 +122,28 @@ const updateSeller = async (req, res) => {
         }
     };
 
-module.exports = {readSellerProfile, updateSeller, editProductSeller, createNewProductSeller, searchProductSeller, filterProductByPriceSeller};
+    const sortProductsDescendingSeller = async (req, res) => {
+      try {
+          // Fetch products sorted by ratings in descending order
+          const products = await NewProduct.find().sort({ Ratings: -1 });
+  
+          // Respond with the sorted products
+          res.status(200).json(products);
+      } catch (error) {
+          res.status(400).json({ error: error.message });
+      }
+  };
+  
+  const sortProductsAscendingSeller = async (req, res) => {
+      try {
+          // Fetch products sorted by ratings in ascending order
+          const products = await NewProduct.find().sort({ Ratings: 1 });
+  
+          // Respond with the sorted products
+          res.status(200).json(products);
+      } catch (error) {
+          res.status(400).json({ error: error.message });
+      }
+  };
+
+module.exports = {readSellerProfile, updateSeller, editProductSeller, createNewProductSeller, searchProductSeller, filterProductByPriceSeller, sortProductsAscendingSeller, sortProductsDescendingSeller};
