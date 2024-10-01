@@ -1,10 +1,15 @@
 const HistoricalPlacesModel = require('../Models/HistoricalPlaces.js');
+const HistoricalTagsModel = require('../Models/HistoricalTags');
 const { default: mongoose } = require('mongoose');
 const CreateHistoricalPlace = async (req, res) => {
     try {
         // Destructure the required fields from the request body
-        const { name, description, pictures, location, openingHours, ticketPrices, AuthorUsername } = req.body;
+        const { name, description, pictures, location, openingHours, ticketPrices, AuthorUsername ,Tags} = req.body;
         const existingHistoricalPlace = await HistoricalPlacesModel.findOne({ name: name });
+        const HistoricalTag = await  HistoricalTagsModel.findOne({NameOfHistoricalTags : Tags});
+        if(!HistoricalTag){
+            return res.status(400).json({error : "Historical tag not found"})
+        }
         if (existingHistoricalPlace) {
             return res.status(400).json({ error: "A historical place with this name already exists." });
         }
@@ -16,7 +21,8 @@ const CreateHistoricalPlace = async (req, res) => {
             location,
             openingHours,
             ticketPrices,
-            AuthorUsername
+            AuthorUsername , 
+            Tags
         });
 
         // Respond with the created document and a 201 Created status
