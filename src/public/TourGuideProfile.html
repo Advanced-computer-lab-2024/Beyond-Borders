@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile</title>
+    <style>
+        /* Your existing styles */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .profile-container {
+            background-color: white;
+            padding: 50px;
+            border-radius: 25px;
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+            width: 800px;
+            max-width: 90vw;
+            max-height: 90vh;
+            box-sizing: border-box;
+        }
+
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 36px;
+            font-size: 30px;
+            font-weight: bold;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 23px;
+            margin-left: 20px;
+        }
+
+        .form-row .form-group {
+            flex-basis: 48%;
+        }
+
+        label {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 10px;
+            width: 200px;
+        }
+
+        input[type="text"],
+        input[type="email"],
+        input[type="password"],
+        input[type="tel"],
+        input[type="date"],
+        input[type="url"] {
+            padding: 10px;
+            width: 100%;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+
+        /* Remove spinner from number input */
+        input[type="number"] {
+            padding: 10px;
+            width: 100%;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 16px;
+            -moz-appearance: textfield; /* Firefox */
+        }
+
+        /* Remove spinner for Chrome, Safari, Edge, Opera */
+        input[type="number"]::-webkit-outer-spin-button,
+        input[type="number"]::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        .button-container {
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            background-color: #28a745;
+            color: white;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            margin: 15px;
+        }
+
+        button:hover {
+            background-color: #218838;
+        }
+        
+    </style>
+</head>
+
+<body>
+
+    <div class="profile-container">
+        <h1>My Profile</h1>
+        <form id="profile-form">
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="username">Username:</label>
+                    <input type="text" id="username" readonly>
+                </div>
+                <div class="form-group">
+                    <label for="email">Email Address:</label>
+                    <input type="email" id="email">
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="password">Password:</label>
+                    <input type="password" id="password">
+                </div>
+                <div class="form-group">
+                    <label for="previouswork">PreviousWork:</label>
+                    <input type="text" id="previouswork">
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="yearofexp">YearsOfExperience:</label>
+                    <input type="number" id="yearofexp" onkeydown="preventArrowKeys(event)">
+                </div>
+                <div class="form-group">
+                    <label for="mobilenumber">MobileNum:</label>
+                    <input type="number" id="mobilenumber">
+                </div>
+            </div>
+
+            <div class="button-container">
+                <button type="button" id="save-changes-btn">Save Changes</button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        window.onload = function () {
+            const tourguideData = JSON.parse(localStorage.getItem('tourguideData'));
+
+            if (advertiserData) {
+                document.getElementById('username').value = tourguideData.Username || '';
+                document.getElementById('email').value = tourguideData.Email || '';
+                document.getElementById('previouswork').value = tourguideData.PreviousWork || '';
+                document.getElementById('yearofexp').value = tourguideData.YearsOfExperience || '';
+                document.getElementById('mobilenumber').value = tourguideData.MobileNum || '';
+            }
+        };
+
+        // Prevent arrow keys for the number input field
+        function preventArrowKeys(e) {
+            if (e.key === "ArrowUp" || e.key === "ArrowDown") {
+                e.preventDefault();
+            }
+        }
+
+        document.getElementById('save-changes-btn').addEventListener('click', async function () {
+            const Email = document.getElementById('email').value;
+            const CompanyProfile = document.getElementById('CompanyProfile').value;
+            const Hotline = document.getElementById('hotline').value;
+            const Website = document.getElementById('linktowebsite').value;
+
+            const updatedData = {
+                Username: document.getElementById('username').value,
+                Email,
+                Hotline,
+                CompanyProfile,
+                Website
+            };
+
+            console.log('Updated Data:', updatedData); // Log the data being sent
+
+            try {
+                const response = await fetch('/updateAdvertiser', {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(updatedData)
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json(); // Read the error response
+                    console.error('Error response:', errorData);
+                    throw new Error(errorData.error || 'Error updating advertiser information');
+                }
+
+                const result = await response.json();
+                alert('Profile updated successfully!');
+                console.log(result);
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Failed to update profile: ' + error.message);
+            }
+        });
+    </script>
+</body>
+
+</html>
