@@ -97,7 +97,7 @@ const CreateHistoricalPlace = async (req, res) => {
   };
   const getHistoricalPlaceByAuthor = async (req, res) => {
     try {
-      const AuthorUsername = req.body;  // Assuming you get the author's ID from the authenticated user
+      const {AuthorUsername} = req.body;  // Assuming you get the author's ID from the authenticated user
       
       const HistoricalPlaces = await HistoricalPlacesModel.find({ AuthorUsername: AuthorUsername });
   
