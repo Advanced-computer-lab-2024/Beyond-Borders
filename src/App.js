@@ -6,17 +6,17 @@ const mongoose = require('mongoose'); //importing mongoose
 mongoose.set('strictQuery', false);
 require("dotenv").config(); //load enviironment variables
 //const {createUser,getUsers, updateUser, deleteUser} = require("./Routes/userController");
-const {createTourist,getTourist, updateTourist, searchProductTourist, filterActivities, filterProductByPriceTourist, ActivityRating, sortProductsDescendingTourist, sortProductsAscendingTourist, ViewAllUpcomingActivities, ViewAllMuseums, getMuseumsByTagTourist, getHistoricalPlacesByTagTourist} = require("./Routes/TouristController");
+const {createTourist,getTourist, updateTourist, searchProductTourist, filterActivities, filterProductByPriceTourist, ActivityRating, sortProductsDescendingTourist, sortProductsAscendingTourist, ViewAllUpcomingActivities, ViewAllUpcomingMuseumEventsTourist, getMuseumsByTagTourist, getHistoricalPlacesByTagTourist, ViewAllUpcomingHistoricalPlacesEventsTourist,viewProductsTourist, sortActivitiesPriceAscendingTourist, sortActivitiesPriceDescendingTourist} = require("./Routes/TouristController");
 const {createUnregisteredAdvertiser} = require("./Routes/UnregisteredAdvertiserController");
 const {createUnregisteredTourGuide} = require("./Routes/UnregisteredTourGuideController");
 const {createUnregisteredSeller} = require("./Routes/UnregisteredSellerController");
-const {createNewTourismGoverner, createNewAdmin, createNewProduct, editProduct, acceptSeller, rejectSeller, createNewCategory, readAllActivityCategories,updateCategory, deleteActivityCategory, deleteAccount, searchProductAdmin, createNewTag, readAllTags, updateTag, deleteTag, acceptTourGuide, rejectTourGuide, acceptAdvertiser, rejectAdvertiser, filterProductByPriceAdmin, sortProductsAscendingAdmin, sortProductsDescendingAdmin} = require("./Routes/AdminController");
-const {readSellerProfile, updateSeller, editProductSeller, createNewProductSeller, searchProductSeller,filterProductByPriceSeller, sortProductsAscendingSeller, sortProductsDescendingSeller} = require("./Routes/AcceptedSellerController");
+const {createNewTourismGoverner, createNewAdmin, createNewProduct, editProduct, acceptSeller, rejectSeller, createNewCategory, readAllActivityCategories,updateCategory, deleteActivityCategory, deleteAccount, searchProductAdmin, createNewTag, readAllTags, updateTag, deleteTag, acceptTourGuide, rejectTourGuide, acceptAdvertiser, rejectAdvertiser, filterProductByPriceAdmin, sortProductsAscendingAdmin, sortProductsDescendingAdmin,viewProducts} = require("./Routes/AdminController");
+const {readSellerProfile, updateSeller, editProductSeller, createNewProductSeller, searchProductSeller,filterProductByPriceSeller, sortProductsAscendingSeller, sortProductsDescendingSeller,viewProductsSeller} = require("./Routes/AcceptedSellerController");
 const {createNewHistoricalTag,createMuseumsAsTourismGoverner,getMuseumsByAuthorAsTourismGoverner
   ,createHistoricalPlaceAsTourismGoverner , getHistoricalPlaceByNameAsTourismGoverner , updateHistoricalPlaceAsTourismGoverner , deletePlaceAsTourismGoverner , getHistoricalByAuthorAsTourismGoverner, getMuseumByNameAsTourismGoverner, updateMuseumByNameAsTourismGoverner, deleteMuseumByNameAsTourismGoverner
 } = require("./Routes/TourismGovernorController");
 const{ReadAdvertiserProfile , updateAdvertiser, createNewActivity, readActivity, updateActivity, deleteActivity, getActivitiesByAuthor} = require("./Routes/AdvertiserController");
-const {filterActivitiesGuest, getMuseumsByTagGuest, ViewAllUpcomingActivitiesGuest, ViewAllMuseumsGuest, getHistoricalPlacesByTagGuest} = require("./Routes/GuestController");
+const {filterActivitiesGuest, getMuseumsByTagGuest, ViewAllUpcomingActivitiesGuest, ViewAllUpcomingMuseumEventsGuest, getHistoricalPlacesByTagGuest, ViewAllUpcomingHistoricalPlacesEventsGuest, sortActivitiesPriceAscendingGuest, sortActivitiesPriceDescendingGuest} = require("./Routes/GuestController");
 
 //const {createNewTourismGoverner, createNewAdmin, createNewProduct, editProduct} = require("./Routes/AdminController");
 const{ReadTourGuideProfile , UpdateTourGuideEmail , UpdateTourGuidePassword, UpdateTourGuideMobileNum , UpdateTourGuideYearsofExperience ,UpdateTourGuidePreviousWork, createItineraryAsTourGuide, readItineraryAsTourGuide, updateItineraryAsTourGuide, deleteItineraryAsTourGuide, updateTourGuideProfile} = require("./Routes/TourGuideController")
@@ -114,9 +114,13 @@ app.get("/getHistoricalPlacesByTagTourist", getHistoricalPlacesByTagTourist);
 
 app.get("/ViewAllUpcomingActivities", ViewAllUpcomingActivities);
 app.get("/ViewAllUpcomingActivitiesGuest", ViewAllUpcomingActivitiesGuest);
-app.get("/ViewAllMuseums", ViewAllMuseums);
-app.get("/ViewAllMuseumsGuest", ViewAllMuseumsGuest);
-
+app.get("/ViewAllUpcomingMuseumEventsTourist", ViewAllUpcomingMuseumEventsTourist);
+app.get("/ViewAllUpcomingMuseumEventsGuest", ViewAllUpcomingMuseumEventsGuest);
+app.get("/ViewAllUpcomingHistoricalPlacesEventsTourist", ViewAllUpcomingHistoricalPlacesEventsTourist);
+app.get("/ViewAllUpcomingHistoricalPlacesEventsGuest", ViewAllUpcomingHistoricalPlacesEventsGuest);
+app.get("/viewProducts", viewProducts);
+app.get("/viewProductsTourist", viewProductsTourist);
+app.get("/viewProductsSeller", viewProductsSeller);
 
 
 
@@ -143,7 +147,16 @@ app.post("/addHistoricalPlace" , createHistoricalPlaceAsTourismGoverner);
 app.get("/readHistoricalPlace" , getHistoricalPlaceByNameAsTourismGoverner);
 app.put("/updateHistoricalPlace" , updateHistoricalPlaceAsTourismGoverner);
 app.delete("/deleteHistoricalPlace" , deletePlaceAsTourismGoverner);
-app.get("/readAllHistoricalPlace" , getHistoricalByAuthorAsTourismGoverner)
+app.get("/readAllHistoricalPlace" , getHistoricalByAuthorAsTourismGoverner);
+
+
+app.get("/sortActivitiesPriceAscendingTourist" , sortActivitiesPriceAscendingTourist);
+app.get("/sortActivitiesPriceAscendingGuest" , sortActivitiesPriceAscendingGuest);
+app.get("/sortActivitiesPriceDescendingTourist" , sortActivitiesPriceDescendingTourist);
+app.get("/sortActivitiesPriceDescendingGuest" , sortActivitiesPriceDescendingGuest);
+
+
+
 
 
 

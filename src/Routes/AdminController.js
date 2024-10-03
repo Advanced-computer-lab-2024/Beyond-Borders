@@ -580,5 +580,20 @@ const sortProductsAscendingAdmin = async (req, res) => {
     }
 };
 
+const viewProducts = async (req, res) => {
+    try {
+      const {Name} = req.body;  
+      
+      const products = await NewProduct.find({ Name: Name });
+  
+      if (!products.length) {
+        return res.status(404).json({ error : "There is no product with this name" });
+      }
+  
+      res.status(200).json(products);
+    } catch (error) {
+      res.status(400).json({ error: error.message });
+    }
+  };
 
-module.exports = {createNewAdmin, createNewTourismGoverner, createNewProduct, editProduct, acceptSeller, rejectSeller, createNewCategory, readAllActivityCategories, updateCategory, deleteActivityCategory, deleteAccount, searchProductAdmin, createNewTag, readAllTags, updateTag, deleteTag, acceptTourGuide, rejectTourGuide, acceptAdvertiser, rejectAdvertiser, filterProductByPriceAdmin, sortProductsDescendingAdmin, sortProductsAscendingAdmin};
+module.exports = {createNewAdmin, createNewTourismGoverner, createNewProduct, editProduct, acceptSeller, rejectSeller, createNewCategory, readAllActivityCategories, updateCategory, deleteActivityCategory, deleteAccount, searchProductAdmin, createNewTag, readAllTags, updateTag, deleteTag, acceptTourGuide, rejectTourGuide, acceptAdvertiser, rejectAdvertiser, filterProductByPriceAdmin, sortProductsDescendingAdmin, sortProductsAscendingAdmin,viewProducts};
