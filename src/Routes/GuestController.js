@@ -175,9 +175,51 @@ const ViewAllUpcomingActivitiesGuest = async (req, res) => {
     }
   };
 
+  const sortActivitiesPriceAscendingGuest = async (req, res) => {
+    try {
+      const currentDate = new Date();
+      currentDate.setHours(0, 0, 0, 0);
+  
+      // Get all activities from the database
+      const activities = await ActivityModel.find();
+  
+      // Filter for upcoming activities only
+      const upcomingActivities = activities.filter(activity => activity.Date >= currentDate);
+  
+      // Sort the upcoming activities by price in ascending order
+      const sortedUpcomingActivities = upcomingActivities.sort((a, b) => a.Price - b.Price);
+  
+      // Respond with the sorted activities
+      res.status(200).json(sortedUpcomingActivities);
+    } catch (error) {
+      res.status(400).json({ error: error.message });
+    }
+  };
+
+  const sortActivitiesPriceDescendingGuest = async (req, res) => {
+    try {
+      const currentDate = new Date();
+      currentDate.setHours(0, 0, 0, 0);
+  
+      // Get all activities from the database
+      const activities = await ActivityModel.find();
+  
+      // Filter for upcoming activities only
+      const upcomingActivities = activities.filter(activity => activity.Date >= currentDate);
+  
+      // Sort the upcoming activities by price in descending order
+      const sortedUpcomingActivities = upcomingActivities.sort((a, b) => b.Price - a.Price);
+  
+      // Respond with the sorted activities
+      res.status(200).json(sortedUpcomingActivities);
+    } catch (error) {
+      res.status(400).json({ error: error.message });
+    }
+  };
+
   
 
 
 
 
-module.exports = {filterActivitiesGuest, getMuseumsByTagGuest,ViewAllUpcomingActivitiesGuest, ViewAllUpcomingMuseumEventsGuest, getHistoricalPlacesByTagGuest, ViewAllUpcomingHistoricalPlacesEventsGuest};
+module.exports = {filterActivitiesGuest, getMuseumsByTagGuest,ViewAllUpcomingActivitiesGuest, ViewAllUpcomingMuseumEventsGuest, getHistoricalPlacesByTagGuest, ViewAllUpcomingHistoricalPlacesEventsGuest, sortActivitiesPriceAscendingGuest, sortActivitiesPriceDescendingGuest};

@@ -262,7 +262,7 @@ const createTourist = async (req, res) => {
       //   }
       // };
 
-      const filterActivities = async (req, res) => {
+      const filterActivities = async (req, res) => { //filter to show upcoming activities only
         const { Category, minPrice, maxPrice, InputDate, Rating } = req.body; // Extract parameters from the request body
         const query = {}; // Initialize an empty query object
     
@@ -353,7 +353,7 @@ const createTourist = async (req, res) => {
         }
       };*/
 
-      const filterProductByPriceTourist = async (req, res) => {
+      const filterProductByPriceTourist = async (req, res) => { 
         const { MinimumPrice, MaximumPrice } = req.body; // Extract MinimumPrice and MaximumPrice from the request body
       
         // Build the query object dynamically based on the presence of MinimumPrice and MaximumPrice
@@ -561,5 +561,51 @@ const viewProductsTourist = async (req, res) => {
   }
 };
 
+const sortActivitiesPriceAscendingTourist = async (req, res) => {
+  try {
+    const currentDate = new Date();
+    currentDate.setHours(0, 0, 0, 0);
 
-module.exports = {createTourist, getTourist, updateTourist, searchProductTourist, filterActivities, filterProductByPriceTourist, ActivityRating, sortProductsDescendingTourist, sortProductsAscendingTourist, ViewAllUpcomingActivities, ViewAllUpcomingMuseumEventsTourist, getMuseumsByTagTourist, getHistoricalPlacesByTagTourist, ViewAllUpcomingHistoricalPlacesEventsTourist,viewProductsTourist};
+    // Get all activities from the database
+    const activities = await ActivityModel.find();
+
+    // Filter for upcoming activities only
+    const upcomingActivities = activities.filter(activity => activity.Date >= currentDate);
+
+    // Sort the upcoming activities by price in ascending order
+    const sortedUpcomingActivities = upcomingActivities.sort((a, b) => a.Price - b.Price);
+
+    // Respond with the sorted activities
+    res.status(200).json(sortedUpcomingActivities);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+};
+
+const sortActivitiesPriceDescendingTourist = async (req, res) => {
+  try {
+    const currentDate = new Date();
+    currentDate.setHours(0, 0, 0, 0);
+
+    // Get all activities from the database
+    const activities = await ActivityModel.find();
+
+    // Filter for upcoming activities only
+    const upcomingActivities = activities.filter(activity => activity.Date >= currentDate);
+
+    // Sort the upcoming activities by price in descending order
+    const sortedUpcomingActivities = upcomingActivities.sort((a, b) => b.Price - a.Price);
+
+    // Respond with the sorted activities
+    res.status(200).json(sortedUpcomingActivities);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+};
+
+
+
+
+
+
+module.exports = {createTourist, getTourist, updateTourist, searchProductTourist, filterActivities, filterProductByPriceTourist, ActivityRating, sortProductsDescendingTourist, sortProductsAscendingTourist, ViewAllUpcomingActivities, ViewAllUpcomingMuseumEventsTourist, getMuseumsByTagTourist, getHistoricalPlacesByTagTourist, ViewAllUpcomingHistoricalPlacesEventsTourist,viewProductsTourist, sortActivitiesPriceAscendingTourist, sortActivitiesPriceDescendingTourist};
