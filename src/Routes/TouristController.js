@@ -485,6 +485,28 @@ const createTourist = async (req, res) => {
       }
     };
 
+    const ViewAllUpcomingHistoricalPlacesEventsTourist = async (req, res) => {
+      try {
+        // Get today's date and set the time to midnight
+        const currentDate = new Date();
+        currentDate.setHours(0, 0, 0, 0); // Set to 00:00:00.000
+    
+        // Fetch all activities from the database
+        const historicalPlacesEvents = await HistoricalPlacesModel.find(); // Fetch all museums
+    
+        // Filter activities where the Date is greater than or equal to the current date
+        const upcomingHistoricalPlacesEvents = historicalPlacesEvents.filter(historicalPlacesEvents => {
+          return historicalPlacesEvents.dateOfEvent >= currentDate; // Include only upcoming activities
+        });
+    
+        // Return the upcoming activities as a JSON response
+        res.json(upcomingHistoricalPlacesEvents);
+      } catch (error) {
+        console.error('Error fetching upcoming museum events:', error);
+        res.status(500).json({ message: 'Error fetching upcoming museum events' });
+      }
+    };
+
     const getMuseumsByTagTourist = async (req, res) => {
       try {
           // Extract the tags array from the request body
@@ -524,4 +546,4 @@ const createTourist = async (req, res) => {
 };
 
 
-module.exports = {createTourist, getTourist, updateTourist, searchProductTourist, filterActivities, filterProductByPriceTourist, ActivityRating, sortProductsDescendingTourist, sortProductsAscendingTourist, ViewAllUpcomingActivities, ViewAllUpcomingMuseumEventsTourist, getMuseumsByTagTourist, getHistoricalPlacesByTagTourist};
+module.exports = {createTourist, getTourist, updateTourist, searchProductTourist, filterActivities, filterProductByPriceTourist, ActivityRating, sortProductsDescendingTourist, sortProductsAscendingTourist, ViewAllUpcomingActivities, ViewAllUpcomingMuseumEventsTourist, getMuseumsByTagTourist, getHistoricalPlacesByTagTourist, ViewAllUpcomingHistoricalPlacesEventsTourist};
