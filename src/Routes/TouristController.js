@@ -4,6 +4,8 @@ const AllUsernamesModel = require('../Models/AllUsernames.js');
 const ActivityModel = require('../Models/Activity.js');
 const ProductModel = require('../Models/Product.js');
 const MuseumModel = require('../Models/Museums.js');
+const HistoricalPlacesModel = require('../Models/HistoricalPlaces.js');
+
 //const ItineraryModel = require('../Models/Itinerary.js');
 const { default: mongoose } = require('mongoose');
 
@@ -493,5 +495,24 @@ const createTourist = async (req, res) => {
       }
   };
 
+  const getHistoricalPlacesByTagTourist = async (req, res) => {
+    try {
+        // Extract the tags array from the request body
+        const { tags } = req.body; // Expecting an array of tags
 
-module.exports = {createTourist, getTourist, updateTourist, searchProductTourist, filterActivities, filterProductByPriceTourist, ActivityRating, sortProductsDescendingTourist, sortProductsAscendingTourist, ViewAllUpcomingActivities, ViewAllMuseums, getMuseumsByTagTourist};
+        // Find museums with any of the specified tags
+        const historicalPlaces = await HistoricalPlacesModel.find({ Tags: { $in: tags } });
+
+        // Check if any museums were found
+        if (historicalPlaces.length > 0) {
+            res.status(200).json(historicalPlaces);
+        } else {
+            res.status(404).json({ error: "No Historical Places found with the specified tags." });
+        }
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+};
+
+
+module.exports = {createTourist, getTourist, updateTourist, searchProductTourist, filterActivities, filterProductByPriceTourist, ActivityRating, sortProductsDescendingTourist, sortProductsAscendingTourist, ViewAllUpcomingActivities, ViewAllMuseums, getMuseumsByTagTourist, getHistoricalPlacesByTagTourist};
