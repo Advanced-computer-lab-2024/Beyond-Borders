@@ -170,14 +170,17 @@
     }
 
     try {
-        const response = await fetch(`/getActivitiesByAuthor`, {
+        const response = await fetch(`/readAllActivities`, {
             method: 'GET', // Change to GET
             headers: {
                 'Content-Type': 'application/json'
             }
+            
         });
+        console.log("res",response.body.activities)
 
         const activities = await response.json();
+        console.log("act",activities);
 
         if (response.ok) {
             displayActivities(activities);
