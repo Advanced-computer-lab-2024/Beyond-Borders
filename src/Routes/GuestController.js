@@ -131,16 +131,25 @@ const ViewAllUpcomingActivitiesGuest = async (req, res) => {
     }
   };
 
-  const ViewAllMuseumsGuest = async (req, res) => {
+  const ViewAllUpcomingMuseumEventsGuest = async (req, res) => {
     try {
-      // Fetch all museums from the database
-      const museums = await MuseumsModel.find();
+      // Get today's date and set the time to midnight
+      const currentDate = new Date();
+      currentDate.setHours(0, 0, 0, 0); // Set to 00:00:00.000
   
-      // Return the museums as a JSON response
-      res.json(museums);
+      // Fetch all activities from the database
+      const museumEvents = await MuseumsModel.find(); // Fetch all museums
+  
+      // Filter activities where the Date is greater than or equal to the current date
+      const upcomingMuseumEvents = museumEvents.filter(museumEvents => {
+        return museumEvents.dateOfEvent >= currentDate; // Include only upcoming activities
+      });
+  
+      // Return the upcoming activities as a JSON response
+      res.json(upcomingMuseumEvents);
     } catch (error) {
-      console.error('Error fetching museums:', error);
-      res.status(500).json({ message: 'Error fetching museums' });
+      console.error('Error fetching upcoming museum events:', error);
+      res.status(500).json({ message: 'Error fetching upcoming museum events' });
     }
   };
 
@@ -149,4 +158,4 @@ const ViewAllUpcomingActivitiesGuest = async (req, res) => {
 
 
 
-module.exports = {filterActivitiesGuest, getMuseumsByTagGuest,ViewAllUpcomingActivitiesGuest, ViewAllMuseumsGuest, getHistoricalPlacesByTagGuest};
+module.exports = {filterActivitiesGuest, getMuseumsByTagGuest,ViewAllUpcomingActivitiesGuest, ViewAllUpcomingMuseumEventsGuest, getHistoricalPlacesByTagGuest};
