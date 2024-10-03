@@ -70,22 +70,23 @@ const filterActivitiesGuest = async (req, res) => {
 
 const getMuseumsByTagGuest = async (req, res) => {
     try {
-        // Extract the tag from the request body
-        const { tag } = req.body;
+        // Extract the tags array from the request body
+        const { tags } = req.body; // Expecting an array of tags
 
-        // Find museums with the specified tag
-        const museums = await MuseumsModel.find({ HistoricalTags: tag });
+        // Find museums with any of the specified tags
+        const museums = await MuseumsModel.find({ HistoricalTags: { $in: tags } });
 
         // Check if any museums were found
         if (museums.length > 0) {
             res.status(200).json(museums);
         } else {
-            res.status(404).json({ error: "No museums found with this tag." });
+            res.status(404).json({ error: "No museums found with the specified tags." });
         }
     } catch (error) {
         res.status(400).json({ error: error.message });
     }
 };
+
 
 const ViewAllUpcomingActivitiesGuest = async (req, res) => {
     try {
