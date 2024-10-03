@@ -99,7 +99,7 @@ const CreateHistoricalPlace = async (req, res) => {
     try {
       const AuthorUsername = req.body;  // Assuming you get the author's ID from the authenticated user
       
-      const HistoricalPlaces = await HistoricalPlacesModel.find({ createdBy: AuthorUsername });
+      const HistoricalPlaces = await HistoricalPlacesModel.find({ AuthorUsername: AuthorUsername });
   
       if (!HistoricalPlaces.length) {
         return res.status(404).json({ error : "No Historical places found for this author" });
