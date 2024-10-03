@@ -217,9 +217,51 @@ const ViewAllUpcomingActivitiesGuest = async (req, res) => {
     }
   };
 
+  const sortActivitiesRatingDescendingGuest = async (req, res) => {
+    try {
+      const currentDate = new Date();
+      currentDate.setHours(0, 0, 0, 0);
+  
+      // Get all activities from the database
+      const activities = await ActivityModel.find();
+  
+      // Filter for upcoming activities only
+      const upcomingActivities = activities.filter(activity => activity.Date >= currentDate);
+  
+      // Sort the upcoming activities by rating in descending order
+      const sortedUpcomingActivities = upcomingActivities.sort((a, b) => b.Rating - a.Rating);
+  
+      // Respond with the sorted activities
+      res.status(200).json(sortedUpcomingActivities);
+    } catch (error) {
+      res.status(400).json({ error: error.message });
+    }
+  };
+
+  const sortActivitiesRatingAscendingGuest = async (req, res) => {
+    try {
+      const currentDate = new Date();
+      currentDate.setHours(0, 0, 0, 0);
+  
+      // Get all activities from the database
+      const activities = await ActivityModel.find();
+  
+      // Filter for upcoming activities only
+      const upcomingActivities = activities.filter(activity => activity.Date >= currentDate);
+  
+      // Sort the upcoming activities by rating in ascending order
+      const sortedUpcomingActivities = upcomingActivities.sort((a, b) => a.Rating - b.Rating);
+  
+      // Respond with the sorted activities
+      res.status(200).json(sortedUpcomingActivities);
+    } catch (error) {
+      res.status(400).json({ error: error.message });
+    }
+  };
+
   
 
 
 
 
-module.exports = {filterActivitiesGuest, getMuseumsByTagGuest,ViewAllUpcomingActivitiesGuest, ViewAllUpcomingMuseumEventsGuest, getHistoricalPlacesByTagGuest, ViewAllUpcomingHistoricalPlacesEventsGuest, sortActivitiesPriceAscendingGuest, sortActivitiesPriceDescendingGuest};
+module.exports = {filterActivitiesGuest, getMuseumsByTagGuest,ViewAllUpcomingActivitiesGuest, ViewAllUpcomingMuseumEventsGuest, getHistoricalPlacesByTagGuest, ViewAllUpcomingHistoricalPlacesEventsGuest, sortActivitiesPriceAscendingGuest, sortActivitiesPriceDescendingGuest, sortActivitiesRatingDescendingGuest, sortActivitiesRatingAscendingGuest};
