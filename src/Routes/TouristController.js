@@ -474,5 +474,24 @@ const createTourist = async (req, res) => {
       }
     };
 
+    const getMuseumsByTagTourist = async (req, res) => {
+      try {
+          // Extract the tags array from the request body
+          const { tags } = req.body; // Expecting an array of tags
+  
+          // Find museums with any of the specified tags
+          const museums = await MuseumModel.find({ HistoricalTags: { $in: tags } });
+  
+          // Check if any museums were found
+          if (museums.length > 0) {
+              res.status(200).json(museums);
+          } else {
+              res.status(404).json({ error: "No museums found with the specified tags." });
+          }
+      } catch (error) {
+          res.status(400).json({ error: error.message });
+      }
+  };
 
-module.exports = {createTourist, getTourist, updateTourist, searchProductTourist, filterActivities, filterProductByPriceTourist, ActivityRating, sortProductsDescendingTourist, sortProductsAscendingTourist, ViewAllUpcomingActivities, ViewAllMuseums};
+
+module.exports = {createTourist, getTourist, updateTourist, searchProductTourist, filterActivities, filterProductByPriceTourist, ActivityRating, sortProductsDescendingTourist, sortProductsAscendingTourist, ViewAllUpcomingActivities, ViewAllMuseums, getMuseumsByTagTourist};

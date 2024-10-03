@@ -6,7 +6,7 @@ const mongoose = require('mongoose'); //importing mongoose
 mongoose.set('strictQuery', false);
 require("dotenv").config(); //load enviironment variables
 //const {createUser,getUsers, updateUser, deleteUser} = require("./Routes/userController");
-const {createTourist,getTourist, updateTourist, searchProductTourist, filterActivities, filterProductByPriceTourist, ActivityRating, sortProductsDescendingTourist, sortProductsAscendingTourist, ViewAllUpcomingActivities, ViewAllMuseums} = require("./Routes/TouristController");
+const {createTourist,getTourist, updateTourist, searchProductTourist, filterActivities, filterProductByPriceTourist, ActivityRating, sortProductsDescendingTourist, sortProductsAscendingTourist, ViewAllUpcomingActivities, ViewAllMuseums, getMuseumsByTagTourist} = require("./Routes/TouristController");
 const {createUnregisteredAdvertiser} = require("./Routes/UnregisteredAdvertiserController");
 const {createUnregisteredTourGuide} = require("./Routes/UnregisteredTourGuideController");
 const {createUnregisteredSeller} = require("./Routes/UnregisteredSellerController");
@@ -108,6 +108,8 @@ app.get("/sortProductsDescendingTourist", sortProductsDescendingTourist);
 app.get("/sortProductsAscendingTourist", sortProductsAscendingTourist);
 app.get("/filterActivitiesGuest", filterActivitiesGuest);
 app.get("/getMuseumsByTagGuest", getMuseumsByTagGuest);
+app.get("/getMuseumsByTagTourist", getMuseumsByTagTourist);
+
 app.get("/ViewAllUpcomingActivities", ViewAllUpcomingActivities);
 app.get("/ViewAllUpcomingActivitiesGuest", ViewAllUpcomingActivitiesGuest);
 app.get("/ViewAllMuseums", ViewAllMuseums);
