@@ -16,7 +16,8 @@ const museumPlaceSchema = new mongoose.Schema({
   AuthorUsername :{type : String , required: true },
   HistoricalTags: [{
     type: String, // Store the names of the tags
-  }]
+  }],
+  dateOfEvent: { type: Date, required: false }
 }, { timestamps: true });
 
 const MuseumPlace = mongoose.model('MuseumPlace', museumPlaceSchema);

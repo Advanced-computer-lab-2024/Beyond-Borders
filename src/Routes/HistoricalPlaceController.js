@@ -4,7 +4,7 @@ const { default: mongoose } = require('mongoose');
 const CreateHistoricalPlace = async (req, res) => {
     try {
         // Destructure the required fields from the request body
-        const { name, description, pictures, location, openingHours, ticketPrices, AuthorUsername ,Tags} = req.body;
+        const { name, description, pictures, location, openingHours, ticketPrices, AuthorUsername ,Tags, dateOfEvent} = req.body;
         const existingHistoricalPlace = await HistoricalPlacesModel.findOne({ name: name });
         const HistoricalTag = await  HistoricalTagsModel.findOne({NameOfHistoricalTags : Tags});
         if(!HistoricalTag){
@@ -22,7 +22,8 @@ const CreateHistoricalPlace = async (req, res) => {
             openingHours,
             ticketPrices,
             AuthorUsername , 
-            Tags
+            Tags,
+            dateOfEvent
         });
 
         // Respond with the created document and a 201 Created status
