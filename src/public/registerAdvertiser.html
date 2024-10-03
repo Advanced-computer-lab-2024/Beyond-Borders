@@ -70,6 +70,18 @@
             <label for="password">Password:</label>
             <input type="password" id="password" required>
         </div>
+        <div class="form-group">
+            <label for="website">Website:</label>
+            <input type="text" id="website" required>
+        </div>
+        <div class="form-group">
+            <label for="hotline">Hotline:</label>
+            <input type="number" id="hotline" required>
+        </div>
+        <div class="form-group">
+            <label for="companyProfile">Company Profile:</label>
+            <input type="text" id="companyProfile" required>
+        </div>
         <button type="submit">Register</button>
     </form>
     <div id="responseMessage" class="message"></div>
@@ -82,40 +94,51 @@
         const responseMessage = document.getElementById('responseMessage');
         responseMessage.textContent = ''; // Clear previous messages
 
+        // Collect form data
         const formData = {
             Email: document.getElementById('email').value,
             Username: document.getElementById('username').value,
             Password: document.getElementById('password').value,
-            
+            Website: document.getElementById('website').value,
+            Hotline: document.getElementById('hotline').value,
+            CompanyProfile: document.getElementById('companyProfile').value
         };
 
         try {
+            // Send the POST request to register the advertiser
             const response = await fetch('/addUnregisteredAdvertiser', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify(formData)
+                body: JSON.stringify(formData) // Ensure formData is correctly structured
             });
 
-            const result = await response.json();
+            const result = await response.json(); // Parse the response
 
+            // Check if the response is successful
             if (response.ok) {
+                // Save data to local storage
+                localStorage.setItem('advertiserData', JSON.stringify(formData));
+
+                // Show the success message
                 responseMessage.textContent = 'Advertiser registered successfully!';
                 responseMessage.style.color = 'green';
+                setTimeout(() => {
+                    window.location.href = 'HomePageAdvertiser.html'; // Redirect to home page
+                }, 2000); // Redirect after 2 seconds
             } else {
-                responseMessage.textContent = `Error: ${result.error}`;
+                // Handle errors
+                responseMessage.textContent = `Error: ${result.error || 'Failed to register advertiser.'}`;
                 responseMessage.style.color = 'red';
             }
         } catch (error) {
+            // Handle fetch errors
             responseMessage.textContent = 'An error occurred. Please try again.';
             responseMessage.style.color = 'red';
         }
     });
 </script>
-
-
-<!--http://localhost:8000/registerAdvertiser.html--> <!-- link el html page-->
 
 </body>
 </html>
