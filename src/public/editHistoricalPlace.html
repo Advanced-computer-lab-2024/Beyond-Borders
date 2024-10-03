@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Historical Place</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #ffffff;
+            padding: 20px;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .form-container {
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+            max-width: 500px;
+            width: 100%;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        input,
+        textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        button {
+            background-color: #007BFF;
+            color: white;
+            padding: 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            width: 100%;
+            font-size: 16px;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="form-container">
+        <h2>Edit Historical Place</h2>
+        <form id="editHistoricalPlaceForm">
+            <div class="form-group">
+                <label for="name">Historical Place Name:</label>
+                <input type="text" id="name" required>
+            </div>
+            <div class="form-group">
+                <label for="description">Description:</label>
+                <textarea id="description" rows="4" required></textarea>
+            </div>
+            <div class="form-group">
+                <label for="location">Location:</label>
+                <input type="text" id="location" required>
+            </div>
+            <div class="form-group">
+                <label for="openingHours">Opening Hours:</label>
+                <input type="text" id="openingHours" required>
+            </div>
+            <div class="form-group">
+                <label for="ticketPrices">Ticket Prices (in USD):</label>
+                <input type="number" id="ticketPriceForeigner" placeholder="Foreigner" required>
+                <input type="number" id="ticketPriceNative" placeholder="Native" required>
+                <input type="number" id="ticketPriceStudent" placeholder="Student" required>
+            </div>
+            <button type="submit">Update Historical Place</button>
+        </form>
+    </div>
+
+    <script>
+        // Get historical place ID from query parameter
+        const urlParams = new URLSearchParams(window.location.search);
+        const placeId = urlParams.get('id');
+
+        // Sample data (replace this with an actual data fetch from your backend)
+        let historicalPlaces = [
+            {
+                id: 1,
+                name: "Pyramids of Giza",
+                description: "One of the Seven Wonders of the Ancient World, located in Giza, Egypt.",
+                location: "Giza, Egypt",
+                openingHours: "8 AM - 5 PM",
+                ticketPrices: {
+                    foreigner: 200,
+                    native: 100,
+                    student: 50
+                }
+            }
+        ];
+
+        // Function to populate the form with existing historical place data
+        function loadHistoricalPlaceData() {
+            const place = historicalPlaces.find(p => p.id == placeId);
+            if (place) {
+                document.getElementById('name').value = place.name;
+                document.getElementById('description').value = place.description;
+                document.getElementById('location').value = place.location;
+                document.getElementById('openingHours').value = place.openingHours;
+                document.getElementById('ticketPriceForeigner').value = place.ticketPrices.foreigner;
+                document.getElementById('ticketPriceNative').value = place.ticketPrices.native;
+                document.getElementById('ticketPriceStudent').value = place.ticketPrices.student;
+            }
+        }
+
+        document.getElementById('editHistoricalPlaceForm').addEventListener('submit', function (event) {
+            event.preventDefault(); // Prevent form submission
+
+            // Collect updated form data
+            const updatedPlace = {
+                id: placeId,
+                name: document.getElementById('name').value,
+                description: document.getElementById('description').value,
+                location: document.getElementById('location').value,
+                openingHours: document.getElementById('openingHours').value,
+                ticketPrices: {
+                    foreigner: document.getElementById('ticketPriceForeigner').value,
+                    native: document.getElementById('ticketPriceNative').value,
+                    student: document.getElementById('ticketPriceStudent').value,
+                }
+            };
+
+            console.log('Updated Historical Place:', updatedPlace);
+            alert('Historical place updated successfully!'); // Placeholder - replace with backend update logic
+        });
+
+        // Load historical place data into the form when the page is loaded
+        loadHistoricalPlaceData();
+    </script>
+
+</body>
+
+</html>
