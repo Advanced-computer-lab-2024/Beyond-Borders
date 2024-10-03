@@ -37,7 +37,7 @@ app.use('/images', express.static(path.join(__dirname, 'public')));
 
 // configurations
 // Mongo DB
-mongoose.connect(MongoURI) //connect to MongoDB
+mongoose.connect(process.env.MONGO_URI) //connect to MongoDB
 .then(()=>{
   console.log("MongoDB is now connected!") //to test successful connection
 // Starting server
