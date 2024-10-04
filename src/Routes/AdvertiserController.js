@@ -34,25 +34,55 @@ const { default: mongoose } = require('mongoose');
          res.status(400).json({ error: error.message});
      }
      }
-     const updateAdvertiser = async (req, res) => {
-        const { _id } = req.body;  // Extract the _id from the request body
+    //  const updateAdvertiser = async (req, res) => {
+    //     const { username } = req.body;  // Extract the _id from the request body
       
-        try {
-            if (req.body.Username) {
-                delete req.body.Username;
-                return res.status(404).json({ msg: "Cannot update username" });
-              }
-          // Find and update the tourist with the fields provided in req.body
-          const updatedAdvertiser = await AdvertiserModel.findByIdAndUpdate(_id, req.body, {
-            new: true,            // Return the updated document
-            runValidators: true,  // Ensure the updates respect schema validation rules
-          });
+    //     try {
+    //         if (req.body.Username) {
+    //             delete req.body.Username;
+    //             return res.status(404).json({ msg: "Cannot update username" });
+    //           }
+    //       // Find and update the tourist with the fields provided in req.body
+    //       const updatedAdvertiser = await AdvertiserModel.findOneAndUpdate({Username : username}, req.body, {
+    //         new: true,            // Return the updated document
+    //         runValidators: true,  // Ensure the updates respect schema validation rules
+    //       });
+    //       res.status(200).json(updatedAdvertiser);
+    //     } catch (error) {
+    //       // Send a 400 error with the error message if something goes wrong
+    //       res.status(400).json({ error: error.message });
+    //     }
+    //   };
+
+    const updateAdvertiser = async (req, res) => {
+      const { Username } = req.body;  // Extract username from the request body
+    
+      try {
+          // Ensure username is present for the update
+          if (!Username) {
+              return res.status(400).json({ msg: "Username is required to update the profile" });
+          }
+  
+          // Check for other properties before proceeding
+          const { Password, Email, Hotline, CompanyProfile, Website } = req.body;
+  
+          // Perform the update while ensuring the username cannot be changed
+          const updatedAdvertiser = await AdvertiserModel.findOneAndUpdate(
+              { Username: Username },
+              { Password, Email, Hotline, CompanyProfile, Website },
+              { new: true, runValidators: true }
+          );
+  
+          if (!updatedAdvertiser) {
+              return res.status(404).json({ msg: "Advertiser not found" });
+          }
+  
           res.status(200).json(updatedAdvertiser);
-        } catch (error) {
-          // Send a 400 error with the error message if something goes wrong
+      } catch (error) {
           res.status(400).json({ error: error.message });
-        }
-      };
+      }
+  };
+  
     
       const createNewActivity = async (req, res) => {
         // Destructure fields from the request body
