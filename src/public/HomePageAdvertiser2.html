@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tourist Advertiser</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+            justify-content: flex-start;
+            text-align: left;
+        }
+        .header {
+            background-color: #218838;
+            color: white;
+            padding: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        nav ul {
+            list-style: none;
+            display: flex;
+            gap: 35px;
+            margin-left: 500px;
+        }
+        nav ul li {
+            display: inline;
+        }
+        nav ul li a {
+            color: #fff;
+            text-decoration: none;
+        }
+
+        nav ul li a:hover {
+            color: #95d0a2;
+            text-decoration: none;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+            text-align: left;
+        }
+        .profile-icon {
+            width: 30px;
+            height: 30px;
+            margin-right: 15px;
+        }
+        .button-container {
+            margin-left: 15px;
+        }
+        .button-container button {
+            background-color: #40be5b;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 20px;
+            transition: background-color 0.3s;
+        }
+        .button-container button:hover {
+            background-color: #7ccf8e;
+        }
+        .search-container {
+            display: flex;
+            width: 60%;
+            margin-top: 10px;
+            margin-left: 600px;
+        }
+        input[type="text"] {
+            padding: 10px;
+            flex-grow: 1;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        input[type="text"]::placeholder {
+            color: #999;
+        }
+        .search-button {
+            padding: 10px;
+            border: none;
+            border-radius: 4px;
+            background-color: #218838;
+            color: white;
+            cursor: pointer;
+            font-size: 16px;
+            margin-left: 5px;
+            transition: background-color 0.3s;
+        }
+        .search-button:hover {
+            background-color: #5aae6c;
+        }
+        .container {
+            max-width: 800px;
+            margin: auto;
+            background: #fff;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            margin-top: 20px;
+        }
+        .activity {
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <h1>Beyond Borders</h1>
+    <div class="nav"></div>
+    <nav>
+        <ul>
+            <li><a href="TouristProduct.html">Products</a></li>
+            <li><a href="#" onclick="loadMyActivities()">My Activities</a></li>
+            <li><a href="#about">Itineraries</a></li>
+            <li><a href="#contact">Museums</a></li>
+            <li><a href="#about">Historical Places</a></li>
+            <li><a href="#" onclick="readMyProfile()">My Profile</a></li>
+        </ul>
+    </nav>
+    <!-- <div class="button-container">
+        <button onclick="reloadProfile()">My Profile</button>
+    </div> -->
+</div>
+
+<div class="search-container">
+    <input type="text" id="searchBar" placeholder="Search for activities, museums, etc.">
+    <button class="search-button" onclick="performSearch()">Search</button>
+</div>
+
+<div class="container" id="activitiesContainer">
+    <!-- Activities will be displayed here -->
+</div>
+
+<div class="container" id="profileContainer"></div>
+    <!-- Profile will be displayed here -->
+</div>
+
+<script>
+    // function reloadProfile() {
+    //     location.href = 'TouristProfile.html'; // Navigate to the profile page
+    // }
+
+    async function loadMyActivities() {
+        const username = localStorage.getItem('username');
+        if (!username) {
+            alert('You need to log in first.');
+            return;
+        }
+
+        try {
+            const response = await fetch(`/api/readAllActivities?AuthorUsername=${encodeURIComponent(username)}`);
+            const activities = await response.json();
+
+            if (response.ok) {
+                displayActivities(activities);
+            } else {
+                alert(activities.error);
+            }
+        } catch (error) {
+            console.error('Error fetching activities:', error);
+            alert('An error occurred while loading activities.');
+        }
+    }
+
+    function displayActivities(activities) {
+        const container = document.getElementById('activitiesContainer');
+        container.innerHTML = ''; // Clear previous activities
+
+        if (activities.length === 0) {
+            container.innerHTML = '<p>No activities found.</p>';
+            return;
+        }
+
+        activities.forEach(activity => {
+            const activityDiv = document.createElement('div');
+            activityDiv.className = 'activity';
+            activityDiv.innerHTML = `
+                <h3>${activity.Name}</h3>
+                <p>Date: ${new Date(activity.Date).toLocaleDateString()}</p>
+                <p>Time: ${activity.Time}</p>
+                <p>Price: $${activity.Price}</p>
+                <p>Rating: ${activity.Rating}</p>
+                <p>Location: ${activity.Location.address || 'N/A'}</p>
+                <p>Category: ${activity.Category}</p>
+                <p>Special Discount: ${activity.SpecialDiscount || 'N/A'}</p>
+            `;
+            container.appendChild(activityDiv);
+        });
+    }
+
+    async function readMyProfile() {
+    const username = localStorage.getItem('username');
+    if (!username) {
+        alert('You need to log in first.');
+        return;
+    }
+
+    try {
+        const response = await fetch(`/api/AdvertiserProfile?username=${encodeURIComponent(username)}`);
+        const data = await response.json(); // Rename profile to data for clarity
+
+        if (response.ok) {
+            displayProfile(data.Advertiser); // Access the Advertiser object directly
+        } else {
+            alert(data.error);
+        }
+    } catch (error) {
+        console.error('Error fetching profile:', error);
+        alert('An error occurred while loading profile.');
+    }
+}
+
+function displayProfile(profile) {
+    const container = document.getElementById('profileContainer');
+    container.innerHTML = ''; // Clear previous content
+
+    // Check if profile object has properties (meaning it exists)
+    if (!profile || Object.keys(profile).length === 0) {
+        container.innerHTML = '<p>No profile found.</p>';
+        return;
+    }
+
+    const profileDiv = document.createElement('div');
+    profileDiv.className = 'profile';
+    profileDiv.innerHTML = `
+        <p>Username: ${profile.Username}</p>
+        <p>Password: ${profile.Password}</p>
+        <p>Email: ${profile.Email}</p>
+        <p>Website: ${profile.Website}</p>
+        <p>Hotline: ${profile.Hotline}</p>
+        <p>Company Profile: ${profile.CompanyProfile}</p>
+    `;
+    container.appendChild(profileDiv);
+}
+
+
+
+    function performSearch() {
+        const query = document.getElementById('searchBar').value;
+        if (query) {
+            window.location.href = `search_results.html?query=${encodeURIComponent(query)}`;
+        } else {
+            alert('Please enter a search term.');
+        }
+    }
+</script>
+
+</body>
+</html>
