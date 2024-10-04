@@ -6,39 +6,47 @@ const { default: mongoose } = require('mongoose');
 ;
   const createItinerary = async(req, res) => {
     const {
-      title,
-      activities,  // This will be an array of activity objects
-      language,
-      price,
+      Title,
+      Activities,  // This will be an array of activity objects
+      Locations,
+      Timeline,
+      Language,
+      Price,
+      Date,
       availableDates,
       accessibility,
       pickupLocation,
-      dropoffLocation
+      dropoffLocation,
+      Tags
     } = req.body;
   
     try {
-      // Validate activities array
-      if (!Array.isArray(activities) || activities.length === 0) {
-        throw new Error("Activities array is required and cannot be empty.");
-      }
+      //  Validate activities array
+      // if (!Array.isArray(Activities) || Activities.length === 0) {
+      //   throw new Error("Activities array is required and cannot be empty.");
+      // }
   
       // Validate each activity object in the array
-      activities.forEach(activity => {
-        if (!activity.name || !activity.location || !activity.timeline || !activity.duration) {
-          throw new Error("Each activity must have a name, location, timeline, and duration.");
-        }
-      });
+      // Activities.forEach(activity => {
+      //   if (!activity.name || !activity.location || !activity.timeline || !activity.duration) {
+      //     throw new Error("Each activity must have a name, location, timeline, and duration.");
+      //   }
+      // });
   
       const itinerary = await ItineraryModel.create({
-        title,
-        activities,   // No need to explicitly handle sub-fields, Mongoose will handle it based on the schema
-        language,
-        price,
+        Title,
+        Activities,   // No need to explicitly handle sub-fields, Mongoose will handle it based on the schema
+        Locations,
+        Timeline,
+        Language,
+        Price,
+        Date,
         availableDates,
         accessibility,
         pickupLocation,
         dropoffLocation,
-        isBooked: false
+        isBooked: false,
+        Tags
       });
   
       res.status(200).json(itinerary);
@@ -49,12 +57,12 @@ const { default: mongoose } = require('mongoose');
 
   // Search itineraries by title
   const readItineraryByTitle = async (req, res) => {
-    const { title } = req.params; // Assuming the title is passed as a URL parameter
+    const { Title } = req.params; // Assuming the title is passed as a URL parameter
   
     try {
       // Find the itinerary by title (case-insensitive)
       const itinerary = await ItineraryModel.findOne({ 
-        title: { $regex: new RegExp(title, 'i') }  // Case-insensitive search using RegExp
+        Title: { $regex: new RegExp(Title, 'i') }  // Case-insensitive search using RegExp
       });
   
       // If itinerary not found, return a 404 error
@@ -71,30 +79,38 @@ const { default: mongoose } = require('mongoose');
   };
   
   const updateItineraryByTitle = async (req, res) => {
-    const { title } = req.params; // Assuming the title is passed as a URL parameter
+    const { Title } = req.params; // Assuming the title is passed as a URL parameter
     const {
-      activities,
-      language,
-      price,
+      Activities,
+      Loacation,
+      Timeline,
+      Language,
+      Price,
+      Date,
       availableDates,
       accessibility,
       pickupLocation,
       dropoffLocation,
+      Tags
       
     } = req.body; // Data to update
   
     try {
       // Find and update the itinerary by title (case-insensitive)
       const itinerary = await ItineraryModel.findOneAndUpdate(
-        { title: { $regex: new RegExp(title, 'i') } }, // Case-insensitive title search
+        { Title: { $regex: new RegExp(Title, 'i') } }, // Case-insensitive title search
         {
-          activities,
-          language,
-          price,
+          Activities,
+          Loacation,
+          Timeline,
+          Language,
+          Price,
+          Date,
           availableDates,
           accessibility,
           pickupLocation,
           dropoffLocation,
+          Tags
         },
         { new: true, runValidators: true } // 'new' returns the updated document; 'runValidators' ensures validation
       );
@@ -112,12 +128,12 @@ const { default: mongoose } = require('mongoose');
     }
   };
   const deleteItineraryByTitle = async (req, res) => {
-    const { title } = req.params; // Assuming the title is passed as a URL parameter
+    const { Title } = req.params; // Assuming the title is passed as a URL parameter
   
     try {
       // Find and delete the itinerary by title (case-insensitive)
       const itinerary = await ItineraryModel.findOneAndDelete({
-        title: { $regex: new RegExp(title, 'i') } // Case-insensitive search
+        title: { $regex: new RegExp(Title, 'i') } // Case-insensitive search
       });
   
       // If itinerary not found, return a 404 error

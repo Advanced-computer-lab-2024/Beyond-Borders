@@ -172,7 +172,7 @@ app.get("/sortActivitiesRatingAscendingGuest" , sortActivitiesRatingAscendingGue
 
 // Itinerary
 app.post("/createItinerary",createItineraryAsTourGuide);
-app.get("/readItinerary",readItineraryAsTourGuide);
+app.get("/readItinerary/:title", readItineraryAsTourGuide);
 app.put("/updateItinerary",updateItineraryAsTourGuide);
 app.delete("/deleteItinerary",deleteItineraryAsTourGuide);
 //Advertiser
