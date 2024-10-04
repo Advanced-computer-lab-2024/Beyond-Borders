@@ -52,7 +52,7 @@ const CreateHistoricalPlace = async (req, res) => {
         // Check if the activity exists with the provided name and advertiser name
         const existingHistoricalPlace = await HistoricalPlacesModel.findOne({ name: name, AuthorUsername: AuthorUsername });
         if (!existingHistoricalPlace) {
-            return res.status(404).json({ error: "Museum not found for the given Tourism Governer." });
+            return res.status(404).json({ error: "Historical Place not found for the given Tourism Governer." });
         }
 
        
