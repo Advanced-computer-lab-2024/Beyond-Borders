@@ -1,5 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -221,6 +223,54 @@
     </div>
 </div>
 
+<!-- Modal for Update -->
+<div id="updateModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeUpdateModal()">&times;</span>
+        <h2>Update Activity</h2>
+        <form id="update-form">
+            <div class="form-row">
+                <label for="updateName">Name:</label>
+                <input type="text" id="updateName" readonly>
+            </div>
+            <div class="form-row">
+                <label for="updateDate">Date:</label>
+                <input type="date" id="updateDate">
+            </div>
+            <div class="form-row">
+                <label for="updateTime">Time:</label>
+                <input type="text" id="updateTime">
+            </div>
+            <div class="form-row">
+                <label for="updatePrice">Price:</label>
+                <input type="number" id="updatePrice">
+            </div>
+            <div class="form-row">
+                <label for="updateRating">Rating:</label>
+                <input type="number" id="updateRating" readonly>
+            </div>
+            <div class="form-row">
+                <label for="updateLocation">Location:</label>
+                <input type="text" id="updateLocation">
+            </div>
+            <div class="form-row">
+                <label for="updateCategory">Category:</label>
+                <input type="text" id="updateCategory">
+            </div>
+            <div class="form-row">
+                <label for="updateTags">Tags:</label>
+                <input type="text" id="updateTags">
+            </div>
+            <div class="form-row">
+                <label for="updateSpecialDiscount">Special Discount:</label>
+                <input type="text" id="updateSpecialDiscount">
+            </div>
+            <button type="button" onclick="saveUpdatedActivity()">Save Changes</button>
+        </form>
+    </div>
+</div>
+
+
 <script>
     async function loadMyActivities() {
         const username = localStorage.getItem('username');
@@ -246,30 +296,125 @@
     }
 
     function displayActivities(activities) {
-        const container = document.getElementById('activitiesContainerModal');
-        container.innerHTML = ''; // Clear previous activities
+    const container = document.getElementById('activitiesContainerModal');
+    container.innerHTML = ''; // Clear previous activities
 
-        if (activities.length === 0) {
-            container.innerHTML = '<p>No activities found.</p>';
-            return;
-        }
+    if (activities.length === 0) {
+        container.innerHTML = '<p>No activities found.</p>';
+        return;
+    }
 
-        activities.forEach(activity => {
-            const activityDiv = document.createElement('div');
-            activityDiv.className = 'activity';
-            activityDiv.innerHTML = `
-                <h3>${activity.Name}</h3>
+    activities.forEach(activity => {
+        const activityDiv = document.createElement('div');
+        activityDiv.className = 'activity';
+        activityDiv.innerHTML = `
+            <h3 style="display: inline;">${activity.Name}</h3>
+            <button onclick="openUpdateForm('${activity.Name}')" style="margin-left: 10px;">Update</button>
+            <button onclick="toggleDetails(this)" style="margin-left: 10px;">View Details</button>
+            <div class="details" style="display: none;">
                 <p>Date: ${new Date(activity.Date).toLocaleDateString()}</p>
                 <p>Time: ${activity.Time}</p>
                 <p>Price: $${activity.Price}</p>
                 <p>Rating: ${activity.Rating}</p>
                 <p>Location: ${activity.Location.address || 'N/A'}</p>
                 <p>Category: ${activity.Category}</p>
+                <p>Tags: ${activity.Tags}</p>
                 <p>Special Discount: ${activity.SpecialDiscount || 'N/A'}</p>
-            `;
-            container.appendChild(activityDiv);
+            </div>
+        `;
+        container.appendChild(activityDiv);
+    });
+}
+
+async function openUpdateForm(activityName) {
+    try {
+        const response = await fetch(`/api/readActivity?Name=${encodeURIComponent(activityName)}`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            },
         });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || 'Error fetching activity details');
+        }
+
+        const activity = await response.json();
+        console.log(activity)
+        populateUpdateForm(activity);
+        openUpdateModal(); // Function to open the update modal
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Failed to load activity details: ' + error.message);
     }
+}
+
+function populateUpdateForm(activity) {
+    document.getElementById('updateName').value = activity.Name || '';
+    document.getElementById('updateDate').value = activity.Date.split('T')[0] || ''; // Assuming activity.Date is in ISO format
+    document.getElementById('updateTime').value = activity.Time || '';
+    document.getElementById('updatePrice').value = activity.Price || '';
+    document.getElementById('updateRating').value = activity.Rating !== undefined ? activity.Rating : ''; // Keep this line
+    document.getElementById('updateLocation').value = activity.Location.address || '';
+    document.getElementById('updateCategory').value = activity.Category || '';
+    document.getElementById('updateTags').value = activity.Tags || '';
+    document.getElementById('updateSpecialDiscount').value = activity.SpecialDiscount || '';
+}
+async function saveUpdatedActivity() {
+    const Name = document.getElementById('updateName').value;
+    const Date = document.getElementById('updateDate').value;
+    const Time = document.getElementById('updateTime').value;
+    const Price = document.getElementById('updatePrice').value;
+    const Rating = document.getElementById('updateRating').value;
+    const Location = {
+        address: document.getElementById('updateLocation').value,
+    };
+    const Category = document.getElementById('updateCategory').value;
+    
+    // Split tags into an array, handle empty input
+    const TagsInput = document.getElementById('updateTags').value;
+    const Tags = TagsInput ? TagsInput.split(',').map(tag => tag.trim()) : []; // Send an empty array if no tags
+
+    const SpecialDiscount = document.getElementById('updateSpecialDiscount').value;
+    const AdvertiserName = localStorage.getItem('username');
+
+    try {
+        const response = await fetch('/api/updateActivity', {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ AdvertiserName, Name, Date, Time, Price, Rating, Location, SpecialDiscount, Category, Tags })
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || 'Error updating activity');
+        }
+
+        alert('Activity updated successfully!');
+        closeUpdateModal(); // Close the modal on successful save
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Failed to update activity: ' + error.message);
+    }
+}
+
+
+
+
+
+
+function toggleDetails(button) {
+    const details = button.nextElementSibling; // Get the details div
+    if (details.style.display === "none") {
+        details.style.display = "block"; // Show details
+    } else {
+        details.style.display = "none"; // Hide details
+    }
+}
+
 
     async function readMyProfile() {
         const username = localStorage.getItem('username');
@@ -318,6 +463,15 @@
     function closeActivitiesModal() {
         document.getElementById("activitiesModal").style.display = "none";
     }
+
+    function openUpdateModal() {
+    document.getElementById("updateModal").style.display = "block";
+    }
+
+    function closeUpdateModal() {
+        document.getElementById("updateModal").style.display = "none";
+    }
+
 
     // async function saveProfile() {
     //     const Password = document.getElementById('password').value;

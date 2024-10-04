@@ -122,7 +122,7 @@ const { default: mongoose } = require('mongoose');
 
       const readActivity = async (req, res) => {
         // Destructure fields from the request body
-        const {Name} = req.body;
+        const {Name} = req.query;
       
         try {
           // Check if an activity with the same name already exists
