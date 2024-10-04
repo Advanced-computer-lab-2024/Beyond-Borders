@@ -265,6 +265,10 @@
                 <label for="updateSpecialDiscount">Special Discount:</label>
                 <input type="text" id="updateSpecialDiscount">
             </div>
+            <div class="form-row">
+                <label for="updateBookingStatus">Booking Status:</label>
+                <input type="text" id="updateBookingStatus">
+            </div>
             <button type="button" onclick="saveUpdatedActivity()">Save Changes</button>
         </form>
     </div>
@@ -321,6 +325,7 @@
                 <p>Category: ${activity.Category}</p>
                 <p>Tags: ${activity.Tags}</p>
                 <p>Special Discount: ${activity.SpecialDiscount || 'N/A'}</p>
+                <p>Booking Status: ${activity.BookingOpen}</p>
             </div>
         `;
         container.appendChild(activityDiv);
@@ -361,6 +366,7 @@ function populateUpdateForm(activity) {
     document.getElementById('updateCategory').value = activity.Category || '';
     document.getElementById('updateTags').value = activity.Tags || '';
     document.getElementById('updateSpecialDiscount').value = activity.SpecialDiscount || '';
+    document.getElementById('updateBookingStatus').value = activity.BookingOpen || '';
 }
 async function saveUpdatedActivity() {
     const Name = document.getElementById('updateName').value;
@@ -378,6 +384,7 @@ async function saveUpdatedActivity() {
     const Tags = TagsInput ? TagsInput.split(',').map(tag => tag.trim()) : []; // Send an empty array if no tags
 
     const SpecialDiscount = document.getElementById('updateSpecialDiscount').value;
+    const BookingOpen = document.getElementById('updateBookingStatus').value;
     const AdvertiserName = localStorage.getItem('username');
 
     try {
@@ -386,7 +393,7 @@ async function saveUpdatedActivity() {
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ AdvertiserName, Name, Date, Time, Price, Rating, Location, SpecialDiscount, Category, Tags })
+            body: JSON.stringify({ AdvertiserName, Name, Date, Time, Price, Rating, Location, SpecialDiscount, Category, Tags, BookingOpen })
         });
 
         if (!response.ok) {
