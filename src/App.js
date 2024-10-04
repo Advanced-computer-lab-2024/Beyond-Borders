@@ -15,7 +15,7 @@ const {readSellerProfile, updateSeller, editProductSeller, createNewProductSelle
 const {createNewHistoricalTag,createMuseumsAsTourismGoverner,getMuseumsByAuthorAsTourismGoverner
   ,createHistoricalPlaceAsTourismGoverner , getHistoricalPlaceByNameAsTourismGoverner , updateHistoricalPlaceAsTourismGoverner , deletePlaceAsTourismGoverner , getHistoricalByAuthorAsTourismGoverner, getMuseumByNameAsTourismGoverner, updateMuseumByNameAsTourismGoverner, deleteMuseumByNameAsTourismGoverner
 } = require("./Routes/TourismGovernorController");
-const{ReadAdvertiserProfile , updateAdvertiser, createNewActivity, readActivity, updateActivity, deleteActivity, getActivitiesByAuthor} = require("./Routes/AdvertiserController");
+const{ReadAdvertiserProfile , updateAdvertiser, createNewActivity, readActivity, updateActivity, deleteActivity, getActivitiesByAuthor, loginAdvertiser} = require("./Routes/AdvertiserController");
 const {filterActivitiesGuest, getMuseumsByTagGuest, ViewAllUpcomingActivitiesGuest, ViewAllUpcomingMuseumEventsGuest, getHistoricalPlacesByTagGuest, ViewAllUpcomingHistoricalPlacesEventsGuest, sortActivitiesPriceAscendingGuest, sortActivitiesPriceDescendingGuest, sortActivitiesRatingDescendingGuest, sortActivitiesRatingAscendingGuest} = require("./Routes/GuestController");
 
 //const {createNewTourismGoverner, createNewAdmin, createNewProduct, editProduct} = require("./Routes/AdminController");
@@ -99,7 +99,7 @@ app.get("/filterProductByPriceAdmin", filterProductByPriceAdmin);
 app.get("/filterProductByPriceTourist", filterProductByPriceTourist);
 app.get("/filterProductByPriceSeller", filterProductByPriceSeller);
 app.post("/ActivityRating", ActivityRating);
-app.get("/readAllActivities" , getActivitiesByAuthor);
+app.get("/api/readAllActivities" , getActivitiesByAuthor);
 app.get("/sortProductsAscendingAdmin", sortProductsAscendingAdmin);
 app.get("/sortProductsDescendingAdmin", sortProductsDescendingAdmin);
 app.get("/sortProductsAscendingSeller", sortProductsAscendingSeller);
@@ -121,7 +121,7 @@ app.get("/ViewAllUpcomingHistoricalPlacesEventsGuest", ViewAllUpcomingHistorical
 app.get("/viewProducts", viewProducts);
 app.get("/viewProductsTourist", viewProductsTourist);
 app.get("/viewProductsSeller", viewProductsSeller);
-
+app.post("/loginAdvertiser", loginAdvertiser);
 
 
 
@@ -177,7 +177,7 @@ app.put("/updateItinerary",updateItineraryAsTourGuide);
 app.delete("/deleteItinerary",deleteItineraryAsTourGuide);
 //Advertiser
 //app.post("/addAdvertiser",createAdvertiser);
-app.get("/AdvertiserProfile",ReadAdvertiserProfile);
+app.get("/api/AdvertiserProfile",ReadAdvertiserProfile);
 app.put("/updateAdvertiserProfile",updateAdvertiser);
 app.post("/createNewActivity", createNewActivity);
 app.get("/readActivity", readActivity);

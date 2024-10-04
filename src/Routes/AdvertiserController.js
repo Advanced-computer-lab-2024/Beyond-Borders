@@ -22,7 +22,7 @@ const { default: mongoose } = require('mongoose');
 //      }
      const ReadAdvertiserProfile = async(req,res) =>{
         try{
-         const{username} = req.body;
+         const{username} = req.query;
          const Advertiser = await AdvertiserModel.findOne({ Username: username });
          if (Advertiser) {
            res.status(200).json({Advertiser});
@@ -206,8 +206,49 @@ const { default: mongoose } = require('mongoose');
       res.status(500).json({ error: error.message });
     }
   };
+
+  // const getActivitiesByAuthor = async (req, res) => {
+  //   try {
+  //     const {AuthorUsername} = req.body;  // Assuming you get the author's ID from the authenticated user
+      
+  //     const activities = await ActivityModel.find({ AdvertiserName: AuthorUsername });
   
-    
+  //     if (!activities.length) {
+  //       return res.status(404).json({ error : "You have not created an activities" });
+  //     }
+  
+  //     res.status(200).json(activities);
+  //   } catch (error) {
+  //     res.status(400).json({ error: error.message });
+  //   }
+  // };
+  
+  const loginAdvertiser = async (req, res) => {
+    try {
+      const { username, password } = req.body;
+  
+      // Validate input
+      if (!username || !password) {
+        return res.status(400).json({ error: "Username and password are required." });
+      }
+  
+      // Find the advertiser by username
+      const advertiser = await AdvertiserModel.findOne({ Username: username });
+      if (!advertiser) {
+        return res.status(401).json({ error: "Invalid username." });
+      }
+  
+      // Check if the password matches
+      if (advertiser.Password !== password) {
+        return res.status(401).json({ error: "Invalid password." });
+      }
+  
+      // Successful authentication
+      res.status(200).json({ message: "Login successful!", advertiser });
+    } catch (error) {
+      res.status(400).json({ error: error.message });
+    }
+  };
   
 
-      module.exports = {ReadAdvertiserProfile , updateAdvertiser, createNewActivity, readActivity, updateActivity, deleteActivity, getActivitiesByAuthor};
+      module.exports = {ReadAdvertiserProfile , updateAdvertiser, createNewActivity, readActivity, updateActivity, deleteActivity, getActivitiesByAuthor, loginAdvertiser};
