@@ -146,4 +146,21 @@ const updateSeller = async (req, res) => {
       }
   };
 
-module.exports = {readSellerProfile, updateSeller, editProductSeller, createNewProductSeller, searchProductSeller, filterProductByPriceSeller, sortProductsAscendingSeller, sortProductsDescendingSeller};
+  const viewProductsSeller = async (req, res) => {
+    try {
+      const {Name} = req.body;  
+      
+      const products = await NewProduct.find({ Name: Name });
+  
+      if (!products.length) {
+        return res.status(404).json({ error : "There is no product with this name" });
+      }
+  
+      res.status(200).json(products);
+    } catch (error) {
+      res.status(400).json({ error: error.message });
+    }
+  };
+  
+
+module.exports = {readSellerProfile, updateSeller, editProductSeller, createNewProductSeller, searchProductSeller, filterProductByPriceSeller, sortProductsAscendingSeller, sortProductsDescendingSeller,viewProductsSeller};

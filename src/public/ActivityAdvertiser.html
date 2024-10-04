@@ -3,24 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tourist HomePage</title>
+    <title>Tourist Blog</title>
     <style>
         body {
             font-family: Arial, sans-serif;
             background-color: #f4f4f4;
             margin: 0;
             padding: 0;
-            justify-content: flex-start; /* Aligns items to the left */
-    text-align: left; /* Ensures text is left-aligned */
-
+            text-align: left;
         }
+
         .header {
             background-color: #218838;
             color: white;
             padding: 15px;
             display: flex;
             align-items: center;
-            justify-content: space-between; /* Aligns items to the left */
+            justify-content: space-between;
         }
 
         nav ul {
@@ -29,37 +28,29 @@
             gap: 35px;
             margin-left: 500px;
         }
+
         nav ul li {
             display: inline;
         }
+
         nav ul li a {
             color: #fff;
             text-decoration: none;
-            
         }
 
         nav ul li a:hover {
             color: #95d0a2;
-            text-decoration: none;
         }
-        
-
-
-
 
         .header h1 {
             margin: 0;
             font-size: 24px;
-            text-align: left; /* Ensures text is left-aligned */
         }
-        .profile-icon {
-            width: 30px;
-            height: 30px;
-            margin-right: 15px;
-        }
+
         .button-container {
             margin-left: 15px;
         }
+
         .button-container button {
             background-color: #40be5b;
             color: white;
@@ -69,18 +60,18 @@
             cursor: pointer;
             font-size: 20px;
             transition: background-color 0.3s;
-          
-            
         }
+
         .button-container button:hover {
             background-color: #7ccf8e;
         }
+
         .search-container {
             display: flex;
             width: 60%;
-            margin-top: 10px;
-            margin-left: 600px;
+            margin: 20px auto;
         }
+
         input[type="text"] {
             padding: 10px;
             flex-grow: 1;
@@ -88,9 +79,7 @@
             border-radius: 4px;
             font-size: 16px;
         }
-        input[type="text"]::placeholder {
-            color: #999;
-        }
+
         .search-button {
             padding: 10px;
             border: none;
@@ -101,10 +90,13 @@
             font-size: 16px;
             margin-left: 5px;
             transition: background-color 0.3s;
+            margin-right: 20px;
         }
+
         .search-button:hover {
             background-color: #5aae6c;
         }
+
         .container {
             max-width: 800px;
             margin: auto;
@@ -115,58 +107,117 @@
             margin-top: 20px;
         }
 
+        .blog-post {
+            margin-bottom: 20px;
+            border-bottom: 1px solid #ccc;
+            padding-bottom: 20px;
+        }
 
-        
+        .blog-post h2 {
+            font-size: 20px;
+            color: #218838;
+        }
 
+        .blog-post p {
+            color: #666;
+            line-height: 1.6;
+        }
 
-       
+        .view-details {
+            color: #218838;
+            text-decoration: none;
+            font-weight: bold;
+        }
 
-
+        .view-details:hover {
+            text-decoration: underline;
+        }
     </style>
 </head>
 <body>
 
 <div class="header">
-   
     <h1>Beyond Borders</h1>
-    <div class="nav"></div>
     <nav>
         <ul>
-            <li>
-                <a href="AdminProduct.html">Products</a>
-                
-            </li>
-            <li><a href="AdminActivityCategory.html">Activity category</a></li>
-            <li><a href="AdminTags.html">Preference tags</a></li>
-            <li><a href="AddTourismGoverner.html">Tourism governer</a></li>
-            <li><a href="addAdmin.html">Add admin</a></li>
-            
-        
+            <li><a href="HomePageAdmin.html">Home</a></li>
+            <li><a href="#services">Activity category</a></li>
+            <li><a href="#about">Preference tags</a></li>
+            <li><a href="#contact">Tourism governor</a></li>
+            <li><a href="#about">Add admin</a></li>
         </ul>
     </nav>
     <div class="button-container">
         <button onclick="reloadProfile()">My Profile</button>
     </div>
-    </div>
-   
 </div>
 
 <div class="search-container">
-    <input type="text" id="searchBar" placeholder="Search for activities, musuems, etc.">
+    <input type="text" id="searchBar" placeholder="Search for activities, museums, etc.">
     <button class="search-button" onclick="performSearch()">Search</button>
 </div>
 
-
+<div class="container" id="activitiesContainer">
+    <!-- Activities will be populated here -->
+</div>
 
 <script>
+    async function fetchActivities() {
+    const advertiserData = JSON.parse(localStorage.getItem('advertiserData'));
+    if (!advertiserData || !advertiserData.Username) {
+        document.getElementById('activitiesContainer').innerHTML = '<p>No advertiser data found.</p>';
+        return;
+    }
+
+    try {
+        const response = await fetch(`/readAllActivities`, {
+            method: 'GET', // Change to GET
+            headers: {
+                'Content-Type': 'application/json'
+            }
+            
+        });
+        console.log("res",response.body.activities)
+
+        const activities = await response.json();
+        console.log("act",activities);
+
+        if (response.ok) {
+            displayActivities(activities);
+        } else {
+            console.error('Error response:', activities);
+            document.getElementById('activitiesContainer').innerHTML = `<p>${activities.error}</p>`;
+        }
+    } catch (error) {
+        console.error('Fetch error:', error);
+        document.getElementById('activitiesContainer').innerHTML = '<p>An error occurred while fetching activities.</p>';
+    }
+}
+    function displayActivities(activities) {
+        const container = document.getElementById('activitiesContainer');
+        container.innerHTML = ''; // Clear existing content
+
+        activities.forEach(activity => {
+            const post = document.createElement('div');
+            post.classList.add('blog-post');
+            post.innerHTML = `
+                <h2>${activity.title}</h2>
+                <p>${activity.description}</p>
+                <a href="#" class="view-details">View Details</a>
+            `;
+            container.appendChild(post);
+        });
+    }
+
+    window.onload = fetchActivities;
+
     function reloadProfile() {
-        location.href = 'TouristProfile.html'; // Navigate to the profile page
+        location.href = 'TouristProfile.html';
     }
 
     function performSearch() {
         const query = document.getElementById('searchBar').value;
         if (query) {
-            // Redirect to search results page or perform search logic
             window.location.href = `search_results.html?query=${encodeURIComponent(query)}`;
         } else {
             alert('Please enter a search term.');

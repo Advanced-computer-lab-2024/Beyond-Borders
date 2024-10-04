@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Adding Tourism Governor</title>
+    <title>Add Tourism Governor</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -66,8 +66,8 @@
 <body>
 
     <div class="container">
-        <h2>Adding Tourism Governor</h2>
-        <form id="TourismGovernorForm">
+        <h2>Add Tourism Governor</h2>
+        <form id="tourismGovernorForm">
             <div class="form-group">
                 <label for="username">Username:</label>
                 <input type="text" id="username" required>
@@ -76,34 +76,28 @@
                 <label for="password">Password:</label>
                 <input type="password" id="password" required>
             </div>
-            <button type="submit" id="submitButton">Add</button>
+
+            <button type="submit">Add</button>
         </form>
         <div id="responseMessage" class="message"></div>
     </div>
 
     <script>
-        document.getElementById('TourismGovernorForm').addEventListener('submit', async function (event) {
+        document.getElementById('tourismGovernorForm').addEventListener('submit', async function (event) {
             event.preventDefault(); // Prevent form submission
 
             const responseMessage = document.getElementById('responseMessage');
-            const submitButton = document.getElementById('submitButton');
+            responseMessage.textContent = ''; // Clear previous messages
 
-            // Clear previous messages
-            responseMessage.textContent = '';
-
-            // Disable the submit button to avoid multiple submissions
-            submitButton.disabled = true;
-            submitButton.textContent = 'Submitting...';
-
-            // Get form data
+            // Collect form data
             const formData = {
-                username: document.getElementById('username').value,
-                password: document.getElementById('password').value,
+                Username: document.getElementById('username').value.trim(),
+                Password: document.getElementById('password').value.trim()
             };
 
             try {
-                // Send data to server
-                const response = await fetch('http://localhost:8000/tourismGovernorProfile', {
+                // Send the POST request to add the tourism governor
+                const response = await fetch('/addTourismGovernor', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -111,32 +105,28 @@
                     body: JSON.stringify(formData)
                 });
 
-                const result = await response.json();
+                const result = await response.json(); // Parse the response
 
-                // Check response status
+                // Check if the response is successful
                 if (response.ok) {
+                    // Show the success message
                     responseMessage.textContent = 'Tourism Governor added successfully!';
                     responseMessage.style.color = 'green';
-
-                    // Reset form fields
-                    document.getElementById('TourismGovernorForm').reset(); 
 
                     // Redirect to the dashboard page after a short delay (e.g., 2 seconds)
                     setTimeout(() => {
                         window.location.href = 'TourismGovernorDash.html';
                     }, 2000);
                 } else {
-                    responseMessage.textContent = `Error: ${result.error}`;
+                    // Handle errors returned by the server
+                    responseMessage.textContent = `Error: ${result.error || 'Failed to add Tourism Governor.'}`;
                     responseMessage.style.color = 'red';
                 }
             } catch (error) {
-                console.error('Error occurred:', error); // Log the actual error for debugging
+                // Handle fetch errors
+                console.error('Error occurred:', error);
                 responseMessage.textContent = 'An error occurred. Please try again.';
                 responseMessage.style.color = 'red';
-            } finally {
-                // Enable the submit button and restore text
-                submitButton.disabled = false;
-                submitButton.textContent = 'Add';
             }
         });
     </script>

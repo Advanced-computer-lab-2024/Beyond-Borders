@@ -5,7 +5,7 @@ const { default: mongoose } = require('mongoose');
 const CreateMuseums = async (req, res) => {
     try {
         // Destructure the required fields from the request body
-        const { name, description, pictures, location, openingHours, ticketPrices, AuthorUsername , HistoricalTags} = req.body;
+        const { name, description, pictures, location, openingHours, ticketPrices, AuthorUsername , HistoricalTags, dateOfEvent} = req.body;
 
         const existingMuseum = await MuseumsModel.findOne({ name: name });
         if (existingMuseum) {
@@ -27,7 +27,9 @@ const CreateMuseums = async (req, res) => {
             openingHours,
             ticketPrices,
             AuthorUsername,
-            HistoricalTags
+            HistoricalTags,
+            dateOfEvent
+
         });
 
         // Respond with the created document and a 201 Created status

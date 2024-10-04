@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create New Historical Place</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #ffffff;
+            padding: 20px;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .form-container {
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+            max-width: 500px;
+            width: 100%;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        input,
+        textarea,
+        select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        button {
+            background-color: #28a745;
+            color: white;
+            padding: 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            width: 100%;
+            font-size: 16px;
+        }
+
+        button:hover {
+            background-color: #218838;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="form-container">
+        <h2>Create New Historical Place</h2>
+        <form id="createHistoricalPlaceForm">
+            <div class="form-group">
+                <label for="name">Historical Place Name:</label>
+                <input type="text" id="name" required>
+            </div>
+            <div class="form-group">
+                <label for="description">Description:</label>
+                <textarea id="description" rows="4" required></textarea>
+            </div>
+            <div class="form-group">
+                <label for="image">Upload Picture:</label>
+                <input type="file" id="image" accept="image/*" required>
+            </div>
+            <div class="form-group">
+                <label for="location">Location:</label>
+                <input type="text" id="location" required>
+            </div>
+            <div class="form-group">
+                <label for="openingHours">Opening Hours:</label>
+                <input type="text" id="openingHours" required>
+            </div>
+            <div class="form-group">
+                <label for="ticketPrices">Ticket Prices (in USD):</label>
+                <input type="number" id="ticketPriceForeigner" placeholder="Foreigner" required>
+                <input type="number" id="ticketPriceNative" placeholder="Native" required>
+                <input type="number" id="ticketPriceStudent" placeholder="Student" required>
+            </div>
+            <button type="submit">Create Historical Place</button>
+        </form>
+    </div>
+
+    <script>
+        document.getElementById('createHistoricalPlaceForm').addEventListener('submit', function (event) {
+            event.preventDefault(); // Prevent form submission
+
+            // Collect the form data
+            const placeData = {
+                name: document.getElementById('name').value,
+                description: document.getElementById('description').value,
+                location: document.getElementById('location').value,
+                openingHours: document.getElementById('openingHours').value,
+                ticketPrices: {
+                    foreigner: document.getElementById('ticketPriceForeigner').value,
+                    native: document.getElementById('ticketPriceNative').value,
+                    student: document.getElementById('ticketPriceStudent').value,
+                }
+            };
+
+            // Handle file upload (for demonstration purposes only, not functional here)
+            const imageFile = document.getElementById('image').files[0];
+            // TODO: Implement file upload logic with backend support.
+
+            console.log(placeData);
+            alert('Historical place created successfully!'); // Placeholder - replace with backend submission
+        });
+    </script>
+
+</body>
+
+</html>

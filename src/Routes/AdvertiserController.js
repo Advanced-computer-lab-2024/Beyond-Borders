@@ -187,19 +187,26 @@ const { default: mongoose } = require('mongoose');
 
   const getActivitiesByAuthor = async (req, res) => {
     try {
-      const {AuthorUsername} = req.body;  // Assuming you get the author's ID from the authenticated user
+      // Assuming you get the author's username from query parameters
+      const { AuthorUsername } = req.query; 
       
+      // Validate that AuthorUsername is provided
+      if (!AuthorUsername) {
+        return res.status(400).json({ error: "Author username is required." });
+      }
+  
       const activities = await ActivityModel.find({ AdvertiserName: AuthorUsername });
   
       if (!activities.length) {
-        return res.status(404).json({ error : "You have not created an activities" });
+        return res.status(404).json({ error: "You have not created any activities." });
       }
   
       res.status(200).json(activities);
     } catch (error) {
-      res.status(400).json({ error: error.message });
+      res.status(500).json({ error: error.message });
     }
   };
+  
     
   
 

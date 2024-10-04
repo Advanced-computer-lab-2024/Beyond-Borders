@@ -6,7 +6,7 @@
   
    
        
-    <title>Select Registration Type</title>
+    <title>Select a Login Type</title>
     <style>
         
         body {
@@ -53,33 +53,32 @@
 <body>
 
 <div class="container">
-    <h2>Select Registration Type</h2>
-    <button onclick="redirectTo('tourist')">Register as Tourist</button>
-    <button onclick="redirectTo('guide')">Register as Tour Guide</button>
-    <button onclick="redirectTo('seller')">Register as Seller</button>
-    <button onclick="redirectTo('advertiser')">Register as Advertiser</button>
-    <button onclick="redirectTo('governer')">Register as Tourism Governer</button>
-    <br>
-    <a href="login.html">Already have an account? Login here</a>
-</div>
+    <h2>Select a Login Type</h2>
+    <button onclick="redirectTo('tourist')">Login as Tourist</button>
+    <button onclick="redirectTo('guide')">Login as Tour Guide</button>
+    <button onclick="redirectTo('seller')">Login as Seller</button>
+    <button onclick="redirectTo('advertiser')">Login as Advertiser</button>
+    <button onclick="redirectTo('governer')">Login as Tourism Governer</button>
+    
 
 <script>
     function redirectTo(role) {
         switch(role) {
             case 'tourist':
-                window.location.href = 'registerTourist.html'; 
+                window.location.href = 'loginTourist.html'; 
                 break;
             case 'guide':
-                window.location.href = 'registerTourGuide.html'; 
+                window.location.href = 'loginTourGuide.html'; 
                 break;
             case 'seller':
-                window.location.href = 'registerSeller.html'; 
-                break;
+                window.location.href = 'loginSeller.html'; 
+
             case 'advertiser':
-                window.location.href = 'registerAdvertiser.html'; 
+                window.location.href = 'loginAdvertiser.html'; 
                 break;
+            
             case 'governer':
-                window.location.href = 'tourismGovernerProfile.html'; 
+                window.location.href = 'loginGoverner.html'; 
                 break;
             default:
                 console.error('Unknown role:', role);

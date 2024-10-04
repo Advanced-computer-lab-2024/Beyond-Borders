@@ -112,8 +112,11 @@
             const result = await response.json();
 
             if (response.ok) {
-                responseMessage.textContent = 'Advertiser registered successfully!';
+                responseMessage.textContent = 'Seller registered successfully!';
                 responseMessage.style.color = 'green';
+                setTimeout(() => {
+                    window.location.href = 'HomePageTourGuide.html'; // Redirect to home page
+                }, 2000); // Redirect after 2 seconds
             } else {
                 responseMessage.textContent = `Error: ${result.error}`;
                 responseMessage.style.color = 'red';

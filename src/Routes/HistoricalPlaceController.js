@@ -4,7 +4,7 @@ const { default: mongoose } = require('mongoose');
 const CreateHistoricalPlace = async (req, res) => {
     try {
         // Destructure the required fields from the request body
-        const { name, description, pictures, location, openingHours, ticketPrices, AuthorUsername ,Tags} = req.body;
+        const { name, description, pictures, location, openingHours, ticketPrices, AuthorUsername ,Tags, dateOfEvent} = req.body;
         const existingHistoricalPlace = await HistoricalPlacesModel.findOne({ name: name });
         const HistoricalTag = await  HistoricalTagsModel.findOne({NameOfHistoricalTags : Tags});
         if(!HistoricalTag){
@@ -22,7 +22,8 @@ const CreateHistoricalPlace = async (req, res) => {
             openingHours,
             ticketPrices,
             AuthorUsername , 
-            Tags
+            Tags,
+            dateOfEvent
         });
 
         // Respond with the created document and a 201 Created status
@@ -96,9 +97,9 @@ const CreateHistoricalPlace = async (req, res) => {
   };
   const getHistoricalPlaceByAuthor = async (req, res) => {
     try {
-      const AuthorUsername = req.body;  // Assuming you get the author's ID from the authenticated user
+      const {AuthorUsername} = req.body;  // Assuming you get the author's ID from the authenticated user
       
-      const HistoricalPlaces = await HistoricalPlacesModel.find({ createdBy: AuthorUsername });
+      const HistoricalPlaces = await HistoricalPlacesModel.find({ AuthorUsername: AuthorUsername });
   
       if (!HistoricalPlaces.length) {
         return res.status(404).json({ error : "No Historical places found for this author" });

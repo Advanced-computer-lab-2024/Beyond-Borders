@@ -3,17 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tourist HomePage</title>
+    <title>Tourist Blog</title>
     <style>
         body {
             font-family: Arial, sans-serif;
             background-color: #f4f4f4;
             margin: 0;
             padding: 0;
-            justify-content: flex-start; /* Aligns items to the left */
-    text-align: left; /* Ensures text is left-aligned */
-
+            text-align: left; /* Ensures text is left-aligned */
         }
+
         .header {
             background-color: #218838;
             color: white;
@@ -29,37 +28,30 @@
             gap: 35px;
             margin-left: 500px;
         }
+
         nav ul li {
             display: inline;
         }
+
         nav ul li a {
             color: #fff;
             text-decoration: none;
-            
         }
 
         nav ul li a:hover {
             color: #95d0a2;
             text-decoration: none;
         }
-        
-
-
-
 
         .header h1 {
             margin: 0;
             font-size: 24px;
-            text-align: left; /* Ensures text is left-aligned */
         }
-        .profile-icon {
-            width: 30px;
-            height: 30px;
-            margin-right: 15px;
-        }
+
         .button-container {
             margin-left: 15px;
         }
+
         .button-container button {
             background-color: #40be5b;
             color: white;
@@ -69,18 +61,18 @@
             cursor: pointer;
             font-size: 20px;
             transition: background-color 0.3s;
-          
-            
         }
+
         .button-container button:hover {
             background-color: #7ccf8e;
         }
+
         .search-container {
             display: flex;
             width: 60%;
-            margin-top: 10px;
-            margin-left: 600px;
+            margin: 20px auto; /* Centering the search bar */
         }
+
         input[type="text"] {
             padding: 10px;
             flex-grow: 1;
@@ -88,9 +80,11 @@
             border-radius: 4px;
             font-size: 16px;
         }
+
         input[type="text"]::placeholder {
             color: #999;
         }
+
         .search-button {
             padding: 10px;
             border: none;
@@ -101,10 +95,13 @@
             font-size: 16px;
             margin-left: 5px;
             transition: background-color 0.3s;
+            margin-right: 20px;
         }
+
         .search-button:hover {
             background-color: #5aae6c;
         }
+
         .container {
             max-width: 800px;
             margin: auto;
@@ -115,48 +112,77 @@
             margin-top: 20px;
         }
 
+        .blog-post {
+            margin-bottom: 20px; /* Space between blog posts */
+            border-bottom: 1px solid #ccc; /* Divider for posts */
+            padding-bottom: 20px; /* Padding below the post */
+        }
 
-        
+        .blog-post h2 {
+            font-size: 20px;
+            color: #218838;
+        }
 
+        .blog-post p {
+            color: #666;
+            line-height: 1.6; /* Spacing between lines */
+        }
 
-       
+        .date {
+            font-size: 14px;
+            color: #999;
+        }
 
-
+        .view-details {
+            color: #218838;
+            text-decoration: none;
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
 
 <div class="header">
-   
     <h1>Beyond Borders</h1>
-    <div class="nav"></div>
     <nav>
         <ul>
-            <li>
-                <a href="AdminProduct.html">Products</a>
-                
-            </li>
-            <li><a href="AdminActivityCategory.html">Activity category</a></li>
-            <li><a href="AdminTags.html">Preference tags</a></li>
-            <li><a href="AddTourismGoverner.html">Tourism governer</a></li>
-            <li><a href="addAdmin.html">Add admin</a></li>
-            
-        
+            <li><a href="TouristProduct.html">Products</a></li>
+            <li><a href="#services">Activities</a></li>
+            <li><a href="#about">Itineraries</a></li>
+            <li><a href="#contact">Musuems</a></li>
+            <li><a href="#about">Historical Places</a></li>
         </ul>
     </nav>
     <div class="button-container">
         <button onclick="reloadProfile()">My Profile</button>
     </div>
-    </div>
-   
 </div>
 
 <div class="search-container">
-    <input type="text" id="searchBar" placeholder="Search for activities, musuems, etc.">
+    <input type="text" id="searchBar" placeholder="Search for activities, museums, etc.">
     <button class="search-button" onclick="performSearch()">Search</button>
+    
+
+    
 </div>
 
+<div class="container">
+    <div class="blog-post">
+        <div class="date">4 May</div>
+        <h2>Product 1</h2>
+        
+        <a href="#" class="view-details">View Details</a>
+    </div>
 
+    <div class="blog-post">
+        <div class="date">5 May</div>
+        <h2>Product 2</h2>
+        
+        <a href="#" class="view-details">View Details</a>
+    </div>
+
+    <!-- Add more blog posts as needed -->
+</div>
 
 <script>
     function reloadProfile() {
