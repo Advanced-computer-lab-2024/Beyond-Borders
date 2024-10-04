@@ -179,7 +179,7 @@ app.delete("/deleteItinerary",deleteItineraryAsTourGuide);
 //app.post("/addAdvertiser",createAdvertiser);
 app.get("/api/AdvertiserProfile",ReadAdvertiserProfile);
 app.put("/api/updateAdvertiserProfile",updateAdvertiser);
-app.post("/createNewActivity", createNewActivity);
+app.post("/api/createNewActivity", createNewActivity);
 app.get("/api/readActivity", readActivity);
 app.put("/api/updateActivity", updateActivity);
 app.post("/api/deleteActivity", deleteActivity);

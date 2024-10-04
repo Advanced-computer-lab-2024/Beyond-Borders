@@ -160,21 +160,16 @@
     <h1>Beyond Borders</h1>
     <nav>
         <ul>
-            <li><a href="TouristProduct.html">Products</a></li>
+            <!-- <li><a href="TouristProduct.html">Products</a></li> -->
             <li><a href="#" onclick="loadMyActivities()">My Activities</a></li>
-            <li><a href="#about">Itineraries</a></li>
-            <li><a href="#contact">Museums</a></li>
-            <li><a href="#about">Historical Places</a></li>
+            <!-- <li><a href="#about">Itineraries</a></li> -->
+            <li><a href="#" onclick="openCreateActivityModal()">Create New Activity</a></li>
+            <!-- <li><a href="#about">Historical Places</a></li> -->
         </ul>
     </nav>
     <div class="button-container">
         <button onclick="readMyProfile()">My Profile</button>
     </div>
-</div>
-
-<div class="search-container">
-    <input type="text" id="searchBar" placeholder="Search for activities, museums, etc.">
-    <button class="search-button" onclick="performSearch()">Search</button>
 </div>
 
 <!-- Modal for Activities -->
@@ -273,6 +268,54 @@
         </form>
     </div>
 </div>
+
+<!-- Modal for Create New Activity -->
+<div id="createActivityModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeCreateActivityModal()">&times;</span>
+        <h2>Create New Activity</h2>
+        <form id="create-activity-form">
+            <div class="form-row">
+                <label for="activityName">Name:</label>
+                <input type="text" id="activityName">
+            </div>
+            <div class="form-row">
+                <label for="activityDate">Date:</label>
+                <input type="date" id="activityDate">
+            </div>
+            <div class="form-row">
+                <label for="activityTime">Time:</label>
+                <input type="text" id="activityTime">
+            </div>
+            <div class="form-row">
+                <label for="activityPrice">Price:</label>
+                <input type="number" id="activityPrice">
+            </div>
+            <div class="form-row">
+                <label for="activityLocation">Location:</label>
+                <input type="text" id="activityLocation">
+            </div>
+            <div class="form-row">
+                <label for="activityCategory">Category:</label>
+                <input type="text" id="activityCategory">
+            </div>
+            <div class="form-row">
+                <label for="activityTags">Tags:</label>
+                <input type="text" id="activityTags">
+            </div>
+            <div class="form-row">
+                <label for="activitySpecialDiscount">Special Discount:</label>
+                <input type="text" id="activitySpecialDiscount">
+            </div>
+            <div class="form-row">
+                <label for="activityBookingStatus">Booking Status:</label>
+                <input type="text" id="activityBookingStatus">
+            </div>
+            <button type="button" onclick="saveNewActivity()">Create Activity</button>
+        </form>
+    </div>
+</div>
+
 
 
 <script>
@@ -479,6 +522,70 @@ function toggleDetails(button) {
         }
     }
 
+    async function saveNewActivity() {
+    const name = document.getElementById('activityName').value;
+    const date = document.getElementById('activityDate').value;
+    const time = document.getElementById('activityTime').value;
+    const price = document.getElementById('activityPrice').value;
+    const location = {
+        address: document.getElementById('activityLocation').value,
+    };
+    const category = document.getElementById('activityCategory').value;
+
+    // Split tags into an array, handle empty input
+    const tagsInput = document.getElementById('activityTags').value;
+    const tags = tagsInput ? tagsInput.split(',').map(tag => tag.trim()) : []; // Send an empty array if no tags
+
+    const specialDiscount = document.getElementById('activitySpecialDiscount').value;
+    const bookingOpen = document.getElementById('activityBookingStatus').value;
+
+    const advertiserName = localStorage.getItem('username');
+
+    // Check if the user is logged in
+    if (!advertiserName) {
+        alert('You need to log in first.');
+        return;
+    }
+
+    try {
+        const response = await fetch('/api/createNewActivity', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ AdvertiseName: advertiserName, Name: name, Date: date, Time: time, Price: price, Location: location, Category: category, Tags: tags, SpecialDiscount: specialDiscount, bookingOpen })
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || 'Error creating activity');
+        }
+
+        alert('Activity created successfully!');
+        closeCreateActivityModal(); // Close the modal on successful creation
+        loadMyActivities(); // Reload activities to reflect the new addition
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Failed to create activity: ' + error.message);
+    }
+}
+
+
+    // async function createNewActivity() {
+    //     const username = localStorage.getItem('username');
+    //     if (!username) {
+    //         alert('You need to log in first.');
+    //         return;
+    //     }
+
+    //     try {
+    //             openCreateActivityModal(); // Open profile modal
+    //     } catch (error) {
+    //         console.error('Error fetching profile:', error);
+    //         alert('An error occurred while loading profile.');
+    //     }
+    // }
+
     function populateProfileForm(profile) {
         document.getElementById('username').value = profile.Username || '';
         document.getElementById('password').value = profile.Password || '';
@@ -512,44 +619,15 @@ function toggleDetails(button) {
         document.getElementById("updateModal").style.display = "none";
     }
 
+    function openCreateActivityModal() {
+        document.getElementById("createActivityModal").style.display = "block";
+    }
 
-    // async function saveProfile() {
-    //     const Password = document.getElementById('password').value;
-    //     const Email = document.getElementById('email').value;
-    //     const CompanyProfile = document.getElementById('CompanyProfile').value;
-    //     const Hotline = document.getElementById('hotline').value;
-    //     const Website = document.getElementById('linktowebsite').value;
+    function closeCreateActivityModal() {
+        document.getElementById("createActivityModal").style.display = "none";
+    }
 
-    //     const updatedData = {
-    //         Username: document.getElementById('username').value,
-    //         Password,
-    //         Email,
-    //         Hotline,
-    //         CompanyProfile,
-    //         Website
-    //     };
-
-    //     try {
-    //         const response = await fetch('/api/updateAdvertiserProfile', {
-    //             method: 'PUT',
-    //             headers: {
-    //                 'Content-Type': 'application/json'
-    //             },
-    //             body: JSON.stringify(updatedData)
-    //         });
-
-    //         if (!response.ok) {
-    //             const errorData = await response.json();
-    //             throw new Error(errorData.error || 'Error updating advertiser information');
-    //         }
-
-    //         alert('Profile updated successfully!');
-    //         closeModal(); // Close the modal on successful save
-    //     } catch (error) {
-    //         console.error('Error:', error);
-    //         alert('Failed to update profile: ' + error.message);
-    //     }
-    // }
+    
 
     async function saveProfile() {
     const Password = document.getElementById('password').value;
@@ -559,15 +637,6 @@ function toggleDetails(button) {
     const Website = document.getElementById('linktowebsite').value;
 
     const Username = document.getElementById('username').value; // Keep username for the update
-
-    // const updatedData = {
-    //     // No need to include Username as you don't want to update it
-    //     Password,
-    //     Email,
-    //     Hotline,
-    //     CompanyProfile,
-    //     Website
-    // };
 
     try {
         const response = await fetch('/api/updateAdvertiserProfile', {
@@ -590,7 +659,6 @@ function toggleDetails(button) {
         alert('Failed to update profile: ' + error.message);
     }
 }
-
 
     function performSearch() {
         const query = document.getElementById('searchBar').value;
