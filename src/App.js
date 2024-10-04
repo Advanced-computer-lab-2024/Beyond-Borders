@@ -182,7 +182,7 @@ app.put("/api/updateAdvertiserProfile",updateAdvertiser);
 app.post("/createNewActivity", createNewActivity);
 app.get("/api/readActivity", readActivity);
 app.put("/api/updateActivity", updateActivity);
-app.post("/deleteActivity", deleteActivity);
+app.post("/api/deleteActivity", deleteActivity);
 
 // app.get("/users", getUsers);
 // app.put("/updateUser", updateUser);
