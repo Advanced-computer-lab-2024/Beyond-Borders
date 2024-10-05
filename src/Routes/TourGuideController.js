@@ -237,6 +237,34 @@ const readItineraryAsTourGuide = async (req, res) => {
       res.status(500).json({ error: "An error occurred while deleting the itinerary." });
     }
   };
+
+
+  const loginTourGuide = async (req, res) => {
+    try {
+      const { username, password } = req.body;
+  
+      // Validate input
+      if (!username || !password) {
+        return res.status(400).json({ error: "Username and password are required." });
+      }
+  
+      // Find the Tourguide by username
+      const tourguide = await TourGuideModel.findOne({ Username: username });
+      if (!tourguide) {
+        return res.status(401).json({ error: "Invalid username." });
+      }
+  
+      // Check if the password matches
+      if (tourguide.Password !== password) {
+        return res.status(401).json({ error: "Invalid password." });
+      }
+  
+      // Successful authentication
+      res.status(200).json({ message: "Login successful!", tourguide });
+    } catch (error) {
+      res.status(400).json({ error: error.message });
+    }
+  };
   
   
 
@@ -244,4 +272,4 @@ const readItineraryAsTourGuide = async (req, res) => {
   
 
 
-module.exports = {ReadTourGuideProfile , UpdateTourGuideEmail , UpdateTourGuidePassword, UpdateTourGuideMobileNum , UpdateTourGuideYearsofExperience ,UpdateTourGuidePreviousWork ,createItineraryAsTourGuide,readItineraryAsTourGuide,updateItineraryAsTourGuide,deleteItineraryAsTourGuide, updateTourGuideProfile};
+module.exports = {ReadTourGuideProfile , UpdateTourGuideEmail , UpdateTourGuidePassword, UpdateTourGuideMobileNum , UpdateTourGuideYearsofExperience ,UpdateTourGuidePreviousWork ,createItineraryAsTourGuide,readItineraryAsTourGuide,updateItineraryAsTourGuide,deleteItineraryAsTourGuide, updateTourGuideProfile,loginTourGuide};
