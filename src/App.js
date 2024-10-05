@@ -83,13 +83,13 @@ app.post("/filterActivities", filterActivities);//
 app.put("/api/updateTourist", updateTourist);
 app.get("/api/readSellerProfile", readSellerProfile);
 app.put("/api/updateSeller", updateSeller);
-app.post("/createNewCategory", createNewCategory);
+app.post("/api/createNewCategory", createNewCategory);
 app.post("/createNewTag", createNewTag);
-app.get("/readAllActivityCategories", readAllActivityCategories);
+app.get("/api/readAllActivityCategories", readAllActivityCategories);
 app.get("/readAllTags", readAllTags);
-app.put("/updateCategory", updateCategory);
+app.put("/api/updateCategory", updateCategory);
 app.put("/updateTag", updateTag);
-app.post("/deleteActivityCategory", deleteActivityCategory);
+app.post("/api/deleteActivityCategory", deleteActivityCategory);
 app.post("/deleteTag", deleteTag);
 app.post("/deleteAccount", deleteAccount);
 app.get("/searchProductAdmin", searchProductAdmin);
