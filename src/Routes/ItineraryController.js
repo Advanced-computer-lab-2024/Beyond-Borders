@@ -19,7 +19,6 @@ const { default: mongoose } = require('mongoose');
       dropoffLocation,
       Tags
     } = req.body;
-  
     try {
       //  Validate activities array
       // if (!Array.isArray(Activities) || Activities.length === 0) {
@@ -45,7 +44,7 @@ const { default: mongoose } = require('mongoose');
         accessibility,
         pickupLocation,
         dropoffLocation,
-        isBooked: false,
+        isBooked : false ,
         Tags
       });
   
@@ -131,18 +130,23 @@ const { default: mongoose } = require('mongoose');
     const { Title } = req.params; // Assuming the title is passed as a URL parameter
   
     try {
-      // Find and delete the itinerary by title (case-insensitive)
-      const itinerary = await ItineraryModel.findOneAndDelete({
-        title: { $regex: new RegExp(Title, 'i') } // Case-insensitive search
+      // Find the itinerary by title (case-insensitive)
+      const itinerary = await ItineraryModel.findOne({
+        Title: { $regex: new RegExp(Title, 'i') } // Case-insensitive search
       });
   
       // If itinerary not found, return a 404 error
       if (!itinerary) {
         return res.status(404).json({ error: "Itinerary not found with the given title." });
       }
-      if(itinerary.isBooked = true){
-        return res.status(404).json({error:"Cannot Delete a booked itinerary "})
+  
+      // Check if the itinerary is booked
+      if (itinerary.isBooked === true) {
+        return res.status(400).json({ error: "Cannot delete a booked itinerary." });
       }
+  
+      // If the itinerary is not booked, proceed to delete it
+      await itinerary.deleteOne(); // Instead of calling findOneAndDelete again, directly delete the found document
   
       // Return a success message
       res.status(200).json({ message: "Itinerary successfully deleted." });
@@ -151,6 +155,8 @@ const { default: mongoose } = require('mongoose');
       res.status(500).json({ error: error.message });
     }
   };
+  
+
   
 
 
