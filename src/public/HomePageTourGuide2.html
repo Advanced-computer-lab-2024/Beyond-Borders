@@ -152,6 +152,12 @@
         label {
             width: 30%;
         }
+        .activity {
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
     </style>
 </head>
 <body>
@@ -161,9 +167,9 @@
     <nav>
         <ul>
             <!-- <li><a href="TouristProduct.html">Products</a></li> -->
-            <li><a href="#" onclick="loadMyActivities()">My Activities</a></li>
+            <li><a href="#" onclick="loadMyActivities()">My Itineraries</a></li>
             <!-- <li><a href="#about">Itineraries</a></li> -->
-            <li><a href="#" onclick="openCreateActivityModal()">Create New Activity</a></li>
+            <li><a href="#" onclick="openCreateActivityModal()">Create New Itinerary</a></li>
             <!-- <li><a href="#about">Historical Places</a></li> -->
         </ul>
     </nav>
@@ -172,7 +178,16 @@
     </div>
 </div>
 
-
+<!-- Modal for Activities -->
+<div id="activitiesModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeActivitiesModal()">&times;</span>
+        <h2>My Itineraries</h2>
+        <div id="activitiesContainerModal">
+            <!-- Activities will be displayed here -->
+        </div>
+    </div>
+</div>
 
 <!-- Modal for Profile -->
 <div id="profileModal" class="modal">
