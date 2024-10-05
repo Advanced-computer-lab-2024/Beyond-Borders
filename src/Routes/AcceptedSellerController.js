@@ -65,32 +65,71 @@ const updateSeller = async (req, res) => {
     }
  }
 
+  // const editProductSeller = async (req, res) => {
+  //   const {ProductID} = req.body;  // Extract the _id from the request body
+  //   //update a user in the database
+  //   try{
+  //       if (req.body.Seller) {
+  //           delete req.body.Seller;
+  //           return res.status(404).json({ msg: "Cannot edit seller" });
+  //       }
+  //      if (req.body.Reviews) {
+  //           delete req.body.Reviews;
+  //           return res.status(404).json({ msg: "Cannot edit Reviews" });
+  //       }
+  //       if (req.body.Ratings) {
+  //           delete req.body.Ratings;
+  //           return res.status(404).json({ msg: "Cannot edit Ratings" });
+  //       }
+  //       const updatedProduct = await NewProduct.findByIdAndUpdate(ProductID, req.body, {
+  //         new: true,            // Return the updated document
+  //         runValidators: true,  // Ensure the updates respect schema validation rules
+  //       });
+  //       res.status(200).json(updatedProduct);
+  //     } catch (error) {
+  //       // Send a 400 error with the error message if something goes wrong
+  //       res.status(400).json({ error: error.message });
+  //     }
+  //   };
+
   const editProductSeller = async (req, res) => {
-    const {ProductID} = req.body;  // Extract the _id from the request body
-    //update a user in the database
-    try{
-        if (req.body.Seller) {
-            delete req.body.Seller;
-            return res.status(404).json({ msg: "Cannot edit seller" });
+    // Destructure fields from the request body
+    const { Name, Description, Price, Quantity, Seller, Picture } = req.body;
+
+    try {
+        // Check if the activity exists with the provided name and advertiser name
+        const existingProduct = await NewProduct.findOne({ Name: Name, Seller: Seller });
+        if (!existingProduct) {
+            return res.status(404).json({ error: "Product not found for the given advertiser." });
         }
-       if (req.body.Reviews) {
-            delete req.body.Reviews;
-            return res.status(404).json({ msg: "Cannot edit Reviews" });
-        }
-        if (req.body.Ratings) {
-            delete req.body.Ratings;
-            return res.status(404).json({ msg: "Cannot edit Ratings" });
-        }
-        const updatedProduct = await NewProduct.findByIdAndUpdate(ProductID, req.body, {
-          new: true,            // Return the updated document
-          runValidators: true,  // Ensure the updates respect schema validation rules
-        });
-        res.status(200).json(updatedProduct);
-      } catch (error) {
-        // Send a 400 error with the error message if something goes wrong
+
+        // Prepare an object with the fields to update (excluding AdvertiserName and Name)
+        const updateFields = {
+          Description,
+          Price,
+          Quantity,
+          Picture,
+         
+            
+        };
+
+        // Filter out any undefined values to avoid updating fields with undefined
+        Object.keys(updateFields).forEach(key => updateFields[key] === undefined && delete updateFields[key]);
+
+        // Update the activity
+        const updatedProduct = await NewProduct.findOneAndUpdate(
+            { Name: Name, Seller: Seller }, // Find by Name and AdvertiserName
+            { $set: updateFields }, // Update only the specified fields
+            { new: true } // Return the updated document
+        );
+
+        // Send the updated activity as a JSON response with a 200 OK status
+        res.status(200).json({ msg: "Product updated successfully!", product: updatedProduct });
+    } catch (error) {
+        // If an error occurs, send a 400 Bad Request status with the error message
         res.status(400).json({ error: error.message });
-      }
-    };
+    }
+};
 
     const searchProductSeller = async (req, res) => {
         const {ProductName} = req.body;

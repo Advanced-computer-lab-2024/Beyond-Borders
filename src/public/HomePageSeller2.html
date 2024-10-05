@@ -270,6 +270,37 @@
 
 <button onclick="document.getElementById('addProductModal').style.display='block'">Add New Product</button>
 
+<!-- Modal for Editing Product -->
+<div id="editProductModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeEditProductModal()">&times;</span>
+        <h2>Edit Product</h2>
+        <form id="edit-product-form">
+            <div class="form-row">
+                <label for="editProductName">Product Name:</label>
+                <input type="text" id="editProductName" readonly required>
+            </div>
+            <div class="form-row">
+                <label for="editProductDescription">Description:</label>
+                <input type="text" id="editProductDescription" required>
+            </div>
+            <div class="form-row">
+                <label for="editProductPrice">Price:</label>
+                <input type="number" id="editProductPrice" required>
+            </div>
+            <div class="form-row">
+                <label for="editProductQuantity">Quantity:</label>
+                <input type="number" id="editProductQuantity" required>
+            </div>
+            <div class="form-row">
+                <label for="editProductPicture">Picture URL:</label>
+                <input type="text" id="editProductPicture" required>
+            </div>
+            <button type="button" id="submitEditProductBtn" onclick="editProduct()">Update Product</button>
+        </form>
+    </div>
+</div>
+
 <script>
 function toggleDetails(button) {
     const details = button.nextElementSibling; // Get the details div
@@ -512,6 +543,72 @@ async function addProduct() {
 
 function closeAddProductModal() {
     document.getElementById("addProductModal").style.display = "none";
+}
+
+async function editProduct() {
+    const name = document.getElementById('editProductName').value;
+    const description = document.getElementById('editProductDescription').value;
+    const price = parseFloat(document.getElementById('editProductPrice').value);
+    const quantity = parseInt(document.getElementById('editProductQuantity').value);
+    const picture = document.getElementById('editProductPicture').value;
+
+    const seller = localStorage.getItem('username'); // Get the seller's name from local storage
+
+    // Check if the user is logged in
+    if (!seller) {
+        alert('You need to log in first.');
+        return;
+    }
+
+    try {
+        const response = await fetch('/api/editProductSeller', {
+            method: 'PUT', // Use PUT for updating
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ Name: name, Description: description, Price: price, Quantity: quantity, Seller: seller, Picture: picture })
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || 'Error updating product');
+        }
+
+        alert('Product updated successfully!');
+        closeEditProductModal(); // Close the modal on successful update
+        loadProducts(); // Optionally, refresh the product list to reflect the changes
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Failed to update product: ' + error.message);
+    }
+}
+
+function closeEditProductModal() {
+    document.getElementById("editProductModal").style.display = "none";
+}
+
+// Call this function when you want to populate the modal with the existing product details
+function openEditProductModal(product) {
+    document.getElementById('editProductName').value = product.Name;
+    document.getElementById('editProductDescription').value = product.Description;
+    document.getElementById('editProductPrice').value = product.Price;
+    document.getElementById('editProductQuantity').value = product.Quantity;
+    document.getElementById('editProductPicture').value = product.Picture;
+    
+    document.getElementById("editProductModal").style.display = "block"; // Open the modal
+}
+
+function loadProducts() {
+    // Fetch and display products, and add an edit button for each product
+    // Assuming you have a way to list products:
+    products.forEach(product => {
+        const productDiv = document.createElement('div');
+        productDiv.innerHTML = `
+            <p>${product.Name}</p>
+            <button onclick='openEditProductModal(${JSON.stringify(product)})'>Edit</button>
+        `;
+        document.getElementById('productList').appendChild(productDiv);
+    });
 }
 
 
