@@ -1,6 +1,36 @@
 const HistoricalTagsModel = require('../Models/HistoricalTags');
 
+const TourismGovernerModel = require('../Models/TourismGoverner');
+
 const { default: mongoose } = require('mongoose');
+
+
+const loginGoverner = async (req, res) => {
+   try {
+     const { username, password } = req.body;
+ 
+     // Validate input
+     if (!username || !password) {
+       return res.status(400).json({ error: "Username and password are required." });
+     }
+ 
+     // Find the advertiser by username
+     const TourismGoverner = await TourismGovernerModel.findOne({ Username: username });
+     if (!TourismGoverner) {
+       return res.status(401).json({ error: "Invalid username." });
+     }
+ 
+     // Check if the password matches
+     if (TourismGoverner.Password !== password) {
+       return res.status(401).json({ error: "Invalid password." });
+     }
+ 
+     // Successful authentication
+     res.status(200).json({ message: "Login successful!", TourismGoverner });
+   } catch (error) {
+     res.status(400).json({ error: error.message });
+   }
+ };
 
 const createNewHistoricalTag = async(req,res) => {
     //Destructure Name, Email, Age from the request body
@@ -81,6 +111,7 @@ const getMuseumsByAuthorAsTourismGoverner = async(req,res) =>{
  const{updateHistoricalPlace} = require('./HistoricalPlaceController');
  const{deleteHistoricalPlacebyName} = require('./HistoricalPlaceController');
  const{getHistoricalPlaceByAuthor} = require('./HistoricalPlaceController');
+const TourismGoverner = require('../Models/TourismGoverner');
  const createHistoricalPlaceAsTourismGoverner = async(req,res) => {
    try{
     await CreateHistoricalPlace(req,res);
@@ -125,4 +156,4 @@ const getHistoricalByAuthorAsTourismGoverner = async(req,res) =>{
 }
  module.exports = {createNewHistoricalTag,createMuseumsAsTourismGoverner,getMuseumsByAuthorAsTourismGoverner
    ,createHistoricalPlaceAsTourismGoverner , getHistoricalPlaceByNameAsTourismGoverner , updateHistoricalPlaceAsTourismGoverner , deletePlaceAsTourismGoverner , getHistoricalByAuthorAsTourismGoverner, getMuseumByNameAsTourismGoverner, updateMuseumByNameAsTourismGoverner, deleteMuseumByNameAsTourismGoverner
- };
+ ,loginGoverner};
