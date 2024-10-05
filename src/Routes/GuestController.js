@@ -4,6 +4,8 @@ const ActivityModel = require('../Models/Activity.js');
 const ProductModel = require('../Models/Product.js');
 const MuseumsModel = require('../Models/Museums.js');
 const HistoricalPlacesModel = require('../Models/HistoricalPlaces.js');
+const ItineraryModel = require('../Models/Itinerary.js');
+
 
 
 //const MuseumModel = require('../Models/Museum.js');
@@ -259,9 +261,69 @@ const ViewAllUpcomingActivitiesGuest = async (req, res) => {
     }
   };
 
+  const ViewAllUpcomingItinerariesGuest = async (req, res) => {
+    try {
+      // Get today's date and set the time to midnight
+      const currentDate = new Date();
+      currentDate.setHours(0, 0, 0, 0); 
+      const itineraries = await ItineraryModel.find(); 
+      const upcomingItineraries = itineraries.filter(itineraries => {
+        return itineraries.Date >= currentDate; // Include only upcoming activities
+      });
+  
+      // Return the upcoming activities as a JSON response
+      res.json(upcomingItineraries);
+    } catch (error) {
+      console.error('Error fetching upcoming itinerary events:', error);
+      res.status(500).json({ message: 'Error fetching upcoming itinerary events' });
+    }
+  };
+
+  const sortItinerariesPriceAscendingGuest = async (req, res) => {
+    try {
+      const currentDate = new Date();
+      currentDate.setHours(0, 0, 0, 0);
+  
+      // Get all activities from the database
+      const itineraries = await ItineraryModel.find();
+  
+      // Filter for upcoming activities only
+      const upcomingItineraries = itineraries.filter(itinerary => itinerary.Date >= currentDate);
+  
+      // Sort the upcoming activities by price in ascending order
+      const sortedUpcomingItineraries = upcomingItineraries.sort((a, b) => a.Price - b.Price);
+  
+      // Respond with the sorted activities
+      res.status(200).json(sortedUpcomingItineraries);
+    } catch (error) {
+      res.status(400).json({ error: error.message });
+    }
+  };
+  
+  const sortItinerariesPriceDescendingGuest = async (req, res) => {
+    try {
+      const currentDate = new Date();
+      currentDate.setHours(0, 0, 0, 0);
+  
+      // Get all activities from the database
+      const itineraries = await ItineraryModel.find();
+  
+      // Filter for upcoming activities only
+      const upcomingItineraries = itineraries.filter(itinerary => itinerary.Date >= currentDate);
+  
+      // Sort the upcoming activities by price in descending order
+      const sortedUpcomingItineraries = upcomingItineraries.sort((a, b) => b.Price - a.Price);
+  
+      // Respond with the sorted activities
+      res.status(200).json(sortedUpcomingItineraries);
+    } catch (error) {
+      res.status(400).json({ error: error.message });
+    }
+  };
+
   
 
 
 
 
-module.exports = {filterActivitiesGuest, getMuseumsByTagGuest,ViewAllUpcomingActivitiesGuest, ViewAllUpcomingMuseumEventsGuest, getHistoricalPlacesByTagGuest, ViewAllUpcomingHistoricalPlacesEventsGuest, sortActivitiesPriceAscendingGuest, sortActivitiesPriceDescendingGuest, sortActivitiesRatingDescendingGuest, sortActivitiesRatingAscendingGuest};
+module.exports = {filterActivitiesGuest, getMuseumsByTagGuest,ViewAllUpcomingActivitiesGuest, ViewAllUpcomingMuseumEventsGuest, getHistoricalPlacesByTagGuest, ViewAllUpcomingHistoricalPlacesEventsGuest, sortActivitiesPriceAscendingGuest, sortActivitiesPriceDescendingGuest, sortActivitiesRatingDescendingGuest, sortActivitiesRatingAscendingGuest, ViewAllUpcomingItinerariesGuest, sortItinerariesPriceAscendingGuest, sortItinerariesPriceDescendingGuest};
