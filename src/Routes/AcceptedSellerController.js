@@ -3,37 +3,82 @@ const AcceptedSellerModel = require('../Models/AcceptedSeller.js');
 const NewProduct = require('../Models/Product.js');
 const { default: mongoose } = require('mongoose');
 
-const readSellerProfile = async(req,res) => {
-   //Destructure Name, Email, Age from the request body
-   const{LoggedInSellerID} = req.body;
-   try{
-      //add a new user to the database with Name, Email and Age
-      const user = await AcceptedSellerModel.findById(LoggedInSellerID);
-      res.status(200).json(user);
-   } catch (error){
-      //If an error occurs, send a 400 Bad Request status with the error message
-      res.status(400).json({ error: error.message});
+// const readSellerProfile = async(req,res) => {
+//    //Destructure Name, Email, Age from the request body
+//    const{LoggedInSellerID} = req.body;
+//    try{
+//       //add a new user to the database with Name, Email and Age
+//       const user = await AcceptedSellerModel.findById(LoggedInSellerID);
+//       res.status(200).json(user);
+//    } catch (error){
+//       //If an error occurs, send a 400 Bad Request status with the error message
+//       res.status(400).json({ error: error.message});
+//    }
+// }
+
+const readSellerProfile = async(req,res) =>{
+  try{
+   const{Username} = req.query;
+   const Seller = await AcceptedSellerModel.findOne({ Username: Username });
+   if (Seller) {
+     res.status(200).json(Seller);
    }
+   else{
+       res.status(400).json({error : "Seller does not exist"});
+   }
+ } catch (error) {
+   res.status(400).json({ error: error.message});
+}
 }
 
-const updateSeller = async (req, res) => {
-    const { _id } = req.body;  // Extract the _id from the request body
+// const updateSeller = async (req, res) => {
+//     const { _id } = req.body;  // Extract the _id from the request body
   
-    try {
-        if (req.body.Username) {
-            delete req.body.Username;
-            return res.status(404).json({ msg: "Cannot update username" });
-          }
-      // Find and update the tourist with the fields provided in req.body
-      const updatedSeller = await AcceptedSellerModel.findByIdAndUpdate(_id, req.body, {
-        new: true,            // Return the updated document
-        runValidators: true,  // Ensure the updates respect schema validation rules
-      });
+//     try {
+//         if (req.body.Username) {
+//             delete req.body.Username;
+//             return res.status(404).json({ msg: "Cannot update username" });
+//           }
+//       // Find and update the tourist with the fields provided in req.body
+//       const updatedSeller = await AcceptedSellerModel.findByIdAndUpdate(_id, req.body, {
+//         new: true,            // Return the updated document
+//         runValidators: true,  // Ensure the updates respect schema validation rules
+//       });
+//       res.status(200).json(updatedSeller);
+//     } catch (error) {
+//       res.status(400).json({ error: error.message });
+//     }
+//   };
+
+const updateSeller = async (req, res) => {
+  const { Username } = req.body;  // Extract username from the request body
+
+  try {
+      // Ensure username is present for the update
+      if (!Username) {
+          return res.status(400).json({ msg: "Username is required to update the profile" });
+      }
+
+      // Check for other properties before proceeding
+      const { Password, Email, Name, Description } = req.body;
+
+      // Perform the update while ensuring the username cannot be changed
+      const updatedSeller = await AcceptedSellerModel.findOneAndUpdate(
+          { Username: Username },
+          { Password, Email, Name, Description },
+          { new: true, runValidators: true }
+      );
+
+      if (!updatedSeller) {
+          return res.status(404).json({ msg: "Seller not found" });
+      }
+
       res.status(200).json(updatedSeller);
-    } catch (error) {
+  } catch (error) {
       res.status(400).json({ error: error.message });
-    }
-  };
+  }
+};
+
 
   const createNewProductSeller = async(req,res) => {
     //Destructure Name, Email, Age from the request body

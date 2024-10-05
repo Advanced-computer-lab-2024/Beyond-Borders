@@ -81,8 +81,8 @@ app.post("/rejectAdvertiser", rejectAdvertiser);
 app.get("/api/viewTourist", getTourist);
 app.get("/filterActivities", filterActivities);//
 app.put("/api/updateTourist", updateTourist);
-app.get("/readSellerProfile", readSellerProfile);
-app.put("/updateSeller", updateSeller);
+app.get("/api/readSellerProfile", readSellerProfile);
+app.put("/api/updateSeller", updateSeller);
 app.post("/createNewCategory", createNewCategory);
 app.post("/createNewTag", createNewTag);
 app.get("/readAllActivityCategories", readAllActivityCategories);
