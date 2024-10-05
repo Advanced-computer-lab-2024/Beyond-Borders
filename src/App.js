@@ -10,8 +10,8 @@ const {createTourist,getTourist, updateTourist, searchProductTourist, filterActi
 const {createUnregisteredAdvertiser} = require("./Routes/UnregisteredAdvertiserController");
 const {createUnregisteredTourGuide} = require("./Routes/UnregisteredTourGuideController");
 const {createUnregisteredSeller} = require("./Routes/UnregisteredSellerController");
-const {createNewTourismGoverner, createNewAdmin, createNewProduct, editProduct, acceptSeller, rejectSeller, createNewCategory, readAllActivityCategories,updateCategory, deleteActivityCategory, deleteAccount, searchProductAdmin, createNewTag, readAllTags, updateTag, deleteTag, acceptTourGuide, rejectTourGuide, acceptAdvertiser, rejectAdvertiser, filterProductByPriceAdmin, sortProductsAscendingAdmin, sortProductsDescendingAdmin,viewProducts, loginAdmin} = require("./Routes/AdminController");
-const {readSellerProfile, updateSeller, editProductSeller, createNewProductSeller, searchProductSeller,filterProductByPriceSeller, sortProductsAscendingSeller, sortProductsDescendingSeller,viewProductsSeller,loginSeller} = require("./Routes/AcceptedSellerController");
+const {createNewTourismGoverner, createNewAdmin, createNewProduct, editProduct, acceptSeller, rejectSeller, createNewCategory, readAllActivityCategories,updateCategory, deleteActivityCategory, deleteAccount, searchProductAdmin, createNewTag, readAllTags, updateTag, deleteTag, acceptTourGuide, rejectTourGuide, acceptAdvertiser, rejectAdvertiser, filterProductByPriceAdmin, sortProductsAscendingAdmin, sortProductsDescendingAdmin,viewProducts,loginAdmin, viewAllProductsAdmin} = require("./Routes/AdminController");
+const {readSellerProfile, updateSeller, editProductSeller, createNewProductSeller, searchProductSeller,filterProductByPriceSeller, sortProductsAscendingSeller, sortProductsDescendingSeller,viewProductsSeller,loginSeller,viewAllProductsSeller} = require("./Routes/AcceptedSellerController");
 const {createNewHistoricalTag,createMuseumsAsTourismGoverner,getMuseumsByAuthorAsTourismGoverner
   ,createHistoricalPlaceAsTourismGoverner , getHistoricalPlaceByNameAsTourismGoverner , updateHistoricalPlaceAsTourismGoverner , deletePlaceAsTourismGoverner , getHistoricalByAuthorAsTourismGoverner, getMuseumByNameAsTourismGoverner, updateMuseumByNameAsTourismGoverner, deleteMuseumByNameAsTourismGoverner,
   loginGoverner
@@ -69,7 +69,7 @@ app.post("/addUnregisteredAdvertiser", createUnregisteredAdvertiser);
 app.post("/addTourismGovernor", createNewTourismGoverner);
 app.post("/addAdmin", createNewAdmin);
 app.post("/addProduct", createNewProduct);
-app.post("/addProductSeller", createNewProductSeller);
+app.post("/api/addProductSeller", createNewProductSeller);
 app.put("/editProduct", editProduct);
 app.put("/editProductSeller", editProductSeller);
 app.post("/acceptSeller", acceptSeller);
@@ -98,13 +98,13 @@ app.get("/searchProductTourist", searchProductTourist);
 app.put("/api/updateTourGuideProfile", updateTourGuideProfile);
 app.get("/filterProductByPriceAdmin", filterProductByPriceAdmin);
 app.get("/filterProductByPriceTourist", filterProductByPriceTourist);
-app.get("/filterProductByPriceSeller", filterProductByPriceSeller);
+app.post("/api/filterProductByPriceSeller", filterProductByPriceSeller);
 app.post("/ActivityRating", ActivityRating);
 app.get("/api/readAllActivities" , getActivitiesByAuthor);
 app.get("/sortProductsAscendingAdmin", sortProductsAscendingAdmin);
 app.get("/sortProductsDescendingAdmin", sortProductsDescendingAdmin);
-app.get("/sortProductsAscendingSeller", sortProductsAscendingSeller);
-app.get("/sortProductsDescendingSeller", sortProductsDescendingSeller);
+app.get("/api/sortProductsAscendingSeller", sortProductsAscendingSeller);
+app.get("/api/sortProductsDescendingSeller", sortProductsDescendingSeller);
 app.get("/sortProductsDescendingTourist", sortProductsDescendingTourist);
 app.get("/sortProductsAscendingTourist", sortProductsAscendingTourist);
 app.get("/filterActivitiesGuest", filterActivitiesGuest);
@@ -121,7 +121,10 @@ app.get("/ViewAllUpcomingHistoricalPlacesEventsTourist", ViewAllUpcomingHistoric
 app.get("/ViewAllUpcomingHistoricalPlacesEventsGuest", ViewAllUpcomingHistoricalPlacesEventsGuest);
 app.get("/viewProducts", viewProducts);
 app.get("/viewProductsTourist", viewProductsTourist);
-app.get("/viewProductsSeller", viewProductsSeller);
+app.get("/api/viewProductsSeller", viewProductsSeller);
+app.get("/api/viewAllProductsSeller", viewAllProductsSeller);
+app.get("/api/viewAllProductsAdmin", viewAllProductsAdmin);
+
 app.post("/loginAdvertiser", loginAdvertiser);
 app.post("/loginTourist", loginTourist);
 app.post("/loginSeller",loginSeller);

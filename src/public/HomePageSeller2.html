@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-
 <head>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tourist </title>
+    
+    <title>Tourist</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -23,7 +23,6 @@
             align-items: center;
             justify-content: space-between;
         }
-
         nav ul {
             list-style: none;
             display: flex;
@@ -37,12 +36,10 @@
             color: #fff;
             text-decoration: none;
         }
-
         nav ul li a:hover {
             color: #95d0a2;
             text-decoration: none;
         }
-
         .header h1 {
             margin: 0;
             font-size: 24px;
@@ -66,9 +63,7 @@
         }
         .search-container {
             display: flex;
-            width: 60%;
-            margin-top: 10px;
-            margin-left: 600px;
+            margin: 20px;
         }
         input[type="text"], input[type="email"], input[type="url"], input[type="password"] {
             padding: 10px;
@@ -76,9 +71,6 @@
             border: 1px solid #ccc;
             border-radius: 4px;
             font-size: 16px;
-        }
-        input[type="text"]::placeholder, input[type="email"]::placeholder, input[type="url"]::placeholder, input[type="password"]::placeholder {
-            color: #999;
         }
         .search-button {
             padding: 10px;
@@ -108,6 +100,12 @@
             padding: 10px;
             margin: 10px 0;
             border-radius: 5px;
+            display: flex;
+            align-items: center;
+        }
+        .activity img {
+            max-width: 100px;
+            margin-right: 15px;
         }
 
         /* Modal Styles */
@@ -161,8 +159,27 @@
     
     <div class="button-container">
         <button onclick="readMyProfile()">My Profile</button>
+        <button onclick="viewAllProducts()">View All Products</button>
     </div>
 </div>
+
+<div class="search-container">
+    <input type="text" id="searchInput" placeholder="Search for a product by name...">
+    <button class="search-button" onclick="searchProducts()">Search</button>
+</div>
+
+<div class="filter-container"></div>
+    <input type="number" id="minPrice" placeholder="Minimum Price" />
+    <input type="number" id="maxPrice" placeholder="Maximum Price" />
+    <button class="search-button" onclick="filterProductsByPrice()">Filter</button>
+</div>
+
+<div class="sort-container">
+    <button onclick="sortProductsDescending()">Sort by Rating (Descending)</button>
+    <button onclick="sortProductsAscending()">Sort by Rating (Ascending)</button>
+</div>
+
+
 
 <!-- Modal for Activities -->
 <div id="activitiesModal" class="modal">
@@ -175,8 +192,7 @@
     </div>
 </div>
 
-
-
+<!-- Modal for Profile -->
 <div id="profileModal" class="modal">
     <div class="modal-content">
         <span class="close" onclick="closeModal()">&times;</span>
@@ -207,10 +223,54 @@
     </div>
 </div>
 
+<!-- Modal for Products -->
+<div id="productsModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeProductsModal()">&times;</span>
+        <h2>All Products</h2>
+        <div id="productsList">
+            <!-- Products will be displayed here -->
+        </div>
+    </div>
+</div>
 
+
+<!-- Modal for Adding New Product -->
+<div id="addProductModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeAddProductModal()">&times;</span>
+        <h2>Add New Product</h2>
+        <form id="add-product-form">
+           
+            <div class="form-row">
+                <label for="productName">Product Name:</label>
+                <input type="text" id="productName" required>
+            </div>
+            <div class="form-row">
+                <label for="productDescription">Description:</label>
+                <input type="text" id="productDescription" required>
+            </div>
+            <div class="form-row">
+                <label for="productPrice">Price:</label>
+                <input type="number" id="productPrice" required>
+            </div>
+            <div class="form-row">
+                <label for="productQuantity">Quantity:</label>
+                <input type="number" id="productQuantity" required>
+            </div>
+          
+            <div class="form-row">
+                <label for="productPicture">Picture URL:</label>
+                <input type="text" id="productPicture" required>
+            </div>
+            <button type="button" id="submitProductBtn" onclick="addProduct()">Add Product</button>
+        </form>
+    </div>
+</div>
+
+<button onclick="document.getElementById('addProductModal').style.display='block'">Add New Product</button>
 
 <script>
-
 function toggleDetails(button) {
     const details = button.nextElementSibling; // Get the details div
     if (details.style.display === "none") {
@@ -219,7 +279,6 @@ function toggleDetails(button) {
         details.style.display = "none"; // Hide details
     }
 }
-
 
 async function readMyProfile() {
     const username = localStorage.getItem('username');
@@ -233,11 +292,10 @@ async function readMyProfile() {
         const profile = await response.json();
 
         if (response.ok) {
-            //console.log(data); // Check what data is being returned
-            populateProfileForm(profile); // Adjusted to access the Seller object
+            populateProfileForm(profile);
             openModal(); // Open profile modal
         } else {
-            alert(data.error || data.msg); // Use error message if available
+            alert(profile.error || 'Error fetching profile');
         }
     } catch (error) {
         console.error('Error fetching profile:', error);
@@ -253,31 +311,29 @@ function populateProfileForm(profile) {
     document.getElementById('description').value = profile.Description || '';
 }
 
+function openModal() {
+    document.getElementById("profileModal").style.display = "block";
+}
 
-    function openModal() {
-        document.getElementById("profileModal").style.display = "block";
-    }
+function closeModal() {
+    document.getElementById("profileModal").style.display = "none";
+}
 
-    function closeModal() {
-        document.getElementById("profileModal").style.display = "none";
-    }
-
-    async function saveProfile() {
+async function saveProfile() {
     const Password = document.getElementById('password').value;
     const Email = document.getElementById('email').value;
     const Name = document.getElementById('name').value;
     const Description = document.getElementById('description').value;
-    
 
-    const Username = document.getElementById('username').value; // Keep username for the update
-   // /updateTourist
+    const Username = document.getElementById('username').value;
+
     try {
         const response = await fetch('/api/updateSeller', {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ Username, Password,Email,Name,Description }) 
+            body: JSON.stringify({ Username, Password, Email, Name, Description }) 
         });
 
         if (!response.ok) {
@@ -293,17 +349,225 @@ function populateProfileForm(profile) {
     }
 }
 
+async function viewAllProducts() {
+    try {
+        const response = await fetch('/api/viewAllProductsSeller');
+        const products = await response.json();
+
+        if (response.ok) {
+            displayProducts(products);
+            openProductsModal(); // Open the products modal
+        } else {
+            alert('Failed to fetch products: ' + (products.error || 'Unknown error'));
+        }
+    } catch (error) {
+        console.error('Error fetching products:', error);
+        alert('An error occurred while loading products.');
+    }
+}
+
+
+async function searchProducts() {
+    const searchName = document.getElementById('searchInput').value.trim(); // Correct ID for input
+    if (!searchName) {
+        alert('Please enter a product name to search.');
+        return;
+    }
+
+    try {
+        const response = await fetch(`/api/viewProductsSeller?Name=${encodeURIComponent(searchName)}`, {
+            method: 'GET', // Use GET for query parameters
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+
+        const products = await response.json();
+
+        if (response.ok) {
+            displayProducts(products);
+            openProductsModal();
+        } else {
+            alert(products.error || 'No products found.');
+        }
+    } catch (error) {
+        console.error('Error fetching products:', error);
+        alert('An error occurred while searching for products.');
+    }
+}
+
+async function filterProductsByPrice() {
+    const minimumPrice = document.getElementById('minPrice').value;
+    const maximumPrice = document.getElementById('maxPrice').value;
+
+    // Validate input
+    if (!minimumPrice && !maximumPrice) {
+        alert('Please enter at least one price.');
+        return;
+    }
+
+    const filterCriteria = {};
+    if (minimumPrice) {
+        filterCriteria.MinimumPrice = Number(minimumPrice);
+    }
+    if (maximumPrice) {
+        filterCriteria.MaximumPrice = Number(maximumPrice);
+    }
+
+    try {
+        const response = await fetch('/api/filterProductByPriceSeller', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(filterCriteria)
+        });
+
+        const products = await response.json();
+
+        if (response.ok) {
+            displayProducts(products); // Use the existing display function
+            openProductsModal(); // Open the products modal
+        } else {
+            alert(products.msg || 'No products found in the specified price range.');
+        }
+    } catch (error) {
+        console.error('Error fetching filtered products:', error);
+        alert('An error occurred while filtering products.');
+    }
+}
+
+async function sortProductsDescending() {
+    try {
+        const response = await fetch('/api/sortProductsDescendingSeller');
+        const products = await response.json();
+
+        if (response.ok) {
+            displayProducts(products); // Display products in the modal
+            openProductsModal();
+        } else {
+            alert(products.error || 'Failed to sort products.');
+        }
+    } catch (error) {
+        console.error('Error fetching sorted products:', error);
+        alert('An error occurred while sorting products.');
+    }
+}
+
+async function sortProductsAscending() {
+    try {
+        const response = await fetch('/api/sortProductsAscendingSeller');
+        const products = await response.json();
+
+        if (response.ok) {
+            displayProducts(products); // Display products in the modal
+            openProductsModal();
+        } else {
+            alert(products.error || 'Failed to sort products.');
+        }
+    } catch (error) {
+        console.error('Error fetching sorted products:', error);
+        alert('An error occurred while sorting products.');
+    }
+}
+
+async function addProduct() {
+    const name = document.getElementById('productName').value;
+    const description = document.getElementById('productDescription').value;
+    const price = parseFloat(document.getElementById('productPrice').value);
+    const quantity = parseInt(document.getElementById('productQuantity').value);
+    
+    //const seller = document.getElementById('productSeller').value;
+    const picture = document.getElementById('productPicture').value;
+
+
+    // Check if the user is logged in
+    const seller = localStorage.getItem('username');
+    if (!seller) {
+        alert('You need to log in first.');
+        return;
+    }
+
+    try {
+        const response = await fetch('/api/addProductSeller', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ Seller: seller, Name: name, Description: description, Price: price, Quantity: quantity, Picture: picture })
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || 'Error creating product');
+        }
+
+        alert('Product created successfully!');
+        closeAddProductModal(); // Close the modal on successful creation
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Failed to create product: ' + error.message);
+    }
+}
+
+function closeAddProductModal() {
+    document.getElementById("addProductModal").style.display = "none";
+}
+
+
+
+
+function displayProducts(products) {
+    const productsList = document.getElementById('productsList');
+    productsList.innerHTML = ''; // Clear previous products
+
+    if (products.length === 0) {
+        productsList.innerHTML = '<p>No products available.</p>';
+        return;
+    }
+
+    products.forEach(product => {
+        const productDiv = document.createElement('div');
+        productDiv.classList.add('activity');
+
+        productDiv.innerHTML = `
+            <img src="${product.Picture}" alt="${product.Name}">
+            <div>
+                <h3>${product.Name}</h3>
+                <p>Price: $${product.Price}</p>
+                <p>Description: ${product.Description}</p>
+                <p>Quantity: ${product.Quantity}</p>
+                <p>Seller: ${product.Seller}</p>
+                <p>Rating: ${product.Ratings}</p>
+                <p>Reviews: ${product.Reviews}</p>
+            </div>
+        `;
+
+        productsList.appendChild(productDiv);
+    });
+}
+
+
+function openProductsModal() {
+    document.getElementById("productsModal").style.display = "block";
+}
+
+function closeProductsModal() {
+    document.getElementById("productsModal").style.display = "none";
+}
+
 window.onclick = function(event) {
-        if (event.target == document.getElementById("activitiesModal")) {
-            closeActivitiesModal();
-        }
-        if (event.target == document.getElementById("profileModal")) {
-            closeModal();
-        }
-    };
+    if (event.target == document.getElementById("activitiesModal")) {
+        closeActivitiesModal();
+    }
+    if (event.target == document.getElementById("profileModal")) {
+        closeModal();
+    }
+    if (event.target == document.getElementById("productsModal")) {
+        closeProductsModal();
+    }
+};
 </script>
 
 </body>
 </html>
-
-
