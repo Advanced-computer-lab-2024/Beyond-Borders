@@ -185,7 +185,7 @@ const  UpdateTourGuidePassword = async(req,res) =>{
     const { readItineraryByTitle } = require('./ItineraryController');
     const { updateItineraryByTitle } = require('./ItineraryController');
     const { deleteItineraryByTitle } = require('./ItineraryController');
-
+    const {getItinerarysByAuthor} = require('./ItineraryController');
 // Assuming the tour guide will have other methods too, like managing itineraries
 
 const createItineraryAsTourGuide = async (req, res) => {
@@ -265,11 +265,18 @@ const readItineraryAsTourGuide = async (req, res) => {
       res.status(400).json({ error: error.message });
     }
   };
-  
+  const getItenrarysByTourGuide = async (req, res) => {
+    try{
+      await getItinerarysByAuthor(req,res);
+    }
+    catch(error){
+      res.status(400).json({ error: error.message });
+    }
+  };
   
 
   
   
 
 
-module.exports = {ReadTourGuideProfile , UpdateTourGuideEmail , UpdateTourGuidePassword, UpdateTourGuideMobileNum , UpdateTourGuideYearsofExperience ,UpdateTourGuidePreviousWork ,createItineraryAsTourGuide,readItineraryAsTourGuide,updateItineraryAsTourGuide,deleteItineraryAsTourGuide, updateTourGuideProfile,loginTourGuide};
+module.exports = {ReadTourGuideProfile , UpdateTourGuideEmail , UpdateTourGuidePassword, UpdateTourGuideMobileNum , UpdateTourGuideYearsofExperience ,UpdateTourGuidePreviousWork ,createItineraryAsTourGuide,readItineraryAsTourGuide,updateItineraryAsTourGuide,deleteItineraryAsTourGuide, updateTourGuideProfile,loginTourGuide,getItenrarysByTourGuide};

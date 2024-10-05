@@ -1,4 +1,5 @@
 const ItineraryModel = require('../Models/Itinerary.js');
+const TagsModel = require('../Models/Tags.js');
 const { default: mongoose } = require('mongoose');
 
 
@@ -31,7 +32,10 @@ const { default: mongoose } = require('mongoose');
       //     throw new Error("Each activity must have a name, location, timeline, and duration.");
       //   }
       // });
-  
+      const existingTags = await TagsModel.find({ NameOfTags: { $in: Tags } });
+      if (existingTags.length !== Tags.length) {
+        return res.status(400).json({ error: "One or more tags do not exist!" });
+      }
       const itinerary = await ItineraryModel.create({
         Title,
         Activities,   // No need to explicitly handle sub-fields, Mongoose will handle it based on the schema
@@ -155,9 +159,29 @@ const { default: mongoose } = require('mongoose');
       res.status(500).json({ error: error.message });
     }
   };
+  const getItinerarysByAuthor = async (req, res) => {
+    try {
+      // Assuming you get the author's username from query parameters
+      const { AuthorUsername } = req.query; 
+      
+      // Validate that AuthorUsername is provided
+      if (!AuthorUsername) {
+        return res.status(400).json({ error: "Author username is required." });
+      }
+  
+      const Itinerarys = await ItineraryModel.find({ AuthorUsername : AuthorUsername });
+  
+      if (!Itinerarys.length) {
+        return res.status(404).json({ error: "You have not created any itinerarys." });
+      }
+  
+      res.status(200).json(Itinerarys);
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  };
+
   
 
-  
 
-
-  module.exports = {createItinerary,readItineraryByTitle,updateItineraryByTitle,deleteItineraryByTitle};
+  module.exports = {createItinerary,readItineraryByTitle,updateItineraryByTitle,deleteItineraryByTitle,getItinerarysByAuthor};
