@@ -204,7 +204,7 @@ app.post("/createItinerary",createItineraryAsTourGuide);
 app.get("/readItinerary/:title", readItineraryAsTourGuide);
 app.put("/updateItinerary/:title",updateItineraryAsTourGuide);
 app.delete("/deleteItinerary/:title",deleteItineraryAsTourGuide);
-app.get("/getallItinerarys",getItenrarysByTourGuide);
+app.get("/api/getallItinerarys",getItenrarysByTourGuide);
 //Advertiser
 //app.post("/addAdvertiser",createAdvertiser);
 app.get("/api/AdvertiserProfile",ReadAdvertiserProfile);
