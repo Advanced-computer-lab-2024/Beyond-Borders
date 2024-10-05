@@ -151,7 +151,7 @@ app.post("/addHistoricalPlace" , createHistoricalPlaceAsTourismGoverner);
 app.get("/readHistoricalPlace" , getHistoricalPlaceByNameAsTourismGoverner);
 app.put("/updateHistoricalPlace" , updateHistoricalPlaceAsTourismGoverner);
 app.delete("/deleteHistoricalPlace" , deletePlaceAsTourismGoverner);
-app.get("/readAllHistoricalPlace" , getHistoricalByAuthorAsTourismGoverner);
+app.post("/readAllHistoricalPlace" , getHistoricalByAuthorAsTourismGoverner);
 
 
 app.get("/sortActivitiesPriceAscendingTourist" , sortActivitiesPriceAscendingTourist);
