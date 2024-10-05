@@ -641,17 +641,17 @@ async function readMyProfile() {
     const Username = document.getElementById('username').value; // Keep username for the update
 
     try {
-        const response = await fetch('/api/updateAdvertiserProfile', {
+        const response = await fetch('/api/updateTourGuideProfile', {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ Username, Password,Email,Hotline,CompanyProfile,Website }) 
+            body: JSON.stringify({ Username, Password,Email,MobileNum,YearsOfExperience,PreviousWork }) 
         });
 
         if (!response.ok) {
             const errorData = await response.json();
-            throw new Error(errorData.error || 'Error updating advertiser information');
+            throw new Error(errorData.error || 'Error updating tourguide information');
         }
 
         alert('Profile updated successfully!');
