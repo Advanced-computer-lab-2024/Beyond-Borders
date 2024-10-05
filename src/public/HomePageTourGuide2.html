@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="en">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tourist Advertiser</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+            justify-content: flex-start;
+            text-align: left;
+        }
+        .header {
+            background-color: #218838;
+            color: white;
+            padding: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        nav ul {
+            list-style: none;
+            display: flex;
+            gap: 35px;
+            margin-left: 500px;
+        }
+        nav ul li {
+            display: inline;
+        }
+        nav ul li a {
+            color: #fff;
+            text-decoration: none;
+        }
+
+        nav ul li a:hover {
+            color: #95d0a2;
+            text-decoration: none;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+            text-align: left;
+        }
+        .button-container {
+            margin-left: 15px;
+        }
+        .button-container button {
+            background-color: #40be5b;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 20px;
+            transition: background-color 0.3s;
+        }
+        .button-container button:hover {
+            background-color: #7ccf8e;
+        }
+        .search-container {
+            display: flex;
+            width: 60%;
+            margin-top: 10px;
+            margin-left: 600px;
+        }
+        input[type="text"], input[type="email"], input[type="url"], input[type="password"] {
+            padding: 10px;
+            flex-grow: 1;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        input[type="text"]::placeholder, input[type="email"]::placeholder, input[type="url"]::placeholder, input[type="password"]::placeholder {
+            color: #999;
+        }
+        .search-button {
+            padding: 10px;
+            border: none;
+            border-radius: 4px;
+            background-color: #218838;
+            color: white;
+            cursor: pointer;
+            font-size: 16px;
+            margin-left: 5px;
+            transition: background-color 0.3s;
+        }
+        .search-button:hover {
+            background-color: #5aae6c;
+        }
+        .container {
+            max-width: 800px;
+            margin: auto;
+            background: #fff;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            margin-top: 20px;
+        }
+        .activity {
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none; 
+            position: fixed; 
+            z-index: 1; 
+            left: 0;
+            top: 0;
+            width: 100%; 
+            height: 100%; 
+            overflow: auto; 
+            background-color: rgba(0,0,0,0.4); 
+            padding-top: 60px; 
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: 5% auto; 
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%; 
+            max-width: 600px;
+            border-radius: 8px;
+        }
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        .form-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+        }
+        label {
+            width: 30%;
+        }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <h1>Beyond Borders</h1>
+    <nav>
+        <ul>
+            <!-- <li><a href="TouristProduct.html">Products</a></li> -->
+            <li><a href="#" onclick="loadMyActivities()">My Activities</a></li>
+            <!-- <li><a href="#about">Itineraries</a></li> -->
+            <li><a href="#" onclick="openCreateActivityModal()">Create New Activity</a></li>
+            <!-- <li><a href="#about">Historical Places</a></li> -->
+        </ul>
+    </nav>
+    <div class="button-container">
+        <button onclick="readMyProfile()">My Profile</button>
+    </div>
+</div>
+
+
+
+<!-- Modal for Profile -->
+<div id="profileModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeModal()">&times;</span>
+        <h2>My Profile</h2>
+        <form id="profile-form">
+            <div class="form-row">
+                <label for="username">Username:</label>
+                <input type="text" id="username" readonly>
+            </div>
+            <div class="form-row">
+                <label for="email">Email Address:</label>
+                <input type="email" id="email">
+            </div>
+            <div class="form-row">
+                <label for="password">Password:</label>
+                <input type="password" id="password">
+            </div>
+            <div class="form-row">
+                <label for="CompanyProfile">MobileNum:</label>
+                <input type="text" id="CompanyProfile">
+            </div>
+            <div class="form-row">
+                <label for="hotline">YearsOfExperience:</label>
+                <input type="text" id="hotline">
+            </div>
+            <div class="form-row">
+                <label for="linktowebsite">PreviousWork:</label>
+                <input type="url" id="linktowebsite">
+            </div>
+            <button type="button" id="save-changes-btn" onclick="saveProfile()">Save Changes</button>
+        </form>
+    </div>
+</div>
+
+<!-- Modal for Update -->
+<div id="updateModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeUpdateModal()">&times;</span>
+        <h2>Update Activity</h2>
+        <form id="update-form">
+            <div class="form-row">
+                <label for="updateName">Name:</label>
+                <input type="text" id="updateName" readonly>
+            </div>
+            <div class="form-row">
+                <label for="updateDate">Date:</label>
+                <input type="date" id="updateDate">
+            </div>
+            <div class="form-row">
+                <label for="updateTime">Time:</label>
+                <input type="text" id="updateTime">
+            </div>
+            <div class="form-row">
+                <label for="updatePrice">Price:</label>
+                <input type="number" id="updatePrice">
+            </div>
+            <div class="form-row">
+                <label for="updateRating">Rating:</label>
+                <input type="number" id="updateRating" readonly>
+            </div>
+            <div class="form-row">
+                <label for="updateLocation">Location:</label>
+                <input type="text" id="updateLocation">
+            </div>
+            <div class="form-row">
+                <label for="updateCategory">Category:</label>
+                <input type="text" id="updateCategory">
+            </div>
+            <div class="form-row">
+                <label for="updateTags">Tags:</label>
+                <input type="text" id="updateTags">
+            </div>
+            <div class="form-row">
+                <label for="updateSpecialDiscount">Special Discount:</label>
+                <input type="text" id="updateSpecialDiscount">
+            </div>
+            <div class="form-row">
+                <label for="updateBookingStatus">Booking Status:</label>
+                <input type="text" id="updateBookingStatus">
+            </div>
+            <button type="button" onclick="saveUpdatedActivity()">Save Changes</button>
+        </form>
+    </div>
+</div>
+
+<!-- Modal for Create New Activity -->
+<div id="createActivityModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeCreateActivityModal()">&times;</span>
+        <h2>Create New Activity</h2>
+        <form id="create-activity-form">
+            <div class="form-row">
+                <label for="activityName">Name:</label>
+                <input type="text" id="activityName">
+            </div>
+            <div class="form-row">
+                <label for="activityDate">Date:</label>
+                <input type="date" id="activityDate">
+            </div>
+            <div class="form-row">
+                <label for="activityTime">Time:</label>
+                <input type="text" id="activityTime">
+            </div>
+            <div class="form-row">
+                <label for="activityPrice">Price:</label>
+                <input type="number" id="activityPrice">
+            </div>
+            <div class="form-row">
+                <label for="activityLocation">Location:</label>
+                <input type="text" id="activityLocation">
+            </div>
+            <div class="form-row">
+                <label for="activityCategory">Category:</label>
+                <input type="text" id="activityCategory">
+            </div>
+            <div class="form-row">
+                <label for="activityTags">Tags:</label>
+                <input type="text" id="activityTags">
+            </div>
+            <div class="form-row">
+                <label for="activitySpecialDiscount">Special Discount:</label>
+                <input type="text" id="activitySpecialDiscount">
+            </div>
+            <div class="form-row">
+                <label for="activityBookingStatus">Booking Status:</label>
+                <input type="text" id="activityBookingStatus">
+            </div>
+            <button type="button" onclick="saveNewActivity()">Create Activity</button>
+        </form>
+    </div>
+</div>
+
+
+
+<script>
+    async function loadMyActivities() {
+        const username = localStorage.getItem('username');
+        if (!username) {
+            alert('You need to log in first.');
+            return;
+        }
+
+        try {
+            const response = await fetch(`/api/readAllActivities?AuthorUsername=${encodeURIComponent(username)}`);
+            const activities = await response.json();
+
+            if (response.ok) {
+                displayActivities(activities);
+                openActivitiesModal();
+            } else {
+                alert(activities.error);
+            }
+        } catch (error) {
+            console.error('Error fetching activities:', error);
+            alert('An error occurred while loading activities.');
+        }
+    }
+
+    function displayActivities(activities) {
+    const container = document.getElementById('activitiesContainerModal');
+    container.innerHTML = ''; // Clear previous activities
+
+    if (activities.length === 0) {
+        container.innerHTML = '<p>No activities found.</p>';
+        return;
+    }
+
+    activities.forEach(activity => {
+        const activityDiv = document.createElement('div');
+        activityDiv.className = 'activity';
+        activityDiv.innerHTML = `
+            <h3 style="display: inline;">${activity.Name}</h3>
+            <button onclick="deleteActivity('${activity.Name}')" style="margin-left: 10px;">Delete</button>
+            <button onclick="openUpdateForm('${activity.Name}')" style="margin-left: 10px;">Update</button>
+            <button onclick="toggleDetails(this)" style="margin-left: 10px;">View Details</button>
+            <div class="details" style="display: none;">
+                <p>Date: ${new Date(activity.Date).toLocaleDateString()}</p>
+                <p>Time: ${activity.Time}</p>
+                <p>Price: $${activity.Price}</p>
+                <p>Rating: ${activity.Rating}</p>
+                <p>Location: ${activity.Location.address || 'N/A'}</p>
+                <p>Category: ${activity.Category}</p>
+                <p>Tags: ${activity.Tags}</p>
+                <p>Special Discount: ${activity.SpecialDiscount || 'N/A'}</p>
+                <p>Booking Status: ${activity.BookingOpen}</p>
+            </div>
+        `;
+        container.appendChild(activityDiv);
+    });
+}
+
+async function openUpdateForm(activityName) {
+    try {
+        const response = await fetch(`/api/readActivity?Name=${encodeURIComponent(activityName)}`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || 'Error fetching activity details');
+        }
+
+        const activity = await response.json();
+        console.log(activity)
+        populateUpdateForm(activity);
+        openUpdateModal(); // Function to open the update modal
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Failed to load activity details: ' + error.message);
+    }
+}
+
+function populateUpdateForm(activity) {
+    document.getElementById('updateName').value = activity.Name || '';
+    document.getElementById('updateDate').value = activity.Date.split('T')[0] || ''; // Assuming activity.Date is in ISO format
+    document.getElementById('updateTime').value = activity.Time || '';
+    document.getElementById('updatePrice').value = activity.Price || '';
+    document.getElementById('updateRating').value = activity.Rating !== undefined ? activity.Rating : ''; // Keep this line
+    document.getElementById('updateLocation').value = activity.Location.address || '';
+    document.getElementById('updateCategory').value = activity.Category || '';
+    document.getElementById('updateTags').value = activity.Tags || '';
+    document.getElementById('updateSpecialDiscount').value = activity.SpecialDiscount || '';
+    document.getElementById('updateBookingStatus').value = activity.BookingOpen || '';
+}
+async function saveUpdatedActivity() {
+    const Name = document.getElementById('updateName').value;
+    const Date = document.getElementById('updateDate').value;
+    const Time = document.getElementById('updateTime').value;
+    const Price = document.getElementById('updatePrice').value;
+    const Rating = document.getElementById('updateRating').value;
+    // const Location = {
+    //     address: document.getElementById('updateLocation').value,
+    // };
+    const Location = {
+        type: "Point", // Set to "Point" for GeoJSON
+        coordinates: [
+            parseFloat(document.getElementById('longitude').value), // Longitude
+            parseFloat(document.getElementById('latitude').value) // Latitude
+        ],
+        address: document.getElementById('activityLocation').value,
+    };
+    const Category = document.getElementById('updateCategory').value;
+    
+    // Split tags into an array, handle empty input
+    const TagsInput = document.getElementById('updateTags').value;
+    const Tags = TagsInput ? TagsInput.split(',').map(tag => tag.trim()) : []; // Send an empty array if no tags
+
+    const SpecialDiscount = document.getElementById('updateSpecialDiscount').value;
+    const BookingOpen = document.getElementById('updateBookingStatus').value;
+    const TourGuide = localStorage.getItem('username');
+
+    try {
+        const response = await fetch('/api/updateActivity', {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ AdvertiserName, Name, Date, Time, Price, Rating, Location, SpecialDiscount, Category, Tags, BookingOpen })
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || 'Error updating activity');
+        }
+
+        alert('Activity updated successfully!');
+        closeUpdateModal(); // Close the modal on successful save
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Failed to update activity: ' + error.message);
+    }
+}
+
+async function deleteActivity(activityName) {
+    const AdvertiserName = localStorage.getItem('username');
+    if (!AdvertiserName) {
+        alert('You need to log in first.');
+        return;
+    }
+
+    const confirmDelete = confirm(`Are you sure you want to delete the activity "${activityName}"?`);
+    if (!confirmDelete) {
+        return; // User canceled the delete action
+    }
+
+    try {
+        const response = await fetch('/api/deleteActivity', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ AdvertiserName, Name: activityName })
+        });
+
+        const result = await response.json();
+        if (!response.ok) {
+            throw new Error(result.error || 'Error deleting activity');
+        }
+
+        alert('Activity deleted successfully!');
+        loadMyActivities(); // Reload activities to reflect the deletion
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Failed to delete activity: ' + error.message);
+    }
+}
+
+
+
+
+function toggleDetails(button) {
+    const details = button.nextElementSibling; // Get the details div
+    if (details.style.display === "none") {
+        details.style.display = "block"; // Show details
+    } else {
+        details.style.display = "none"; // Hide details
+    }
+}
+
+
+async function readMyProfile() {
+    const username = localStorage.getItem('username');
+    if (!username) {
+        alert('You need to log in first.');
+        return;
+    }
+
+    try {
+        // Ensure the fetch request matches your backend route
+        const response = await fetch(`/api/TourGuideProfile?username=${encodeURIComponent(username)}`);
+        const data = await response.json();
+
+        if (response.ok) {
+            // Ensure you're accessing the correct object (TourGuide instead of Advertiser)
+            populateProfileForm(data.TourGuide);
+            openModal(); // Open profile modal
+        } else {
+            alert(data.error);
+        }
+    } catch (error) {
+        console.error('Error fetching profile:', error);
+        alert('An error occurred while loading profile.');
+    }
+}
+
+
+    async function saveNewActivity() {
+    const name = document.getElementById('activityName').value;
+    const date = document.getElementById('activityDate').value;
+    const time = document.getElementById('activityTime').value;
+    const price = document.getElementById('activityPrice').value;
+    const location = {
+        address: document.getElementById('activityLocation').value,
+    };
+    const category = document.getElementById('activityCategory').value;
+
+    // Split tags into an array, handle empty input
+    const tagsInput = document.getElementById('activityTags').value;
+    const tags = tagsInput ? tagsInput.split(',').map(tag => tag.trim()) : []; // Send an empty array if no tags
+
+    const specialDiscount = document.getElementById('activitySpecialDiscount').value;
+    const bookingOpen = document.getElementById('activityBookingStatus').value;
+
+    const advertiserName = localStorage.getItem('username');
+
+    // Check if the user is logged in
+    if (!advertiserName) {
+        alert('You need to log in first.');
+        return;
+    }
+
+    try {
+        const response = await fetch('/api/createNewActivity', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ AdvertiseName: advertiserName, Name: name, Date: date, Time: time, Price: price, Location: location, Category: category, Tags: tags, SpecialDiscount: specialDiscount, bookingOpen })
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || 'Error creating activity');
+        }
+
+        alert('Activity created successfully!');
+        closeCreateActivityModal(); // Close the modal on successful creation
+        loadMyActivities(); // Reload activities to reflect the new addition
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Failed to create activity: ' + error.message);
+    }
+}
+
+
+    // async function createNewActivity() {
+    //     const username = localStorage.getItem('username');
+    //     if (!username) {
+    //         alert('You need to log in first.');
+    //         return;
+    //     }
+
+    //     try {
+    //             openCreateActivityModal(); // Open profile modal
+    //     } catch (error) {
+    //         console.error('Error fetching profile:', error);
+    //         alert('An error occurred while loading profile.');
+    //     }
+    // }
+
+    function populateProfileForm(profile) {
+        document.getElementById('username').value = profile.Username || '';
+        document.getElementById('password').value = profile.Password || '';
+        document.getElementById('email').value = profile.Email || '';
+        document.getElementById('CompanyProfile').value = profile.MobileNum || '';
+        document.getElementById('hotline').value = profile.YearsOfExperience || '';
+        document.getElementById('linktowebsite').value = profile.PreviousWork || '';
+    }
+
+    function openModal() {
+        document.getElementById("profileModal").style.display = "block";
+    }
+
+    function closeModal() {
+        document.getElementById("profileModal").style.display = "none";
+    }
+
+    function openActivitiesModal() {
+        document.getElementById("activitiesModal").style.display = "block";
+    }
+
+    function closeActivitiesModal() {
+        document.getElementById("activitiesModal").style.display = "none";
+    }
+
+    function openUpdateModal() {
+    document.getElementById("updateModal").style.display = "block";
+    }
+
+    function closeUpdateModal() {
+        document.getElementById("updateModal").style.display = "none";
+    }
+
+    function openCreateActivityModal() {
+        document.getElementById("createActivityModal").style.display = "block";
+    }
+
+    function closeCreateActivityModal() {
+        document.getElementById("createActivityModal").style.display = "none";
+    }
+
+    
+
+    async function saveProfile() {
+    const Password = document.getElementById('password').value;
+    const Email = document.getElementById('email').value;
+    const MobileNum = document.getElementById('CompanyProfile').value;
+    const YearsOfExperience = document.getElementById('hotline').value;
+    const PreviousWork = document.getElementById('linktowebsite').value;
+
+    const Username = document.getElementById('username').value; // Keep username for the update
+
+    try {
+        const response = await fetch('/api/updateTourGuideProfile', {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ Username, Password,Email,MobileNum,YearsOfExperience,PreviousWork }) 
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || 'Error updating tourguide information');
+        }
+
+        alert('Profile updated successfully!');
+        closeModal(); // Close the modal on successful save
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Failed to update profile: ' + error.message);
+    }
+}
+
+    function performSearch() {
+        const query = document.getElementById('searchBar').value;
+        if (query) {
+            window.location.href = `search_results.html?query=${encodeURIComponent(query)}`;
+        } else {
+            alert('Please enter a search term.');
+        }
+    }
+
+    window.onclick = function(event) {
+        if (event.target == document.getElementById("activitiesModal")) {
+            closeActivitiesModal();
+        }
+        if (event.target == document.getElementById("profileModal")) {
+            closeModal();
+        }
+    };
+</script>
+
+</body>
+</html>
