@@ -69,57 +69,83 @@
         <form id="createMuseumForm">
             <div class="form-group">
                 <label for="name">Museum Name:</label>
-                <input type="text" id="name" required>
+                <input type="text" id="name" name="name" required>
             </div>
             <div class="form-group">
                 <label for="description">Description:</label>
-                <textarea id="description" rows="4" required></textarea>
-            </div>
-            <div class="form-group">
-                <label for="image">Upload Picture:</label>
-                <input type="file" id="image" accept="image/*" required>
+                <textarea id="description" name="description" rows="4" required></textarea>
             </div>
             <div class="form-group">
                 <label for="location">Location:</label>
-                <input type="text" id="location" required>
+                <input type="text" id="location" name="location" required>
             </div>
             <div class="form-group">
                 <label for="openingHours">Opening Hours:</label>
-                <input type="text" id="openingHours" required>
+                <input type="text" id="openingHours" name="openingHours" required>
             </div>
             <div class="form-group">
                 <label for="ticketPrices">Ticket Prices (in USD):</label>
-                <input type="number" id="ticketPriceForeigner" placeholder="Foreigner" required>
-                <input type="number" id="ticketPriceNative" placeholder="Native" required>
-                <input type="number" id="ticketPriceStudent" placeholder="Student" required>
+                <input type="number" id="ticketPriceForeigner" name="ticketPriceForeigner" placeholder="Foreigner" required>
+                <input type="number" id="ticketPriceNative" name="ticketPriceNative" placeholder="Native" required>
+                <input type="number" id="ticketPriceStudent" name="ticketPriceStudent" placeholder="Student" required>
+            </div>
+            <div class="form-group">
+                <label for="historicalTags">Historical Tags (comma separated):</label>
+                <input type="text" id="historicalTags" name="historicalTags" required>
+            </div>
+            <div class="form-group">
+                <label for="dateOfEvent">Date of Event:</label>
+                <input type="date" id="dateOfEvent" name="dateOfEvent" required>
             </div>
             <button type="submit">Create Museum</button>
         </form>
     </div>
 
     <script>
-        document.getElementById('createMuseumForm').addEventListener('submit', function (event) {
-            event.preventDefault(); // Prevent form submission
+        document.addEventListener('DOMContentLoaded', function () {
+            document.getElementById('createMuseumForm').addEventListener('submit', async function (event) {
+                event.preventDefault(); // Prevent form submission
 
-            // Collect the form data
-            const museumData = {
-                name: document.getElementById('name').value,
-                description: document.getElementById('description').value,
-                location: document.getElementById('location').value,
-                openingHours: document.getElementById('openingHours').value,
-                ticketPrices: {
-                    foreigner: document.getElementById('ticketPriceForeigner').value,
-                    native: document.getElementById('ticketPriceNative').value,
-                    student: document.getElementById('ticketPriceStudent').value,
+                // Collect the form data
+                const AuthorUsername = localStorage.getItem("username");
+                const historicalTags = document.getElementById('historicalTags').value.split(',').map(tag => tag.trim());
+
+                const museumData = {
+                    name: document.getElementById('name').value,
+                    description: document.getElementById('description').value,
+                    location: document.getElementById('location').value,
+                    openingHours: document.getElementById('openingHours').value,
+                    ticketPrices: {
+                        foreigner: document.getElementById('ticketPriceForeigner').value,
+                        native: document.getElementById('ticketPriceNative').value,
+                        student: document.getElementById('ticketPriceStudent').value,
+                    },
+                    AuthorUsername: AuthorUsername,
+                    HistoricalTags: historicalTags,
+                    dateOfEvent: document.getElementById('dateOfEvent').value
+                };
+
+                try {
+                    const response = await fetch("/addMuseum", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify(museumData),
+                    });
+
+                    const result = await response.json();
+
+                    if (response.ok) {
+                        alert("Museum created successfully!");
+                        window.location.href = "museumsTG.html"; // Redirect to museumsTG.html
+                    } else {
+                        alert(`Error: ${result.error}`);
+                    }
+                } catch (error) {
+                    alert("An error occurred. Please try again.");
                 }
-            };
-
-            // Handle file upload (for demonstration purposes only, not functional here)
-            const imageFile = document.getElementById('image').files[0];
-            // TODO: Implement file upload logic with backend support.
-
-            console.log(museumData);
-            alert('Museum created successfully!'); // Placeholder - replace with backend submission
+            });
         });
     </script>
 
