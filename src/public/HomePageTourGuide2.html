@@ -152,6 +152,12 @@
         label {
             width: 30%;
         }
+        .activity {
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
     </style>
 </head>
 <body>
@@ -161,9 +167,9 @@
     <nav>
         <ul>
             <!-- <li><a href="TouristProduct.html">Products</a></li> -->
-            <li><a href="#" onclick="loadMyActivities()">My Activities</a></li>
+            <li><a href="#" onclick="loadMyActivities()">My Itineraries</a></li>
             <!-- <li><a href="#about">Itineraries</a></li> -->
-            <li><a href="#" onclick="openCreateActivityModal()">Create New Activity</a></li>
+            <li><a href="#" onclick="openCreateActivityModal()">Create New Itinerary</a></li>
             <!-- <li><a href="#about">Historical Places</a></li> -->
         </ul>
     </nav>
@@ -176,7 +182,7 @@
 <div id="activitiesModal" class="modal">
     <div class="modal-content">
         <span class="close" onclick="closeActivitiesModal()">&times;</span>
-        <h2>My Activities</h2>
+        <h2>My Itineraries</h2>
         <div id="activitiesContainerModal">
             <!-- Activities will be displayed here -->
         </div>
@@ -202,15 +208,15 @@
                 <input type="password" id="password">
             </div>
             <div class="form-row">
-                <label for="CompanyProfile">Company Profile:</label>
+                <label for="CompanyProfile">MobileNum:</label>
                 <input type="text" id="CompanyProfile">
             </div>
             <div class="form-row">
-                <label for="hotline">Hotline:</label>
+                <label for="hotline">YearsOfExperience:</label>
                 <input type="text" id="hotline">
             </div>
             <div class="form-row">
-                <label for="linktowebsite">Website:</label>
+                <label for="linktowebsite">PreviousWork:</label>
                 <input type="url" id="linktowebsite">
             </div>
             <button type="button" id="save-changes-btn" onclick="saveProfile()">Save Changes</button>
@@ -327,7 +333,7 @@
         }
 
         try {
-            const response = await fetch(`/api/readAllActivities?AuthorUsername=${encodeURIComponent(username)}`);
+            const response = await fetch(`/api/getallItinerarys?AuthorUsername=${encodeURIComponent(username)}`);
             const activities = await response.json();
 
             if (response.ok) {
@@ -338,7 +344,7 @@
             }
         } catch (error) {
             console.error('Error fetching activities:', error);
-            alert('An error occurred while loading activities.');
+            alert('An error occurred while loading itineraries');
         }
     }
 
@@ -347,32 +353,37 @@
     container.innerHTML = ''; // Clear previous activities
 
     if (activities.length === 0) {
-        container.innerHTML = '<p>No activities found.</p>';
+        container.innerHTML = '<p>No Itineraries found.</p>';
         return;
     }
 
-    activities.forEach(activity => {
-        const activityDiv = document.createElement('div');
-        activityDiv.className = 'activity';
-        activityDiv.innerHTML = `
-            <h3 style="display: inline;">${activity.Name}</h3>
-            <button onclick="deleteActivity('${activity.Name}')" style="margin-left: 10px;">Delete</button>
-            <button onclick="openUpdateForm('${activity.Name}')" style="margin-left: 10px;">Update</button>
-            <button onclick="toggleDetails(this)" style="margin-left: 10px;">View Details</button>
-            <div class="details" style="display: none;">
-                <p>Date: ${new Date(activity.Date).toLocaleDateString()}</p>
-                <p>Time: ${activity.Time}</p>
-                <p>Price: $${activity.Price}</p>
-                <p>Rating: ${activity.Rating}</p>
-                <p>Location: ${activity.Location.address || 'N/A'}</p>
-                <p>Category: ${activity.Category}</p>
-                <p>Tags: ${activity.Tags}</p>
-                <p>Special Discount: ${activity.SpecialDiscount || 'N/A'}</p>
-                <p>Booking Status: ${activity.BookingOpen}</p>
-            </div>
-        `;
-        container.appendChild(activityDiv);
-    });
+    // Assuming 'itineraries' is the array of itinerary objects
+activities.forEach(activity => {
+    const itineraryDiv = document.createElement('div');
+    itineraryDiv.className = 'activity';
+    itineraryDiv.innerHTML = `
+        <h3 style="display: inline;">${activity.Title}</h3>
+        <button onclick="deleteItinerary('${activity._id}')" style="margin-left: 10px;">Delete</button>
+        <button onclick="openUpdateForm('${activity._id}')" style="margin-left: 10px;">Update</button>
+        <button onclick="toggleDetails(this)" style="margin-left: 10px;">View Details</button>
+        <div class="details" style="display: none;">
+            <p>Activities: ${activity.Activities}</p>
+            <p>Locations: ${activity.Locations}</p>
+            <p>Timeline: ${activity.Timeline}</p>
+            <p>Language: ${activity.Language}</p>
+            <p>Price: $${activity.Price}</p>
+            <p>Date: ${new Date(activity.Date).toLocaleDateString()}</p>
+            <p>Accessible: ${activity.accessibility ? 'Yes' : 'No'}</p>
+            <p>Pickup Location: ${activity.pickupLocation}</p>
+            <p>Dropoff Location: ${activity.dropoffLocation}</p>
+            <p>Booked: ${activity.isBooked ? 'Yes' : 'No'}</p>
+            <p>Tags: ${activity.Tags.join(', ')}</p>
+            <p>Author: ${activity.AuthorUsername}</p>
+        </div>
+    `;
+    container.appendChild(itineraryDiv);
+});
+
 }
 
 async function openUpdateForm(activityName) {
@@ -436,7 +447,7 @@ async function saveUpdatedActivity() {
 
     const SpecialDiscount = document.getElementById('updateSpecialDiscount').value;
     const BookingOpen = document.getElementById('updateBookingStatus').value;
-    const AdvertiserName = localStorage.getItem('username');
+    const TourGuide = localStorage.getItem('username');
 
     try {
         const response = await fetch('/api/updateActivity', {
@@ -507,28 +518,31 @@ function toggleDetails(button) {
 }
 
 
-    async function readMyProfile() {
-        const username = localStorage.getItem('username');
-        if (!username) {
-            alert('You need to log in first.');
-            return;
-        }
-
-        try {
-            const response = await fetch(`/api/AdvertiserProfile?username=${encodeURIComponent(username)}`);
-            const data = await response.json();
-
-            if (response.ok) {
-                populateProfileForm(data.Advertiser);
-                openModal(); // Open profile modal
-            } else {
-                alert(data.error);
-            }
-        } catch (error) {
-            console.error('Error fetching profile:', error);
-            alert('An error occurred while loading profile.');
-        }
+async function readMyProfile() {
+    const username = localStorage.getItem('username');
+    if (!username) {
+        alert('You need to log in first.');
+        return;
     }
+
+    try {
+        // Ensure the fetch request matches your backend route
+        const response = await fetch(`/api/TourGuideProfile?username=${encodeURIComponent(username)}`);
+        const data = await response.json();
+
+        if (response.ok) {
+            // Ensure you're accessing the correct object (TourGuide instead of Advertiser)
+            populateProfileForm(data.TourGuide);
+            openModal(); // Open profile modal
+        } else {
+            alert(data.error);
+        }
+    } catch (error) {
+        console.error('Error fetching profile:', error);
+        alert('An error occurred while loading profile.');
+    }
+}
+
 
     async function saveNewActivity() {
     const name = document.getElementById('activityName').value;
@@ -598,9 +612,9 @@ function toggleDetails(button) {
         document.getElementById('username').value = profile.Username || '';
         document.getElementById('password').value = profile.Password || '';
         document.getElementById('email').value = profile.Email || '';
-        document.getElementById('CompanyProfile').value = profile.CompanyProfile || '';
-        document.getElementById('hotline').value = profile.Hotline || '';
-        document.getElementById('linktowebsite').value = profile.Website || '';
+        document.getElementById('CompanyProfile').value = profile.MobileNum || '';
+        document.getElementById('hotline').value = profile.YearsOfExperience || '';
+        document.getElementById('linktowebsite').value = profile.PreviousWork || '';
     }
 
     function openModal() {
@@ -640,24 +654,24 @@ function toggleDetails(button) {
     async function saveProfile() {
     const Password = document.getElementById('password').value;
     const Email = document.getElementById('email').value;
-    const CompanyProfile = document.getElementById('CompanyProfile').value;
-    const Hotline = document.getElementById('hotline').value;
-    const Website = document.getElementById('linktowebsite').value;
+    const MobileNum = document.getElementById('CompanyProfile').value;
+    const YearsOfExperience = document.getElementById('hotline').value;
+    const PreviousWork = document.getElementById('linktowebsite').value;
 
     const Username = document.getElementById('username').value; // Keep username for the update
 
     try {
-        const response = await fetch('/api/updateAdvertiserProfile', {
+        const response = await fetch('/api/updateTourGuideProfile', {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ Username, Password,Email,Hotline,CompanyProfile,Website }) 
+            body: JSON.stringify({ Username, Password,Email,MobileNum,YearsOfExperience,PreviousWork }) 
         });
 
         if (!response.ok) {
             const errorData = await response.json();
-            throw new Error(errorData.error || 'Error updating advertiser information');
+            throw new Error(errorData.error || 'Error updating tourguide information');
         }
 
         alert('Profile updated successfully!');

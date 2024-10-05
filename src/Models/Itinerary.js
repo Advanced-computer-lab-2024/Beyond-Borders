@@ -12,9 +12,8 @@ const itinerarySchema = new mongoose.Schema({
   pickupLocation: { type: String, required: true },
   dropoffLocation: { type: String, required: true }, 
   isBooked: {type:Boolean, required: true },
-  Tags: [{ type: String }]
-
-  
+  Tags: [{ type: String }],
+  AuthorUsername : {type : String , required :true}
 },{ timestamps: true });
 
 const Itinerary = mongoose.model('Itinerary', itinerarySchema);

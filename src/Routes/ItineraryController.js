@@ -1,4 +1,5 @@
 const ItineraryModel = require('../Models/Itinerary.js');
+const TagsModel = require('../Models/Tags.js');
 const { default: mongoose } = require('mongoose');
 
 
@@ -17,9 +18,9 @@ const { default: mongoose } = require('mongoose');
       accessibility,
       pickupLocation,
       dropoffLocation,
-      Tags
+      Tags,
+      AuthorUsername
     } = req.body;
-  
     try {
       //  Validate activities array
       // if (!Array.isArray(Activities) || Activities.length === 0) {
@@ -32,7 +33,10 @@ const { default: mongoose } = require('mongoose');
       //     throw new Error("Each activity must have a name, location, timeline, and duration.");
       //   }
       // });
-  
+      const existingTags = await TagsModel.find({ NameOfTags: { $in: Tags } });
+      if (existingTags.length !== Tags.length) {
+        return res.status(400).json({ error: "One or more tags do not exist!" });
+      }
       const itinerary = await ItineraryModel.create({
         Title,
         Activities,   // No need to explicitly handle sub-fields, Mongoose will handle it based on the schema
@@ -45,8 +49,9 @@ const { default: mongoose } = require('mongoose');
         accessibility,
         pickupLocation,
         dropoffLocation,
-        isBooked: false,
-        Tags
+        isBooked : false ,
+        Tags,
+        AuthorUsername
       });
   
       res.status(200).json(itinerary);
@@ -131,18 +136,23 @@ const { default: mongoose } = require('mongoose');
     const { Title } = req.params; // Assuming the title is passed as a URL parameter
   
     try {
-      // Find and delete the itinerary by title (case-insensitive)
-      const itinerary = await ItineraryModel.findOneAndDelete({
-        title: { $regex: new RegExp(Title, 'i') } // Case-insensitive search
+      // Find the itinerary by title (case-insensitive)
+      const itinerary = await ItineraryModel.findOne({
+        Title: { $regex: new RegExp(Title, 'i') } // Case-insensitive search
       });
   
       // If itinerary not found, return a 404 error
       if (!itinerary) {
         return res.status(404).json({ error: "Itinerary not found with the given title." });
       }
-      if(itinerary.isBooked = true){
-        return res.status(404).json({error:"Cannot Delete a booked itinerary "})
+  
+      // Check if the itinerary is booked
+      if (itinerary.isBooked === true) {
+        return res.status(400).json({ error: "Cannot delete a booked itinerary." });
       }
+  
+      // If the itinerary is not booked, proceed to delete it
+      await itinerary.deleteOne(); // Instead of calling findOneAndDelete again, directly delete the found document
   
       // Return a success message
       res.status(200).json({ message: "Itinerary successfully deleted." });
@@ -151,7 +161,29 @@ const { default: mongoose } = require('mongoose');
       res.status(500).json({ error: error.message });
     }
   };
+  const getItinerarysByAuthor = async (req, res) => {
+    try {
+      // Assuming you get the author's username from query parameters
+      const { AuthorUsername } = req.query; 
+      
+      // Validate that AuthorUsername is provided
+      if (!AuthorUsername) {
+        return res.status(400).json({ error: "Author username is required." });
+      }
+  
+      const Itinerarys = await ItineraryModel.find({ AuthorUsername : AuthorUsername });
+  
+      if (!Itinerarys.length) {
+        return res.status(404).json({ error: "You have not created any itinerarys." });
+      }
+  
+      res.status(200).json(Itinerarys);
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  };
+
   
 
 
-  module.exports = {createItinerary,readItineraryByTitle,updateItineraryByTitle,deleteItineraryByTitle};
+  module.exports = {createItinerary,readItineraryByTitle,updateItineraryByTitle,deleteItineraryByTitle,getItinerarysByAuthor};

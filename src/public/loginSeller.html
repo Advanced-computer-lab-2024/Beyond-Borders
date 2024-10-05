@@ -57,7 +57,7 @@
 
 <div class="container">
     <h2>Login Seller</h2>
-    <form id="adminForm">
+    <form id="sellerForm">
         <div class="form-group">
             <label for="username">Username:</label>
             <input type="text" id="username" required>
@@ -71,10 +71,46 @@
     <div id="responseMessage" class="message"></div>
 </div>
 
+<script>
+    document.getElementById('sellerForm').addEventListener('submit', async function(event) {
+        event.preventDefault(); // Prevent default form submission
+
+        const username = document.getElementById('username').value;
+        const password = document.getElementById('password').value;
+
+        try {
+            const response = await fetch('/loginSeller', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ username, password })
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                // Save the username in local storage
+                localStorage.setItem('username', result.seller.Username);
+                
+                // Display a welcome message
+                //document.getElementById('responseMessage').textContent = `Welcome, ${result.advertiser.Username}!`;
+
+                // Redirect to HomePageAdvertiser.html
+                window.location.href = 'HomePageSeller2.html';
+            } else {
+                // Display error message
+                document.getElementById('responseMessage').textContent = result.error;
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            document.getElementById('responseMessage').textContent = 'An error occurred. Please try again.';
+        }
+    });
+</script>
 
 
-
-<!--http://localhost:8000/addAdmin.html--> <!-- link el html page-->
+<!--http://localhost:8000/loginSeller.html--> <!-- link el html page-->
 
 </body>
 </html>

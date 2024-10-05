@@ -311,6 +311,11 @@ const readAllTags = async (req, res) => {
 const updateCategory = async (req, res) => {
    const {oldCategoryName,newCategoryName} = req.body;
    try {
+    // Check if the new category name already exists
+    const existingCategory = await NewActivityCategoryModel.findOne({ NameOfCategory: newCategoryName });
+    if (existingCategory) {
+        return res.status(400).json({ error: "Category name already exists." });
+    }
        // Find the category by the old name and update it
        const updatedCategory = await NewActivityCategoryModel.findOneAndUpdate(
            {NameOfCategory: oldCategoryName}, //Find the category with the old name 
@@ -357,6 +362,10 @@ const updateTag = async (req, res) => {
     const { oldTagName, newTagName } = req.body;
     
     try {
+        const existingTag = await TagsModel.findOne({ NameOfTags: newTagName });
+        if (existingTag) {
+            return res.status(400).json({ error: "Tag name already exists." });
+        }
         // Step 1: Update the tag in the TagsModel
         const updatedTag = await TagsModel.findOneAndUpdate(
             { NameOfTags: oldTagName },
@@ -596,4 +605,40 @@ const viewProducts = async (req, res) => {
     }
   };
 
-module.exports = {createNewAdmin, createNewTourismGoverner, createNewProduct, editProduct, acceptSeller, rejectSeller, createNewCategory, readAllActivityCategories, updateCategory, deleteActivityCategory, deleteAccount, searchProductAdmin, createNewTag, readAllTags, updateTag, deleteTag, acceptTourGuide, rejectTourGuide, acceptAdvertiser, rejectAdvertiser, filterProductByPriceAdmin, sortProductsDescendingAdmin, sortProductsAscendingAdmin,viewProducts};
+  const loginAdmin = async (req, res) => {
+    try {
+      const { username, password } = req.body;
+  
+      // Validate input
+      if (!username || !password) {
+        return res.status(400).json({ error: "Username and password are required." });
+      }
+  
+      // Find the advertiser by username
+      const admin = await NewAdminModel.findOne({ Username: username });
+      if (!admin) {
+        return res.status(401).json({ error: "Invalid username." });
+      }
+  
+      // Check if the password matches
+      if (admin.Password !== password) {
+        return res.status(401).json({ error: "Invalid password." });
+      }
+  
+      // Successful authentication
+      res.status(200).json({ message: "Login successful!", admin });
+    } catch (error) {
+      res.status(400).json({ error: error.message });
+    }
+  };
+
+  const viewAllProductsAdmin = async (req, res) => {
+    try {
+        const products = await NewProduct.find({}).sort({ createdAt: -1 });
+        res.status(200).json(products);
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+};
+
+module.exports = {createNewAdmin, createNewTourismGoverner, createNewProduct, editProduct, acceptSeller, rejectSeller, createNewCategory, readAllActivityCategories, updateCategory, deleteActivityCategory, deleteAccount, searchProductAdmin, createNewTag, readAllTags, updateTag, deleteTag, acceptTourGuide, rejectTourGuide, acceptAdvertiser, rejectAdvertiser, filterProductByPriceAdmin, sortProductsDescendingAdmin, sortProductsAscendingAdmin,viewProducts, loginAdmin, viewAllProductsAdmin};

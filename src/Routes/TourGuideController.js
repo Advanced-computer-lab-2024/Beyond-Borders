@@ -18,7 +18,7 @@ const { default: mongoose } = require('mongoose');
 // }
 const ReadTourGuideProfile = async(req,res) =>{
    try{
-    const{username} = req.body;
+    const{username} = req.query;
     const TourGuide = await TourGuideModel.findOne({ Username: username }); // Find the user by name
     if (TourGuide) {
       res.status(200).json({TourGuide});
@@ -43,7 +43,7 @@ const ReadTourGuideProfile = async(req,res) =>{
 }
 }
 
-const updateTourGuideProfile = async (req, res) => {
+/*const updateTourGuideProfile = async (req, res) => {
   const { _id } = req.body;  // Extract the _id from the request body
 
   try {
@@ -59,6 +59,36 @@ const updateTourGuideProfile = async (req, res) => {
     res.status(200).json(updatedTourGuide);
   } catch (error) {
     res.status(400).json({ error: error.message });
+  }
+};*/
+
+
+const updateTourGuideProfile = async (req, res) => {
+  const { Username } = req.body;  // Extract username from the request body
+
+  try {
+      // Ensure username is present for the update
+      if (!Username) {
+          return res.status(400).json({ msg: "Username is required to update the profile" });
+      }
+
+      // Check for other properties before proceeding
+      const { Password, Email, MobileNum, YearsOfExperience, PreviousWork } = req.body;
+
+      // Perform the update while ensuring the username cannot be changed
+      const updatedTourGuide = await TourGuideModel.findOneAndUpdate(
+          { Username: Username },
+          { Password, Email, MobileNum, YearsOfExperience, PreviousWork },
+          { new: true, runValidators: true }
+      );
+
+      if (!updatedTourGuide) {
+          return res.status(404).json({ msg: "TourGuide not found" });
+      }
+
+      res.status(200).json(updatedTourGuide);
+  } catch (error) {
+      res.status(400).json({ error: error.message });
   }
 };
 
@@ -185,7 +215,7 @@ const  UpdateTourGuidePassword = async(req,res) =>{
     const { readItineraryByTitle } = require('./ItineraryController');
     const { updateItineraryByTitle } = require('./ItineraryController');
     const { deleteItineraryByTitle } = require('./ItineraryController');
-
+    const {getItinerarysByAuthor} = require('./ItineraryController');
 // Assuming the tour guide will have other methods too, like managing itineraries
 
 const createItineraryAsTourGuide = async (req, res) => {
@@ -237,11 +267,46 @@ const readItineraryAsTourGuide = async (req, res) => {
       res.status(500).json({ error: "An error occurred while deleting the itinerary." });
     }
   };
+
+
+  const loginTourGuide = async (req, res) => {
+    try {
+      const { username, password } = req.body;
   
+      // Validate input
+      if (!username || !password) {
+        return res.status(400).json({ error: "Username and password are required." });
+      }
+  
+      // Find the Tourguide by username
+      const tourguide = await TourGuideModel.findOne({ Username: username });
+      if (!tourguide) {
+        return res.status(401).json({ error: "Invalid username." });
+      }
+  
+      // Check if the password matches
+      if (tourguide.Password !== password) {
+        return res.status(401).json({ error: "Invalid password." });
+      }
+  
+      // Successful authentication
+      res.status(200).json({ message: "Login successful!", tourguide });
+    } catch (error) {
+      res.status(400).json({ error: error.message });
+    }
+  };
+  const getItenrarysByTourGuide = async (req, res) => {
+    try{
+      await getItinerarysByAuthor(req,res);
+    }
+    catch(error){
+      res.status(400).json({ error: error.message });
+    }
+  };
   
 
   
   
 
 
-module.exports = {ReadTourGuideProfile , UpdateTourGuideEmail , UpdateTourGuidePassword, UpdateTourGuideMobileNum , UpdateTourGuideYearsofExperience ,UpdateTourGuidePreviousWork ,createItineraryAsTourGuide,readItineraryAsTourGuide,updateItineraryAsTourGuide,deleteItineraryAsTourGuide, updateTourGuideProfile};
+module.exports = {ReadTourGuideProfile , UpdateTourGuideEmail , UpdateTourGuidePassword, UpdateTourGuideMobileNum , UpdateTourGuideYearsofExperience ,UpdateTourGuidePreviousWork ,createItineraryAsTourGuide,readItineraryAsTourGuide,updateItineraryAsTourGuide,deleteItineraryAsTourGuide, updateTourGuideProfile,loginTourGuide,getItenrarysByTourGuide};
