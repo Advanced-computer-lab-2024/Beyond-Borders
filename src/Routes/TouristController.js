@@ -60,7 +60,7 @@ const createTourist = async (req, res) => {
 
   const getTourist = async (req, res) => {
    // Retrieve the Username from the request body
-   const { Username } = req.body;
+   const { Username } = req.query;
    try {
        // Find the tourist by Username
        const user = await TouristModel.findOne({ Username }); // Use findOne to search by Username
@@ -646,6 +646,32 @@ const sortActivitiesRatingDescendingTourist = async (req, res) => {
   }
 };
 
+const loginTourist = async (req, res) => {
+  try {
+    const { username, password } = req.body;
+
+    // Validate input
+    if (!username || !password) {
+      return res.status(400).json({ error: "Username and password are required." });
+    }
+
+    // Find the advertiser by username
+    const tourist = await TouristModel.findOne({ Username: username });
+    if (!tourist) {
+      return res.status(401).json({ error: "Invalid username." });
+    }
+
+    // Check if the password matches
+    if (tourist.Password !== password) {
+      return res.status(401).json({ error: "Invalid password." });
+    }
+
+    // Successful authentication
+    res.status(200).json({ message: "Login successful!", tourist });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+};
 
 
 
@@ -653,4 +679,5 @@ const sortActivitiesRatingDescendingTourist = async (req, res) => {
 
 
 
-module.exports = {createTourist, getTourist, updateTourist, searchProductTourist, filterActivities, filterProductByPriceTourist, ActivityRating, sortProductsDescendingTourist, sortProductsAscendingTourist, ViewAllUpcomingActivities, ViewAllUpcomingMuseumEventsTourist, getMuseumsByTagTourist, getHistoricalPlacesByTagTourist, ViewAllUpcomingHistoricalPlacesEventsTourist,viewProductsTourist, sortActivitiesPriceAscendingTourist, sortActivitiesPriceDescendingTourist, sortActivitiesRatingAscendingTourist, sortActivitiesRatingDescendingTourist};
+
+module.exports = {createTourist, getTourist, updateTourist, searchProductTourist, filterActivities, filterProductByPriceTourist, ActivityRating, sortProductsDescendingTourist, sortProductsAscendingTourist, ViewAllUpcomingActivities, ViewAllUpcomingMuseumEventsTourist, getMuseumsByTagTourist, getHistoricalPlacesByTagTourist, ViewAllUpcomingHistoricalPlacesEventsTourist,viewProductsTourist, sortActivitiesPriceAscendingTourist, sortActivitiesPriceDescendingTourist, sortActivitiesRatingAscendingTourist, sortActivitiesRatingDescendingTourist, loginTourist};
