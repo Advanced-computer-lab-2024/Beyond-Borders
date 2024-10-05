@@ -863,12 +863,114 @@ const filterItinerariesTourist = async (req, res) => {
 // app.post('/filter-itineraries', filterItinerariesTourist);
 
 
+      const ActivitiesSearchAll = async (req, res) => {
+        const { searchString } = req.body; // Extract the search string from the request body
+        const query = {}; // Initialize an empty query object
+    
+        // Create a case-insensitive regex if a search string is provided
+        if (searchString) {
+            const regex = new RegExp(searchString, 'i'); // 'i' for case-insensitive matching
+    
+            // Construct the query to search across the Name, Category, and Tags fields
+            query.$or = [
+                { Name: regex },
+                { Category: regex },
+                { Tags: { $in: [searchString] } } // For Tags, match any tag that equals the search string
+            ];
+        }
+    
+        try {
+            const fetchedActivities = await ActivityModel.find(query); // Fetch activities based on the constructed query
+            if (fetchedActivities.length === 0) {
+                return res.status(404).json({ msg: "No activities found for the given criteria!" });
+            }
+            res.status(200).json(fetchedActivities); // Respond with the fetched activities
+        } catch (error) {
+            console.error('Error fetching activities:', error);
+            res.status(500).json({ msg: "An error occurred while fetching activities." });
+        }
+    };
+    const ItinerarySearchAll = async (req, res) => {
+      const { searchString } = req.body; // Extract the search string from the request body
+      const query = {}; // Initialize an empty query object
+  
+      // Create a case-insensitive regex if a search string is provided
+      if (searchString) {
+          const regex = new RegExp(searchString, 'i'); // 'i' for case-insensitive matching
+  
+          // Construct the query to search across the Name, Category, and Tags fields
+          query.$or = [
+              { Title: regex },
+              { Tags: { $in: [searchString] } } // For Tags, match any tag that equals the search string
+          ];
+      }
+  
+      try {
+          const fetchedItineraries = await ItineraryModel.find(query); // Fetch activities based on the constructed query
+          if (fetchedItineraries.length === 0) {
+              return res.status(404).json({ msg: "No itineraries found for the given criteria!" });
+          }
+          res.status(200).json(fetchedItineraries); // Respond with the fetched activities
+      } catch (error) {
+          console.error('Error fetching itineraries:', error);
+          res.status(500).json({ msg: "An error occurred while fetching itineraries." });
+      }
+  };
+
+  const MuseumSearchAll = async (req, res) => {
+    const { searchString } = req.body; // Extract the search string from the request body
+    const query = {}; // Initialize an empty query object
+
+    // Create a case-insensitive regex if a search string is provided
+    if (searchString) {
+        const regex = new RegExp(searchString, 'i'); // 'i' for case-insensitive matching
+
+        // Construct the query to search across the Name, Category, and Tags fields
+        query.$or = [
+            { name: regex },
+            { HistoricalTags: { $in: [searchString] } } // For Tags, match any tag that equals the search string
+        ];
+    }
+
+    try {
+        const fetchedMuseums= await MuseumModel.find(query); // Fetch activities based on the constructed query
+        if (fetchedMuseums.length === 0) {
+            return res.status(404).json({ msg: "No museums found for the given criteria!" });
+        }
+        res.status(200).json(fetchedMuseums); // Respond with the fetched activities
+    } catch (error) {
+        console.error('Error fetching museums:', error);
+        res.status(500).json({ msg: "An error occurred while fetching museums." });
+    }
+};
+
+const HistoricalPlacesSearchAll = async (req, res) => {
+  const { searchString } = req.body; // Extract the search string from the request body
+  const query = {}; // Initialize an empty query object
+
+  // Create a case-insensitive regex if a search string is provided
+  if (searchString) {
+      const regex = new RegExp(searchString, 'i'); // 'i' for case-insensitive matching
+
+      // Construct the query to search across the Name, Category, and Tags fields
+      query.$or = [
+          { name: regex },
+          { Tags: { $in: [searchString] } } // For Tags, match any tag that equals the search string
+      ];
+  }
+
+  try {
+      const fetchedHistoricalPlaces= await HistoricalPlacesModel.find(query); // Fetch activities based on the constructed query
+      if (fetchedHistoricalPlaces.length === 0) {
+          return res.status(404).json({ msg: "No Historical Places found for the given criteria!" });
+      }
+      res.status(200).json(fetchedHistoricalPlaces); // Respond with the fetched activities
+  } catch (error) {
+      console.error('Error fetching Historical Places:', error);
+      res.status(500).json({ msg: "An error occurred while fetching Historical Places." });
+  }
+};
 
 
 
-
-
-
-
-
-module.exports = {createTourist, getTourist, updateTourist, searchProductTourist, filterActivities, filterProductByPriceTourist, ActivityRating, sortProductsDescendingTourist, sortProductsAscendingTourist, ViewAllUpcomingActivities, ViewAllUpcomingMuseumEventsTourist, getMuseumsByTagTourist, getHistoricalPlacesByTagTourist, ViewAllUpcomingHistoricalPlacesEventsTourist,viewProductsTourist, sortActivitiesPriceAscendingTourist, sortActivitiesPriceDescendingTourist, sortActivitiesRatingAscendingTourist, sortActivitiesRatingDescendingTourist, loginTourist, ViewAllUpcomingItinerariesTourist, sortItinerariesPriceAscendingTourist, sortItinerariesPriceDescendingTourist, filterItinerariesTourist};
+module.exports = {createTourist, getTourist, updateTourist, searchProductTourist, filterActivities, filterProductByPriceTourist, ActivityRating, sortProductsDescendingTourist, sortProductsAscendingTourist, ViewAllUpcomingActivities, ViewAllUpcomingMuseumEventsTourist, getMuseumsByTagTourist, getHistoricalPlacesByTagTourist, ViewAllUpcomingHistoricalPlacesEventsTourist,viewProductsTourist, sortActivitiesPriceAscendingTourist, sortActivitiesPriceDescendingTourist, sortActivitiesRatingAscendingTourist, sortActivitiesRatingDescendingTourist, loginTourist, ViewAllUpcomingItinerariesTourist, sortItinerariesPriceAscendingTourist, sortItinerariesPriceDescendingTourist, filterItinerariesTourist, ActivitiesSearchAll, ItinerarySearchAll, MuseumSearchAll, HistoricalPlacesSearchAll};
