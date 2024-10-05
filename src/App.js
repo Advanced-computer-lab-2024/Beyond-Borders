@@ -6,7 +6,7 @@ const mongoose = require('mongoose'); //importing mongoose
 mongoose.set('strictQuery', false);
 require("dotenv").config(); //load enviironment variables
 //const {createUser,getUsers, updateUser, deleteUser} = require("./Routes/userController");
-const {createTourist,getTourist, updateTourist, searchProductTourist, filterActivities, filterProductByPriceTourist, ActivityRating, sortProductsDescendingTourist, sortProductsAscendingTourist, ViewAllUpcomingActivities, ViewAllUpcomingMuseumEventsTourist, getMuseumsByTagTourist, getHistoricalPlacesByTagTourist, ViewAllUpcomingHistoricalPlacesEventsTourist,viewProductsTourist, sortActivitiesPriceAscendingTourist, sortActivitiesPriceDescendingTourist, sortActivitiesRatingAscendingTourist, sortActivitiesRatingDescendingTourist, loginTourist} = require("./Routes/TouristController");
+const {createTourist,getTourist, updateTourist, searchProductTourist, filterActivities, filterProductByPriceTourist, ActivityRating, sortProductsDescendingTourist, sortProductsAscendingTourist, ViewAllUpcomingActivities, ViewAllUpcomingMuseumEventsTourist, getMuseumsByTagTourist, getHistoricalPlacesByTagTourist, ViewAllUpcomingHistoricalPlacesEventsTourist,viewProductsTourist, sortActivitiesPriceAscendingTourist, sortActivitiesPriceDescendingTourist, sortActivitiesRatingAscendingTourist, sortActivitiesRatingDescendingTourist, loginTourist, ViewAllUpcomingItinerariesTourist, sortItinerariesPriceAscendingTourist, sortItinerariesPriceDescendingTourist} = require("./Routes/TouristController");
 const {createUnregisteredAdvertiser} = require("./Routes/UnregisteredAdvertiserController");
 const {createUnregisteredTourGuide} = require("./Routes/UnregisteredTourGuideController");
 const {createUnregisteredSeller} = require("./Routes/UnregisteredSellerController");
@@ -17,7 +17,7 @@ const {createNewHistoricalTag,createMuseumsAsTourismGoverner,getMuseumsByAuthorA
   loginGoverner
 } = require("./Routes/TourismGovernorController");
 const{ReadAdvertiserProfile , updateAdvertiser, createNewActivity, readActivity, updateActivity, deleteActivity, getActivitiesByAuthor, loginAdvertiser} = require("./Routes/AdvertiserController");
-const {filterActivitiesGuest, getMuseumsByTagGuest, ViewAllUpcomingActivitiesGuest, ViewAllUpcomingMuseumEventsGuest, getHistoricalPlacesByTagGuest, ViewAllUpcomingHistoricalPlacesEventsGuest, sortActivitiesPriceAscendingGuest, sortActivitiesPriceDescendingGuest, sortActivitiesRatingDescendingGuest, sortActivitiesRatingAscendingGuest} = require("./Routes/GuestController");
+const {filterActivitiesGuest, getMuseumsByTagGuest, ViewAllUpcomingActivitiesGuest, ViewAllUpcomingMuseumEventsGuest, getHistoricalPlacesByTagGuest, ViewAllUpcomingHistoricalPlacesEventsGuest, sortActivitiesPriceAscendingGuest, sortActivitiesPriceDescendingGuest, sortActivitiesRatingDescendingGuest, sortActivitiesRatingAscendingGuest, ViewAllUpcomingItinerariesGuest, sortItinerariesPriceDescendingGuest, sortItinerariesPriceAscendingGuest} = require("./Routes/GuestController");
 
 //const {createNewTourismGoverner, createNewAdmin, createNewProduct, editProduct} = require("./Routes/AdminController");
 const{ReadTourGuideProfile , UpdateTourGuideEmail , UpdateTourGuidePassword, UpdateTourGuideMobileNum , UpdateTourGuideYearsofExperience ,UpdateTourGuidePreviousWork, createItineraryAsTourGuide, readItineraryAsTourGuide, updateItineraryAsTourGuide, deleteItineraryAsTourGuide, updateTourGuideProfile,loginTourGuide} = require("./Routes/TourGuideController")
@@ -126,6 +126,14 @@ app.post("/loginAdvertiser", loginAdvertiser);
 app.post("/loginTourist", loginTourist);
 app.post("/loginSeller",loginSeller);
 app.post("/loginTourGuide",loginTourGuide);
+app.get("/ViewAllUpcomingItinerariesTourist",ViewAllUpcomingItinerariesTourist);
+app.get("/ViewAllUpcomingItinerariesGuest",ViewAllUpcomingItinerariesGuest);
+app.get("/sortItinerariesPriceDescendingTourist",sortItinerariesPriceDescendingTourist);
+app.get("/sortItinerariesPriceAscendingTourist",sortItinerariesPriceAscendingTourist);
+app.get("/sortItinerariesPriceAscendingGuest",sortItinerariesPriceAscendingGuest);
+app.get("/sortItinerariesPriceDescendingGuest",sortItinerariesPriceDescendingGuest);
+
+
 
 
 
