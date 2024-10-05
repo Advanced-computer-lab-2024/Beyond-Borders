@@ -59,6 +59,7 @@
     <button onclick="redirectTo('seller')">Login as Seller</button>
     <button onclick="redirectTo('advertiser')">Login as Advertiser</button>
     <button onclick="redirectTo('governer')">Login as Tourism Governer</button>
+    <button onclick="redirectTo('admin')">Login as Admin</button>
     
 
 <script>
@@ -75,12 +76,17 @@
                 break;
 
             case 'advertiser':
-                window.location.href = 'loginAdvertiser.html'; 
+                window.location.href = 'loginAdvertiser2.html'; 
                 break;
             
             case 'governer':
                 window.location.href = 'loginGoverner.html'; 
                 break;
+
+            case 'admin':
+                window.location.href = 'loginAdmin2.html'; 
+                break;
+
             default:
                 console.error('Unknown role:', role);
         }
