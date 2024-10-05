@@ -151,7 +151,7 @@ app.post("/HistoricalPlacesSearchAll",HistoricalPlacesSearchAll);
 //app.post("/createNewActivity", createNewActivity);
 //Tour Guide
 //app.post("/addTourGuide",createTourGuide);
-app.get("/TourGuideProfile",ReadTourGuideProfile);
+app.get("/api/TourGuideProfile",ReadTourGuideProfile);
 app.put("/updateTourGuideEmail",UpdateTourGuideEmail);
 app.put("/updateTourGuidePasword",UpdateTourGuidePassword);
 app.put("/updateTourGuideMobileNumber",UpdateTourGuideMobileNum);

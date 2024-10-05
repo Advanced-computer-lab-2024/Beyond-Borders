@@ -18,7 +18,7 @@ const { default: mongoose } = require('mongoose');
 // }
 const ReadTourGuideProfile = async(req,res) =>{
    try{
-    const{username} = req.body;
+    const{username} = req.query;
     const TourGuide = await TourGuideModel.findOne({ Username: username }); // Find the user by name
     if (TourGuide) {
       res.status(200).json({TourGuide});
