@@ -191,6 +191,8 @@
     <button onclick="sortProductsAscending()">Sort by Rating (Ascending)</button>
 </div>
 
+<button onclick="document.getElementById('addProductModal').style.display='block'">Add New Product</button>
+
 
 <!-- Modal for Categories -->
 <div id="categoriesModal" class="modal">
@@ -286,6 +288,38 @@
         <div id="productsList">
             <!-- Products will be displayed here -->
         </div>
+    </div>
+</div>
+<!-- Modal for Adding New Product -->
+<div id="addProductModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeAddProductModal()">&times;</span>
+        <h2>Add New Product</h2>
+        <form id="add-product-form">
+           
+            <div class="form-row">
+                <label for="productName">Product Name:</label>
+                <input type="text" id="productName" required>
+            </div>
+            <div class="form-row">
+                <label for="productDescription">Description:</label>
+                <input type="text" id="productDescription" required>
+            </div>
+            <div class="form-row">
+                <label for="productPrice">Price:</label>
+                <input type="number" id="productPrice" required>
+            </div>
+            <div class="form-row">
+                <label for="productQuantity">Quantity:</label>
+                <input type="number" id="productQuantity" required>
+            </div>
+          
+            <div class="form-row">
+                <label for="productPicture">Picture URL:</label>
+                <input type="text" id="productPicture" required>
+            </div>
+            <button type="button" id="submitProductBtn" onclick="addProduct()">Add Product</button>
+        </form>
     </div>
 </div>
 
@@ -705,6 +739,48 @@ async function sortProductsAscending() {
     }
 }
 
+
+async function addProduct() {
+    const name = document.getElementById('productName').value;
+    const description = document.getElementById('productDescription').value;
+    const price = parseFloat(document.getElementById('productPrice').value);
+    const quantity = parseInt(document.getElementById('productQuantity').value);
+    
+    //const seller = document.getElementById('productSeller').value;
+    const picture = document.getElementById('productPicture').value;
+
+
+    // Check if the user is logged in
+    const seller = localStorage.getItem('username');
+    if (!seller) {
+        alert('You need to log in first.');
+        return;
+    }
+
+    try {
+        const response = await fetch('/api/addProductSeller', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ Seller: seller, Name: name, Description: description, Price: price, Quantity: quantity, Picture: picture })
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || 'Error creating product');
+        }
+
+        alert('Product created successfully!');
+        closeAddProductModal(); // Close the modal on successful creation
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Failed to create product: ' + error.message);
+    }
+}
+function closeAddProductModal() {
+    document.getElementById("addProductModal").style.display = "none";
+}
     function openCategoriesModal() {
         document.getElementById("categoriesModal").style.display = "block";
     }
