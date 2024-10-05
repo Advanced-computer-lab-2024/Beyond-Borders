@@ -109,31 +109,57 @@
     </div>
 
     <script>
-        // Sample data (replace this with actual data from your API)
-        let museums = [
-            {
-                id: 1,
-                name: "Egyptian Museum",
-                description: "Home to an extensive collection of ancient Egyptian antiquities.",
-                image: "https://via.placeholder.com/600x300",
-                location: "Cairo, Egypt",
-                openingHours: "9 AM - 5 PM",
-                ticketPrices: {
-                    foreigner: 100,
-                    native: 50,
-                    student: 30
-                }
-            }
-        ];
+        async function fetchMuseumsByAuthor() {
+            const AuthorUsername = localStorage.getItem("username");
 
-        // Function to display museums
-        function displayMuseums() {
-            const museumsContainer = document.getElementById('museumsContainer');
+            if (!AuthorUsername) {
+                alert("Author username not found. Please log in again.");
+                return;
+            }
+
+            try {
+                console.log("AuthorUsername: ", AuthorUsername);
+
+                const response = await fetch(`/readAllMuseums`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({ AuthorUsername }), // Send the username in the body
+                });
+
+                const result = await response.json();
+                console.log("Server response:", result); // Log the response
+
+                if (response.ok) {
+                    if (result.length === 0) {
+                        displayNoMuseumsFound();
+                    } else {
+                        displayMuseums(result);
+                    }
+                } else {
+                    console.error(`Error: ${result.error}`); // Log server error response
+                    alert(`Error: ${result.error}`);
+                }
+            } catch (error) {
+                console.error("Fetch error: ", error); // Log the error object for more information
+                alert("An error occurred while fetching museums. Please try again.");
+            }
+        }
+
+        function displayNoMuseumsFound() {
+            const museumsContainer = document.getElementById("museumsContainer");
+            museumsContainer.innerHTML = "<p>No museums found for this author. Please create a new museum to get started.</p>";
+        }
+
+        function displayMuseums(museums) {
+            const museumsContainer = document.getElementById("museumsContainer");
             museumsContainer.innerHTML = ""; // Clear previous content
 
-            museums.forEach(museum => {
-                const museumDiv = document.createElement('div');
-                museumDiv.classList.add('museum-post');
+            museums.forEach((museum) => {
+                const museumDiv = document.createElement("div");
+                museumDiv.classList.add("museum-post");
+                museumDiv.setAttribute("data-name", museum.name);
 
                 museumDiv.innerHTML = `
                     <img src="${museum.image}" alt="${museum.name}">
@@ -145,8 +171,8 @@
                         <p><strong>Ticket Prices:</strong> Foreigner - $${museum.ticketPrices.foreigner}, Native - $${museum.ticketPrices.native}, Student - $${museum.ticketPrices.student}</p>
                     </div>
                     <div class="museum-actions">
-                        <button onclick="editMuseum(${museum.id})">Edit</button>
-                        <button class="delete-button" onclick="removeMuseum(${museum.id})">Delete</button>
+                        <button onclick="editMuseum('${museum.name}')">Edit</button>
+                        <button class="delete-button" onclick="removeMuseum('${museum.name}')">Delete</button>
                     </div>
                 `;
 
@@ -154,25 +180,55 @@
             });
         }
 
-        // CRUD Operations (for demonstration purposes)
-        function editMuseum(museumId) {
-            // Redirect to the edit page with the museum ID as a query parameter
-            window.location.href = `editMuseum.html?id=${museumId}`;
+        function editMuseum(museumName) {
+            const AuthorUsername = localStorage.getItem("username");
+            if (!AuthorUsername) {
+                alert("Author username not found. Please log in again.");
+                return;
+            }
+
+            // Redirect to the edit page with the museum name and author username as query parameters
+            window.location.href = `editMuseum.html?name=${encodeURIComponent(museumName)}&author=${encodeURIComponent(AuthorUsername)}`;
         }
 
-        function removeMuseum(museumId) {
-            // Implement removing a specific museum
+        async function removeMuseum(museumName) {
+            const AuthorUsername = localStorage.getItem("username");
+
+            if (!AuthorUsername) {
+                alert("Author username not found. Please log in again.");
+                return;
+            }
+
             const confirmDelete = confirm("Are you sure you want to delete this museum?");
-            if (confirmDelete) {
-                museums = museums.filter(museum => museum.id !== museumId);
-                displayMuseums();
+            if (!confirmDelete) return;
+
+            try {
+                const response = await fetch(`/deleteMuseumByName`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({ name: museumName, AuthorUsername }),
+                });
+
+                if (response.ok) {
+                    alert("Museum deleted successfully.");
+                    // Refresh the list of museums automatically after deletion
+                    fetchMuseumsByAuthor();
+                } else {
+                    const result = await response.json();
+                    console.error("Delete error:", result); // Log the server error response
+                    alert("An error occurred while deleting the museum. Please try again.");
+                }
+            } catch (error) {
+                console.error("Delete error: ", error); // Log the error object for more information
+                alert("An error occurred while deleting the museum. Please try again.");
             }
         }
 
         // Initial load
-        displayMuseums();
+        fetchMuseumsByAuthor();
     </script>
-
 </body>
 
 </html>
