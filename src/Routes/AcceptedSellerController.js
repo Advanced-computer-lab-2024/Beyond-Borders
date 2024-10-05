@@ -161,6 +161,37 @@ const updateSeller = async (req, res) => {
       res.status(400).json({ error: error.message });
     }
   };
+
+
+  const loginSeller = async (req, res) => {
+    try {
+      const { username, password } = req.body;
+  
+      // Validate input
+      if (!username || !password) {
+        return res.status(400).json({ error: "Username and password are required." });
+      }
+  
+      // Find the seller by username
+      const seller = await AcceptedSellerModel.findOne({ Username: username });
+      if (!seller) {
+        return res.status(401).json({ error: "Invalid username." });
+      }
+  
+      // Check if the password matches
+      if (seller.Password !== password) {
+        return res.status(401).json({ error: "Invalid password." });
+      }
+  
+      // Successful authentication
+      res.status(200).json({ message: "Login successful!", seller });
+    } catch (error) {
+      res.status(400).json({ error: error.message });
+    }
+  };
+
+
+
   
 
-module.exports = {readSellerProfile, updateSeller, editProductSeller, createNewProductSeller, searchProductSeller, filterProductByPriceSeller, sortProductsAscendingSeller, sortProductsDescendingSeller,viewProductsSeller};
+module.exports = {readSellerProfile, updateSeller, editProductSeller, createNewProductSeller, searchProductSeller, filterProductByPriceSeller, sortProductsAscendingSeller, sortProductsDescendingSeller,viewProductsSeller,loginSeller};
