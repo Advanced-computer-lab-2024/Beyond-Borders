@@ -244,10 +244,20 @@
                 <label for="updateRating">Rating:</label>
                 <input type="number" id="updateRating" readonly>
             </div>
+
             <div class="form-row">
                 <label for="updateLocation">Location:</label>
                 <input type="text" id="updateLocation">
             </div>
+            <div class="form-row">
+                <label for="updateLongitude">Longitude:</label>
+                <input type="text" id="updateLongitude" required>
+            </div>
+            <div class="form-row">
+                <label for="updateLatitude">Latitude:</label>
+                <input type="text" id="updateLatitude" required>
+            </div>
+
             <div class="form-row">
                 <label for="updateCategory">Category:</label>
                 <input type="text" id="updateCategory">
@@ -262,7 +272,7 @@
             </div>
             <div class="form-row">
                 <label for="updateBookingStatus">Booking Status:</label>
-                <input type="text" id="updateBookingStatus">
+                <input type="checkbox" id="updateBookingStatus">
             </div>
             <button type="button" onclick="saveUpdatedActivity()">Save Changes</button>
         </form>
@@ -291,10 +301,20 @@
                 <label for="activityPrice">Price:</label>
                 <input type="number" id="activityPrice">
             </div>
+
             <div class="form-row">
                 <label for="activityLocation">Location:</label>
-                <input type="text" id="activityLocation">
+                <input type="text" id="activityLocation">    
             </div>
+            <div class="form-row">
+                <label for="activityLongitude">Longitude:</label>
+                <input type="number" id="activityLongitude" required>
+            </div>
+            <div class="form-row">
+                <label for="activityLatitude">Latitude:</label>
+                <input type="number" id="activityLatitude" required>
+            </div>
+            
             <div class="form-row">
                 <label for="activityCategory">Category:</label>
                 <input type="text" id="activityCategory">
@@ -309,8 +329,8 @@
             </div>
             <div class="form-row">
                 <label for="activityBookingStatus">Booking Status:</label>
-                <input type="text" id="activityBookingStatus">
-            </div>
+                <input type="checkbox" id="activityBookingStatus">
+            </div>            
             <button type="button" onclick="saveNewActivity()">Create Activity</button>
         </form>
     </div>
@@ -391,6 +411,7 @@ async function openUpdateForm(activityName) {
 
         const activity = await response.json();
         console.log(activity)
+        console.log(activity.Location.coordinates[0])
         populateUpdateForm(activity);
         openUpdateModal(); // Function to open the update modal
     } catch (error) {
@@ -406,20 +427,73 @@ function populateUpdateForm(activity) {
     document.getElementById('updatePrice').value = activity.Price || '';
     document.getElementById('updateRating').value = activity.Rating !== undefined ? activity.Rating : ''; // Keep this line
     document.getElementById('updateLocation').value = activity.Location.address || '';
+    document.getElementById('updateLongitude').value = activity.Location.coordinates[0] || '';
+    document.getElementById('updateLatitude').value = activity.Location.coordinates[1] || '';
     document.getElementById('updateCategory').value = activity.Category || '';
     document.getElementById('updateTags').value = activity.Tags || '';
     document.getElementById('updateSpecialDiscount').value = activity.SpecialDiscount || '';
-    document.getElementById('updateBookingStatus').value = activity.BookingOpen || '';
+    document.getElementById('updateBookingStatus').checked = activity.BookingOpen || false;
 }
+// async function saveUpdatedActivity() {
+//     const Name = document.getElementById('updateName').value;
+//     const Date = document.getElementById('updateDate').value;
+//     const Time = document.getElementById('updateTime').value;
+//     const Price = document.getElementById('updatePrice').value;
+//     const Rating = document.getElementById('updateRating').value;
+//     const Location = {
+//         address: document.getElementById('updateLocation').value,
+//     };
+//     const Category = document.getElementById('updateCategory').value;
+    
+//     // Split tags into an array, handle empty input
+//     const TagsInput = document.getElementById('updateTags').value;
+//     const Tags = TagsInput ? TagsInput.split(',').map(tag => tag.trim()) : []; // Send an empty array if no tags
+
+//     const SpecialDiscount = document.getElementById('updateSpecialDiscount').value;
+//     const BookingOpen = document.getElementById('updateBookingStatus').value;
+//     const AdvertiserName = localStorage.getItem('username');
+
+//     try {
+//         const response = await fetch('/api/updateActivity', {
+//             method: 'PUT',
+//             headers: {
+//                 'Content-Type': 'application/json'
+//             },
+//             body: JSON.stringify({ AdvertiserName, Name, Date, Time, Price, Rating, Location, SpecialDiscount, Category, Tags, BookingOpen })
+//         });
+
+//         if (!response.ok) {
+//             const errorData = await response.json();
+//             throw new Error(errorData.error || 'Error updating activity');
+//         }
+
+//         alert('Activity updated successfully!');
+//         closeUpdateModal(); // Close the modal on successful save
+//     } catch (error) {
+//         console.error('Error:', error);
+//         alert('Failed to update activity: ' + error.message);
+//     }
+// }
+
 async function saveUpdatedActivity() {
     const Name = document.getElementById('updateName').value;
     const Date = document.getElementById('updateDate').value;
     const Time = document.getElementById('updateTime').value;
-    const Price = document.getElementById('updatePrice').value;
-    const Rating = document.getElementById('updateRating').value;
+    const Price = parseFloat(document.getElementById('updatePrice').value); // Ensure price is a number
+    const Rating = 0; // Or set this based on your logic
+    const address = document.getElementById('updateLocation').value;
+
+    // Retrieve longitude and latitude from their respective inputs
+    const longitude = parseFloat(document.getElementById('updateLongitude').value);
+    const latitude = parseFloat(document.getElementById('updateLatitude').value);
+
+    // Construct the Location object
     const Location = {
-        address: document.getElementById('updateLocation').value,
+        type: 'Point', // Set to 'Point' for GeoJSON
+        coordinates: [longitude, latitude], // [longitude, latitude]
+        address: address || null, // Optional, set to null if not provided
     };
+
     const Category = document.getElementById('updateCategory').value;
     
     // Split tags into an array, handle empty input
@@ -427,7 +501,8 @@ async function saveUpdatedActivity() {
     const Tags = TagsInput ? TagsInput.split(',').map(tag => tag.trim()) : []; // Send an empty array if no tags
 
     const SpecialDiscount = document.getElementById('updateSpecialDiscount').value;
-    const BookingOpen = document.getElementById('updateBookingStatus').value;
+    const BookingOpen = document.getElementById('updateBookingStatus').checked; // Use .checked for boolean
+
     const AdvertiserName = localStorage.getItem('username');
 
     try {
@@ -451,6 +526,7 @@ async function saveUpdatedActivity() {
         alert('Failed to update activity: ' + error.message);
     }
 }
+
 
 async function deleteActivity(activityName) {
     const AdvertiserName = localStorage.getItem('username');
@@ -527,8 +603,20 @@ function toggleDetails(button) {
     const date = document.getElementById('activityDate').value;
     const time = document.getElementById('activityTime').value;
     const price = document.getElementById('activityPrice').value;
-    const location = {
-        address: document.getElementById('activityLocation').value,
+    const address = document.getElementById('activityLocation').value;
+    
+    // Retrieve longitude and latitude from their respective inputs
+    const longitude = document.getElementById('activityLongitude').value;
+    const latitude = parseFloat(document.getElementById('activityLatitude').value);
+
+    console.log(longitude);
+    
+
+    // Construct the Location object
+    const Location = {
+        type: 'Point', // Set to 'Point' for GeoJSON
+        coordinates: [longitude, latitude], // [longitude, latitude]
+        address: address || null, // Optional, set to null if not provided
     };
     const category = document.getElementById('activityCategory').value;
 
@@ -537,7 +625,8 @@ function toggleDetails(button) {
     const tags = tagsInput ? tagsInput.split(',').map(tag => tag.trim()) : []; // Send an empty array if no tags
 
     const specialDiscount = document.getElementById('activitySpecialDiscount').value;
-    const bookingOpen = document.getElementById('activityBookingStatus').value;
+    //const bookingOpen = document.getElementById('activityBookingStatus').value;
+    const bookingOpen = document.getElementById('activityBookingStatus').checked; // true if checked, false if not
 
     const advertiserName = localStorage.getItem('username');
 
@@ -553,7 +642,7 @@ function toggleDetails(button) {
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ AdvertiseName: advertiserName, Name: name, Date: date, Time: time, Price: price, Location: location, Category: category, Tags: tags, SpecialDiscount: specialDiscount, bookingOpen })
+            body: JSON.stringify({ AdvertiserName: advertiserName, Name: name, Date: date, Time: time, Price: price, Location: Location, Category: category, Tags: tags, SpecialDiscount: specialDiscount, BookingOpen: bookingOpen })
         });
 
         if (!response.ok) {
