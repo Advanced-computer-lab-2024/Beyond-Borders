@@ -741,58 +741,58 @@ const sortItinerariesPriceDescendingTourist = async (req, res) => {
   }
 };
 
-const filterItineraries = async (req, res) => {
-  const { minPrice, maxPrice, InputDate, Language, Tags } = req.body; // Extract 'Tags' from the request body
-  const query = {}; // Initialize an empty query object
+// const filterItineraries = async (req, res) => {
+//   const { minPrice, maxPrice, InputDate, Language, Tags } = req.body; // Extract 'Tags' from the request body
+//   const query = {}; // Initialize an empty query object
 
-  // Get the current date and set time to midnight
-  const currentDate = new Date();
-  currentDate.setHours(0, 0, 0, 0);
+//   // Get the current date and set time to midnight
+//   const currentDate = new Date();
+//   currentDate.setHours(0, 0, 0, 0);
 
-  // Date filtering logic
-  if (InputDate) {
-    const inputDate = new Date(InputDate);
-    inputDate.setHours(0, 0, 0, 0); // Normalize input date to midnight
+//   // Date filtering logic
+//   if (InputDate) {
+//     const inputDate = new Date(InputDate);
+//     inputDate.setHours(0, 0, 0, 0); // Normalize input date to midnight
 
-    if (inputDate < currentDate) {
-      return res.status(404).json({ msg: "Itinerary events with this date have passed!" });
-    } else {
-      query.Date = inputDate; // Set query to look for this specific date
-    }
-  } else {
-    query.Date = { $gte: currentDate }; // Only include activities on or after the current date
-  }
+//     if (inputDate < currentDate) {
+//       return res.status(404).json({ msg: "Itinerary events with this date have passed!" });
+//     } else {
+//       query.Date = inputDate; // Set query to look for this specific date
+//     }
+//   } else {
+//     query.Date = { $gte: currentDate }; // Only include activities on or after the current date
+//   }
 
-  // Filter by Language if provided
-  if (Language) {
-    query.Language = Language;
-  }
+//   // Filter by Language if provided
+//   if (Language) {
+//     query.Language = Language;
+//   }
 
-  // Price filtering logic
-  if (minPrice !== undefined && maxPrice !== undefined) {
-    query.Price = { $gte: minPrice, $lte: maxPrice };
-  } else if (minPrice !== undefined) {
-    query.Price = { $gte: minPrice };
-  } else if (maxPrice !== undefined) {
-    query.Price = { $lte: maxPrice };
-  }
+//   // Price filtering logic
+//   if (minPrice !== undefined && maxPrice !== undefined) {
+//     query.Price = { $gte: minPrice, $lte: maxPrice };
+//   } else if (minPrice !== undefined) {
+//     query.Price = { $gte: minPrice };
+//   } else if (maxPrice !== undefined) {
+//     query.Price = { $lte: maxPrice };
+//   }
 
-  // Filter by Tags if provided
-  if (Tags && Tags.length > 0) {
-    query.Tags = { $in: Tags }; // Match any of the provided tags
-  }
+//   // Filter by Tags if provided
+//   if (Tags && Tags.length > 0) {
+//     query.Tags = { $in: Tags }; // Match any of the provided tags
+//   }
 
-  try {
-    const fetchedItineraries = await ItineraryModel.find(query); // Fetch itineraries based on the constructed query
-    if (fetchedItineraries.length === 0) {
-      return res.status(404).json({ msg: "No itineraries found for the given criteria!" });
-    }
-    res.status(200).json(fetchedItineraries); // Respond with the fetched itineraries
-  } catch (error) {
-    console.error('Error fetching itineraries:', error);
-    res.status(500).json({ msg: "An error occurred while fetching itineraries." });
-  }
-};
+//   try {
+//     const fetchedItineraries = await ItineraryModel.find(query); // Fetch itineraries based on the constructed query
+//     if (fetchedItineraries.length === 0) {
+//       return res.status(404).json({ msg: "No itineraries found for the given criteria!" });
+//     }
+//     res.status(200).json(fetchedItineraries); // Respond with the fetched itineraries
+//   } catch (error) {
+//     console.error('Error fetching itineraries:', error);
+//     res.status(500).json({ msg: "An error occurred while fetching itineraries." });
+//   }
+// };
 
 
 const filterItinerariesTourist = async (req, res) => {

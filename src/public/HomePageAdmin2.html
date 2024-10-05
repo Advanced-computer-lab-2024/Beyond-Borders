@@ -10,6 +10,7 @@
             background-color: #f4f4f4;
             margin: 0;
             padding: 0;
+            justify-content: flex-start;
             text-align: left;
         }
         .header {
@@ -26,29 +27,106 @@
             gap: 35px;
             margin-left: 500px;
         }
+        nav ul li {
+            display: inline;
+        }
         nav ul li a {
             color: #fff;
             text-decoration: none;
         }
         nav ul li a:hover {
             color: #95d0a2;
+            text-decoration: none;
         }
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+            text-align: left;
+        }
+        .button-container {
+            margin-left: 15px;
+        }
+        .button-container button {
+            background-color: #40be5b;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 20px;
+            transition: background-color 0.3s;
+        }
+        .button-container button:hover {
+            background-color: #7ccf8e;
+        }
+        .search-container {
+            display: flex;
+            margin: 20px;
+        }
+        input[type="text"], input[type="email"], input[type="url"], input[type="password"] {
+            padding: 10px;
+            flex-grow: 1;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        .search-button {
+            padding: 10px;
+            border: none;
+            border-radius: 4px;
+            background-color: #218838;
+            color: white;
+            cursor: pointer;
+            font-size: 16px;
+            margin-left: 5px;
+            transition: background-color 0.3s;
+        }
+        .search-button:hover {
+            background-color: #5aae6c;
+        }
+        .container {
+            max-width: 800px;
+            margin: auto;
+            background: #fff;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            margin-top: 20px;
+        }
+        .activity {
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+        }
+        .activity img {
+            max-width: 100px;
+            margin-right: 15px;
+        }
+
+        /* Modal Styles */
         .modal {
-            display: none;
-            position: fixed;
-            z-index: 1;
+            display: none; 
+            position: fixed; 
+            z-index: 1; 
             left: 0;
             top: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0,0,0,0.4);
+            width: 100%; 
+            height: 100%; 
+            overflow: auto; 
+            background-color: rgba(0,0,0,0.4); 
+            padding-top: 60px; 
         }
         .modal-content {
             background-color: #fefefe;
-            margin: 15% auto;
+            margin: 5% auto; 
             padding: 20px;
             border: 1px solid #888;
-            width: 80%;
+            width: 80%; 
+            max-width: 600px;
+            border-radius: 8px;
         }
         .close {
             color: #aaa;
@@ -56,9 +134,19 @@
             font-size: 28px;
             font-weight: bold;
         }
-        .close:hover {
+        .close:hover,
+        .close:focus {
             color: black;
+            text-decoration: none;
             cursor: pointer;
+        }
+        .form-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+        }
+        label {
+            width: 30%;
         }
     </style>
 </head>
@@ -66,8 +154,10 @@
 
 <div class="header">
     <h1>Beyond Borders</h1>
+    
     <nav>
         <ul>
+            <li><a href="#" onclick="viewAllProducts()">View All Products</a></li>
             <li><a href="#" onclick="openCreateTagModal()">Add New Tag</a></li>
             <li><a href="#" onclick="openCreateCategoryModal()">Add New Activity Category</a></li>
             <li><a href="AdminProduct.html">Products</a></li>
@@ -79,7 +169,30 @@
             <li><a href="addAdmin.html">Add admin</a></li>
         </ul>
     </nav>
+    
+    <!-- <div class="button-container">
+        <button onclick="readMyProfile()">My Profile</button>
+        <button onclick="viewAllProducts()">View All Products</button>
+    </div> -->
 </div>
+<div class="search-container"></div>
+    <input type="text" id="searchInput" placeholder="Search for a product by name...">
+    <button class="search-button" onclick="searchProducts()">Search</button>
+</div>
+
+<div class="filter-container"></div>
+    <input type="number" id="minPrice" placeholder="Minimum Price" />
+    <input type="number" id="maxPrice" placeholder="Maximum Price" />
+    <button class="search-button" onclick="filterProductsByPrice()">Filter</button>
+</div>
+
+<div class="sort-container"></div>
+    <button onclick="sortProductsDescending()">Sort by Rating (Descending)</button>
+    <button onclick="sortProductsAscending()">Sort by Rating (Ascending)</button>
+</div>
+
+<button onclick="document.getElementById('addProductModal').style.display='block'">Add New Product</button>
+
 
 <!-- Modal for Categories -->
 <div id="categoriesModal" class="modal">
@@ -166,6 +279,50 @@
         </form>
     </div>
 </div>
+
+<!-- Modal for Products -->
+<div id="productsModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeProductsModal()">&times;</span>
+        <h2>All Products</h2>
+        <div id="productsList">
+            <!-- Products will be displayed here -->
+        </div>
+    </div>
+</div>
+<!-- Modal for Adding New Product -->
+<div id="addProductModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeAddProductModal()">&times;</span>
+        <h2>Add New Product</h2>
+        <form id="add-product-form">
+           
+            <div class="form-row">
+                <label for="productName">Product Name:</label>
+                <input type="text" id="productName" required>
+            </div>
+            <div class="form-row">
+                <label for="productDescription">Description:</label>
+                <input type="text" id="productDescription" required>
+            </div>
+            <div class="form-row">
+                <label for="productPrice">Price:</label>
+                <input type="number" id="productPrice" required>
+            </div>
+            <div class="form-row">
+                <label for="productQuantity">Quantity:</label>
+                <input type="number" id="productQuantity" required>
+            </div>
+          
+            <div class="form-row">
+                <label for="productPicture">Picture URL:</label>
+                <input type="text" id="productPicture" required>
+            </div>
+            <button type="button" id="submitProductBtn" onclick="addProduct()">Add Product</button>
+        </form>
+    </div>
+</div>
+
 
 <script>
     async function loadCategories() {
@@ -352,6 +509,52 @@
         }
     }
 
+    async function viewAllProducts() {
+    try {
+        const response = await fetch('/api/viewAllProductsSeller');
+        const products = await response.json();
+
+        if (response.ok) {
+            displayProducts(products);
+            openProductsModal(); // Open the products modal
+        } else {
+            alert('Failed to fetch products: ' + (products.error || 'Unknown error'));
+        }
+    } catch (error) {
+        console.error('Error fetching products:', error);
+        alert('An error occurred while loading products.');
+    }
+}
+function displayProducts(products) {
+    const productsList = document.getElementById('productsList');
+    productsList.innerHTML = ''; // Clear previous products
+
+    if (products.length === 0) {
+        productsList.innerHTML = '<p>No products available.</p>';
+        return;
+    }
+
+    products.forEach(product => {
+        const productDiv = document.createElement('div');
+        productDiv.classList.add('activity');
+
+        productDiv.innerHTML = `
+            <img src="${product.Picture}" alt="${product.Name}">
+            <div>
+                <h3>${product.Name}</h3>
+                <p>Price: $${product.Price}</p>
+                <p>Description: ${product.Description}</p>
+                <p>Quantity: ${product.Quantity}</p>
+                <p>Seller: ${product.Seller}</p>
+                <p>Rating: ${product.Ratings}</p>
+                <p>Reviews: ${product.Reviews}</p>
+            </div>
+        `;
+
+        productsList.appendChild(productDiv);
+    });
+}
+
     async function openUpdateForm(oldCategoryName) {
         populateUpdateForm(oldCategoryName);
         openUpdateModal();
@@ -433,6 +636,151 @@
         }
     }
 
+    async function searchProducts() {
+    const searchName = document.getElementById('searchInput').value.trim(); // Correct ID for input
+    if (!searchName) {
+        alert('Please enter a product name to search.');
+        return;
+    }
+
+    try {
+        const response = await fetch(`/api/viewProductsSeller?Name=${encodeURIComponent(searchName)}`, {
+            method: 'GET', // Use GET for query parameters
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+
+        const products = await response.json();
+
+        if (response.ok) {
+            displayProducts(products);
+            openProductsModal();
+        } else {
+            alert(products.error || 'No products found.');
+        }
+    } catch (error) {
+        console.error('Error fetching products:', error);
+        alert('An error occurred while searching for products.');
+    }
+}
+
+async function filterProductsByPrice() {
+    const minimumPrice = document.getElementById('minPrice').value;
+    const maximumPrice = document.getElementById('maxPrice').value;
+
+    // Validate input
+    if (!minimumPrice && !maximumPrice) {
+        alert('Please enter at least one price.');
+        return;
+    }
+
+    const filterCriteria = {};
+    if (minimumPrice) {
+        filterCriteria.MinimumPrice = Number(minimumPrice);
+    }
+    if (maximumPrice) {
+        filterCriteria.MaximumPrice = Number(maximumPrice);
+    }
+
+    try {
+        const response = await fetch('/api/filterProductByPriceSeller', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(filterCriteria)
+        });
+
+        const products = await response.json();
+
+        if (response.ok) {
+            displayProducts(products); // Use the existing display function
+            openProductsModal(); // Open the products modal
+        } else {
+            alert(products.msg || 'No products found in the specified price range.');
+        }
+    } catch (error) {
+        console.error('Error fetching filtered products:', error);
+        alert('An error occurred while filtering products.');
+    }
+}
+async function sortProductsDescending() {
+    try {
+        const response = await fetch('/api/sortProductsDescendingSeller');
+        const products = await response.json();
+
+        if (response.ok) {
+            displayProducts(products); // Display products in the modal
+            openProductsModal();
+        } else {
+            alert(products.error || 'Failed to sort products.');
+        }
+    } catch (error) {
+        console.error('Error fetching sorted products:', error);
+        alert('An error occurred while sorting products.');
+    }
+}
+
+async function sortProductsAscending() {
+    try {
+        const response = await fetch('/api/sortProductsAscendingSeller');
+        const products = await response.json();
+
+        if (response.ok) {
+            displayProducts(products); // Display products in the modal
+            openProductsModal();
+        } else {
+            alert(products.error || 'Failed to sort products.');
+        }
+    } catch (error) {
+        console.error('Error fetching sorted products:', error);
+        alert('An error occurred while sorting products.');
+    }
+}
+
+
+async function addProduct() {
+    const name = document.getElementById('productName').value;
+    const description = document.getElementById('productDescription').value;
+    const price = parseFloat(document.getElementById('productPrice').value);
+    const quantity = parseInt(document.getElementById('productQuantity').value);
+    
+    //const seller = document.getElementById('productSeller').value;
+    const picture = document.getElementById('productPicture').value;
+
+
+    // Check if the user is logged in
+    const seller = localStorage.getItem('username');
+    if (!seller) {
+        alert('You need to log in first.');
+        return;
+    }
+
+    try {
+        const response = await fetch('/api/addProductSeller', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ Seller: seller, Name: name, Description: description, Price: price, Quantity: quantity, Picture: picture })
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || 'Error creating product');
+        }
+
+        alert('Product created successfully!');
+        closeAddProductModal(); // Close the modal on successful creation
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Failed to create product: ' + error.message);
+    }
+}
+function closeAddProductModal() {
+    document.getElementById("addProductModal").style.display = "none";
+}
     function openCategoriesModal() {
         document.getElementById("categoriesModal").style.display = "block";
     }
@@ -480,6 +828,13 @@
     function closeCreateTagModal() {
         document.getElementById("createTagModal").style.display = "none";
     }
+    function openProductsModal() {
+    document.getElementById("productsModal").style.display = "block";
+}
+
+function closeProductsModal() {
+    document.getElementById("productsModal").style.display = "none";
+}
 
     window.onclick = function(event) {
         const modal = document.getElementById("categoriesModal");
