@@ -169,11 +169,30 @@
             <li><a href="addAdmin.html">Add admin</a></li>
         </ul>
     </nav>
+    
     <!-- <div class="button-container">
         <button onclick="readMyProfile()">My Profile</button>
         <button onclick="viewAllProducts()">View All Products</button>
     </div> -->
 </div>
+<div class="search-container"></div>
+    <input type="text" id="searchInput" placeholder="Search for a product by name...">
+    <button class="search-button" onclick="searchProducts()">Search</button>
+</div>
+
+<div class="filter-container"></div>
+    <input type="number" id="minPrice" placeholder="Minimum Price" />
+    <input type="number" id="maxPrice" placeholder="Maximum Price" />
+    <button class="search-button" onclick="filterProductsByPrice()">Filter</button>
+</div>
+
+<div class="sort-container"></div>
+    <button onclick="sortProductsDescending()">Sort by Rating (Descending)</button>
+    <button onclick="sortProductsAscending()">Sort by Rating (Ascending)</button>
+</div>
+
+<button onclick="document.getElementById('addProductModal').style.display='block'">Add New Product</button>
+
 
 <!-- Modal for Categories -->
 <div id="categoriesModal" class="modal">
@@ -269,6 +288,38 @@
         <div id="productsList">
             <!-- Products will be displayed here -->
         </div>
+    </div>
+</div>
+<!-- Modal for Adding New Product -->
+<div id="addProductModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeAddProductModal()">&times;</span>
+        <h2>Add New Product</h2>
+        <form id="add-product-form">
+           
+            <div class="form-row">
+                <label for="productName">Product Name:</label>
+                <input type="text" id="productName" required>
+            </div>
+            <div class="form-row">
+                <label for="productDescription">Description:</label>
+                <input type="text" id="productDescription" required>
+            </div>
+            <div class="form-row">
+                <label for="productPrice">Price:</label>
+                <input type="number" id="productPrice" required>
+            </div>
+            <div class="form-row">
+                <label for="productQuantity">Quantity:</label>
+                <input type="number" id="productQuantity" required>
+            </div>
+          
+            <div class="form-row">
+                <label for="productPicture">Picture URL:</label>
+                <input type="text" id="productPicture" required>
+            </div>
+            <button type="button" id="submitProductBtn" onclick="addProduct()">Add Product</button>
+        </form>
     </div>
 </div>
 
@@ -585,6 +636,151 @@ function displayProducts(products) {
         }
     }
 
+    async function searchProducts() {
+    const searchName = document.getElementById('searchInput').value.trim(); // Correct ID for input
+    if (!searchName) {
+        alert('Please enter a product name to search.');
+        return;
+    }
+
+    try {
+        const response = await fetch(`/api/viewProductsSeller?Name=${encodeURIComponent(searchName)}`, {
+            method: 'GET', // Use GET for query parameters
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+
+        const products = await response.json();
+
+        if (response.ok) {
+            displayProducts(products);
+            openProductsModal();
+        } else {
+            alert(products.error || 'No products found.');
+        }
+    } catch (error) {
+        console.error('Error fetching products:', error);
+        alert('An error occurred while searching for products.');
+    }
+}
+
+async function filterProductsByPrice() {
+    const minimumPrice = document.getElementById('minPrice').value;
+    const maximumPrice = document.getElementById('maxPrice').value;
+
+    // Validate input
+    if (!minimumPrice && !maximumPrice) {
+        alert('Please enter at least one price.');
+        return;
+    }
+
+    const filterCriteria = {};
+    if (minimumPrice) {
+        filterCriteria.MinimumPrice = Number(minimumPrice);
+    }
+    if (maximumPrice) {
+        filterCriteria.MaximumPrice = Number(maximumPrice);
+    }
+
+    try {
+        const response = await fetch('/api/filterProductByPriceSeller', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(filterCriteria)
+        });
+
+        const products = await response.json();
+
+        if (response.ok) {
+            displayProducts(products); // Use the existing display function
+            openProductsModal(); // Open the products modal
+        } else {
+            alert(products.msg || 'No products found in the specified price range.');
+        }
+    } catch (error) {
+        console.error('Error fetching filtered products:', error);
+        alert('An error occurred while filtering products.');
+    }
+}
+async function sortProductsDescending() {
+    try {
+        const response = await fetch('/api/sortProductsDescendingSeller');
+        const products = await response.json();
+
+        if (response.ok) {
+            displayProducts(products); // Display products in the modal
+            openProductsModal();
+        } else {
+            alert(products.error || 'Failed to sort products.');
+        }
+    } catch (error) {
+        console.error('Error fetching sorted products:', error);
+        alert('An error occurred while sorting products.');
+    }
+}
+
+async function sortProductsAscending() {
+    try {
+        const response = await fetch('/api/sortProductsAscendingSeller');
+        const products = await response.json();
+
+        if (response.ok) {
+            displayProducts(products); // Display products in the modal
+            openProductsModal();
+        } else {
+            alert(products.error || 'Failed to sort products.');
+        }
+    } catch (error) {
+        console.error('Error fetching sorted products:', error);
+        alert('An error occurred while sorting products.');
+    }
+}
+
+
+async function addProduct() {
+    const name = document.getElementById('productName').value;
+    const description = document.getElementById('productDescription').value;
+    const price = parseFloat(document.getElementById('productPrice').value);
+    const quantity = parseInt(document.getElementById('productQuantity').value);
+    
+    //const seller = document.getElementById('productSeller').value;
+    const picture = document.getElementById('productPicture').value;
+
+
+    // Check if the user is logged in
+    const seller = localStorage.getItem('username');
+    if (!seller) {
+        alert('You need to log in first.');
+        return;
+    }
+
+    try {
+        const response = await fetch('/api/addProductSeller', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ Seller: seller, Name: name, Description: description, Price: price, Quantity: quantity, Picture: picture })
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || 'Error creating product');
+        }
+
+        alert('Product created successfully!');
+        closeAddProductModal(); // Close the modal on successful creation
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Failed to create product: ' + error.message);
+    }
+}
+function closeAddProductModal() {
+    document.getElementById("addProductModal").style.display = "none";
+}
     function openCategoriesModal() {
         document.getElementById("categoriesModal").style.display = "block";
     }

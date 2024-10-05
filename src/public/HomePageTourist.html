@@ -5,8 +5,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tourist </title>
+    <title>Tourist</title>
     <style>
+        /* Your existing styles remain unchanged */
         body {
             font-family: Arial, sans-serif;
             background-color: #f4f4f4;
@@ -23,7 +24,6 @@
             align-items: center;
             justify-content: space-between;
         }
-
         nav ul {
             list-style: none;
             display: flex;
@@ -37,12 +37,10 @@
             color: #fff;
             text-decoration: none;
         }
-
         nav ul li a:hover {
             color: #95d0a2;
             text-decoration: none;
         }
-
         .header h1 {
             margin: 0;
             font-size: 24px;
@@ -158,6 +156,16 @@
 
 <div class="header">
     <h1>Beyond Borders</h1>
+    <nav></nav>
+        <ul>
+            
+            <li><a href="#" onclick="viewAllActivities()">View All Activities</a></li>
+            <li><a href="#" onclick="viewAllMuseums()">View All Museums</a></li>
+            <li><a href="#" onclick="viewAllItineraries()">View All Itineraries</a></li>
+            <li><a href="#" onclick="viewAllHistoricalPlaces()">View All Historical Places</a></li>
+            <!-- <li><a href="#about">Historical Places</a></li> -->
+        </ul>
+    </nav>
     
     <div class="button-container">
         <button onclick="readMyProfile()">My Profile</button>
@@ -168,12 +176,44 @@
 <div id="activitiesModal" class="modal">
     <div class="modal-content">
         <span class="close" onclick="closeActivitiesModal()">&times;</span>
-        <h2>My Activities</h2>
+        <h2>Upcoming Activities</h2>
         <div id="activitiesContainerModal">
             <!-- Activities will be displayed here -->
         </div>
     </div>
 </div>
+
+<!-- Modal for Museums -->
+<div id="museumsModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeMuseumsModal()">&times;</span>
+        <h2>Upcoming Museum Events</h2>
+        <div id="museumsContainerModal">
+            <!-- Museums will be displayed here -->
+        </div>
+    </div>
+</div>
+
+<div id="itineraryModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeItineraryModal()">&times;</span>
+        <h2>Upcoming Itinerary Events</h2>
+        <div id="itineraryContainerModal">
+            <!-- Itineraries will be displayed here -->
+        </div>
+    </div>
+</div>
+
+<div id="HistoricalPlacesModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeHistoricalPlacesModal()">&times;</span>
+        <h2>Upcoming Historical Places Events</h2>
+        <div id="HistoricalPlacesContainerModal">
+            <!-- Historical Places will be displayed here -->
+        </div>
+    </div>
+</div>
+
 
 <!-- Modal for Profile -->
 <div id="profileModal" class="modal">
@@ -206,10 +246,8 @@
                 <input type="url" id="nationality">
             </div>
             <div class="form-row">
-                <div class="form-row">
-                    <label for="occupation">Occupation:</label>
-                    <input type="url" id="occupation">
-                </div>
+                <label for="occupation">Occupation:</label>
+                <input type="url" id="occupation">
             </div>
             <div>
                 <label for="wallet">Wallet:</label>
@@ -220,13 +258,7 @@
     </div>
 </div>
 
-
-
-
 <script>
-
-
-
 function toggleDetails(button) {
     const details = button.nextElementSibling; // Get the details div
     if (details.style.display === "none") {
@@ -235,7 +267,6 @@ function toggleDetails(button) {
         details.style.display = "none"; // Hide details
     }
 }
-
 
 async function readMyProfile() {
     const username = localStorage.getItem('username');
@@ -261,30 +292,252 @@ async function readMyProfile() {
     }
 }
 
+async function viewAllActivities() {
+    try {
+        const response = await fetch('/api/ViewAllUpcomingActivities');
+        const activities = await response.json();
 
+        if (response.ok) {
+            displayActivities(activities);
+            openActivitiesModal(); // Open the activities modal
+        } else {
+            alert('Failed to fetch activities: ' + (activities.error || 'Unknown error'));
+        }
+    } catch (error) {
+        console.error('Error fetching activities:', error);
+        alert('An error occurred while loading activities.');
+    }
+}
 
-    function populateProfileForm(profile) {
-        document.getElementById('username').value = profile.Username || '';
-        document.getElementById('password').value = profile.Password || '';
-        document.getElementById('email').value = profile.Email || '';
-        document.getElementById('mobileNumber').value = profile.MobileNumber || '';
-        document.getElementById('doB').value = profile.DoB || '';
-        document.getElementById('nationality').value = profile.Nationality || '';
-        document.getElementById('occupation').value = profile.Occupation || '';
-        document.getElementById('wallet').value = profile.Wallet !== null && profile.Wallet !== undefined ? profile.Wallet : '';
-         
-        
+async function viewAllMuseums() {
+    try {
+        const response = await fetch('/api/ViewAllUpcomingMuseumEventsTourist');
+        const museums = await response.json();
+
+        if (response.ok) {
+            displayMuseums(museums);
+            openMuseumsModal(); // Open the museums modal
+        } else {
+            alert('Failed to fetch museums: ' + (museums.error || 'Unknown error'));
+        }
+    } catch (error) {
+        console.error('Error fetching museums:', error);
+        alert('An error occurred while loading museums.');
+    }
+}
+
+async function viewAllItineraries() {
+    try {
+        const response = await fetch('/api/ViewAllUpcomingItinerariesTourist');
+        const itineraries = await response.json();
+
+        if (response.ok) {
+            displayItineraries(itineraries);
+            openItineraryModal(); 
+        } else {
+            alert('Failed to fetch itineraries: ' + (itineraries.error || 'Unknown error'));
+        }
+    } catch (error) {
+        console.error('Error fetching itineraries:', error);
+        alert('An error occurred while loading itineraries.');
+    }
+}
+
+async function viewAllHistoricalPlaces() {
+    try {
+        const response = await fetch('/api/ViewAllUpcomingHistoricalPlacesEventsTourist');
+        const historicalPlaces = await response.json();
+
+        if (response.ok) {
+            displayHistoricalPlaces(historicalPlaces);
+            openHistoricalPlacesModal(); // Open the HistoricalPlaces modal
+        } else {
+            alert('Failed to fetch historical places: ' + (historicalPlaces.error || 'Unknown error'));
+        }
+    } catch (error) {
+        console.error('Error fetching Historical Places:', error);
+        alert('An error occurred while loading historical places.');
+    }
+}
+
+function openActivitiesModal() {
+    document.getElementById("activitiesModal").style.display = "block";
+}
+
+function closeActivitiesModal() {
+    document.getElementById("activitiesModal").style.display = "none";
+}
+
+function openMuseumsModal() {
+    document.getElementById("museumsModal").style.display = "block"; // Open the museums modal
+}
+
+function closeMuseumsModal() {
+    document.getElementById("museumsModal").style.display = "none"; // Close the museums modal
+}
+
+function openItineraryModal() {
+    document.getElementById("itineraryModal").style.display = "block"; // Open the museums modal
+}
+
+function closeItineraryModal() {
+    document.getElementById("itineraryModal").style.display = "none"; // Close the museums modal
+}
+
+function openHistoricalPlacesModal() {
+    document.getElementById("HistoricalPlacesModal").style.display = "block"; // Open the Historical Places modal
+}
+
+function closeHistoricalPlacesModal() {
+    document.getElementById("HistoricalPlacesModal").style.display = "none"; // Close the Historical Places modal
+}
+
+function displayActivities(activities) {
+    const container = document.getElementById('activitiesContainerModal');
+    container.innerHTML = ''; // Clear previous activities
+
+    if (activities.length === 0) {
+        container.innerHTML = '<p>No activities found.</p>';
+        return;
     }
 
-    function openModal() {
-        document.getElementById("profileModal").style.display = "block";
+    activities.forEach(activity => {
+        const activityDiv = document.createElement('div');
+        activityDiv.className = 'activity';
+        activityDiv.innerHTML = `
+            <h3 style="display: inline;">${activity.Name}</h3>
+            <button onclick="toggleDetails(this)" style="margin-left: 10px;">View Details</button>
+            <div class="details" style="display: none;">
+                <p>Date: ${new Date(activity.Date).toLocaleDateString()}</p>
+                <p>Time: ${activity.Time}</p>
+                <p>Price: $${activity.Price}</p>
+                <p>Rating: ${activity.Rating}</p>
+                <p>Location: ${activity.Location.address || 'N/A'}</p>
+                <p>Category: ${activity.Category}</p>
+                <p>Tags: ${activity.Tags.join(', ')}</p>
+                <p>Special Discount: ${activity.SpecialDiscount || 'N/A'}</p>
+                <p>Booking Status: ${activity.BookingOpen}</p>
+            </div>
+        `;
+        container.appendChild(activityDiv);
+    });
+}
+
+function displayMuseums(museums) {
+    const container = document.getElementById('museumsContainerModal');
+    container.innerHTML = ''; // Clear previous museums
+
+    if (museums.length === 0) {
+        container.innerHTML = '<p>No museums found.</p>';
+        return;
     }
 
-    function closeModal() {
-        document.getElementById("profileModal").style.display = "none";
+    museums.forEach(museum => {
+        const museumDiv = document.createElement('div');
+        museumDiv.className = 'museum';
+        museumDiv.innerHTML = `
+            <h3 style="display: inline;">${museum.name}</h3>
+            <button onclick="toggleDetails(this)" style="margin-left: 10px;">View Details</button>
+            <div class="details" style="display: none;">
+                <p>Description: ${museum.description}</p>
+                <p>Pictures: ${museum.pictures.join(', ')}</p>
+                <p>Location: ${museum.location}</p>
+                <p>Opening Hours: ${museum.openingHours}</p>
+                <p>Ticket Prices: Foreigner: ${museum.ticketPrices.foreigner}, Native: ${museum.ticketPrices.native}, Student: ${museum.ticketPrices.student}</p>
+                <p>Author: ${museum.AuthorUsername}</p>
+                <p>Historical Tags: ${museum.HistoricalTags.join(', ')}</p>
+                <p>Date of Event: ${museum.dateOfEvent ? new Date(museum.dateOfEvent).toLocaleDateString() : 'N/A'}</p>
+            </div>
+        `;
+        container.appendChild(museumDiv);
+    });
+}
+
+function displayItineraries(itineraries) {
+    const container = document.getElementById('itineraryContainerModal');
+    container.innerHTML = ''; 
+
+    if (itineraries.length === 0) {
+        container.innerHTML = '<p>No itineraries found.</p>';
+        return;
     }
 
-    async function saveProfile() {
+    itineraries.forEach(itinerary => {
+    const itineraryDiv = document.createElement('div');
+    itineraryDiv.className = 'itinerary';
+    itineraryDiv.innerHTML = `
+        <h3 style="display: inline;">${itinerary.Title}</h3>
+        <button onclick="toggleDetails(this)" style="margin-left: 10px;">View Details</button>
+        <div class="details" style="display: none;">
+            <p>Activities: ${itinerary.Activities}</p>
+            <p>Locations: ${itinerary.Locations}</p>
+            <p>Timeline: ${itinerary.Timeline}</p>
+            <p>Language: ${itinerary.Language}</p>
+            <p>Price: $${itinerary.Price}</p>
+            <p>Date: ${new Date(itinerary.Date).toLocaleDateString()}</p>
+            <p>Accessibility: ${itinerary.accessibility ? 'Yes' : 'No'}</p>
+            <p>Pickup Location: ${itinerary.pickupLocation}</p>
+            <p>Dropoff Location: ${itinerary.dropoffLocation}</p>
+            <p>Is Booked: ${itinerary.isBooked ? 'Yes' : 'No'}</p>
+            <p>Tags: ${itinerary.Tags.join(', ')}</p>
+            <p>Author: ${itinerary.AuthorUsername}</p>
+        </div>
+    `;
+    container.appendChild(itineraryDiv);
+});
+}
+
+function displayHistoricalPlaces(historicalPlaces) {
+    const container = document.getElementById('HistoricalPlacesContainerModal');
+    container.innerHTML = ''; // Clear previous Historical Places
+
+    if (historicalPlaces.length === 0) {
+        container.innerHTML = '<p>No Historical Places found.</p>';
+        return;
+    }
+
+    historicalPlaces.forEach(historicalPlace => {
+        const HPDiv = document.createElement('div');
+        HPDiv.className = 'historical-place';
+        HPDiv.innerHTML = `
+            <h3 style="display: inline;">${historicalPlace.name}</h3>
+            <button onclick="toggleDetails(this)" style="margin-left: 10px;">View Details</button>
+            <div class="details" style="display: none;">
+                <p>Description: ${historicalPlace.description}</p>
+                <p>Pictures: ${historicalPlace.pictures.join(', ')}</p>
+                <p>Location: ${historicalPlace.location}</p>
+                <p>Opening Hours: ${historicalPlace.openingHours}</p>
+                <p>Ticket Prices: Foreigner: ${historicalPlace.ticketPrices.foreigner}, Native: ${historicalPlace.ticketPrices.native}, Student: ${historicalPlace.ticketPrices.student}</p>
+                <p>Author: ${historicalPlace.AuthorUsername}</p>
+                <p>Tags: ${historicalPlace.Tags.join(', ')}</p>
+                <p>Date of Event: ${historicalPlace.dateOfEvent ? new Date(historicalPlace.dateOfEvent).toLocaleDateString() : 'N/A'}</p>
+            </div>
+        `;
+        container.appendChild(HPDiv);
+    });
+}
+
+
+function populateProfileForm(profile) {
+    document.getElementById('username').value = profile.Username || '';
+    document.getElementById('password').value = profile.Password || '';
+    document.getElementById('email').value = profile.Email || '';
+    document.getElementById('mobileNumber').value = profile.MobileNumber || '';
+    document.getElementById('doB').value = profile.DoB || '';
+    document.getElementById('nationality').value = profile.Nationality || '';
+    document.getElementById('occupation').value = profile.Occupation || '';
+    document.getElementById('wallet').value = profile.Wallet !== null && profile.Wallet !== undefined ? profile.Wallet : '';
+}
+
+function openModal() {
+    document.getElementById("profileModal").style.display = "block";
+}
+
+function closeModal() {
+    document.getElementById("profileModal").style.display = "none";
+}
+
+async function saveProfile() {
     const Password = document.getElementById('password').value;
     const Email = document.getElementById('email').value;
     const MobileNumber = document.getElementById('mobileNumber').value;
@@ -292,14 +545,13 @@ async function readMyProfile() {
     const Occupation = document.getElementById('occupation').value;
 
     const Username = document.getElementById('username').value; // Keep username for the update
-   // /updateTourist
     try {
         const response = await fetch('/api/updateTourist', {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ Username, Password,Email,MobileNumber,Nationality,Occupation }) 
+            body: JSON.stringify({ Username, Password, Email, MobileNumber, Nationality, Occupation }) 
         });
 
         if (!response.ok) {
@@ -315,18 +567,14 @@ async function readMyProfile() {
     }
 }
 
-    
-    
-
-
-    window.onclick = function(event) {
-        if (event.target == document.getElementById("activitiesModal")) {
-            closeActivitiesModal();
-        }
-        if (event.target == document.getElementById("profileModal")) {
-            closeModal();
-        }
-    };
+window.onclick = function(event) {
+    if (event.target == document.getElementById("activitiesModal")) {
+        closeActivitiesModal();
+    }
+    if (event.target == document.getElementById("profileModal")) {
+        closeModal();
+    }
+};
 </script>
 
 </body>
