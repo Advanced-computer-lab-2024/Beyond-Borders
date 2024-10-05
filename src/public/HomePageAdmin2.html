@@ -68,9 +68,11 @@
     <h1>Beyond Borders</h1>
     <nav>
         <ul>
+            <li><a href="#" onclick="openCreateTagModal()">Add New Tag</a></li>
             <li><a href="#" onclick="openCreateCategoryModal()">Add New Activity Category</a></li>
             <li><a href="AdminProduct.html">Products</a></li>
             <li><a href="AdminDeleteAccount.html">Delete Account</a></li>
+            <li><a href="#" onclick="loadTags()">Existing Tags</a></li>
             <li><a href="#" onclick="loadCategories()">Existing Activity Categories</a></li>
             <li><a href="AdminTags.html">Preference tags</a></li>
             <li><a href="AddTourismGoverner.html">Add Tourism governer</a></li>
@@ -85,6 +87,15 @@
         <span class="close" onclick="closeCategoriesModal()">&times;</span>
         <h2>All Created Categories</h2>
         <div id="categoriesContainerModal"></div>
+    </div>
+</div>
+
+<!-- Modal for Tags -->
+<div id="tagsModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeTagsModal()">&times;</span>
+        <h2>All Created Tags</h2>
+        <div id="tagsContainerModal"></div>
     </div>
 </div>
 
@@ -107,6 +118,25 @@
     </div>
 </div>
 
+<!-- Modal for Update Tag-->
+<div id="updateTagModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeUpdateTagModal()">&times;</span>
+        <h2>Update Tag</h2>
+        <form id="update-form">
+            <div class="form-row">
+                <label for="oldTagName">Old Tag Name:</label>
+                <input type="text" id="oldTagName" readonly>
+            </div>
+            <div class="form-row">
+                <label for="newTagName">New Tag Name:</label>
+                <input type="text" id="newTagName" required>
+            </div>
+            <button type="button" onclick="saveUpdatedTag()">Save Changes</button>
+        </form>
+    </div>
+</div>
+
 <!-- Modal for Create New Activity -->
 <div id="createCategoryModal" class="modal">
     <div class="modal-content">
@@ -118,6 +148,21 @@
                 <input type="text" id="categoryName" required>
             </div>
             <button type="button" onclick="saveNewCategory()">Create Category</button>
+        </form>
+    </div>
+</div>
+
+<!-- Modal for Create New Tag -->
+<div id="createTagModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeCreateTagModal()">&times;</span>
+        <h2>Create New Tag</h2>
+        <form id="create-tag-form">
+            <div class="form-row">
+                <label for="tagName">Name Of Tag:</label>
+                <input type="text" id="tagName" required>
+            </div>
+            <button type="button" onclick="saveNewTag()">Create Tag</button>
         </form>
     </div>
 </div>
@@ -140,6 +185,23 @@
         }
     }
 
+    async function loadTags() {
+        try {
+            const response = await fetch(`/api/readAllTags`);
+            const tags = await response.json();
+
+            if (response.ok) {
+                displayTags(tags);
+                openTagsModal();
+            } else {
+                alert(tags.error);
+            }
+        } catch (error) {
+            console.error('Error fetching tags:', error);
+            alert('An error occurred while loading tags.');
+        }
+    }
+
     function displayCategories(categories) {
         const container = document.getElementById('categoriesContainerModal');
         container.innerHTML = '';
@@ -158,6 +220,27 @@
                 <button onclick="openUpdateForm('${category.NameOfCategory}')" style="margin-left: 10px;">Update</button>
             `;
             container.appendChild(categoryDiv);
+        });
+    }
+
+    function displayTags(tags) {
+        const container = document.getElementById('tagsContainerModal');
+        container.innerHTML = '';
+
+        if (tags.length === 0) {
+            container.innerHTML = '<p>No tags found.</p>';
+            return;
+        }
+
+        tags.forEach(tag => {
+            const tagDiv = document.createElement('div');
+            tagDiv.className = 'tag';
+            tagDiv.innerHTML = `
+                <h3 style="display: inline;">${tag.NameOfTags}</h3>
+                <button onclick="deleteTag('${tag.NameOfTags}')" style="margin-left: 10px;">Delete</button>
+                <button onclick="openUpdateTagForm('${tag.NameOfTags}')" style="margin-left: 10px;">Update</button>
+            `;
+            container.appendChild(tagDiv);
         });
     }
 
@@ -189,6 +272,33 @@
         }
     }
 
+    async function deleteTag(tagName) {
+        const confirmDelete = confirm(`Are you sure you want to delete the tag "${tagName}"?`);
+        if (!confirmDelete) {
+            return;
+        }
+
+        try {
+            const response = await fetch('/api/deleteTag', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ TagName: tagName })
+            });
+
+            const result = await response.json();
+            if (!response.ok) {
+                throw new Error(result.error || 'Error deleting tag');
+            }
+
+            alert('Tag deleted successfully!');
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Failed to delete tag: ' + error.message);
+        }
+    }
+
     async function saveNewCategory() {
         const name = document.getElementById('categoryName').value;
 
@@ -214,14 +324,50 @@
             alert('Failed to create category: ' + error.message);
         }
     }
+    
+
+    async function saveNewTag() {
+        const name = document.getElementById('tagName').value;
+
+        try {
+            const response = await fetch('/api/createNewTag', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ NameOfTags: name })
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Error creating tag');
+            }
+
+            alert('Tag created successfully!');
+            closeCreateTagModal(); // Close the modal on successful creation
+            loadTags(); // Reload tags to reflect the new addition
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Failed to create tag: ' + error.message);
+        }
+    }
 
     async function openUpdateForm(oldCategoryName) {
         populateUpdateForm(oldCategoryName);
         openUpdateModal();
     }
 
+    async function openUpdateTagForm(oldTagName) {
+        populateUpdateTagForm(oldTagName);
+        openUpdateTagModal();
+    }
+
     function populateUpdateForm(oldCategoryName) {
         document.getElementById('oldCatgoryName').value = oldCategoryName;
+    }
+
+    function populateUpdateTagForm(oldTagName) {
+        document.getElementById('oldTagName').value = oldTagName;
     }
 
     async function saveUpdatedCategory() {
@@ -256,12 +402,51 @@
         }
     }
 
+    async function saveUpdatedTag() {
+        const oldName = document.getElementById('oldTagName').value;
+        const newName = document.getElementById('newTagName').value;
+
+        if (!newName) {
+            alert('Please enter a new tag name.');
+            return;
+        }
+
+        try {
+            const response = await fetch('/api/updateTag', {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ oldTagName: oldName, newTagName: newName })
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Error updating tag');
+            }
+
+            alert('Tag updated successfully!');
+            closeUpdateTagModal();
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Failed to update tag: ' + error.message);
+        }
+    }
+
     function openCategoriesModal() {
         document.getElementById("categoriesModal").style.display = "block";
     }
 
     function closeCategoriesModal() {
         document.getElementById("categoriesModal").style.display = "none";
+    }
+
+    function openTagsModal() {
+        document.getElementById("tagsModal").style.display = "block";
+    }
+
+    function closeTagsModal() {
+        document.getElementById("tagsModal").style.display = "none";
     }
 
     function openUpdateModal() {
@@ -272,12 +457,28 @@
         document.getElementById("updateModal").style.display = "none";
     }
 
+    function openUpdateTagModal() {
+        document.getElementById("updateTagModal").style.display = "block";
+    }
+
+    function closeUpdateTagModal() {
+        document.getElementById("updateTagModal").style.display = "none";
+    }
+
     function openCreateCategoryModal() {
         document.getElementById("createCategoryModal").style.display = "block";
     }
 
     function closeCreateCategoryModal() {
         document.getElementById("createCategoryModal").style.display = "none";
+    }
+
+    function openCreateTagModal() {
+        document.getElementById("createTagModal").style.display = "block";
+    }
+
+    function closeCreateTagModal() {
+        document.getElementById("createTagModal").style.display = "none";
     }
 
     window.onclick = function(event) {

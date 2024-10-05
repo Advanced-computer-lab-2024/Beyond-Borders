@@ -311,6 +311,11 @@ const readAllTags = async (req, res) => {
 const updateCategory = async (req, res) => {
    const {oldCategoryName,newCategoryName} = req.body;
    try {
+    // Check if the new category name already exists
+    const existingCategory = await NewActivityCategoryModel.findOne({ NameOfCategory: newCategoryName });
+    if (existingCategory) {
+        return res.status(400).json({ error: "Category name already exists." });
+    }
        // Find the category by the old name and update it
        const updatedCategory = await NewActivityCategoryModel.findOneAndUpdate(
            {NameOfCategory: oldCategoryName}, //Find the category with the old name 
@@ -357,6 +362,10 @@ const updateTag = async (req, res) => {
     const { oldTagName, newTagName } = req.body;
     
     try {
+        const existingTag = await TagsModel.findOne({ NameOfTags: newTagName });
+        if (existingTag) {
+            return res.status(400).json({ error: "Tag name already exists." });
+        }
         // Step 1: Update the tag in the TagsModel
         const updatedTag = await TagsModel.findOneAndUpdate(
             { NameOfTags: oldTagName },
