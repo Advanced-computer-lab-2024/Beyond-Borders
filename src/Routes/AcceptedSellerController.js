@@ -3,18 +3,6 @@ const AcceptedSellerModel = require('../Models/AcceptedSeller.js');
 const NewProduct = require('../Models/Product.js');
 const { default: mongoose } = require('mongoose');
 
-// const readSellerProfile = async(req,res) => {
-//    //Destructure Name, Email, Age from the request body
-//    const{LoggedInSellerID} = req.body;
-//    try{
-//       //add a new user to the database with Name, Email and Age
-//       const user = await AcceptedSellerModel.findById(LoggedInSellerID);
-//       res.status(200).json(user);
-//    } catch (error){
-//       //If an error occurs, send a 400 Bad Request status with the error message
-//       res.status(400).json({ error: error.message});
-//    }
-// }
 
 const readSellerProfile = async(req,res) =>{
   try{
@@ -31,24 +19,6 @@ const readSellerProfile = async(req,res) =>{
 }
 }
 
-// const updateSeller = async (req, res) => {
-//     const { _id } = req.body;  // Extract the _id from the request body
-  
-//     try {
-//         if (req.body.Username) {
-//             delete req.body.Username;
-//             return res.status(404).json({ msg: "Cannot update username" });
-//           }
-//       // Find and update the tourist with the fields provided in req.body
-//       const updatedSeller = await AcceptedSellerModel.findByIdAndUpdate(_id, req.body, {
-//         new: true,            // Return the updated document
-//         runValidators: true,  // Ensure the updates respect schema validation rules
-//       });
-//       res.status(200).json(updatedSeller);
-//     } catch (error) {
-//       res.status(400).json({ error: error.message });
-//     }
-//   };
 
 const updateSeller = async (req, res) => {
   const { Username } = req.body;  // Extract username from the request body
@@ -191,9 +161,28 @@ const updateSeller = async (req, res) => {
       }
   };
 
+//   const sortProductsDescendingSeller = async (req, res) => {
+//     try {
+//         const products = await NewProduct.find().sort({ Ratings: -1 }); // Sort descending
+//         res.status(200).json(products);
+//     } catch (error) {
+//         res.status(400).json({ error: error.message });
+//     }
+// };
+
+// const sortProductsAscendingSeller = async (req, res) => {
+//     try {
+//         const products = await NewProduct.find().sort({ Ratings: 1 }); // Sort ascending
+//         res.status(200).json(products);
+//     } catch (error) {
+//         res.status(400).json({ error: error.message });
+//     }
+// };
+
+
   const viewProductsSeller = async (req, res) => {
     try {
-      const {Name} = req.body;  
+      const {Name} = req.query;  
       
       const products = await NewProduct.find({ Name: Name });
   
@@ -207,6 +196,24 @@ const updateSeller = async (req, res) => {
     }
   };
 
+  // const viewAllProductsSeller = async (req, res) => {
+  //   const products = await NewProduct.find({}).sort({createdAt: -1})
+  
+  //   for (let index = 0; index < products.length; index++) {
+  //       const element = products[index];
+  //       //console.log(element.id);
+  //   }
+  //   res.status(200).json(products)
+  // }
+
+  const viewAllProductsSeller = async (req, res) => {
+    try {
+        const products = await NewProduct.find({}).sort({ createdAt: -1 });
+        res.status(200).json(products);
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+};
 
   const loginSeller = async (req, res) => {
     try {
@@ -235,8 +242,9 @@ const updateSeller = async (req, res) => {
     }
   };
 
+  
 
 
   
 
-module.exports = {readSellerProfile, updateSeller, editProductSeller, createNewProductSeller, searchProductSeller, filterProductByPriceSeller, sortProductsAscendingSeller, sortProductsDescendingSeller,viewProductsSeller,loginSeller};
+module.exports = {readSellerProfile, updateSeller, editProductSeller, createNewProductSeller, searchProductSeller, filterProductByPriceSeller, sortProductsAscendingSeller, sortProductsDescendingSeller,viewProductsSeller,viewAllProductsSeller,loginSeller};
