@@ -7,7 +7,7 @@ const MuseumModel = require('../Models/Museums.js');
 const HistoricalPlacesModel = require('../Models/HistoricalPlaces.js');
 const HistoricalTagsModel = require('../Models/HistoricalTags.js');
 
-//const ItineraryModel = require('../Models/Itinerary.js');
+const ItineraryModel = require('../Models/Itinerary.js');
 const { default: mongoose } = require('mongoose');
 
 const createTourist = async (req, res) => {
@@ -486,6 +486,24 @@ const createTourist = async (req, res) => {
       }
     };
 
+    const ViewAllUpcomingItinerariesTourist = async (req, res) => {
+      try {
+        // Get today's date and set the time to midnight
+        const currentDate = new Date();
+        currentDate.setHours(0, 0, 0, 0); 
+        const itineraries = await ItineraryModel.find(); 
+        const upcomingItineraries = itineraries.filter(itineraries => {
+          return itineraries.Date >= currentDate; // Include only upcoming activities
+        });
+    
+        // Return the upcoming activities as a JSON response
+        res.json(upcomingItineraries);
+      } catch (error) {
+        console.error('Error fetching upcoming itinerary events:', error);
+        res.status(500).json({ message: 'Error fetching upcoming itinerary events' });
+      }
+    };
+
     const ViewAllUpcomingHistoricalPlacesEventsTourist = async (req, res) => {
       try {
         // Get today's date and set the time to midnight
@@ -673,6 +691,47 @@ const loginTourist = async (req, res) => {
   }
 };
 
+const sortItinerariesPriceAscendingTourist = async (req, res) => {
+  try {
+    const currentDate = new Date();
+    currentDate.setHours(0, 0, 0, 0);
+
+    // Get all activities from the database
+    const itineraries = await ItineraryModel.find();
+
+    // Filter for upcoming activities only
+    const upcomingItineraries = itineraries.filter(itinerary => itinerary.Date >= currentDate);
+
+    // Sort the upcoming activities by price in ascending order
+    const sortedUpcomingItineraries = upcomingItineraries.sort((a, b) => a.Price - b.Price);
+
+    // Respond with the sorted activities
+    res.status(200).json(sortedUpcomingItineraries);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+};
+
+const sortItinerariesPriceDescendingTourist = async (req, res) => {
+  try {
+    const currentDate = new Date();
+    currentDate.setHours(0, 0, 0, 0);
+
+    // Get all activities from the database
+    const itineraries = await ItineraryModel.find();
+
+    // Filter for upcoming activities only
+    const upcomingItineraries = itineraries.filter(itinerary => itinerary.Date >= currentDate);
+
+    // Sort the upcoming activities by price in descending order
+    const sortedUpcomingItineraries = upcomingItineraries.sort((a, b) => b.Price - a.Price);
+
+    // Respond with the sorted activities
+    res.status(200).json(sortedUpcomingItineraries);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+};
 
 
 
@@ -680,4 +739,5 @@ const loginTourist = async (req, res) => {
 
 
 
-module.exports = {createTourist, getTourist, updateTourist, searchProductTourist, filterActivities, filterProductByPriceTourist, ActivityRating, sortProductsDescendingTourist, sortProductsAscendingTourist, ViewAllUpcomingActivities, ViewAllUpcomingMuseumEventsTourist, getMuseumsByTagTourist, getHistoricalPlacesByTagTourist, ViewAllUpcomingHistoricalPlacesEventsTourist,viewProductsTourist, sortActivitiesPriceAscendingTourist, sortActivitiesPriceDescendingTourist, sortActivitiesRatingAscendingTourist, sortActivitiesRatingDescendingTourist, loginTourist};
+
+module.exports = {createTourist, getTourist, updateTourist, searchProductTourist, filterActivities, filterProductByPriceTourist, ActivityRating, sortProductsDescendingTourist, sortProductsAscendingTourist, ViewAllUpcomingActivities, ViewAllUpcomingMuseumEventsTourist, getMuseumsByTagTourist, getHistoricalPlacesByTagTourist, ViewAllUpcomingHistoricalPlacesEventsTourist,viewProductsTourist, sortActivitiesPriceAscendingTourist, sortActivitiesPriceDescendingTourist, sortActivitiesRatingAscendingTourist, sortActivitiesRatingDescendingTourist, loginTourist, ViewAllUpcomingItinerariesTourist, sortItinerariesPriceAscendingTourist, sortItinerariesPriceDescendingTourist};
