@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login Seller</title>
+    <title>Login Admin</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -56,8 +56,8 @@
 <body>
 
 <div class="container">
-    <h2>Login Seller</h2>
-    <form id="sellerForm">
+    <h2>Login Admin</h2>
+    <form id="adminForm">
         <div class="form-group">
             <label for="username">Username:</label>
             <input type="text" id="username" required>
@@ -72,14 +72,14 @@
 </div>
 
 <script>
-    document.getElementById('sellerForm').addEventListener('submit', async function(event) {
+    document.getElementById('adminForm').addEventListener('submit', async function(event) {
         event.preventDefault(); // Prevent default form submission
 
         const username = document.getElementById('username').value;
         const password = document.getElementById('password').value;
 
         try {
-            const response = await fetch('/loginSeller', {
+            const response = await fetch('/loginAdmin', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -91,13 +91,13 @@
 
             if (response.ok) {
                 // Save the username in local storage
-                localStorage.setItem('username', result.seller.Username);
+                localStorage.setItem('username', result.admin.Username);
                 
                 // Display a welcome message
                 //document.getElementById('responseMessage').textContent = `Welcome, ${result.advertiser.Username}!`;
 
                 // Redirect to HomePageAdvertiser.html
-                window.location.href = 'HomePageSeller2.html';
+                window.location.href = 'HomePageAdmin2.html';
             } else {
                 // Display error message
                 document.getElementById('responseMessage').textContent = result.error;
@@ -109,8 +109,8 @@
     });
 </script>
 
-
-<!--http://localhost:8000/loginSeller.html--> <!-- link el html page-->
-
 </body>
 </html>
+
+
+<!--http://localhost:8000/loginAdvertiser2.html--> <!-- link el html page-->
