@@ -263,7 +263,7 @@ const createTourist = async (req, res) => {
       //   }
       // };
 
-      const filterActivities = async (req, res) => { //filter to show upcoming activities only
+      const filterActivities = async (req, res) => {
         const { Category, minPrice, maxPrice, InputDate, Rating } = req.body; // Extract parameters from the request body
         const query = {}; // Initialize an empty query object
     
@@ -278,7 +278,12 @@ const createTourist = async (req, res) => {
             if (inputDate < currentDate) {
                 return res.status(404).json({ msg: "Activities with this date have passed!" });
             } else {
-                query.Date = inputDate; // Set query to look for this specific date
+                // Set query to look for this specific date
+                // Use a date range for the entire day
+                query.Date = {
+                    $gte: inputDate, // Start of the day
+                    $lt: new Date(inputDate.getTime() + 24 * 60 * 60 * 1000) // End of the day, exclusive
+                };
             }
         } else {
             // Always set the date filter to only include activities on or after the current date
@@ -321,6 +326,9 @@ const createTourist = async (req, res) => {
             res.status(500).json({ msg: "An error occurred while fetching activities." });
         }
     };
+    
+    // Example Express.js route
+    // app.post('/filter-activities', filterActivities);
     
     
 
@@ -733,11 +741,236 @@ const sortItinerariesPriceDescendingTourist = async (req, res) => {
   }
 };
 
+const filterItineraries = async (req, res) => {
+  const { minPrice, maxPrice, InputDate, Language, Tags } = req.body; // Extract 'Tags' from the request body
+  const query = {}; // Initialize an empty query object
+
+  // Get the current date and set time to midnight
+  const currentDate = new Date();
+  currentDate.setHours(0, 0, 0, 0);
+
+  // Date filtering logic
+  if (InputDate) {
+    const inputDate = new Date(InputDate);
+    inputDate.setHours(0, 0, 0, 0); // Normalize input date to midnight
+
+    if (inputDate < currentDate) {
+      return res.status(404).json({ msg: "Itinerary events with this date have passed!" });
+    } else {
+      query.Date = inputDate; // Set query to look for this specific date
+    }
+  } else {
+    query.Date = { $gte: currentDate }; // Only include activities on or after the current date
+  }
+
+  // Filter by Language if provided
+  if (Language) {
+    query.Language = Language;
+  }
+
+  // Price filtering logic
+  if (minPrice !== undefined && maxPrice !== undefined) {
+    query.Price = { $gte: minPrice, $lte: maxPrice };
+  } else if (minPrice !== undefined) {
+    query.Price = { $gte: minPrice };
+  } else if (maxPrice !== undefined) {
+    query.Price = { $lte: maxPrice };
+  }
+
+  // Filter by Tags if provided
+  if (Tags && Tags.length > 0) {
+    query.Tags = { $in: Tags }; // Match any of the provided tags
+  }
+
+  try {
+    const fetchedItineraries = await ItineraryModel.find(query); // Fetch itineraries based on the constructed query
+    if (fetchedItineraries.length === 0) {
+      return res.status(404).json({ msg: "No itineraries found for the given criteria!" });
+    }
+    res.status(200).json(fetchedItineraries); // Respond with the fetched itineraries
+  } catch (error) {
+    console.error('Error fetching itineraries:', error);
+    res.status(500).json({ msg: "An error occurred while fetching itineraries." });
+  }
+};
+
+
+const filterItinerariesTourist = async (req, res) => {
+  const { minPrice, maxPrice, InputDate, Language, Tags } = req.body; // Extract parameters from the request body
+  const query = { isBooked: true }; // Initialize an empty query object and set isBooked to true
+
+  // Get the current date and set time to midnight
+  const currentDate = new Date();
+  currentDate.setHours(0, 0, 0, 0);
+
+  if (InputDate) {
+      const inputDate = new Date(InputDate);
+      inputDate.setHours(0, 0, 0, 0); // Normalize input date to midnight
+
+      if (inputDate < currentDate) {
+          return res.status(404).json({ msg: "Itinerary Events with this date have passed!" });
+      } else {
+          // Set query to look for this specific date
+          // Use a date range for the entire day
+          query.Date = {
+              $gte: inputDate, // Start of the day
+              $lt: new Date(inputDate.getTime() + 24 * 60 * 60 * 1000) // End of the day, exclusive
+          };
+      }
+  } else {
+      // Always set the date filter to only include activities on or after the current date
+      query.Date = { $gte: currentDate }; // Activities must be after today
+  }
+
+  // Build the query based on provided parameters
+  if (Language) {
+      query.Language = Language; // Add language filter if provided
+  }
+
+  // Add price filters based on minPrice and maxPrice
+  if (minPrice !== undefined && maxPrice !== undefined) {
+      // Both minPrice and maxPrice are provided
+      query.Price = {
+          $gte: minPrice, // Greater than or equal to minPrice
+          $lte: maxPrice  // Less than or equal to maxPrice
+      };
+  } else if (minPrice !== undefined) {
+      // Only minPrice is provided
+      query.Price = { $gte: minPrice }; 
+  } else if (maxPrice !== undefined) {
+      // Only maxPrice is provided
+      query.Price = { $lte: maxPrice }; // Less than or equal to maxPrice
+  }
+
+  // Filter by Tags if provided
+  if (Tags && Tags.length > 0) {
+      query.Tags = { $in: Tags }; 
+  }
+
+  try {
+      const fetchedItineraries = await ItineraryModel.find(query); 
+      if (fetchedItineraries.length === 0) {
+          return res.status(404).json({ msg: "No itineraries found for the given criteria!" });
+      }
+      res.status(200).json(fetchedItineraries); 
+  } catch (error) {
+      console.error('Error fetching itineraries:', error);
+      res.status(500).json({ msg: "An error occurred while fetching itineraries." });
+  }
+};
+
+// Example Express.js route
+// app.post('/filter-itineraries', filterItinerariesTourist);
+
+
+      const ActivitiesSearchAll = async (req, res) => {
+        const { searchString } = req.body; // Extract the search string from the request body
+        const query = {}; // Initialize an empty query object
+    
+        // Create a case-insensitive regex if a search string is provided
+        if (searchString) {
+            const regex = new RegExp(searchString, 'i'); // 'i' for case-insensitive matching
+    
+            // Construct the query to search across the Name, Category, and Tags fields
+            query.$or = [
+                { Name: regex },
+                { Category: regex },
+                { Tags: { $in: [searchString] } } // For Tags, match any tag that equals the search string
+            ];
+        }
+    
+        try {
+            const fetchedActivities = await ActivityModel.find(query); // Fetch activities based on the constructed query
+            if (fetchedActivities.length === 0) {
+                return res.status(404).json({ msg: "No activities found for the given criteria!" });
+            }
+            res.status(200).json(fetchedActivities); // Respond with the fetched activities
+        } catch (error) {
+            console.error('Error fetching activities:', error);
+            res.status(500).json({ msg: "An error occurred while fetching activities." });
+        }
+    };
+    const ItinerarySearchAll = async (req, res) => {
+      const { searchString } = req.body; // Extract the search string from the request body
+      const query = {}; // Initialize an empty query object
+  
+      // Create a case-insensitive regex if a search string is provided
+      if (searchString) {
+          const regex = new RegExp(searchString, 'i'); // 'i' for case-insensitive matching
+  
+          // Construct the query to search across the Name, Category, and Tags fields
+          query.$or = [
+              { Title: regex },
+              { Tags: { $in: [searchString] } } // For Tags, match any tag that equals the search string
+          ];
+      }
+  
+      try {
+          const fetchedItineraries = await ItineraryModel.find(query); // Fetch activities based on the constructed query
+          if (fetchedItineraries.length === 0) {
+              return res.status(404).json({ msg: "No itineraries found for the given criteria!" });
+          }
+          res.status(200).json(fetchedItineraries); // Respond with the fetched activities
+      } catch (error) {
+          console.error('Error fetching itineraries:', error);
+          res.status(500).json({ msg: "An error occurred while fetching itineraries." });
+      }
+  };
+
+  const MuseumSearchAll = async (req, res) => {
+    const { searchString } = req.body; // Extract the search string from the request body
+    const query = {}; // Initialize an empty query object
+
+    // Create a case-insensitive regex if a search string is provided
+    if (searchString) {
+        const regex = new RegExp(searchString, 'i'); // 'i' for case-insensitive matching
+
+        // Construct the query to search across the Name, Category, and Tags fields
+        query.$or = [
+            { name: regex },
+            { HistoricalTags: { $in: [searchString] } } // For Tags, match any tag that equals the search string
+        ];
+    }
+
+    try {
+        const fetchedMuseums= await MuseumModel.find(query); // Fetch activities based on the constructed query
+        if (fetchedMuseums.length === 0) {
+            return res.status(404).json({ msg: "No museums found for the given criteria!" });
+        }
+        res.status(200).json(fetchedMuseums); // Respond with the fetched activities
+    } catch (error) {
+        console.error('Error fetching museums:', error);
+        res.status(500).json({ msg: "An error occurred while fetching museums." });
+    }
+};
+
+const HistoricalPlacesSearchAll = async (req, res) => {
+  const { searchString } = req.body; // Extract the search string from the request body
+  const query = {}; // Initialize an empty query object
+
+  // Create a case-insensitive regex if a search string is provided
+  if (searchString) {
+      const regex = new RegExp(searchString, 'i'); // 'i' for case-insensitive matching
+
+      // Construct the query to search across the Name, Category, and Tags fields
+      query.$or = [
+          { name: regex },
+          { Tags: { $in: [searchString] } } // For Tags, match any tag that equals the search string
+      ];
+  }
+
+  try {
+      const fetchedHistoricalPlaces= await HistoricalPlacesModel.find(query); // Fetch activities based on the constructed query
+      if (fetchedHistoricalPlaces.length === 0) {
+          return res.status(404).json({ msg: "No Historical Places found for the given criteria!" });
+      }
+      res.status(200).json(fetchedHistoricalPlaces); // Respond with the fetched activities
+  } catch (error) {
+      console.error('Error fetching Historical Places:', error);
+      res.status(500).json({ msg: "An error occurred while fetching Historical Places." });
+  }
+};
 
 
 
-
-
-
-
-module.exports = {createTourist, getTourist, updateTourist, searchProductTourist, filterActivities, filterProductByPriceTourist, ActivityRating, sortProductsDescendingTourist, sortProductsAscendingTourist, ViewAllUpcomingActivities, ViewAllUpcomingMuseumEventsTourist, getMuseumsByTagTourist, getHistoricalPlacesByTagTourist, ViewAllUpcomingHistoricalPlacesEventsTourist,viewProductsTourist, sortActivitiesPriceAscendingTourist, sortActivitiesPriceDescendingTourist, sortActivitiesRatingAscendingTourist, sortActivitiesRatingDescendingTourist, loginTourist, ViewAllUpcomingItinerariesTourist, sortItinerariesPriceAscendingTourist, sortItinerariesPriceDescendingTourist};
+module.exports = {createTourist, getTourist, updateTourist, searchProductTourist, filterActivities, filterProductByPriceTourist, ActivityRating, sortProductsDescendingTourist, sortProductsAscendingTourist, ViewAllUpcomingActivities, ViewAllUpcomingMuseumEventsTourist, getMuseumsByTagTourist, getHistoricalPlacesByTagTourist, ViewAllUpcomingHistoricalPlacesEventsTourist,viewProductsTourist, sortActivitiesPriceAscendingTourist, sortActivitiesPriceDescendingTourist, sortActivitiesRatingAscendingTourist, sortActivitiesRatingDescendingTourist, loginTourist, ViewAllUpcomingItinerariesTourist, sortItinerariesPriceAscendingTourist, sortItinerariesPriceDescendingTourist, filterItinerariesTourist, ActivitiesSearchAll, ItinerarySearchAll, MuseumSearchAll, HistoricalPlacesSearchAll};

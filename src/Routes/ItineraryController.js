@@ -18,7 +18,8 @@ const { default: mongoose } = require('mongoose');
       accessibility,
       pickupLocation,
       dropoffLocation,
-      Tags
+      Tags,
+      AuthorUsername
     } = req.body;
     try {
       //  Validate activities array
@@ -49,7 +50,8 @@ const { default: mongoose } = require('mongoose');
         pickupLocation,
         dropoffLocation,
         isBooked : false ,
-        Tags
+        Tags,
+        AuthorUsername
       });
   
       res.status(200).json(itinerary);
