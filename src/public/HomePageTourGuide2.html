@@ -222,55 +222,55 @@
 <div id="updateModal" class="modal">
     <div class="modal-content">
         <span class="close" onclick="closeUpdateModal()">&times;</span>
-        <h2>Update Activity</h2>
+        <h2>Update Itenerary</h2>
         <form id="update-form">
             <div class="form-row">
-                <label for="updateName">Name:</label>
-                <input type="text" id="updateName" readonly>
+                <label for="updateitineraryTitle">Title:</label>
+                <input type="text" id="updateitineraryTitle">
             </div>
             <div class="form-row">
-                <label for="updateDate">Date:</label>
-                <input type="date" id="updateDate">
+                <label for="updateitineraryActivities">Activities:</label>
+                <input type="text" id="updateitineraryActivities">
             </div>
             <div class="form-row">
-                <label for="updateTime">Time:</label>
-                <input type="text" id="updateTime">
+                <label for="updateitineraryLocations">Locations :</label>
+                <input type="text" id="updateitineraryLocations">
             </div>
             <div class="form-row">
-                <label for="updatePrice">Price:</label>
-                <input type="number" id="updatePrice">
+                <label for="updateitineraryTimeline">Timeline:</label>
+                <input type="text" id="updateitineraryTimeline">
             </div>
             <div class="form-row">
-                <label for="updateRating">Rating:</label>
-                <input type="number" id="updateRating" readonly>
+                <label for="updateitineraryLanguage">Language:</label>
+                <input type="text" id="updateitineraryLanguage">
             </div>
             <div class="form-row">
-                <label for="updateLocation">Location:</label>
-                <input type="text" id="updateLocation">
+                <label for="updateitineraryPrice">Price:</label>
+                <input type="number" id="updateitineraryPrice">
             </div>
             <div class="form-row">
-                <label for="updateLongitude">Longitude:</label>
-                <input type="text" id="updateLongitude" required>
+                <label for="updateitineraryDate">Date:</label>
+                <input type="date" id="updateitineraryDate">
             </div>
             <div class="form-row">
-                <label for="updateLatitude">Latitude:</label>
-                <input type="text" id="updateLatitude" required>
+                <label for="updateitineraryAccessibility">Accessibility:</label>
+                <input type="checkbox" id="updateitineraryAccessibility">
             </div>
             <div class="form-row">
-                <label for="updateCategory">Category:</label>
-                <input type="text" id="updateCategory">
+                <label for="updateitineraryPickupLocation">Pickup Location:</label>
+                <input type="text" id="updateitineraryPickupLocation">
             </div>
             <div class="form-row">
-                <label for="updateTags">Tags:</label>
-                <input type="text" id="updateTags">
+                <label for="updateitineraryDropoffLocation">Dropoff Location:</label>
+                <input type="text" id="updateitineraryDropoffLocation">
             </div>
             <div class="form-row">
-                <label for="updateSpecialDiscount">Special Discount:</label>
-                <input type="text" id="updateSpecialDiscount">
+                <label for="updateitineraryBookingStatus">Booking Status:</label>
+                <input type="checkbox" id="updateitineraryBookingStatus">
             </div>
             <div class="form-row">
-                <label for="updateBookingStatus">Booking Status:</label>
-                <input type="checkbox" id="updateBookingStatus">
+                <label for="updateitineraryTags">Tags :</label>
+                <input type="text" id="updateitineraryTags">
             </div>
             <button type="button" onclick="saveUpdatedActivity()">Save Changes</button>
         </form>
@@ -285,7 +285,7 @@
         <form id="create-activity-form">
             <div class="form-row">
                 <label for="itineraryTitle">Title:</label>
-                <input type="text" id="itineraryTitle">
+                <input type="text" id="itineraryTitle" >
             </div>
             <div class="form-row">
                 <label for="itineraryActivities">Activities:</label>
@@ -379,7 +379,7 @@ activities.forEach(activity => {
     itineraryDiv.innerHTML = `
         <h3 style="display: inline;">${activity.Title}</h3>
         <button onclick="deleteItinerary('${activity._id}')" style="margin-left: 10px;">Delete</button>
-        <button onclick="openUpdateForm('${activity._id}')" style="margin-left: 10px;">Update</button>
+        <button onclick="openUpdateForm('${activity.Title}')" style="margin-left: 10px;">Update</button>
         <button onclick="toggleDetails(this)" style="margin-left: 10px;">View Details</button>
         <div class="details" style="display: none;">
             <p>Activities: ${activity.Activities}</p>
@@ -403,7 +403,8 @@ activities.forEach(activity => {
 
 async function openUpdateForm(activityName) {
     try {
-        const response = await fetch(`/api/readActivity?Name=${encodeURIComponent(activityName)}`, {
+        // Use the correct URL endpoint for reading the itinerary by title
+        const response = await fetch(`/api/readItinerary?Title=${encodeURIComponent(activityName)}`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json'
@@ -412,33 +413,33 @@ async function openUpdateForm(activityName) {
 
         if (!response.ok) {
             const errorData = await response.json();
-            throw new Error(errorData.error || 'Error fetching activity details');
+            throw new Error(errorData.error || 'Error fetching itinerary details');
         }
 
         const activity = await response.json();
-        console.log(activity)
-        console.log(activity.Location.coordinates[0])
-        populateUpdateForm(activity);
+        
+        populateUpdateForm(activity); // Populate the form with the fetched data
         openUpdateModal(); // Function to open the update modal
     } catch (error) {
         console.error('Error:', error);
-        alert('Failed to load activity details: ' + error.message);
+        alert('Failed to load itinerary details: ' + error.message);
     }
 }
 
 function populateUpdateForm(activity) {
-    document.getElementById('updateName').value = activity.Name || '';
-    document.getElementById('updateDate').value = activity.Date.split('T')[0] || ''; // Assuming activity.Date is in ISO format
-    document.getElementById('updateTime').value = activity.Time || '';
-    document.getElementById('updatePrice').value = activity.Price || '';
-    document.getElementById('updateRating').value = activity.Rating !== undefined ? activity.Rating : ''; // Keep this line
-    document.getElementById('updateLocation').value = activity.Location.address || '';
-    document.getElementById('updateLongitude').value = activity.Location.coordinates[0] || '';
-    document.getElementById('updateLatitude').value = activity.Location.coordinates[1] || '';
-    document.getElementById('updateCategory').value = activity.Category || '';
-    document.getElementById('updateTags').value = activity.Tags || '';
-    document.getElementById('updateSpecialDiscount').value = activity.SpecialDiscount || '';
-    document.getElementById('updateBookingStatus').checked = activity.BookingOpen || false;
+    document.getElementById('updateitineraryTitle').value = activity.Title || '';
+    document.getElementById('updateitineraryDate').value = activity.Date.split('T')[0] || ''; // Assuming activity.Date is in ISO format
+    document.getElementById('updateitineraryTimeline').value = activity.Timeline || '';
+    document.getElementById('updateitineraryPrice').value = activity.Price || '';
+    document.getElementById('updateitineraryLocations').value = activity.Locations || '';
+    document.getElementById('updateitineraryActivities').value = activity.Activities || '';
+    document.getElementById('updateitineraryLanguage').value = activity.Language || '';
+    document.getElementById('updateitineraryPickupLocation').value = activity.pickupLocation || '';
+    document.getElementById('updateitineraryTags').value = activity.Tags || '';
+    document.getElementById('updateitineraryDropoffLocation').value = activity.dropoffLocation || '';
+    document.getElementById('updateitineraryAccessibility').checked = activity.accessibility|| false;
+
+   document.getElementById('updateitineraryBookingStatus').checked = activity.isBooked || false;
 }
 // async function saveUpdatedActivity() {
 //     const Name = document.getElementById('updateName').value;

@@ -554,9 +554,10 @@ function closeAddProductModal() {
 
 
 
-function displayProducts(products) {
+// Function to display products in modal
+function displayProducts(products, showEditButton = false) {
     const productsList = document.getElementById('productsList');
-    productsList.innerHTML = '';
+    productsList.innerHTML = ''; // Clear previous products
 
     products.forEach(product => {
         const productDiv = document.createElement('div');
@@ -572,7 +573,7 @@ function displayProducts(products) {
                 <p>Seller: ${product.Seller}</p>
                 <p>Rating: ${product.Ratings}</p>
                 <p>Reviews: ${product.Reviews}</p>
-                
+                ${showEditButton ? `<button onclick='openEditProductModal(${JSON.stringify(product)})'>Edit</button>` : ''}
             </div>
         `;
 
@@ -580,6 +581,7 @@ function displayProducts(products) {
     });
 }
 
+// Update viewMyProducts function to show the edit button
 async function viewMyProducts() {
     const sellerUsername = localStorage.getItem('username'); // Get the logged-in seller username
 
@@ -601,7 +603,7 @@ async function viewMyProducts() {
         if (products.length === 0) {
             alert('You have not created any products.');
         } else {
-            displayProducts(products); // Use the existing function to display products
+            displayProducts2(products, true); // Pass true to show the edit button
             openProductsModal(); // Open the modal to show the products
         }
         
@@ -610,11 +612,10 @@ async function viewMyProducts() {
         alert('Failed to load your products: ' + error.message);
     }
 }
-
 // Function to display products in modal
-function displayProducts(products) {
+function displayProducts2(products) {
     const productsList = document.getElementById('productsList');
-    productsList.innerHTML = '';
+    productsList.innerHTML = ''; // Clear previous products
 
     products.forEach(product => {
         const productDiv = document.createElement('div');
@@ -630,13 +631,40 @@ function displayProducts(products) {
                 <p>Seller: ${product.Seller}</p>
                 <p>Rating: ${product.Ratings}</p>
                 <p>Reviews: ${product.Reviews}</p>
-                <button onclick='openEditProductModal(${JSON.stringify(product)})'>Edit</button>
+                <button onclick='openEditProductModal(${JSON.stringify(product)})'>Edit</button> <!-- Edit button only here -->
             </div>
         `;
 
         productsList.appendChild(productDiv);
     });
 }
+// Function to display products in modal
+function displayProducts(products) {
+    const productsList = document.getElementById('productsList');
+    productsList.innerHTML = ''; // Clear previous products
+
+    products.forEach(product => {
+        const productDiv = document.createElement('div');
+        productDiv.classList.add('activity');
+
+        productDiv.innerHTML = `
+            <img src="${product.Picture}" alt="${product.Name}">
+            <div>
+                <h3>${product.Name}</h3>
+                <p>Price: $${product.Price}</p>
+                <p>Description: ${product.Description}</p>
+                <p>Quantity: ${product.Quantity}</p>
+                <p>Seller: ${product.Seller}</p>
+                <p>Rating: ${product.Ratings}</p>
+                <p>Reviews: ${product.Reviews}</p>
+               
+            </div>
+        `;
+
+        productsList.appendChild(productDiv);
+    });
+}
+
 
 function openEditProductModal(product) {
     document.getElementById('editProductName').value = product.Name;
