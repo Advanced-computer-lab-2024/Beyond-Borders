@@ -79,7 +79,7 @@ app.post("/rejectSeller", rejectSeller);
 app.post("/rejectTourGuide", rejectTourGuide);
 app.post("/rejectAdvertiser", rejectAdvertiser);
 app.get("/api/viewTourist", getTourist);
-app.post("/filterActivities", filterActivities);//
+app.post("/api/filterActivities", filterActivities);//
 app.put("/api/updateTourist", updateTourist);
 app.get("/api/readSellerProfile", readSellerProfile);
 app.put("/api/updateSeller", updateSeller);
