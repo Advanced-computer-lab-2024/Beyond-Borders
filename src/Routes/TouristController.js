@@ -796,8 +796,8 @@ const sortItinerariesPriceDescendingTourist = async (req, res) => {
 
 
 const filterItinerariesTourist = async (req, res) => {
-  const { minPrice, maxPrice, InputDate, Language, Tags } = req.body; // Extract parameters from the request body
-  const query = { isBooked: true }; // Initialize an empty query object and set isBooked to true
+  const { MinPrice, maxPrice, InputDate, Language, Tags } = req.body; // Extract parameters from the request body
+  const query = {}; // Initialize an empty query object
 
   // Get the current date and set time to midnight
   const currentDate = new Date();
@@ -828,15 +828,15 @@ const filterItinerariesTourist = async (req, res) => {
   }
 
   // Add price filters based on minPrice and maxPrice
-  if (minPrice !== undefined && maxPrice !== undefined) {
+  if (MinPrice !== undefined && maxPrice !== undefined) {
       // Both minPrice and maxPrice are provided
       query.Price = {
-          $gte: minPrice, // Greater than or equal to minPrice
+          $gte: MinPrice, // Greater than or equal to minPrice
           $lte: maxPrice  // Less than or equal to maxPrice
       };
-  } else if (minPrice !== undefined) {
+  } else if (MinPrice !== undefined) {
       // Only minPrice is provided
-      query.Price = { $gte: minPrice }; 
+      query.Price = { $gte: MinPrice }; 
   } else if (maxPrice !== undefined) {
       // Only maxPrice is provided
       query.Price = { $lte: maxPrice }; // Less than or equal to maxPrice
@@ -858,6 +858,7 @@ const filterItinerariesTourist = async (req, res) => {
       res.status(500).json({ msg: "An error occurred while fetching itineraries." });
   }
 };
+
 
 // Example Express.js route
 // app.post('/filter-itineraries', filterItinerariesTourist);
