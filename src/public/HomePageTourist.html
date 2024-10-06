@@ -158,9 +158,20 @@ input[type="password"] {
         <button onclick="viewAllMuseums()">View All Museums</button>
         <button onclick="viewAllItineraries()">View All Itineraries</button>
         <button onclick="viewAllHistoricalPlaces()">View All Historical Places</button>
+        <button onclick="viewAllProducts()">View All Products</button>
         <button onclick="readMyProfile()">My Profile</button>
     </div>
     
+</div>
+
+<div id="productsModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeProductsModal()">&times;</span>
+        <h2>All Products</h2>
+        <div id="productsList">
+            <!-- Products will be displayed here -->
+        </div>
+    </div>
 </div>
 
 
@@ -613,6 +624,14 @@ function closeHistoricalPlacesModal() {
     document.getElementById("HistoricalPlacesModal").style.display = "none"; // Close the Historical Places modal
 }
 
+function openProductsModal() {
+    document.getElementById("productsModal").style.display = "block";
+}
+
+function closeProductsModal() {
+    document.getElementById("productsModal").style.display = "none";
+}
+
 function displayActivities(activities) {
         const container = document.getElementById('activitiesContainerModal');
         container.innerHTML = ''; // Clear previous activities
@@ -1005,6 +1024,49 @@ document.getElementById('searchHistoricalPlacesButton').addEventListener('click'
         alert('An error occurred while searching for historical places.');
     }
 });
+
+async function viewAllProducts() {
+    try {
+        const response = await fetch('/api/viewAllProductsSeller');
+        const products = await response.json();
+
+        if (response.ok) {
+            displayProducts(products);
+            openProductsModal(); // Open the products modal
+        } else {
+            alert('Failed to fetch products: ' + (products.error || 'Unknown error'));
+        }
+    } catch (error) {
+        console.error('Error fetching products:', error);
+        alert('An error occurred while loading products.');
+    }
+}
+
+function displayProducts(products, showEditButton = false) {
+    const productsList = document.getElementById('productsList');
+    productsList.innerHTML = ''; // Clear previous products
+
+    products.forEach(product => {
+        const productDiv = document.createElement('div');
+        productDiv.classList.add('activity');
+
+        productDiv.innerHTML = `
+            <img src="${product.Picture}" alt="${product.Name}">
+            <div>
+                <h3>${product.Name}</h3>
+                <p>Price: $${product.Price}</p>
+                <p>Description: ${product.Description}</p>
+                <p>Quantity: ${product.Quantity}</p>
+                <p>Seller: ${product.Seller}</p>
+                <p>Rating: ${product.Ratings}</p>
+                <p>Reviews: ${product.Reviews}</p>
+                ${showEditButton ? `<button onclick='openEditProductModal(${JSON.stringify(product)})'>Edit</button>` : ''}
+            </div>
+        `;
+
+        productsList.appendChild(productDiv);
+    });
+}
 
 
 
