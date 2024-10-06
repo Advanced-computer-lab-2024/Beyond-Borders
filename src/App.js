@@ -184,7 +184,7 @@ app.get("/sortActivitiesRatingAscendingTourist" , sortActivitiesRatingAscendingT
 app.get("/sortActivitiesRatingDescendingTourist" , sortActivitiesRatingDescendingTourist);
 app.get("/sortActivitiesRatingDescendingGuest" , sortActivitiesRatingDescendingGuest);
 app.get("/sortActivitiesRatingAscendingGuest" , sortActivitiesRatingAscendingGuest);
-app.post("/filterItinerariesTourist" , filterItinerariesTourist);
+app.post("/api/filterItinerariesTourist" , filterItinerariesTourist);
 app.post("/filterItinerariesGuest" , filterItinerariesGuest);
 
 
