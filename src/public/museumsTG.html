@@ -191,40 +191,42 @@
             window.location.href = `editMuseum.html?name=${encodeURIComponent(museumName)}&author=${encodeURIComponent(AuthorUsername)}`;
         }
 
-        async function removeMuseum(museumName) {
-            const AuthorUsername = localStorage.getItem("username");
+        async function removeMuseum(museumName) { 
+    const AuthorUsername = localStorage.getItem("username");
 
-            if (!AuthorUsername) {
-                alert("Author username not found. Please log in again.");
-                return;
-            }
+    if (!AuthorUsername) {
+        alert("Author username not found. Please log in again.");
+        return;
+    }
 
-            const confirmDelete = confirm("Are you sure you want to delete this museum?");
-            if (!confirmDelete) return;
+    const confirmDelete = confirm("Are you sure you want to delete this museum?");
+    if (!confirmDelete) return;
 
-            try {
-                const response = await fetch(`/deleteMuseumByName`, {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify({ name: museumName, AuthorUsername }),
-                });
+    try {
+        const response = await fetch(`/deleteMuseumByName`, {
+            method: "POST", // Still using POST for compatibility
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ name: museumName, AuthorUsername }),
+        });
 
-                if (response.ok) {
-                    alert("Museum deleted successfully.");
-                    // Refresh the list of museums automatically after deletion
-                    fetchMuseumsByAuthor();
-                } else {
-                    const result = await response.json();
-                    console.error("Delete error:", result); // Log the server error response
-                    alert("An error occurred while deleting the museum. Please try again.");
-                }
-            } catch (error) {
-                console.error("Delete error: ", error); // Log the error object for more information
-                alert("An error occurred while deleting the museum. Please try again.");
-            }
+        if (response.ok) {
+            const result = await response.json(); // Parse the response to access the message
+            console.log("Delete response:", result); // Log the server success response
+            alert(result.message); // Show success message from server
+            // Refresh the list of museums automatically after deletion
+            fetchMuseumsByAuthor();
+        } else {
+            const result = await response.json();
+            console.error("Delete error:", result); // Log the server error response
+            alert(result.error || "An error occurred while deleting the museum. Please try again.");
         }
+    } catch (error) {
+        console.error("Delete error: ", error); // Log the error object for more information
+        alert("An error occurred while deleting the museum. Please try again.");
+    }
+}
 
         // Initial load
         fetchMuseumsByAuthor();

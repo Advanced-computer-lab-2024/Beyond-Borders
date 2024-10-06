@@ -55,7 +55,7 @@ const CreateMuseums = async (req, res) => {
       res.status(400).json({ error: error.message });
     }
   }; 
-  //YASSIN AND AMINA
+
 
   const updateMuseumByName = async (req, res) => {
     // Destructure fields from the request body
@@ -96,25 +96,28 @@ const CreateMuseums = async (req, res) => {
         // If an error occurs, send a 400 Bad Request status with the error message
         res.status(400).json({ error: error.message });
     }
-};
+}; 
+const deleteMuseumByName = async (req, res) => {
+  try {
+      const { name, AuthorUsername } = req.body;
 
-  //YASSIN AND AMINA
-  const deleteMuseumByName = async (req, res) => {
-    try {
-      const {name,AuthorUsername} = req.body;
-
-      // Check if the activity exists with the provided name and advertiser name
+      // Check if the museum exists with the provided name and author username
       const existingMuseum = await MuseumsModel.findOne({ name: name, AuthorUsername: AuthorUsername });
       if (!existingMuseum) {
           return res.status(404).json({ error: "Museum not found for the given Tourism Governer." });
       }
-      else{
-        await MuseumsModel.findOneAndDelete({ name: name,AuthorUsername: AuthorUsername});
-    }
-    } catch (error) {
+
+      // Delete the museum if it exists
+      await MuseumsModel.findOneAndDelete({ name: name, AuthorUsername: AuthorUsername });
+
+      // Send a success response after deletion
+      res.status(200).json({ message: "Museum deleted successfully." });
+
+  } catch (error) {
       res.status(400).json({ error: error.message });
-    }
-  };
+  }
+};
+
 
   
   //FIXED
