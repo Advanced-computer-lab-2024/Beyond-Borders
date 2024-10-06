@@ -58,7 +58,7 @@
     <button onclick="redirectTo('guide')">Register as Tour Guide</button>
     <button onclick="redirectTo('seller')">Register as Seller</button>
     <button onclick="redirectTo('advertiser')">Register as Advertiser</button>
-    <button onclick="redirectTo('governer')">Register as Tourism Governer</button>
+   
     <br>
     <a href="login.html">Already have an account? Login here</a>
 </div>
@@ -78,9 +78,7 @@
             case 'advertiser':
                 window.location.href = 'registerAdvertiser.html'; 
                 break;
-            case 'governer':
-                window.location.href = 'tourismGovernerProfile.html'; 
-                break;
+            
             default:
                 console.error('Unknown role:', role);
         }
