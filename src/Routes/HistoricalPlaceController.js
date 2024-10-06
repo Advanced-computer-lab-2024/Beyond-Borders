@@ -64,7 +64,7 @@ const CreateHistoricalPlace = async (req, res) => {
     }
   };
   const updateHistoricalPlace = async (req, res) => {
-    const {name, description, pictures, location, openingHours, ticketPrices, AuthorUsername} = req.body;
+    const {name, description, pictures, location, openingHours, ticketPrices, AuthorUsername, HistoricalTags} = req.body;
 
     try {
         // Check if the activity exists with the provided name and advertiser name
@@ -72,11 +72,17 @@ const CreateHistoricalPlace = async (req, res) => {
         if (!existingHistoricalPlace) {
             return res.status(404).json({ error: "HistoricalPLacce not found for the given Tourism Governer." });
         }
-
+         // If Tags are provided, check if they exist
+         if (HistoricalTags && HistoricalTags.length > 0) {
+          const existingTags = await TagsModel.find({ NameOfHistoricalTags: { $in: HistoricalTags } });
+          if (existingTags.length !== HistoricalTags.length) {
+              return res.status(400).json({ error: "One or more tags do not exist!" });
+          }
+      }
        
         // Prepare an object with the fields to update (excluding AdvertiserName and Name)
         const updateFields = {
-          description, pictures, location, openingHours, ticketPrices
+          description, pictures, location, openingHours, ticketPrices, Tags: HistoricalTags
         };
 
         // Filter out any undefined values to avoid updating fields with undefined
