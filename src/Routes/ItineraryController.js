@@ -155,7 +155,7 @@ const { default: mongoose } = require('mongoose');
       res.status(400).json({ error: error.message });
     }
   };
-  const deleteItineraryByTitle = async (req, res) => {
+  /*const deleteItineraryByTitle = async (req, res) => {
     const { Title } = req.params; // Assuming the title is passed as a URL parameter
   
     try {
@@ -183,7 +183,46 @@ const { default: mongoose } = require('mongoose');
       // Catch any errors
       res.status(500).json({ error: error.message });
     }
-  };
+  };*/
+
+
+
+  const deleteItineraryByTitle = async (req, res) => {
+    const { Title } = req.query; // Get the title from the query parameters
+
+    try {
+        // Check if the itinerary exists by title (case-insensitive)
+        const itinerary = await ItineraryModel.findOne({
+            Title: { $regex: new RegExp(Title, 'i') } // Case-insensitive search
+        });
+
+        // If itinerary not found, return a 404 error
+        if (!itinerary) {
+            return res.status(404).json({ error: "Itinerary not found with the given title." });
+        }
+
+        // Check if the itinerary is booked
+        if (itinerary.isBooked === true) {
+            return res.status(400).json({ error: "Cannot delete a booked itinerary." });
+        }
+
+        // If the itinerary is not booked, proceed to delete it
+        await itinerary.deleteOne(); // Directly delete the found document
+
+        // Return a success message
+        res.status(200).json({ message: "Itinerary successfully deleted." });
+    } catch (error) {
+        // If an error occurs, send a 500 Internal Server Error status with the error message
+        res.status(500).json({ error: error.message });
+    }
+};
+
+
+
+
+
+
+
   const getItinerarysByAuthor = async (req, res) => {
     try {
       // Assuming you get the author's username from query parameters
