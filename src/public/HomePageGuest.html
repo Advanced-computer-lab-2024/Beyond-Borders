@@ -68,7 +68,7 @@
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
             margin-top: 20px;
         }
-        .activity {
+        .activity, .museum, .itinerary, .historical-place {
             border: 1px solid #ccc;
             padding: 10px;
             margin: 10px 0;
@@ -130,37 +130,76 @@
     <div class="modal-content">
         <span class="close" onclick="closeActivitiesModal()">&times;</span>
         <h2>Upcoming Activities</h2>
+
+        <label for="category">Category:</label>
+        <input type="text" id="category" placeholder="Enter category" />
+
+        <label for="minPrice">Min Price:</label>
+        <input type="number" id="minPrice" placeholder="Minimum Price" />
+
+        <label for="maxPrice">Max Price:</label>
+        <input type="number" id="maxPrice" placeholder="Maximum Price" />
+
+        <label for="InputDate">Date:</label>
+        <input type="date" id="InputDate" />
+
+        <label for="Rating">Rating:</label>
+        <input type="number" id="Rating" min="1" max="5" placeholder="Rating (1-5)" />
+        
+        <button id="filter">Apply Filter</button>
+        <button onclick="sortActivitesPriceDescending()">Sort by Price (Descending)</button>
+        <button onclick="sortActivitesPriceAscending()">Sort by Price (Ascending)</button>
+        <button onclick="sortActivitesRatingDescending()">Sort by Rating (Descending)</button>
+        <button onclick="sortActivitesRatingAscending()">Sort by Rating (Ascending)</button>
+
+
         <div id="activitiesContainerModal">
             <!-- Activities will be displayed here -->
         </div>
     </div>
 </div>
 
-<!-- Other Modals -->
+<!-- Modal for Museums -->
 <div id="museumsModal" class="modal">
     <div class="modal-content">
         <span class="close" onclick="closeMuseumsModal()">&times;</span>
         <h2>Upcoming Museum Events</h2>
+
+        <!-- Tag Filtering Section -->
+        <label for="tags">Filter by Tags (comma-separated):</label>
+        <input type="text" id="tags" placeholder="Enter tags" />
+        <button id="filterMuseums">Apply Tag Filter</button>
+
         <div id="museumsContainerModal">
             <!-- Museums will be displayed here -->
         </div>
     </div>
 </div>
 
+<!-- Modal for Itineraries -->
 <div id="itineraryModal" class="modal">
     <div class="modal-content">
         <span class="close" onclick="closeItineraryModal()">&times;</span>
         <h2>Upcoming Itinerary Events</h2>
+        <button onclick="sortItinerariesPriceDescending()">Sort by Price (Descending)</button>
+        <button onclick="sortItinerariesPriceAscending()">Sort by Price (Ascending)</button>
         <div id="itineraryContainerModal">
             <!-- Itineraries will be displayed here -->
         </div>
     </div>
 </div>
 
+<!-- Modal for Historical Places -->
 <div id="HistoricalPlacesModal" class="modal">
     <div class="modal-content">
         <span class="close" onclick="closeHistoricalPlacesModal()">&times;</span>
         <h2>Upcoming Historical Places Events</h2>
+
+        <!-- Tag Filtering Section -->
+        <label for="historicalTags">Filter by Tags (comma-separated):</label>
+        <input type="text" id="historicalTags" placeholder="Enter tags" />
+        <button id="filterHistoricalPlaces">Apply Tag Filter</button>
+
         <div id="HistoricalPlacesContainerModal">
             <!-- Historical Places will be displayed here -->
         </div>
@@ -177,6 +216,8 @@ async function viewAllActivities() {
     try {
         const response = await fetch('/api/ViewAllUpcomingActivitiesGuest');
         const activities = await response.json();
+
+        console.log('Fetched Activities:', activities); // Debugging line
 
         if (response.ok) {
             displayActivities(activities);
@@ -212,6 +253,8 @@ async function viewAllItineraries() {
         const response = await fetch('/api/ViewAllUpcomingItinerariesGuest');
         const itineraries = await response.json();
 
+        console.log('Fetched Itineraries:', itineraries); // Debugging line
+
         if (response.ok) {
             displayItineraries(itineraries);
             openItineraryModal(); 
@@ -238,6 +281,110 @@ async function viewAllHistoricalPlaces() {
     } catch (error) {
         console.error('Error fetching Historical Places:', error);
         alert('An error occurred while loading historical places.');
+    }
+}
+
+async function sortActivitesPriceDescending() {
+    try {
+        const response = await fetch('/sortActivitiesPriceDescendingTourist');
+        const activities = await response.json();
+
+        if (response.ok) {
+            displayActivities(activities); // Display products in the modal
+            openActivitiesModal();
+        } else {
+            alert(activities.error || 'Failed to sort activities.');
+        }
+    } catch (error) {
+        console.error('Error fetching sorted activities:', error);
+        alert('An error occurred while sorting activities.');
+    }
+}
+
+
+async function sortActivitesPriceAscending() {
+    try {
+        const response = await fetch('/sortActivitiesPriceAscendingTourist');
+        const activities = await response.json();
+
+        if (response.ok) {
+            displayActivities(activities); // Display products in the modal
+            openActivitiesModal();
+        } else {
+            alert(activities.error || 'Failed to sort activities.');
+        }
+    } catch (error) {
+        console.error('Error fetching sorted activities:', error);
+        alert('An error occurred while sorting activities.');
+    }
+}
+
+
+async function sortActivitesRatingDescending() {
+    try {
+        const response = await fetch('/sortActivitiesRatingDescendingTourist');
+        const activities = await response.json();
+
+        if (response.ok) {
+            displayActivities(activities); // Display products in the modal
+            openActivitiesModal();
+        } else {
+            alert(activities.error || 'Failed to sort activities.');
+        }
+    } catch (error) {
+        console.error('Error fetching sorted activities:', error);
+        alert('An error occurred while sorting activities.');
+    }
+}
+
+async function sortActivitesRatingAscending() {
+    try {
+        const response = await fetch('/sortActivitiesRatingAscendingTourist');
+        const activities = await response.json();
+
+        if (response.ok) {
+            displayActivities(activities); // Display products in the modal
+            openActivitiesModal();
+        } else {
+            alert(activities.error || 'Failed to sort activities.');
+        }
+    } catch (error) {
+        console.error('Error fetching sorted activities:', error);
+        alert('An error occurred while sorting activities.');
+    }
+}
+
+async function sortItinerariesPriceDescending() {
+    try {
+        const response = await fetch('/sortItinerariesPriceDescendingTourist');
+        const itineraries = await response.json();
+
+        if (response.ok) {
+            displayItineraries(itineraries); // Display products in the modal
+            openItineraryModal();
+        } else {
+            alert(itineraries.error || 'Failed to sort itineraries.');
+        }
+    } catch (error) {
+        console.error('Error fetching sorted itineraries:', error);
+        alert('An error occurred while sorting itineraries.');
+    }
+}
+
+async function sortItinerariesPriceAscending() {
+    try {
+        const response = await fetch('/sortItinerariesPriceAscendingTourist');
+        const itineraries = await response.json();
+
+        if (response.ok) {
+            displayItineraries(itineraries); // Display products in the modal
+            openItineraryModal();
+        } else {
+            alert(itineraries.error || 'Failed to sort itineraries.');
+        }
+    } catch (error) {
+        console.error('Error fetching sorted itineraries:', error);
+        alert('An error occurred while sorting itineraries.');
     }
 }
 
@@ -274,32 +421,234 @@ function closeHistoricalPlacesModal() {
 }
 
 function displayActivities(activities) {
-    const container = document.getElementById('activitiesContainerModal');
-    container.innerHTML = '';
+        const container = document.getElementById('activitiesContainerModal');
+        container.innerHTML = ''; // Clear previous activities
 
-    if (activities.length === 0) {
-        container.innerHTML = '<p>No activities found.</p>';
+        if (activities.length === 0) {
+            container.innerHTML = '<p>No activities found.</p>';
+            return;
+        }
+
+        activities.forEach(activity => {
+            const activityDiv = document.createElement('div');
+            activityDiv.className = 'activity';
+            activityDiv.innerHTML = `
+                <h3 style="display: inline;">${activity.Name}</h3>
+                <button onclick="toggleDetails(this)" style="margin-left: 10px;">View Details</button>
+                <div class="details" style="display: none;">
+                    <p>Date: ${new Date(activity.Date).toLocaleDateString()}</p>
+                    <p>Time: ${activity.Time}</p>
+                    <p>Price: $${activity.Price}</p>
+                    <p>Rating: ${activity.Rating}</p>
+                    <p>Location: ${activity.Location.address || 'N/A'}</p>
+                    <p>Category: ${activity.Category}</p>
+                    <p>Tags: ${activity.Tags.join(', ')}</p>
+                    <p>Special Discount: ${activity.SpecialDiscount || 'N/A'}</p>
+                    <p>Booking Status: ${activity.BookingOpen}</p>
+                </div>
+            `;
+            container.appendChild(activityDiv);
+        });
+    }
+
+    function displayMuseums(museums) {
+    const container = document.getElementById('museumsContainerModal');
+    container.innerHTML = ''; // Clear previous museums
+
+    if (museums.length === 0) {
+        container.innerHTML = '<p>No museums found.</p>';
         return;
     }
 
-    activities.forEach(activity => {
-        const activityDiv = document.createElement('div');
-        activityDiv.className = 'activity';
-        activityDiv.innerHTML = `
-            <h3 style="display: inline;">${activity.Name}</h3>
+    museums.forEach(museum => {
+        const museumDiv = document.createElement('div');
+        museumDiv.className = 'museum';
+        museumDiv.innerHTML = `
+            <h3 style="display: inline;">${museum.name}</h3>
             <button onclick="toggleDetails(this)" style="margin-left: 10px;">View Details</button>
-            <div class="details">
-                <p>Date: ${new Date(activity.Date).toLocaleDateString()}</p>
-                <p>Time: ${activity.Time}</p>
-                <p>Price: ${activity.Price}</p>
-                <p>Description: ${activity.Description}</p>
+            <div class="details" style="display: none;">
+                <p>Description: ${museum.description}</p>
+                <p>Pictures: ${museum.pictures.join(', ')}</p>
+                <p>Location: ${museum.location}</p>
+                <p>Opening Hours: ${museum.openingHours}</p>
+                <p>Ticket Prices: Foreigner: ${museum.ticketPrices.foreigner}, Native: ${museum.ticketPrices.native}, Student: ${museum.ticketPrices.student}</p>
+                <p>Author: ${museum.AuthorUsername}</p>
+                <p>Historical Tags: ${museum.HistoricalTags.join(', ')}</p>
+                <p>Date of Event: ${museum.dateOfEvent ? new Date(museum.dateOfEvent).toLocaleDateString() : 'N/A'}</p>
             </div>
         `;
-        container.appendChild(activityDiv);
+        container.appendChild(museumDiv);
     });
 }
 
-// Define displayMuseums, displayItineraries, and displayHistoricalPlaces similarly.
+
+function displayItineraries(itineraries) {
+    const container = document.getElementById('itineraryContainerModal');
+    container.innerHTML = ''; 
+
+    if (itineraries.length === 0) {
+        container.innerHTML = '<p>No itineraries found.</p>';
+        return;
+    }
+
+    itineraries.forEach(itinerary => {
+    const itineraryDiv = document.createElement('div');
+    itineraryDiv.className = 'itinerary';
+    itineraryDiv.innerHTML = `
+        <h3 style="display: inline;">${itinerary.Title}</h3>
+        <button onclick="toggleDetails(this)" style="margin-left: 10px;">View Details</button>
+        <div class="details" style="display: none;">
+            <p>Activities: ${itinerary.Activities}</p>
+            <p>Locations: ${itinerary.Locations}</p>
+            <p>Timeline: ${itinerary.Timeline}</p>
+            <p>Language: ${itinerary.Language}</p>
+            <p>Price: $${itinerary.Price}</p>
+            <p>Date: ${new Date(itinerary.Date).toLocaleDateString()}</p>
+            <p>Accessibility: ${itinerary.accessibility ? 'Yes' : 'No'}</p>
+            <p>Pickup Location: ${itinerary.pickupLocation}</p>
+            <p>Dropoff Location: ${itinerary.dropoffLocation}</p>
+            <p>Is Booked: ${itinerary.isBooked ? 'Yes' : 'No'}</p>
+            <p>Tags: ${itinerary.Tags.join(', ')}</p>
+            <p>Author: ${itinerary.AuthorUsername}</p>
+        </div>
+    `;
+    container.appendChild(itineraryDiv);
+});
+}
+
+function displayHistoricalPlaces(historicalPlaces) {
+    const container = document.getElementById('HistoricalPlacesContainerModal');
+    container.innerHTML = ''; // Clear previous Historical Places
+
+    if (historicalPlaces.length === 0) {
+        container.innerHTML = '<p>No Historical Places found.</p>';
+        return;
+    }
+
+    historicalPlaces.forEach(historicalPlace => {
+        const HPDiv = document.createElement('div');
+        HPDiv.className = 'historical-place';
+        HPDiv.innerHTML = `
+            <h3 style="display: inline;">${historicalPlace.name}</h3>
+            <button onclick="toggleDetails(this)" style="margin-left: 10px;">View Details</button>
+            <div class="details" style="display: none;">
+                <p>Description: ${historicalPlace.description}</p>
+                <p>Pictures: ${historicalPlace.pictures.join(', ')}</p>
+                <p>Location: ${historicalPlace.location}</p>
+                <p>Opening Hours: ${historicalPlace.openingHours}</p>
+                <p>Ticket Prices: Foreigner: ${historicalPlace.ticketPrices.foreigner}, Native: ${historicalPlace.ticketPrices.native}, Student: ${historicalPlace.ticketPrices.student}</p>
+                <p>Author: ${historicalPlace.AuthorUsername}</p>
+                <p>Tags: ${historicalPlace.Tags.join(', ')}</p>
+                <p>Date of Event: ${historicalPlace.dateOfEvent ? new Date(historicalPlace.dateOfEvent).toLocaleDateString() : 'N/A'}</p>
+            </div>
+        `;
+        container.appendChild(HPDiv);
+    });
+}
+document.getElementById('filter').addEventListener('click', async () => {
+        const category = document.getElementById('category').value;
+        const minPrice = document.getElementById('minPrice').value;
+        const maxPrice = document.getElementById('maxPrice').value;
+        const inputDate = document.getElementById('InputDate').value;
+        const rating = document.getElementById('Rating').value;
+
+        // Prepare the request body
+        const requestBody = {
+            Category: category || undefined,
+            minPrice: minPrice ? parseFloat(minPrice) : undefined,
+            maxPrice: maxPrice ? parseFloat(maxPrice) : undefined,
+            InputDate: inputDate || undefined,
+            Rating: rating ? parseInt(rating) : undefined
+        };
+
+        try {
+            // Send a request to the filterActivities endpoint
+            const response = await fetch('/api/filterActivities', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(requestBody)
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                alert(errorData.msg); // Display error message if no activities found
+                return;
+            }
+
+            const activities = await response.json();
+            displayActivities(activities); // Display filtered activities
+        } catch (error) {
+            console.error('Error fetching activities:', error);
+            alert('An error occurred while fetching activities.');
+        }
+    });
+
+    document.getElementById('filterMuseums').addEventListener('click', async () => {
+    const tagsInput = document.getElementById('tags').value;
+    const tags = tagsInput.split(',').map(tag => tag.trim()).filter(tag => tag !== '');
+
+    if (tags.length === 0) {
+        alert('Please enter at least one tag to filter.');
+        return;
+    }
+
+    try {
+        const response = await fetch('/api/getMuseumsByTagGuest', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ tags })
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            alert(errorData.error || 'Failed to fetch museums.');
+            return;
+        }
+
+        const museums = await response.json();
+        displayMuseums(museums); // Display filtered museums
+    } catch (error) {
+        console.error('Error fetching filtered museums:', error);
+        alert('An error occurred while fetching museums.');
+    }
+});
+
+document.getElementById('filterHistoricalPlaces').addEventListener('click', async () => {
+    const tagsInput = document.getElementById('historicalTags').value;
+    const tags = tagsInput.split(',').map(tag => tag.trim()).filter(tag => tag !== '');
+
+    if (tags.length === 0) {
+        alert('Please enter at least one tag to filter.');
+        return;
+    }
+
+    try {
+        const response = await fetch('/api/getHistoricalPlacesByTagGuest', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ tags })
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            alert(errorData.error || 'Failed to fetch historical places.');
+            return;
+        }
+
+        const historicalPlaces = await response.json();
+        displayHistoricalPlaces(historicalPlaces); // Display filtered historical places
+    } catch (error) {
+        console.error('Error fetching filtered historical places:', error);
+        alert('An error occurred while fetching historical places.');
+    }
+});
+
 </script>
 
 </body>

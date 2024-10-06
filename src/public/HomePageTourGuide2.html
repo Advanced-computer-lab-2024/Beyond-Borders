@@ -226,7 +226,7 @@
         <form id="update-form">
             <div class="form-row">
                 <label for="updateitineraryTitle">Title:</label>
-                <input type="text" id="updateitineraryTitle">
+                <input type="text" id="updateitineraryTitle" readonly>
             </div>
             <div class="form-row">
                 <label for="updateitineraryActivities">Activities:</label>
@@ -264,10 +264,7 @@
                 <label for="updateitineraryDropoffLocation">Dropoff Location:</label>
                 <input type="text" id="updateitineraryDropoffLocation">
             </div>
-            <div class="form-row">
-                <label for="updateitineraryBookingStatus">Booking Status:</label>
-                <input type="checkbox" id="updateitineraryBookingStatus">
-            </div>
+           
             <div class="form-row">
                 <label for="updateitineraryTags">Tags :</label>
                 <input type="text" id="updateitineraryTags">
@@ -323,10 +320,7 @@
                 <label for="itineraryDropoffLocation">Dropoff Location:</label>
                 <input type="text" id="itineraryDropoffLocation">
             </div>
-            <div class="form-row">
-                <label for="itineraryBookingStatus">Booking Status:</label>
-                <input type="checkbox" id="itineraryBookingStatus">
-            </div>
+           
             <div class="form-row">
                 <label for="itineraryTags">Tags :</label>
                 <input type="text" id="itineraryTags">
@@ -439,7 +433,7 @@ function populateUpdateForm(activity) {
     document.getElementById('updateitineraryDropoffLocation').value = activity.dropoffLocation || '';
     document.getElementById('updateitineraryAccessibility').checked = activity.accessibility|| false;
 
-   document.getElementById('updateitineraryBookingStatus').checked = activity.isBooked || false;
+ 
 }
 // async function saveUpdatedActivity() {
 //     const Name = document.getElementById('updateName').value;
@@ -478,50 +472,42 @@ function populateUpdateForm(activity) {
 //     }
 // }
 async function saveUpdatedActivity() {
-    const Name = document.getElementById('updateName').value;
-    const Date = document.getElementById('updateDate').value;
-    const Time = document.getElementById('updateTime').value;
-    const Price = parseFloat(document.getElementById('updatePrice').value); // Ensure price is a number
-    const Rating = 0; // Or set this based on your logic
-    const address = document.getElementById('updateLocation').value;
-    // Retrieve longitude and latitude from their respective inputs
-    const longitude = parseFloat(document.getElementById('updateLongitude').value);
-    const latitude = parseFloat(document.getElementById('updateLatitude').value);
-    // Construct the Location object
-    const Location = {
-        type: 'Point', // Set to 'Point' for GeoJSON
-        coordinates: [longitude, latitude], // [longitude, latitude]
-        address: address || null, // Optional, set to null if not provided
-    };
-    const Category = document.getElementById('updateCategory').value;
+    const title=document.getElementById('updateitineraryTitle').value;
 
-    // Split tags into an array, handle empty input
-    const TagsInput = document.getElementById('updateTags').value;
-    const Tags = TagsInput ? TagsInput.split(',').map(tag => tag.trim()) : []; // Send an empty array if no tags
+    const date=document.getElementById('updateitineraryDate').value ; // Assuming activity.Date is in ISO format
+    const timeline=document.getElementById('updateitineraryTimeline').value ;
+    const price=document.getElementById('updateitineraryPrice').value ;
+    const locations=document.getElementById('updateitineraryLocations').value ;
+    const activities=document.getElementById('updateitineraryActivities').value ;
+    const language=document.getElementById('updateitineraryLanguage').value ;
+    const pickup= document.getElementById('updateitineraryPickupLocation').value ;
+    const tagsInput = document.getElementById('updateitineraryTags').value;
+    const tags = tagsInput ? tagsInput.split(',').map(tag => tag.trim()) : []; // Send an empty array if no tags
+    const dropoff=document.getElementById('updateitineraryDropoffLocation').value ;
+    const access=document.getElementById('updateitineraryAccessibility').checked ;
 
-    const SpecialDiscount = document.getElementById('updateSpecialDiscount').value;
-    const BookingOpen = document.getElementById('updateBookingStatus').checked; // Use .checked for boolean
-    const AdvertiserName = localStorage.getItem('username');
+    
+    const tourguideName = localStorage.getItem('username');
 
     try {
-        const response = await fetch('/api/updateActivity', {
+        const response = await fetch(`/api/updateItinerary`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ AdvertiserName, Name, Date, Time, Price, Rating, Location, SpecialDiscount, Category, Tags, BookingOpen })
+            body: JSON.stringify({ title, activities,locations, timeline,language,price,date, access, pickup, dropoff, tags })
         });
 
         if (!response.ok) {
             const errorData = await response.json();
-            throw new Error(errorData.error || 'Error updating activity');
+            throw new Error(errorData.error || 'Error updating itinerary');
         }
 
-        alert('Activity updated successfully!');
+        alert('Itinerary updated successfully!');
         closeUpdateModal(); // Close the modal on successful save
     } catch (error) {
         console.error('Error:', error);
-        alert('Failed to update activity: ' + error.message);
+        alert('Failed to update Itinerary: ' + error.message);
     }
 }
 
@@ -538,11 +524,12 @@ async function deleteActivity(activityName) {
     }
 
     try {
-        const response = await fetch(`/api/deleteItinerary?Title=${encodeURIComponent(activityName)}`, {
+        const response = await fetch(`/api/deleteItinerary`, {
             method: 'DELETE',
             headers: {
                 'Content-Type': 'application/json'
             },
+            body: JSON.stringify({ Title: activityName })
             
         });
 
@@ -609,7 +596,7 @@ async function readMyProfile() {
     const accessibility = document.getElementById('itineraryAccessibility').checked; // Convert to boolean
     const pickupLocation = document.getElementById('itineraryPickupLocation').value;
     const dropoffLocation = document.getElementById('itineraryDropoffLocation').value;
-    const bookingstatus=document.getElementById('itineraryBookingStatus').checked;
+   
 
     // Split tags into an array, handle empty input
     const tagsInput = document.getElementById('itineraryTags').value;
@@ -642,7 +629,7 @@ async function readMyProfile() {
                 accessibility: accessibility, // Include accessibility if needed
                 pickupLocation: pickupLocation, // Include pickup location
                 dropoffLocation: dropoffLocation, // Include dropoff location
-                isBooked: bookingstatus, // Include booking status
+                
                 Tags: tags, // Include tags
                 Language:language
 
@@ -664,20 +651,6 @@ async function readMyProfile() {
 }
 
 
-    // async function createNewActivity() {
-    //     const username = localStorage.getItem('username');
-    //     if (!username) {
-    //         alert('You need to log in first.');
-    //         return;
-    //     }
-
-    //     try {
-    //             openCreateActivityModal(); // Open profile modal
-    //     } catch (error) {
-    //         console.error('Error fetching profile:', error);
-    //         alert('An error occurred while loading profile.');
-    //     }
-    // }
 
     function populateProfileForm(profile) {
         document.getElementById('username').value = profile.Username || '';
