@@ -156,19 +156,50 @@
 
 <div class="header">
     <h1>Beyond Borders</h1>
-    <nav></nav>
-        <ul>
-            
-            <li><a href="#" onclick="viewAllActivities()">View All Activities</a></li>
-            <li><a href="#" onclick="viewAllMuseums()">View All Museums</a></li>
-            <li><a href="#" onclick="viewAllItineraries()">View All Itineraries</a></li>
-            <li><a href="#" onclick="viewAllHistoricalPlaces()">View All Historical Places</a></li>
-            <!-- <li><a href="#about">Historical Places</a></li> -->
-        </ul>
-    </nav>
+    <div>
+        <button onclick="viewAllActivities()">View All Activities</button>
+        <button onclick="viewAllMuseums()">View All Museums</button>
+        <button onclick="viewAllItineraries()">View All Itineraries</button>
+        <button onclick="viewAllHistoricalPlaces()">View All Historical Places</button>
+    </div>
     
     <div class="button-container">
         <button onclick="readMyProfile()">My Profile</button>
+    </div>
+    
+</div>
+<div class="search-container"></div>
+    <input type="text" id="searchInput" placeholder="Search for a product by name...">
+    <button class="search-button" onclick="searchActivity()">Search Activities</button>
+</div>
+
+<div id="activitiesModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeActivitiesModal()">&times;</span>
+        <h2>Upcoming Activities</h2>
+
+        <!-- Filter Options -->
+        <label for="category">Category:</label>
+        <input type="text" id="category" placeholder="Enter category" />
+
+        <label for="minPrice">Min Price:</label>
+        <input type="number" id="minPrice" placeholder="Minimum Price" />
+
+        <label for="maxPrice">Max Price:</label>
+        <input type="number" id="maxPrice" placeholder="Maximum Price" />
+
+        <label for="InputDate">Date:</label>
+        <input type="date" id="InputDate" />
+
+        <label for="Rating">Rating:</label>
+        <input type="number" id="Rating" min="1" max="5" placeholder="Rating (1-5)" />
+        
+        <button id="filter">Apply Filter</button>
+
+        <!-- Container for displaying activities -->
+        <div id="activitiesContainerModal">
+            <!-- Activities will be displayed here -->
+        </div>
     </div>
 </div>
 
@@ -258,6 +289,8 @@
     </div>
 </div>
 
+
+
 <script>
 function toggleDetails(button) {
     const details = button.nextElementSibling; // Get the details div
@@ -267,6 +300,11 @@ function toggleDetails(button) {
         details.style.display = "none"; // Hide details
     }
 }
+
+function toggleDetails(button) {
+        const detailsDiv = button.nextElementSibling;
+        detailsDiv.style.display = detailsDiv.style.display === 'none' ? 'block' : 'none';
+    }
 
 async function readMyProfile() {
     const username = localStorage.getItem('username');
@@ -360,13 +398,42 @@ async function viewAllHistoricalPlaces() {
     }
 }
 
-function openActivitiesModal() {
-    document.getElementById("activitiesModal").style.display = "block";
+async function searchActivity() {
+    const searchName = document.getElementById('searchInput').value.trim(); // Correct ID for input
+    if (!searchName) {
+        alert('Please enter a product name to search.');
+        return;
+    }
+
+    try {
+        const response = await fetch(`/api/viewProductsSeller?Name=${encodeURIComponent(searchName)}`, {
+            method: 'GET', // Use GET for query parameters
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+
+        const products = await response.json();
+
+        if (response.ok) {
+            displayProducts(products);
+            openProductsModal();
+        } else {
+            alert(products.error || 'No products found.');
+        }
+    } catch (error) {
+        console.error('Error fetching products:', error);
+        alert('An error occurred while searching for products.');
+    }
 }
 
-function closeActivitiesModal() {
-    document.getElementById("activitiesModal").style.display = "none";
-}
+function openActivitiesModal() {
+        document.getElementById("activitiesModal").style.display = "block";
+    }
+
+    function closeActivitiesModal() {
+        document.getElementById("activitiesModal").style.display = "none";
+    }
 
 function openMuseumsModal() {
     document.getElementById("museumsModal").style.display = "block"; // Open the museums modal
@@ -393,35 +460,35 @@ function closeHistoricalPlacesModal() {
 }
 
 function displayActivities(activities) {
-    const container = document.getElementById('activitiesContainerModal');
-    container.innerHTML = ''; // Clear previous activities
+        const container = document.getElementById('activitiesContainerModal');
+        container.innerHTML = ''; // Clear previous activities
 
-    if (activities.length === 0) {
-        container.innerHTML = '<p>No activities found.</p>';
-        return;
+        if (activities.length === 0) {
+            container.innerHTML = '<p>No activities found.</p>';
+            return;
+        }
+
+        activities.forEach(activity => {
+            const activityDiv = document.createElement('div');
+            activityDiv.className = 'activity';
+            activityDiv.innerHTML = `
+                <h3 style="display: inline;">${activity.Name}</h3>
+                <button onclick="toggleDetails(this)" style="margin-left: 10px;">View Details</button>
+                <div class="details" style="display: none;">
+                    <p>Date: ${new Date(activity.Date).toLocaleDateString()}</p>
+                    <p>Time: ${activity.Time}</p>
+                    <p>Price: $${activity.Price}</p>
+                    <p>Rating: ${activity.Rating}</p>
+                    <p>Location: ${activity.Location.address || 'N/A'}</p>
+                    <p>Category: ${activity.Category}</p>
+                    <p>Tags: ${activity.Tags.join(', ')}</p>
+                    <p>Special Discount: ${activity.SpecialDiscount || 'N/A'}</p>
+                    <p>Booking Status: ${activity.BookingOpen}</p>
+                </div>
+            `;
+            container.appendChild(activityDiv);
+        });
     }
-
-    activities.forEach(activity => {
-        const activityDiv = document.createElement('div');
-        activityDiv.className = 'activity';
-        activityDiv.innerHTML = `
-            <h3 style="display: inline;">${activity.Name}</h3>
-            <button onclick="toggleDetails(this)" style="margin-left: 10px;">View Details</button>
-            <div class="details" style="display: none;">
-                <p>Date: ${new Date(activity.Date).toLocaleDateString()}</p>
-                <p>Time: ${activity.Time}</p>
-                <p>Price: $${activity.Price}</p>
-                <p>Rating: ${activity.Rating}</p>
-                <p>Location: ${activity.Location.address || 'N/A'}</p>
-                <p>Category: ${activity.Category}</p>
-                <p>Tags: ${activity.Tags.join(', ')}</p>
-                <p>Special Discount: ${activity.SpecialDiscount || 'N/A'}</p>
-                <p>Booking Status: ${activity.BookingOpen}</p>
-            </div>
-        `;
-        container.appendChild(activityDiv);
-    });
-}
 
 function displayMuseums(museums) {
     const container = document.getElementById('museumsContainerModal');
@@ -575,6 +642,49 @@ window.onclick = function(event) {
         closeModal();
     }
 };
+
+document.getElementById('filter').addEventListener('click', async () => {
+        const category = document.getElementById('category').value;
+        const minPrice = document.getElementById('minPrice').value;
+        const maxPrice = document.getElementById('maxPrice').value;
+        const inputDate = document.getElementById('InputDate').value;
+        const rating = document.getElementById('Rating').value;
+
+        // Prepare the request body
+        const requestBody = {
+            Category: category || undefined,
+            minPrice: minPrice ? parseFloat(minPrice) : undefined,
+            maxPrice: maxPrice ? parseFloat(maxPrice) : undefined,
+            InputDate: inputDate || undefined,
+            Rating: rating ? parseInt(rating) : undefined
+        };
+
+        try {
+            // Send a request to the filterActivities endpoint
+            const response = await fetch('/api/filterActivities', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(requestBody)
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                alert(errorData.msg); // Display error message if no activities found
+                return;
+            }
+
+            const activities = await response.json();
+            displayActivities(activities); // Display filtered activities
+        } catch (error) {
+            console.error('Error fetching activities:', error);
+            alert('An error occurred while fetching activities.');
+        }
+    });
+
+
+
 </script>
 
 </body>
