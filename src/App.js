@@ -167,7 +167,7 @@ app.post("/addMuseum" , createMuseumsAsTourismGoverner);
 app.get("/readMuseumByName" , getMuseumByNameAsTourismGoverner);
 app.put("/updateMuseumByName" , updateMuseumByNameAsTourismGoverner);
 app.post("/deleteMuseumByName" , deleteMuseumByNameAsTourismGoverner);
-app.get("/readAllMuseums" , getMuseumsByAuthorAsTourismGoverner)
+app.post("/readAllMuseums" , getMuseumsByAuthorAsTourismGoverner);
 app.post("/addHistoricalPlace" , createHistoricalPlaceAsTourismGoverner);
 app.get("/readHistoricalPlace" , getHistoricalPlaceByNameAsTourismGoverner);
 app.put("/updateHistoricalPlace" , updateHistoricalPlaceAsTourismGoverner);

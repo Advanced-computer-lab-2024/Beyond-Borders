@@ -97,6 +97,7 @@ const CreateMuseums = async (req, res) => {
         res.status(400).json({ error: error.message });
     }
 };
+
   //YASSIN AND AMINA
   const deleteMuseumByName = async (req, res) => {
     try {
@@ -108,13 +109,14 @@ const CreateMuseums = async (req, res) => {
           return res.status(404).json({ error: "Museum not found for the given Tourism Governer." });
       }
       else{
-        await MuseumsModel.findOneAndDelete({ name: name});
+        await MuseumsModel.findOneAndDelete({ name: name,AuthorUsername: AuthorUsername});
     }
     } catch (error) {
       res.status(400).json({ error: error.message });
     }
   };
 
+  
   //FIXED
   const getMuseumsByAuthor = async (req, res) => {
     try {
