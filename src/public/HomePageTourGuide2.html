@@ -276,51 +276,66 @@
 </div>
 
 <!-- Modal for Create New Activity -->
-<div id="createActivityModal" class="modal">
+<div id="createItineraryModal" class="modal">
     <div class="modal-content">
         <span class="close" onclick="closeCreateActivityModal()">&times;</span>
-        <h2>Create New Activity</h2>
-        <form id="create-activity-form">
+        <h2>Create New Itinerary</h2>
+        <form id="create-itinerary-form">
             <div class="form-row">
-                <label for="activityName">Name:</label>
-                <input type="text" id="activityName">
+                <label for="itineraryTitle">Title:</label>
+                <input type="text" id="itineraryTitle" required>
             </div>
             <div class="form-row">
-                <label for="activityDate">Date:</label>
-                <input type="date" id="activityDate">
+                <label for="itineraryActivities">Activities:</label>
+                <input type="text" id="itineraryActivities" required>
             </div>
             <div class="form-row">
-                <label for="activityTime">Time:</label>
-                <input type="text" id="activityTime">
+                <label for="itineraryLocations">Locations:</label>
+                <input type="text" id="itineraryLocations" required>
             </div>
             <div class="form-row">
-                <label for="activityPrice">Price:</label>
-                <input type="number" id="activityPrice">
+                <label for="itineraryTimeline">Timeline:</label>
+                <input type="text" id="itineraryTimeline" required>
             </div>
             <div class="form-row">
-                <label for="activityLocation">Location:</label>
-                <input type="text" id="activityLocation">
+                <label for="itineraryLanguage">Language:</label>
+                <input type="text" id="itineraryLanguage" required>
             </div>
             <div class="form-row">
-                <label for="activityCategory">Category:</label>
-                <input type="text" id="activityCategory">
+                <label for="itineraryPrice">Price:</label>
+                <input type="number" id="itineraryPrice" required>
             </div>
             <div class="form-row">
-                <label for="activityTags">Tags:</label>
-                <input type="text" id="activityTags">
+                <label for="itineraryDate">Date:</label>
+                <input type="date" id="itineraryDate" required>
             </div>
             <div class="form-row">
-                <label for="activitySpecialDiscount">Special Discount:</label>
-                <input type="text" id="activitySpecialDiscount">
+                <label for="itineraryAccessibility">Accessibility:</label>
+                <input type="text" id="itineraryAccessibility" required>
             </div>
             <div class="form-row">
-                <label for="activityBookingStatus">Booking Status:</label>
-                <input type="text" id="activityBookingStatus">
+                <label for="itineraryPickupLocation">Pickup Location:</label>
+                <input type="text" id="itineraryPickupLocation" required>
             </div>
-            <button type="button" onclick="saveNewActivity()">Create Activity</button>
+            <div class="form-row">
+                <label for="itineraryDropoffLocation">Dropoff Location:</label>
+                <input type="text" id="itineraryDropoffLocation" required>
+            </div>
+            <div class="form-row">
+                <label for="itineraryBookingStatus">Booking Status:</label>
+                <input type="text" id="itineraryBookingStatus" required>
+            </div>
+            <div class="form-row">
+                <label for="itineraryTags">Tags:</label>
+                <input type="text" id="itineraryTags">
+            </div>
+            
+            <button type="button" onclick="saveNewActivity()">Create Itinerary</button>
         </form>
     </div>
 </div>
+
+
 
 
 
@@ -545,52 +560,68 @@ async function readMyProfile() {
 
 
     async function saveNewActivity() {
-    const name = document.getElementById('activityName').value;
-    const date = document.getElementById('activityDate').value;
-    const time = document.getElementById('activityTime').value;
-    const price = document.getElementById('activityPrice').value;
-    const location = {
-        address: document.getElementById('activityLocation').value,
-    };
-    const category = document.getElementById('activityCategory').value;
+        const title = document.getElementById('itineraryTitle').value;
+const activities = document.getElementById('itineraryActivities').value;
+const locations = document.getElementById('itineraryLocations').value;
+const timeline = document.getElementById('itineraryTimeline').value;
+const language = document.getElementById('itineraryLanguage').value;
+const price = document.getElementById('itineraryPrice').value;
+const date = document.getElementById('itineraryDate').value;
+const accessibility = document.getElementById('itineraryAccessibility').value;
+const pickupLocation = document.getElementById('itineraryPickupLocation').value;
+const dropoffLocation = document.getElementById('itineraryDropoffLocation').value;
+const bookingStatus = document.getElementById('itineraryBookingStatus').value;
 
-    // Split tags into an array, handle empty input
-    const tagsInput = document.getElementById('activityTags').value;
-    const tags = tagsInput ? tagsInput.split(',').map(tag => tag.trim()) : []; // Send an empty array if no tags
+// Split tags into an array, handle empty input
+const tagsInput = document.getElementById('itineraryTags').value;
+const tags = tagsInput ? tagsInput.split(',').map(tag => tag.trim()) : []; // Send an empty array if no tags
 
-    const specialDiscount = document.getElementById('activitySpecialDiscount').value;
-    const bookingOpen = document.getElementById('activityBookingStatus').value;
+const authorUsername = localStorage.getItem('username');
 
-    const advertiserName = localStorage.getItem('username');
+// Now you can use these variables to create a new itinerary object or send them to your backend API.
 
-    // Check if the user is logged in
-    if (!advertiserName) {
-        alert('You need to log in first.');
-        return;
-    }
-
-    try {
-        const response = await fetch('/api/createNewActivity', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ AdvertiseName: advertiserName, Name: name, Date: date, Time: time, Price: price, Location: location, Category: category, Tags: tags, SpecialDiscount: specialDiscount, bookingOpen })
-        });
-
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.error || 'Error creating activity');
-        }
-
-        alert('Activity created successfully!');
-        closeCreateActivityModal(); // Close the modal on successful creation
-        loadMyActivities(); // Reload activities to reflect the new addition
-    } catch (error) {
-        console.error('Error:', error);
-        alert('Failed to create activity: ' + error.message);
-    }
+// Check if the user is logged in
+if (!authorUsername) {
+    alert('You need to log in first.');
+    return;
 }
+
+try {
+    const response = await fetch('/api/createItinerary', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            AuthorUsername: authorUsername,
+            Title: title,
+            Activities: activities,
+            Locations: locations,
+            Timeline: timeline,
+            Language: language,
+            Price: price,
+            Date: date,
+            Accessibility: accessibility,
+            PickupLocation: pickupLocation,
+            DropoffLocation: dropoffLocation,
+            BookingStatus: bookingStatus,
+            Tags: tags
+        })
+    });
+
+    if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Error creating itinerary');
+    }
+
+    alert('Itinerary created successfully!');
+    closeCreateActivityModal(); // Close the modal on successful creation
+    loadMyActivities(); // Reload itineraries to reflect the new addition
+} catch (error) {
+    console.error('Error:', error);
+    alert('Failed to create itinerary: ' + error.message);
+}
+    }
 
 
     // async function createNewActivity() {
@@ -642,11 +673,11 @@ async function readMyProfile() {
     }
 
     function openCreateActivityModal() {
-        document.getElementById("createActivityModal").style.display = "block";
+        document.getElementById("createItineraryModal").style.display = "block";
     }
 
     function closeCreateActivityModal() {
-        document.getElementById("createActivityModal").style.display = "none";
+        document.getElementById("createItineraryModal").style.display = "none";
     }
 
     
