@@ -160,7 +160,6 @@
             <li><a href="#" onclick="viewAllProducts()">View All Products</a></li>
             <li><a href="#" onclick="openCreateTagModal()">Add New Tag</a></li>
             <li><a href="#" onclick="openCreateCategoryModal()">Add New Activity Category</a></li>
-            <li><a href="AdminProduct.html">Products</a></li>
             <li><a href="AdminDeleteAccount.html">Delete Account</a></li>
             <li><a href="#" onclick="loadTags()">Existing Tags</a></li>
             <li><a href="#" onclick="loadCategories()">Existing Activity Categories</a></li>
@@ -319,6 +318,37 @@
                 <input type="text" id="productPicture" required>
             </div>
             <button type="button" id="submitProductBtn" onclick="addProduct()">Add Product</button>
+        </form>
+    </div>
+</div>
+
+<!-- Modal for Editing Product -->
+<div id="editProductModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeEditProductModal()">&times;</span>
+        <h2>Edit Product</h2>
+        <form id="edit-product-form">
+            <div class="form-row">
+                <label for="editProductName">Product Name:</label>
+                <input type="text" id="editProductName" readonly>
+            </div>
+            <div class="form-row">
+                <label for="editProductDescription">Description:</label>
+                <input type="text" id="editProductDescription" required>
+            </div>
+            <div class="form-row">
+                <label for="editProductPrice">Price:</label>
+                <input type="number" id="editProductPrice" required>
+            </div>
+            <div class="form-row">
+                <label for="editProductQuantity">Quantity:</label>
+                <input type="number" id="editProductQuantity" required>
+            </div>
+            <div class="form-row">
+                <label for="editProductPicture">Picture URL:</label>
+                <input type="text" id="editProductPicture" required>
+            </div>
+            <button type="button" onclick="submitEditProduct()">Save Changes</button>
         </form>
     </div>
 </div>
@@ -548,12 +578,62 @@ function displayProducts(products) {
                 <p>Seller: ${product.Seller}</p>
                 <p>Rating: ${product.Ratings}</p>
                 <p>Reviews: ${product.Reviews}</p>
+                <button onclick='openEditProductModal(${JSON.stringify(product)})'>Edit</button>
             </div>
         `;
 
         productsList.appendChild(productDiv);
     });
 }
+
+async function submitEditProduct() {
+    const Name = document.getElementById('editProductName').value;
+    const Description = document.getElementById('editProductDescription').value;
+    const Price = parseFloat(document.getElementById('editProductPrice').value);
+    const Quantity = parseInt(document.getElementById('editProductQuantity').value);
+    const Picture = document.getElementById('editProductPicture').value;
+    const Seller = document.getElementById('editProductModal').dataset.sellerName; // Get the seller name from dataset
+
+    try {
+        const response = await fetch('/api/editProductSeller', {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ Name, Description, Price, Quantity, Seller, Picture })
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) {
+            throw new Error(result.error || 'Error updating product');
+        }
+
+        alert(result.msg); // Show success message
+        closeEditProductModal(); // Close the modal
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Failed to update product: ' + error.message);
+    }
+}
+
+function openEditProductModal(product) {
+    document.getElementById('editProductName').value = product.Name;
+    document.getElementById('editProductDescription').value = product.Description;
+    document.getElementById('editProductPrice').value = product.Price;
+    document.getElementById('editProductQuantity').value = product.Quantity;
+    document.getElementById('editProductPicture').value = product.Picture;
+
+    // Store the seller name for the update request
+    document.getElementById('editProductModal').dataset.sellerName = product.Seller;
+
+    document.getElementById("editProductModal").style.display = "block"; // Open the modal
+}
+
+function closeEditProductModal() {
+    document.getElementById("editProductModal").style.display = "none";
+}
+
 
     async function openUpdateForm(oldCategoryName) {
         populateUpdateForm(oldCategoryName);
