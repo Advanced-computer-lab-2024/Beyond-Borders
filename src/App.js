@@ -137,10 +137,10 @@ app.get("/sortItinerariesPriceDescendingTourist",sortItinerariesPriceDescendingT
 app.get("/sortItinerariesPriceAscendingTourist",sortItinerariesPriceAscendingTourist);
 app.get("/sortItinerariesPriceAscendingGuest",sortItinerariesPriceAscendingGuest);
 app.get("/sortItinerariesPriceDescendingGuest",sortItinerariesPriceDescendingGuest);
-app.post("/ActivitiesSearchAll",ActivitiesSearchAll);
-app.post("/ItinerarySearchAll",ItinerarySearchAll);
-app.post("/MuseumSearchAll",MuseumSearchAll);
-app.post("/HistoricalPlacesSearchAll",HistoricalPlacesSearchAll);
+app.post("/api/ActivitiesSearchAll",ActivitiesSearchAll);
+app.post("/api/ItinerarySearchAll",ItinerarySearchAll);
+app.post("/api/MuseumSearchAll",MuseumSearchAll);
+app.post("/api/HistoricalPlacesSearchAll",HistoricalPlacesSearchAll);
 
 
 
