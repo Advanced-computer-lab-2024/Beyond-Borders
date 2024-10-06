@@ -107,11 +107,10 @@ const { default: mongoose } = require('mongoose');
 };
   
 const updateItineraryByTitle = async (req, res) => {
-  const { Title } = req.query; // Get the title from the query parameters
+  const { Title } = req.query; // Assuming the title is passed as a route parameter
   const {
-    AuthorUsername,
       Activities,
-      Location,
+      Locations,
       Timeline,
       Language,
       Price,
@@ -119,51 +118,44 @@ const updateItineraryByTitle = async (req, res) => {
       accessibility,
       pickupLocation,
       dropoffLocation,
-      Tags
+      Tags,
+      AuthorUsername
   } = req.body; // Data to update
 
   try {
-      // Check if the itinerary exists by title (case-insensitive)
-      const existingItinerary = await ItineraryModel.findOne({
-          Title: { $regex: new RegExp(Title, 'i') } // Case-insensitive search
-      });
+      // Find the itinerary by its title (case-insensitive)
+      const itinerary = await ItineraryModel.findOne({ Title: { $regex: new RegExp(Title, 'i') } });
 
-      if (!existingItinerary) {
-          return res.status(404).json({ error: "Itinerary not found with the given title." });
+      // If no itinerary is found, return a 404 error
+      if (!itinerary) {
+          return res.status(404).json({ error: "Itinerary not found!" });
       }
 
-      // Prepare an object with the fields to update (excluding Title)
-      const updateFields = {
-        
-          Activities,
-          Location,
-          Timeline,
-          Language,
-          Price,
-          Date,
-          accessibility,
-          pickupLocation,
-          dropoffLocation,
-          Tags
-      };
+      // Update the itinerary with the new data
+      itinerary.Activities = Activities !== undefined ? Activities : itinerary.Activities;
+      itinerary.Locations = Location !== undefined ? Location : itinerary.Locations;
+      itinerary.Timeline = Timeline !== undefined ? Timeline : itinerary.Timeline;
+      itinerary.Language = Language !== undefined ? Language : itinerary.Language;
+      itinerary.Price = Price !== undefined ? Price : itinerary.Price;
+      itinerary.Date = Date !== undefined ? Date : itinerary.Date;
+      itinerary.accessibility = accessibility !== undefined ? accessibility : itinerary.accessibility;
+      itinerary.pickupLocation = pickupLocation !== undefined ? pickupLocation : itinerary.pickupLocation;
+      itinerary.dropoffLocation = dropoffLocation !== undefined ? dropoffLocation : itinerary.dropoffLocation;
+      itinerary.Tags = Tags !== undefined ? Tags : itinerary.Tags;
+      itinerary.AuthorUsername = AuthorUsername !== undefined ? AuthorUsername : itinerary.AuthorUsername;
 
-      // Filter out any undefined values to avoid updating fields with undefined
-      Object.keys(updateFields).forEach(key => updateFields[key] === undefined && delete updateFields[key]);
+      // Save the updated itinerary
+      const updatedItinerary = await itinerary.save();
 
-      // Update the itinerary
-      const updatedItinerary = await ItineraryModel.findOneAndUpdate(
-          { Title: { $regex: new RegExp(Title, 'i') } }, // Find by title
-          { $set: updateFields }, // Update only the specified fields
-          { new: true, runValidators: true } // Return the updated document and run validators
-      );
+      // Return the updated itinerary as a JSON response with a 200 OK status
+      res.status(200).json(updatedItinerary);
 
-      // Send the updated itinerary as a JSON response with a 200 OK status
-      res.status(200).json({ msg: "Itinerary updated successfully!", itinerary: updatedItinerary });
   } catch (error) {
-      // If an error occurs, send a 400 Bad Request status with the error message
-      res.status(400).json({ error: error.message });
+      // If an error occurs, send a 500 Internal Server Error status with the error message
+      res.status(500).json({ error: error.message });
   }
 };
+
 
   /*const updateItineraryByTitle = async (req, res) => {
     const { Title } = req.params; // Assuming the title is passed as a URL parameter
