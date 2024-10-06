@@ -100,7 +100,7 @@ const updateSeller = async (req, res) => {
         // Check if the activity exists with the provided name and advertiser name
         const existingProduct = await NewProduct.findOne({ Name: Name, Seller: Seller });
         if (!existingProduct) {
-            return res.status(404).json({ error: "Product not found for the given advertiser." });
+            return res.status(404).json({ error: "Product not found for the given seller." });
         }
 
         // Prepare an object with the fields to update (excluding AdvertiserName and Name)
@@ -129,6 +129,29 @@ const updateSeller = async (req, res) => {
         // If an error occurs, send a 400 Bad Request status with the error message
         res.status(400).json({ error: error.message });
     }
+};
+
+//didnt put in apps
+const getProductsBySeller = async (req, res) => {
+  try {
+    // Assuming you get the author's username from query parameters
+    const { Seller } = req.query; 
+    
+    // Validate that AuthorUsername is provided
+    if (!Seller) {
+      return res.status(400).json({ error: "Seller username is required." });
+    }
+
+    const products = await NewProduct.find({ Seller: Seller });
+
+    if (!products.length) {
+      return res.status(404).json({ error: "You have not created any products." });
+    }
+
+    res.status(200).json(products);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 };
 
     const searchProductSeller = async (req, res) => {
@@ -286,4 +309,4 @@ const updateSeller = async (req, res) => {
 
   
 
-module.exports = {readSellerProfile, updateSeller, editProductSeller, createNewProductSeller, searchProductSeller, filterProductByPriceSeller, sortProductsAscendingSeller, sortProductsDescendingSeller,viewProductsSeller,viewAllProductsSeller,loginSeller};
+module.exports = {readSellerProfile, updateSeller, editProductSeller, createNewProductSeller, searchProductSeller, filterProductByPriceSeller, sortProductsAscendingSeller, sortProductsDescendingSeller,viewProductsSeller,viewAllProductsSeller,loginSeller,getProductsBySeller};

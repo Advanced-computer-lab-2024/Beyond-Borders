@@ -11,7 +11,7 @@ const {createUnregisteredAdvertiser} = require("./Routes/UnregisteredAdvertiserC
 const {createUnregisteredTourGuide} = require("./Routes/UnregisteredTourGuideController");
 const {createUnregisteredSeller} = require("./Routes/UnregisteredSellerController");
 const {createNewTourismGoverner, createNewAdmin, createNewProduct, editProduct, acceptSeller, rejectSeller, createNewCategory, readAllActivityCategories,updateCategory, deleteActivityCategory, deleteAccount, searchProductAdmin, createNewTag, readAllTags, updateTag, deleteTag, acceptTourGuide, rejectTourGuide, acceptAdvertiser, rejectAdvertiser, filterProductByPriceAdmin, sortProductsAscendingAdmin, sortProductsDescendingAdmin,viewProducts,loginAdmin, viewAllProductsAdmin} = require("./Routes/AdminController");
-const {readSellerProfile, updateSeller, editProductSeller, createNewProductSeller, searchProductSeller,filterProductByPriceSeller, sortProductsAscendingSeller, sortProductsDescendingSeller,viewProductsSeller,loginSeller,viewAllProductsSeller} = require("./Routes/AcceptedSellerController");
+const {readSellerProfile, updateSeller, editProductSeller, createNewProductSeller, searchProductSeller,filterProductByPriceSeller, sortProductsAscendingSeller, sortProductsDescendingSeller,viewProductsSeller,loginSeller,viewAllProductsSeller,getProductsBySeller} = require("./Routes/AcceptedSellerController");
 const {createNewHistoricalTag,createMuseumsAsTourismGoverner,getMuseumsByAuthorAsTourismGoverner
   ,createHistoricalPlaceAsTourismGoverner , getHistoricalPlaceByNameAsTourismGoverner , updateHistoricalPlaceAsTourismGoverner , deletePlaceAsTourismGoverner , getHistoricalByAuthorAsTourismGoverner, getMuseumByNameAsTourismGoverner, updateMuseumByNameAsTourismGoverner, deleteMuseumByNameAsTourismGoverner,
   loginGoverner
@@ -71,7 +71,7 @@ app.post("/addAdmin", createNewAdmin);
 app.post("/addProduct", createNewProduct);
 app.post("/api/addProductSeller", createNewProductSeller);
 app.put("/editProduct", editProduct);
-app.put("/editProductSeller", editProductSeller);
+app.put("/api/editProductSeller", editProductSeller);
 app.post("/acceptSeller", acceptSeller);
 app.post("/acceptTourGuide", acceptTourGuide);
 app.post("/acceptAdvertiser", acceptAdvertiser);
@@ -123,6 +123,7 @@ app.get("/viewProducts", viewProducts);
 app.get("/viewProductsTourist", viewProductsTourist);
 app.get("/api/viewProductsSeller", viewProductsSeller);
 app.get("/api/viewAllProductsSeller", viewAllProductsSeller);
+app.get("/api/getProductsBySeller", getProductsBySeller);
 app.get("/api/viewAllProductsAdmin", viewAllProductsAdmin);
 
 app.post("/loginAdvertiser", loginAdvertiser);
