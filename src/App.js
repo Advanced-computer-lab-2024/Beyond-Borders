@@ -79,7 +79,7 @@ app.post("/rejectSeller", rejectSeller);
 app.post("/rejectTourGuide", rejectTourGuide);
 app.post("/rejectAdvertiser", rejectAdvertiser);
 app.get("/api/viewTourist", getTourist);
-app.post("/filterActivities", filterActivities);//
+app.post("/api/filterActivities", filterActivities);//
 app.put("/api/updateTourist", updateTourist);
 app.get("/api/readSellerProfile", readSellerProfile);
 app.put("/api/updateSeller", updateSeller);
@@ -114,11 +114,11 @@ app.get("/getHistoricalPlacesByTagGuest", getHistoricalPlacesByTagGuest);
 app.get("/getHistoricalPlacesByTagTourist", getHistoricalPlacesByTagTourist);
 
 app.get("/api/ViewAllUpcomingActivities", ViewAllUpcomingActivities);
-app.get("/ViewAllUpcomingActivitiesGuest", ViewAllUpcomingActivitiesGuest);
+app.get("/api/ViewAllUpcomingActivitiesGuest", ViewAllUpcomingActivitiesGuest);
 app.get("/api/ViewAllUpcomingMuseumEventsTourist", ViewAllUpcomingMuseumEventsTourist);
-app.get("/ViewAllUpcomingMuseumEventsGuest", ViewAllUpcomingMuseumEventsGuest);
+app.get("/api/ViewAllUpcomingMuseumEventsGuest", ViewAllUpcomingMuseumEventsGuest);
 app.get("/api/ViewAllUpcomingHistoricalPlacesEventsTourist", ViewAllUpcomingHistoricalPlacesEventsTourist);
-app.get("/ViewAllUpcomingHistoricalPlacesEventsGuest", ViewAllUpcomingHistoricalPlacesEventsGuest);
+app.get("/api/ViewAllUpcomingHistoricalPlacesEventsGuest", ViewAllUpcomingHistoricalPlacesEventsGuest);
 app.get("/viewProducts", viewProducts);
 app.get("/viewProductsTourist", viewProductsTourist);
 app.get("/api/viewProductsSeller", viewProductsSeller);
@@ -132,7 +132,7 @@ app.post("/loginSeller",loginSeller);
 app.post("/loginTourGuide",loginTourGuide);
 app.post("/loginAdmin",loginAdmin);
 app.get("/api/ViewAllUpcomingItinerariesTourist",ViewAllUpcomingItinerariesTourist);
-app.get("/ViewAllUpcomingItinerariesGuest",ViewAllUpcomingItinerariesGuest);
+app.get("/api/ViewAllUpcomingItinerariesGuest",ViewAllUpcomingItinerariesGuest);
 app.get("/sortItinerariesPriceDescendingTourist",sortItinerariesPriceDescendingTourist);
 app.get("/sortItinerariesPriceAscendingTourist",sortItinerariesPriceAscendingTourist);
 app.get("/sortItinerariesPriceAscendingGuest",sortItinerariesPriceAscendingGuest);
@@ -202,9 +202,9 @@ app.post("/filterItinerariesGuest" , filterItinerariesGuest);
 
 // Itinerary
 app.post("/api/createItinerary",createItineraryAsTourGuide);
-app.get("/api/readItinerary/:title", readItineraryAsTourGuide);
+app.get("/api/readItinerary", readItineraryAsTourGuide);
 app.put("/updateItinerary/:title",updateItineraryAsTourGuide);
-app.delete("/deleteItinerary/:title",deleteItineraryAsTourGuide);
+app.delete("/api/deleteItinerary",deleteItineraryAsTourGuide);
 app.get("/api/getallItinerarys",getItenrarysByTourGuide);
 //Advertiser
 //app.post("/addAdvertiser",createAdvertiser);

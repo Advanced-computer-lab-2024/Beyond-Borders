@@ -285,7 +285,7 @@
         <form id="create-activity-form">
             <div class="form-row">
                 <label for="itineraryTitle">Title:</label>
-                <input type="text" id="itineraryTitle" readonly>
+                <input type="text" id="itineraryTitle" >
             </div>
             <div class="form-row">
                 <label for="itineraryActivities">Activities:</label>
@@ -378,7 +378,7 @@ activities.forEach(activity => {
     itineraryDiv.className = 'activity';
     itineraryDiv.innerHTML = `
         <h3 style="display: inline;">${activity.Title}</h3>
-        <button onclick="deleteItinerary('${activity._id}')" style="margin-left: 10px;">Delete</button>
+        <button onclick="deleteActivity('${activity.Title}')" style="margin-left: 10px;">Delete</button>
         <button onclick="openUpdateForm('${activity.Title}')" style="margin-left: 10px;">Update</button>
         <button onclick="toggleDetails(this)" style="margin-left: 10px;">View Details</button>
         <div class="details" style="display: none;">
@@ -404,7 +404,7 @@ activities.forEach(activity => {
 async function openUpdateForm(activityName) {
     try {
         // Use the correct URL endpoint for reading the itinerary by title
-        const response = await fetch(`/api/readItinerary/${encodeURIComponent(activityName)}`, {
+        const response = await fetch(`/api/readItinerary?Title=${encodeURIComponent(activityName)}`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json'
@@ -526,8 +526,8 @@ async function saveUpdatedActivity() {
 }
 
 async function deleteActivity(activityName) {
-    const AdvertiserName = localStorage.getItem('username');
-    if (!AdvertiserName) {
+    const tourguideName = localStorage.getItem('username');
+    if (!tourguideName) {
         alert('You need to log in first.');
         return;
     }
@@ -538,12 +538,12 @@ async function deleteActivity(activityName) {
     }
 
     try {
-        const response = await fetch('/api/deleteActivity', {
-            method: 'POST',
+        const response = await fetch(`/api/deleteItinerary?Title=${encodeURIComponent(activityName)}`, {
+            method: 'DELETE',
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ AdvertiserName, Name: activityName })
+            
         });
 
         const result = await response.json();
@@ -551,11 +551,11 @@ async function deleteActivity(activityName) {
             throw new Error(result.error || 'Error deleting activity');
         }
 
-        alert('Activity deleted successfully!');
+        alert('Itinerary deleted successfully!');
         loadMyActivities(); // Reload activities to reflect the deletion
     } catch (error) {
         console.error('Error:', error);
-        alert('Failed to delete activity: ' + error.message);
+        alert('Failed to delete itinerary: ' + error.message);
     }
 }
 

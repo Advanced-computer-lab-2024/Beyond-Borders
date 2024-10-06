@@ -7,170 +7,200 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tourist</title>
     <style>
-        /* Your existing styles remain unchanged */
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
-            margin: 0;
-            padding: 0;
-            justify-content: flex-start;
-            text-align: left;
-        }
-        .header {
-            background-color: #218838;
-            color: white;
-            padding: 15px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-        nav ul {
-            list-style: none;
-            display: flex;
-            gap: 35px;
-            margin-left: 500px;
-        }
-        nav ul li {
-            display: inline;
-        }
-        nav ul li a {
-            color: #fff;
-            text-decoration: none;
-        }
-        nav ul li a:hover {
-            color: #95d0a2;
-            text-decoration: none;
-        }
-        .header h1 {
-            margin: 0;
-            font-size: 24px;
-            text-align: left;
-        }
-        .button-container {
-            margin-left: 15px;
-        }
-        .button-container button {
-            background-color: #40be5b;
-            color: white;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 20px;
-            transition: background-color 0.3s;
-        }
-        .button-container button:hover {
-            background-color: #7ccf8e;
-        }
-        .search-container {
-            display: flex;
-            width: 60%;
-            margin-top: 10px;
-            margin-left: 600px;
-        }
-        input[type="text"], input[type="email"], input[type="url"], input[type="password"] {
-            padding: 10px;
-            flex-grow: 1;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            font-size: 16px;
-        }
-        input[type="text"]::placeholder, input[type="email"]::placeholder, input[type="url"]::placeholder, input[type="password"]::placeholder {
-            color: #999;
-        }
-        .search-button {
-            padding: 10px;
-            border: none;
-            border-radius: 4px;
-            background-color: #218838;
-            color: white;
-            cursor: pointer;
-            font-size: 16px;
-            margin-left: 5px;
-            transition: background-color 0.3s;
-        }
-        .search-button:hover {
-            background-color: #5aae6c;
-        }
-        .container {
-            max-width: 800px;
-            margin: auto;
-            background: #fff;
-            padding: 20px;
-            border-radius: 5px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            margin-top: 20px;
-        }
-        .activity {
-            border: 1px solid #ccc;
-            padding: 10px;
-            margin: 10px 0;
-            border-radius: 5px;
-        }
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f4f4f4;
+}
 
-        /* Modal Styles */
-        .modal {
-            display: none; 
-            position: fixed; 
-            z-index: 1; 
-            left: 0;
-            top: 0;
-            width: 100%; 
-            height: 100%; 
-            overflow: auto; 
-            background-color: rgba(0,0,0,0.4); 
-            padding-top: 60px; 
-        }
-        .modal-content {
-            background-color: #fefefe;
-            margin: 5% auto; 
-            padding: 20px;
-            border: 1px solid #888;
-            width: 80%; 
-            max-width: 600px;
-            border-radius: 8px;
-        }
-        .close {
-            color: #aaa;
-            float: right;
-            font-size: 28px;
-            font-weight: bold;
-        }
-        .close:hover,
-        .close:focus {
-            color: black;
-            text-decoration: none;
-            cursor: pointer;
-        }
-        .form-row {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 15px;
-        }
-        label {
-            width: 30%;
-        }
+.header {
+    background-color: #4CAF50; /* Header background color */
+    color: white;
+    padding: 20px;
+    text-align: center;
+}
+
+.header h1 {
+    margin: 0;
+}
+
+.button-container {
+    margin-top: 10px;
+    text-align: center; /* Center the buttons */
+}
+
+button {
+    background-color: #4CAF50; /* Button color */
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    margin: 5px; /* Space between buttons */
+    cursor: pointer;
+    border-radius: 5px;
+    transition: background-color 0.3s;
+}
+
+button:hover {
+    background-color: #45a049; /* Darker green on hover */
+}
+
+.search-container {
+    padding: 20px;
+    text-align: center;
+}
+
+#searchInput {
+    padding: 10px;
+    width: 300px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+}
+
+.modal {
+    display: none; /* Hidden by default */
+    position: fixed; /* Stay in place */
+    z-index: 1; /* Sit on top */
+    left: 0;
+    top: 0;
+    width: 100%; /* Full width */
+    height: 100%; /* Full height */
+    overflow: auto; /* Enable scroll if needed */
+    background-color: rgb(0,0,0); /* Fallback color */
+    background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+}
+
+.modal-content {
+    background-color: #fefefe;
+    margin: 15% auto; /* 15% from the top and centered */
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%; /* Could be more or less, depending on screen size */
+    border-radius: 10px;
+}
+
+.close {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+}
+
+.close:hover,
+.close:focus {
+    color: black;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+h2 {
+    text-align: center;
+    color: #333;
+}
+
+.form-row {
+    margin-bottom: 10px;
+}
+
+label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+input[type="text"],
+input[type="email"],
+input[type="number"],
+input[type="date"],
+input[type="url"],
+input[type="password"] {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+#filter {
+    margin-top: 10px;
+}
+
+.activity, .museum, .itinerary, .historical-place {
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    padding: 10px;
+    margin: 10px 0;
+    background-color: #fff;
+}
+
+.details {
+    margin-top: 10px;
+    padding: 10px;
+    border: 1px dashed #ccc;
+    border-radius: 5px;
+    background-color: #f9f9f9;
+}
+
+.details p {
+    margin: 5px 0;
+}
     </style>
 </head>
 <body>
 
 <div class="header">
     <h1>Beyond Borders</h1>
-    <nav></nav>
-        <ul>
-            
-            <li><a href="#" onclick="viewAllActivities()">View All Activities</a></li>
-            <li><a href="#" onclick="viewAllMuseums()">View All Museums</a></li>
-            <li><a href="#" onclick="viewAllItineraries()">View All Itineraries</a></li>
-            <li><a href="#" onclick="viewAllHistoricalPlaces()">View All Historical Places</a></li>
-            <!-- <li><a href="#about">Historical Places</a></li> -->
-        </ul>
-    </nav>
-    
-    <div class="button-container">
+    <div>
+        <button onclick="viewAllActivities()">View All Activities</button>
+        <button onclick="viewAllMuseums()">View All Museums</button>
+        <button onclick="viewAllItineraries()">View All Itineraries</button>
+        <button onclick="viewAllHistoricalPlaces()">View All Historical Places</button>
         <button onclick="readMyProfile()">My Profile</button>
     </div>
+    
 </div>
+<div class="search-container"></div>
+    <input type="text" id="searchInput" placeholder="Search for a product by name...">
+    <button class="search-button" onclick="searchActivity()">Search Activities</button>
+</div>
+
+<div id="activitiesModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeActivitiesModal()">&times;</span>
+        <h2>Upcoming Activities</h2>
+
+        <!-- Filter Options -->
+        <label for="category">Category:</label>
+        <input type="text" id="category" placeholder="Enter category" />
+
+        <label for="minPrice">Min Price:</label>
+        <input type="number" id="minPrice" placeholder="Minimum Price" />
+
+        <label for="maxPrice">Max Price:</label>
+        <input type="number" id="maxPrice" placeholder="Maximum Price" />
+
+        <label for="InputDate">Date:</label>
+        <input type="date" id="InputDate" />
+
+        <label for="Rating">Rating:</label>
+        <input type="number" id="Rating" min="1" max="5" placeholder="Rating (1-5)" />
+        
+        <button id="filter">Apply Filter</button>
+        <button onclick="sortActivitesPriceDescending()">Sort by Price (Descending)</button>
+        <button onclick="sortActivitesPriceAscending()">Sort by Price (Ascending)</button>
+        <button onclick="sortActivitesRatingDescending()">Sort by Rating (Descending)</button>
+        <button onclick="sortActivitesRatingAscending()">Sort by Rating (Ascending)</button>
+
+        <!-- Container for displaying activities -->
+        <div id="activitiesContainerModal">
+            <!-- Activities will be displayed here -->
+        </div>
+    </div>
+</div>
+
 
 <!-- Modal for Activities -->
 <div id="activitiesModal" class="modal">
@@ -198,6 +228,8 @@
     <div class="modal-content">
         <span class="close" onclick="closeItineraryModal()">&times;</span>
         <h2>Upcoming Itinerary Events</h2>
+        <button onclick="sortItinerariesPriceDescending()">Sort by Price (Descending)</button>
+        <button onclick="sortItinerariesPriceAscending()">Sort by Price (Ascending)</button>
         <div id="itineraryContainerModal">
             <!-- Itineraries will be displayed here -->
         </div>
@@ -258,6 +290,8 @@
     </div>
 </div>
 
+
+
 <script>
 function toggleDetails(button) {
     const details = button.nextElementSibling; // Get the details div
@@ -267,6 +301,11 @@ function toggleDetails(button) {
         details.style.display = "none"; // Hide details
     }
 }
+
+function toggleDetails(button) {
+        const detailsDiv = button.nextElementSibling;
+        detailsDiv.style.display = detailsDiv.style.display === 'none' ? 'block' : 'none';
+    }
 
 async function readMyProfile() {
     const username = localStorage.getItem('username');
@@ -308,6 +347,8 @@ async function viewAllActivities() {
         alert('An error occurred while loading activities.');
     }
 }
+
+        
 
 async function viewAllMuseums() {
     try {
@@ -360,13 +401,146 @@ async function viewAllHistoricalPlaces() {
     }
 }
 
-function openActivitiesModal() {
-    document.getElementById("activitiesModal").style.display = "block";
+async function searchActivity() {
+    const searchName = document.getElementById('searchInput').value.trim(); // Correct ID for input
+    if (!searchName) {
+        alert('Please enter a product name to search.');
+        return;
+    }
+
+    try {
+        const response = await fetch(`/api/viewProductsSeller?Name=${encodeURIComponent(searchName)}`, {
+            method: 'GET', // Use GET for query parameters
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+
+        const products = await response.json();
+
+        if (response.ok) {
+            displayProducts(products);
+            openProductsModal();
+        } else {
+            alert(products.error || 'No products found.');
+        }
+    } catch (error) {
+        console.error('Error fetching products:', error);
+        alert('An error occurred while searching for products.');
+    }
 }
 
-function closeActivitiesModal() {
-    document.getElementById("activitiesModal").style.display = "none";
+async function sortActivitesPriceDescending() {
+    try {
+        const response = await fetch('/sortActivitiesPriceDescendingTourist');
+        const activities = await response.json();
+
+        if (response.ok) {
+            displayActivities(activities); // Display products in the modal
+            openActivitiesModal();
+        } else {
+            alert(activities.error || 'Failed to sort activities.');
+        }
+    } catch (error) {
+        console.error('Error fetching sorted activities:', error);
+        alert('An error occurred while sorting activities.');
+    }
 }
+
+
+async function sortActivitesPriceAscending() {
+    try {
+        const response = await fetch('/sortActivitiesPriceAscendingTourist');
+        const activities = await response.json();
+
+        if (response.ok) {
+            displayActivities(activities); // Display products in the modal
+            openActivitiesModal();
+        } else {
+            alert(activities.error || 'Failed to sort activities.');
+        }
+    } catch (error) {
+        console.error('Error fetching sorted activities:', error);
+        alert('An error occurred while sorting activities.');
+    }
+}
+
+
+async function sortActivitesRatingDescending() {
+    try {
+        const response = await fetch('/sortActivitiesRatingDescendingTourist');
+        const activities = await response.json();
+
+        if (response.ok) {
+            displayActivities(activities); // Display products in the modal
+            openActivitiesModal();
+        } else {
+            alert(activities.error || 'Failed to sort activities.');
+        }
+    } catch (error) {
+        console.error('Error fetching sorted activities:', error);
+        alert('An error occurred while sorting activities.');
+    }
+}
+
+async function sortActivitesRatingAscending() {
+    try {
+        const response = await fetch('/sortActivitiesRatingAscendingTourist');
+        const activities = await response.json();
+
+        if (response.ok) {
+            displayActivities(activities); // Display products in the modal
+            openActivitiesModal();
+        } else {
+            alert(activities.error || 'Failed to sort activities.');
+        }
+    } catch (error) {
+        console.error('Error fetching sorted activities:', error);
+        alert('An error occurred while sorting activities.');
+    }
+}
+
+async function sortItinerariesPriceDescending() {
+    try {
+        const response = await fetch('/sortItinerariesPriceDescendingTourist');
+        const itineraries = await response.json();
+
+        if (response.ok) {
+            displayItineraries(itineraries); // Display products in the modal
+            openItineraryModal();
+        } else {
+            alert(itineraries.error || 'Failed to sort itineraries.');
+        }
+    } catch (error) {
+        console.error('Error fetching sorted itineraries:', error);
+        alert('An error occurred while sorting itineraries.');
+    }
+}
+
+async function sortItinerariesPriceAscending() {
+    try {
+        const response = await fetch('/sortItinerariesPriceAscendingTourist');
+        const itineraries = await response.json();
+
+        if (response.ok) {
+            displayItineraries(itineraries); // Display products in the modal
+            openItineraryModal();
+        } else {
+            alert(itineraries.error || 'Failed to sort itineraries.');
+        }
+    } catch (error) {
+        console.error('Error fetching sorted itineraries:', error);
+        alert('An error occurred while sorting itineraries.');
+    }
+}
+
+function openActivitiesModal() {
+        document.getElementById("activitiesModal").style.display = "block";
+    }
+
+    function closeActivitiesModal() {
+        document.getElementById("activitiesModal").style.display = "none";
+    }
 
 function openMuseumsModal() {
     document.getElementById("museumsModal").style.display = "block"; // Open the museums modal
@@ -393,35 +567,35 @@ function closeHistoricalPlacesModal() {
 }
 
 function displayActivities(activities) {
-    const container = document.getElementById('activitiesContainerModal');
-    container.innerHTML = ''; // Clear previous activities
+        const container = document.getElementById('activitiesContainerModal');
+        container.innerHTML = ''; // Clear previous activities
 
-    if (activities.length === 0) {
-        container.innerHTML = '<p>No activities found.</p>';
-        return;
+        if (activities.length === 0) {
+            container.innerHTML = '<p>No activities found.</p>';
+            return;
+        }
+
+        activities.forEach(activity => {
+            const activityDiv = document.createElement('div');
+            activityDiv.className = 'activity';
+            activityDiv.innerHTML = `
+                <h3 style="display: inline;">${activity.Name}</h3>
+                <button onclick="toggleDetails(this)" style="margin-left: 10px;">View Details</button>
+                <div class="details" style="display: none;">
+                    <p>Date: ${new Date(activity.Date).toLocaleDateString()}</p>
+                    <p>Time: ${activity.Time}</p>
+                    <p>Price: $${activity.Price}</p>
+                    <p>Rating: ${activity.Rating}</p>
+                    <p>Location: ${activity.Location.address || 'N/A'}</p>
+                    <p>Category: ${activity.Category}</p>
+                    <p>Tags: ${activity.Tags.join(', ')}</p>
+                    <p>Special Discount: ${activity.SpecialDiscount || 'N/A'}</p>
+                    <p>Booking Status: ${activity.BookingOpen}</p>
+                </div>
+            `;
+            container.appendChild(activityDiv);
+        });
     }
-
-    activities.forEach(activity => {
-        const activityDiv = document.createElement('div');
-        activityDiv.className = 'activity';
-        activityDiv.innerHTML = `
-            <h3 style="display: inline;">${activity.Name}</h3>
-            <button onclick="toggleDetails(this)" style="margin-left: 10px;">View Details</button>
-            <div class="details" style="display: none;">
-                <p>Date: ${new Date(activity.Date).toLocaleDateString()}</p>
-                <p>Time: ${activity.Time}</p>
-                <p>Price: $${activity.Price}</p>
-                <p>Rating: ${activity.Rating}</p>
-                <p>Location: ${activity.Location.address || 'N/A'}</p>
-                <p>Category: ${activity.Category}</p>
-                <p>Tags: ${activity.Tags.join(', ')}</p>
-                <p>Special Discount: ${activity.SpecialDiscount || 'N/A'}</p>
-                <p>Booking Status: ${activity.BookingOpen}</p>
-            </div>
-        `;
-        container.appendChild(activityDiv);
-    });
-}
 
 function displayMuseums(museums) {
     const container = document.getElementById('museumsContainerModal');
@@ -575,6 +749,49 @@ window.onclick = function(event) {
         closeModal();
     }
 };
+
+document.getElementById('filter').addEventListener('click', async () => {
+        const category = document.getElementById('category').value;
+        const minPrice = document.getElementById('minPrice').value;
+        const maxPrice = document.getElementById('maxPrice').value;
+        const inputDate = document.getElementById('InputDate').value;
+        const rating = document.getElementById('Rating').value;
+
+        // Prepare the request body
+        const requestBody = {
+            Category: category || undefined,
+            minPrice: minPrice ? parseFloat(minPrice) : undefined,
+            maxPrice: maxPrice ? parseFloat(maxPrice) : undefined,
+            InputDate: inputDate || undefined,
+            Rating: rating ? parseInt(rating) : undefined
+        };
+
+        try {
+            // Send a request to the filterActivities endpoint
+            const response = await fetch('/api/filterActivities', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(requestBody)
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                alert(errorData.msg); // Display error message if no activities found
+                return;
+            }
+
+            const activities = await response.json();
+            displayActivities(activities); // Display filtered activities
+        } catch (error) {
+            console.error('Error fetching activities:', error);
+            alert('An error occurred while fetching activities.');
+        }
+    });
+
+
+
 </script>
 
 </body>

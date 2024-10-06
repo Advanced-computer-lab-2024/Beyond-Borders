@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tourist</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+            justify-content: flex-start;
+            text-align: left;
+        }
+        .header {
+            background-color: #218838;
+            color: white;
+            padding: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        nav ul {
+            list-style: none;
+            display: flex;
+            gap: 35px;
+            margin-left: 500px;
+        }
+        nav ul li {
+            display: inline;
+        }
+        nav ul li a {
+            color: #fff;
+            text-decoration: none;
+        }
+        nav ul li a:hover {
+            color: #95d0a2;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+            text-align: left;
+        }
+        .button-container {
+            margin-left: 15px;
+        }
+        .button-container button {
+            background-color: #40be5b;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 20px;
+            transition: background-color 0.3s;
+        }
+        .button-container button:hover {
+            background-color: #7ccf8e;
+        }
+        .container {
+            max-width: 800px;
+            margin: auto;
+            background: #fff;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            margin-top: 20px;
+        }
+        .activity {
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+
+        .modal {
+            display: none; 
+            position: fixed; 
+            z-index: 1; 
+            left: 0;
+            top: 0;
+            width: 100%; 
+            height: 100%; 
+            overflow: auto; 
+            background-color: rgba(0,0,0,0.4); 
+            padding-top: 60px; 
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: 5% auto; 
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%; 
+            max-width: 600px;
+            border-radius: 8px;
+        }
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        .details {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <h1>Beyond Borders</h1>
+    <div>
+        <button onclick="viewAllActivities()">View All Activities</button>
+        <button onclick="viewAllMuseums()">View All Museums</button>
+        <button onclick="viewAllItineraries()">View All Itineraries</button>
+        <button onclick="viewAllHistoricalPlaces()">View All Historical Places</button>
+    </div>
+</div>
+
+<!-- Modal for Activities -->
+<div id="activitiesModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeActivitiesModal()">&times;</span>
+        <h2>Upcoming Activities</h2>
+        <div id="activitiesContainerModal">
+            <!-- Activities will be displayed here -->
+        </div>
+    </div>
+</div>
+
+<!-- Other Modals -->
+<div id="museumsModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeMuseumsModal()">&times;</span>
+        <h2>Upcoming Museum Events</h2>
+        <div id="museumsContainerModal">
+            <!-- Museums will be displayed here -->
+        </div>
+    </div>
+</div>
+
+<div id="itineraryModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeItineraryModal()">&times;</span>
+        <h2>Upcoming Itinerary Events</h2>
+        <div id="itineraryContainerModal">
+            <!-- Itineraries will be displayed here -->
+        </div>
+    </div>
+</div>
+
+<div id="HistoricalPlacesModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeHistoricalPlacesModal()">&times;</span>
+        <h2>Upcoming Historical Places Events</h2>
+        <div id="HistoricalPlacesContainerModal">
+            <!-- Historical Places will be displayed here -->
+        </div>
+    </div>
+</div>
+
+<script>
+function toggleDetails(button) {
+    const detailsDiv = button.nextElementSibling;
+    detailsDiv.style.display = detailsDiv.style.display === 'none' ? 'block' : 'none';
+}
+
+async function viewAllActivities() {
+    try {
+        const response = await fetch('/api/ViewAllUpcomingActivitiesGuest');
+        const activities = await response.json();
+
+        if (response.ok) {
+            displayActivities(activities);
+            openActivitiesModal();
+        } else {
+            alert('Failed to fetch activities: ' + (activities.error || 'Unknown error'));
+        }
+    } catch (error) {
+        console.error('Error fetching activities:', error);
+        alert('An error occurred while loading activities.');
+    }
+}
+
+async function viewAllMuseums() {
+    try {
+        const response = await fetch('/api/ViewAllUpcomingMuseumEventsGuest');
+        const museums = await response.json();
+
+        if (response.ok) {
+            displayMuseums(museums);
+            openMuseumsModal();
+        } else {
+            alert('Failed to fetch museums: ' + (museums.error || 'Unknown error'));
+        }
+    } catch (error) {
+        console.error('Error fetching museums:', error);
+        alert('An error occurred while loading museums.');
+    }
+}
+
+async function viewAllItineraries() {
+    try {
+        const response = await fetch('/api/ViewAllUpcomingItinerariesGuest');
+        const itineraries = await response.json();
+
+        if (response.ok) {
+            displayItineraries(itineraries);
+            openItineraryModal(); 
+        } else {
+            alert('Failed to fetch itineraries: ' + (itineraries.error || 'Unknown error'));
+        }
+    } catch (error) {
+        console.error('Error fetching itineraries:', error);
+        alert('An error occurred while loading itineraries.');
+    }
+}
+
+async function viewAllHistoricalPlaces() {
+    try {
+        const response = await fetch('/api/ViewAllUpcomingHistoricalPlacesEventsGuest');
+        const historicalPlaces = await response.json();
+
+        if (response.ok) {
+            displayHistoricalPlaces(historicalPlaces);
+            openHistoricalPlacesModal();
+        } else {
+            alert('Failed to fetch historical places: ' + (historicalPlaces.error || 'Unknown error'));
+        }
+    } catch (error) {
+        console.error('Error fetching Historical Places:', error);
+        alert('An error occurred while loading historical places.');
+    }
+}
+
+function openActivitiesModal() {
+    document.getElementById("activitiesModal").style.display = "block";
+}
+
+function closeActivitiesModal() {
+    document.getElementById("activitiesModal").style.display = "none";
+}
+
+function openMuseumsModal() {
+    document.getElementById("museumsModal").style.display = "block";
+}
+
+function closeMuseumsModal() {
+    document.getElementById("museumsModal").style.display = "none";
+}
+
+function openItineraryModal() {
+    document.getElementById("itineraryModal").style.display = "block";
+}
+
+function closeItineraryModal() {
+    document.getElementById("itineraryModal").style.display = "none";
+}
+
+function openHistoricalPlacesModal() {
+    document.getElementById("HistoricalPlacesModal").style.display = "block";
+}
+
+function closeHistoricalPlacesModal() {
+    document.getElementById("HistoricalPlacesModal").style.display = "none";
+}
+
+function displayActivities(activities) {
+    const container = document.getElementById('activitiesContainerModal');
+    container.innerHTML = '';
+
+    if (activities.length === 0) {
+        container.innerHTML = '<p>No activities found.</p>';
+        return;
+    }
+
+    activities.forEach(activity => {
+        const activityDiv = document.createElement('div');
+        activityDiv.className = 'activity';
+        activityDiv.innerHTML = `
+            <h3 style="display: inline;">${activity.Name}</h3>
+            <button onclick="toggleDetails(this)" style="margin-left: 10px;">View Details</button>
+            <div class="details">
+                <p>Date: ${new Date(activity.Date).toLocaleDateString()}</p>
+                <p>Time: ${activity.Time}</p>
+                <p>Price: ${activity.Price}</p>
+                <p>Description: ${activity.Description}</p>
+            </div>
+        `;
+        container.appendChild(activityDiv);
+    });
+}
+
+// Define displayMuseums, displayItineraries, and displayHistoricalPlaces similarly.
+</script>
+
+</body>
+</html>
