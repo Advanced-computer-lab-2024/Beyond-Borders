@@ -162,15 +162,17 @@ input[type="password"] {
     </div>
     
 </div>
-<div class="search-container"></div>
-    <input type="text" id="searchInput" placeholder="Search for a product by name...">
-    <button class="search-button" onclick="searchActivity()">Search Activities</button>
-</div>
+
 
 <div id="activitiesModal" class="modal">
     <div class="modal-content">
         <span class="close" onclick="closeActivitiesModal()">&times;</span>
         <h2>Upcoming Activities</h2>
+
+        <!-- Search Bar -->
+        <label for="search">Search Activities:</label>
+        <input type="text" id="search" placeholder="Search by keyword" />
+        <button id="searchButton">Search</button>
 
         <!-- Filter Options -->
         <label for="category">Category:</label>
@@ -187,7 +189,7 @@ input[type="password"] {
 
         <label for="Rating">Rating:</label>
         <input type="number" id="Rating" min="1" max="5" placeholder="Rating (1-5)" />
-        
+
         <button id="filter">Apply Filter</button>
         <button onclick="sortActivitesPriceDescending()">Sort by Price (Descending)</button>
         <button onclick="sortActivitesPriceAscending()">Sort by Price (Ascending)</button>
@@ -200,6 +202,7 @@ input[type="password"] {
         </div>
     </div>
 </div>
+
 
 
 <!-- Modal for Activities -->
@@ -218,16 +221,28 @@ input[type="password"] {
     <div class="modal-content">
         <span class="close" onclick="closeMuseumsModal()">&times;</span>
         <h2>Upcoming Museum Events</h2>
+
+        <!-- Search Bar for Museum Events -->
+        <label for="museumSearch">Search Museum Events:</label>
+        <input type="text" id="museumSearch" placeholder="Enter search keyword" />
+        <button id="museumSearchButton">Search</button>
+
         <div id="museumsContainerModal">
             <!-- Museums will be displayed here -->
         </div>
     </div>
 </div>
 
+
 <div id="itineraryModal" class="modal">
     <div class="modal-content">
         <span class="close" onclick="closeItineraryModal()">&times;</span>
         <h2>Upcoming Itinerary Events</h2>
+
+        <!-- Search Bar -->
+        <label for="itinerarySearch">Search:</label>
+        <input type="text" id="itinerarySearch" placeholder="Enter search term" />
+        <button id="itinerarySearchButton">Search</button>
 
         <label for="language">Language:</label>
         <input type="text" id="language" placeholder="language" >
@@ -239,7 +254,7 @@ input[type="password"] {
         <input type="number" id="maxPrice2" placeholder="Maximum Price" />
 
         <label for="InputDate2">Date:</label>
-        <input type="date" id="InputDate2" placeholder="date"  />
+        <input type="date" id="InputDate2" placeholder="date" />
 
         <label for="tags">Tags:</label>
         <input type="text" id="tags">
@@ -255,15 +270,28 @@ input[type="password"] {
     </div>
 </div>
 
+
 <div id="HistoricalPlacesModal" class="modal">
     <div class="modal-content">
         <span class="close" onclick="closeHistoricalPlacesModal()">&times;</span>
         <h2>Upcoming Historical Places Events</h2>
+
+        <!-- Search Bar -->
+        <label for="historicalPlacesSearch">Search:</label>
+        <input type="text" id="historicalPlacesSearch" placeholder="Search for historical places..." />
+        
+        <!-- Search Button -->
+        <button id="searchHistoricalPlacesButton">Search</button>
+
+        <!-- Container for displaying historical places -->
         <div id="HistoricalPlacesContainerModal">
             <!-- Historical Places will be displayed here -->
         </div>
     </div>
 </div>
+
+
+
 
 
 <!-- Modal for Profile -->
@@ -851,6 +879,137 @@ document.getElementById('filter').addEventListener('click', async () => {
         alert('An error occurred while fetching itineraries.');
     }
 });
+
+// Event listener for the search button
+document.getElementById('searchButton').addEventListener('click', async () => {
+    const searchKeyword = document.getElementById('search').value;
+
+    // Prepare the search request body
+    const requestBody = {
+        searchString: searchKeyword || undefined
+    };
+
+    try {
+        // Send a request to the search endpoint
+        const response = await fetch('/api/ActivitiesSearchAll', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(requestBody)
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            alert(errorData.msg); // Display error message if no activities found
+            return;
+        }
+
+        const activities = await response.json();
+        displayActivities(activities); // Function to display the fetched activities
+    } catch (error) {
+        console.error('Error searching activities:', error);
+        alert('An error occurred while searching activities.');
+    }
+});
+
+// Event listener for the museum search button
+document.getElementById('museumSearchButton').addEventListener('click', async () => {
+    const searchKeyword = document.getElementById('museumSearch').value;
+
+    // Prepare the search request body
+    const requestBody = {
+        searchString: searchKeyword || undefined
+    };
+
+    try {
+        // Send a request to the search endpoint for museum events
+        const response = await fetch('/api/MuseumSearchAll', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(requestBody)
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            alert(errorData.msg); // Display error message if no museums found
+            return;
+        }
+
+        const museums = await response.json();
+        displayMuseums(museums); // Function to display the fetched museum events
+    } catch (error) {
+        console.error('Error searching museums:', error);
+        alert('An error occurred while searching museum events.');
+    }
+});
+
+// Event listener for the itinerary search button
+document.getElementById('itinerarySearchButton').addEventListener('click', async () => {
+    const searchTerm = document.getElementById('itinerarySearch').value;
+
+    // Prepare the search request body
+    const requestBody = {
+        searchString: searchTerm || undefined
+    };
+
+    try {
+        // Send a request to the search endpoint for itinerary events
+        const response = await fetch('/api/ItinerarySearchAll', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(requestBody)
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            alert(errorData.msg); // Display error message if no itineraries found
+            return;
+        }
+
+        const itineraries = await response.json();
+        displayItineraries(itineraries); // Function to display the fetched itinerary events
+    } catch (error) {
+        console.error('Error searching itineraries:', error);
+        alert('An error occurred while searching itinerary events.');
+    }
+});
+
+
+document.getElementById('searchHistoricalPlacesButton').addEventListener('click', async () => {
+    const searchString = document.getElementById('historicalPlacesSearch').value;
+
+    try {
+        const response = await fetch('/api/HistoricalPlacesSearchAll', { // Adjust the API endpoint as necessary
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ searchString }), // Send the search string to the API
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            alert(errorData.msg);
+            return;
+        }
+
+        const fetchedHistoricalPlaces = await response.json();
+        displayHistoricalPlaces(fetchedHistoricalPlaces); // Call function to display results
+    } catch (error) {
+        console.error('Error searching historical places:', error);
+        alert('An error occurred while searching for historical places.');
+    }
+});
+
+
+
+
+
 
 
 
