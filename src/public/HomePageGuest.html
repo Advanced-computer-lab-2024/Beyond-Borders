@@ -147,6 +147,11 @@
         <input type="number" id="Rating" min="1" max="5" placeholder="Rating (1-5)" />
         
         <button id="filter">Apply Filter</button>
+        <button onclick="sortActivitesPriceDescending()">Sort by Price (Descending)</button>
+        <button onclick="sortActivitesPriceAscending()">Sort by Price (Ascending)</button>
+        <button onclick="sortActivitesRatingDescending()">Sort by Rating (Descending)</button>
+        <button onclick="sortActivitesRatingAscending()">Sort by Rating (Ascending)</button>
+
 
         <div id="activitiesContainerModal">
             <!-- Activities will be displayed here -->
@@ -159,6 +164,12 @@
     <div class="modal-content">
         <span class="close" onclick="closeMuseumsModal()">&times;</span>
         <h2>Upcoming Museum Events</h2>
+
+        <!-- Tag Filtering Section -->
+        <label for="tags">Filter by Tags (comma-separated):</label>
+        <input type="text" id="tags" placeholder="Enter tags" />
+        <button id="filterMuseums">Apply Tag Filter</button>
+
         <div id="museumsContainerModal">
             <!-- Museums will be displayed here -->
         </div>
@@ -170,6 +181,8 @@
     <div class="modal-content">
         <span class="close" onclick="closeItineraryModal()">&times;</span>
         <h2>Upcoming Itinerary Events</h2>
+        <button onclick="sortItinerariesPriceDescending()">Sort by Price (Descending)</button>
+        <button onclick="sortItinerariesPriceAscending()">Sort by Price (Ascending)</button>
         <div id="itineraryContainerModal">
             <!-- Itineraries will be displayed here -->
         </div>
@@ -181,6 +194,12 @@
     <div class="modal-content">
         <span class="close" onclick="closeHistoricalPlacesModal()">&times;</span>
         <h2>Upcoming Historical Places Events</h2>
+
+        <!-- Tag Filtering Section -->
+        <label for="historicalTags">Filter by Tags (comma-separated):</label>
+        <input type="text" id="historicalTags" placeholder="Enter tags" />
+        <button id="filterHistoricalPlaces">Apply Tag Filter</button>
+
         <div id="HistoricalPlacesContainerModal">
             <!-- Historical Places will be displayed here -->
         </div>
@@ -217,13 +236,10 @@ async function viewAllMuseums() {
         const response = await fetch('/api/ViewAllUpcomingMuseumEventsGuest');
         const museums = await response.json();
 
-        console.log('Fetched Museums:', museums); // Debugging line
-
         if (response.ok) {
             displayMuseums(museums);
             openMuseumsModal();
         } else {
-            console.error('Response not OK:', response);
             alert('Failed to fetch museums: ' + (museums.error || 'Unknown error'));
         }
     } catch (error) {
@@ -256,8 +272,6 @@ async function viewAllHistoricalPlaces() {
         const response = await fetch('/api/ViewAllUpcomingHistoricalPlacesEventsGuest');
         const historicalPlaces = await response.json();
 
-        console.log('Fetched Historical Places:', historicalPlaces); // Debugging line
-
         if (response.ok) {
             displayHistoricalPlaces(historicalPlaces);
             openHistoricalPlacesModal();
@@ -267,6 +281,110 @@ async function viewAllHistoricalPlaces() {
     } catch (error) {
         console.error('Error fetching Historical Places:', error);
         alert('An error occurred while loading historical places.');
+    }
+}
+
+async function sortActivitesPriceDescending() {
+    try {
+        const response = await fetch('/sortActivitiesPriceDescendingTourist');
+        const activities = await response.json();
+
+        if (response.ok) {
+            displayActivities(activities); // Display products in the modal
+            openActivitiesModal();
+        } else {
+            alert(activities.error || 'Failed to sort activities.');
+        }
+    } catch (error) {
+        console.error('Error fetching sorted activities:', error);
+        alert('An error occurred while sorting activities.');
+    }
+}
+
+
+async function sortActivitesPriceAscending() {
+    try {
+        const response = await fetch('/sortActivitiesPriceAscendingTourist');
+        const activities = await response.json();
+
+        if (response.ok) {
+            displayActivities(activities); // Display products in the modal
+            openActivitiesModal();
+        } else {
+            alert(activities.error || 'Failed to sort activities.');
+        }
+    } catch (error) {
+        console.error('Error fetching sorted activities:', error);
+        alert('An error occurred while sorting activities.');
+    }
+}
+
+
+async function sortActivitesRatingDescending() {
+    try {
+        const response = await fetch('/sortActivitiesRatingDescendingTourist');
+        const activities = await response.json();
+
+        if (response.ok) {
+            displayActivities(activities); // Display products in the modal
+            openActivitiesModal();
+        } else {
+            alert(activities.error || 'Failed to sort activities.');
+        }
+    } catch (error) {
+        console.error('Error fetching sorted activities:', error);
+        alert('An error occurred while sorting activities.');
+    }
+}
+
+async function sortActivitesRatingAscending() {
+    try {
+        const response = await fetch('/sortActivitiesRatingAscendingTourist');
+        const activities = await response.json();
+
+        if (response.ok) {
+            displayActivities(activities); // Display products in the modal
+            openActivitiesModal();
+        } else {
+            alert(activities.error || 'Failed to sort activities.');
+        }
+    } catch (error) {
+        console.error('Error fetching sorted activities:', error);
+        alert('An error occurred while sorting activities.');
+    }
+}
+
+async function sortItinerariesPriceDescending() {
+    try {
+        const response = await fetch('/sortItinerariesPriceDescendingTourist');
+        const itineraries = await response.json();
+
+        if (response.ok) {
+            displayItineraries(itineraries); // Display products in the modal
+            openItineraryModal();
+        } else {
+            alert(itineraries.error || 'Failed to sort itineraries.');
+        }
+    } catch (error) {
+        console.error('Error fetching sorted itineraries:', error);
+        alert('An error occurred while sorting itineraries.');
+    }
+}
+
+async function sortItinerariesPriceAscending() {
+    try {
+        const response = await fetch('/sortItinerariesPriceAscendingTourist');
+        const itineraries = await response.json();
+
+        if (response.ok) {
+            displayItineraries(itineraries); // Display products in the modal
+            openItineraryModal();
+        } else {
+            alert(itineraries.error || 'Failed to sort itineraries.');
+        }
+    } catch (error) {
+        console.error('Error fetching sorted itineraries:', error);
+        alert('An error occurred while sorting itineraries.');
     }
 }
 
@@ -466,6 +584,71 @@ document.getElementById('filter').addEventListener('click', async () => {
             alert('An error occurred while fetching activities.');
         }
     });
+
+    document.getElementById('filterMuseums').addEventListener('click', async () => {
+    const tagsInput = document.getElementById('tags').value;
+    const tags = tagsInput.split(',').map(tag => tag.trim()).filter(tag => tag !== '');
+
+    if (tags.length === 0) {
+        alert('Please enter at least one tag to filter.');
+        return;
+    }
+
+    try {
+        const response = await fetch('/api/getMuseumsByTagGuest', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ tags })
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            alert(errorData.error || 'Failed to fetch museums.');
+            return;
+        }
+
+        const museums = await response.json();
+        displayMuseums(museums); // Display filtered museums
+    } catch (error) {
+        console.error('Error fetching filtered museums:', error);
+        alert('An error occurred while fetching museums.');
+    }
+});
+
+document.getElementById('filterHistoricalPlaces').addEventListener('click', async () => {
+    const tagsInput = document.getElementById('historicalTags').value;
+    const tags = tagsInput.split(',').map(tag => tag.trim()).filter(tag => tag !== '');
+
+    if (tags.length === 0) {
+        alert('Please enter at least one tag to filter.');
+        return;
+    }
+
+    try {
+        const response = await fetch('/api/getHistoricalPlacesByTagGuest', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ tags })
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            alert(errorData.error || 'Failed to fetch historical places.');
+            return;
+        }
+
+        const historicalPlaces = await response.json();
+        displayHistoricalPlaces(historicalPlaces); // Display filtered historical places
+    } catch (error) {
+        console.error('Error fetching filtered historical places:', error);
+        alert('An error occurred while fetching historical places.');
+    }
+});
+
 </script>
 
 </body>

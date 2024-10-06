@@ -108,9 +108,9 @@ app.get("/api/sortProductsDescendingSeller", sortProductsDescendingSeller);
 app.get("/sortProductsDescendingTourist", sortProductsDescendingTourist);
 app.get("/sortProductsAscendingTourist", sortProductsAscendingTourist);
 app.get("/filterActivitiesGuest", filterActivitiesGuest);
-app.get("/getMuseumsByTagGuest", getMuseumsByTagGuest);
+app.post("/api/getMuseumsByTagGuest", getMuseumsByTagGuest);
 app.get("/getMuseumsByTagTourist", getMuseumsByTagTourist);
-app.get("/getHistoricalPlacesByTagGuest", getHistoricalPlacesByTagGuest);
+app.post("/api/getHistoricalPlacesByTagGuest", getHistoricalPlacesByTagGuest);
 app.get("/getHistoricalPlacesByTagTourist", getHistoricalPlacesByTagTourist);
 
 app.get("/api/ViewAllUpcomingActivities", ViewAllUpcomingActivities);
