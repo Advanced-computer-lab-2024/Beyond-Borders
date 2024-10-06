@@ -207,10 +207,7 @@
               student: document.getElementById("ticketPriceStudent").value,
             },
             AuthorUsername: localStorage.getItem("username"),
-            Tags: document
-              .getElementById("tag")
-              .value.split(",")
-              .map((tag) => tag.trim()),
+            HistoricalTags: document.getElementById("tag").value.split(",").map((tag) => tag.trim()),
           };
 
           if (currentEditPlace) {
