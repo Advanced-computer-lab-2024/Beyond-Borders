@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add New Itinerary</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            padding: 20px;
+            margin: 0;
+        }
+        .container {
+            max-width: 600px;
+            margin: auto;
+            background: #fff;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        h2 {
+            text-align: center;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        input[type="text"],
+        input[type="number"],
+        input[type="date"],
+        textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        button {
+            background-color: #40be5b;
+            color: white;
+            padding: 10px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+        }
+        button:hover {
+            background-color: #7ccf8e;
+        }
+        .message {
+            margin-top: 20px;
+            text-align: center;
+        }
+        .error {
+            color: red;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Create New Itinerary</h2>
+    <form id="itineraryForm">
+        <div class="form-group">
+            <label for="title">Title:</label>
+            <input type="text" id="title" placeholder="Itinerary Title" required>
+        </div>
+        <div class="form-group">
+            <label for="activities">Activities:</label>
+            <input type="text" id="activities" placeholder="e.g., Visit Museum, Walk in Park" required>
+        </div>
+        <div class="form-group">
+            <label for="locations">Locations:</label>
+            <input type="text" id="locations" placeholder="e.g., Downtown" required>
+        </div>
+        <div class="form-group">
+            <label for="timeline">Timeline:</label>
+            <input type="text" id="timeline" placeholder="e.g., 9:00 AM - 3:00 PM" required>
+        </div>
+        <div class="form-group">
+            <label for="language">Language:</label>
+            <input type="text" id="language" placeholder="e.g., English" required>
+        </div>
+        <div class="form-group">
+            <label for="price">Price:</label>
+            <input type="number" id="price" placeholder="e.g., 150" required>
+        </div>
+        <div class="form-group">
+            <label for="date">Date:</label>
+            <input type="date" id="date" required>
+        </div>
+        <div class="form-group">
+            <label for="accessibility">Accessibility:</label>
+            <select id="accessibility" required>
+                <option value="true">Yes</option>
+                <option value="false">No</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="pickupLocation">Pickup Location:</label>
+            <input type="text" id="pickupLocation" placeholder="e.g., Hotel Lobby" required>
+        </div>
+        <div class="form-group">
+            <label for="dropoffLocation">Dropoff Location:</label>
+            <input type="text" id="dropoffLocation" placeholder="e.g., City Center" required>
+        </div>
+        <div class="form-group">
+            <label for="tags">Tags (comma-separated):</label>
+            <input type="text" id="tags" placeholder="e.g., Adventure" required>
+        </div>
+        <div class="form-group">
+            <label for="authorUsername">Author Username:</label>
+            <input type="text" id="authorUsername" readonly>
+        </div>
+        <button type="submit">Add Itinerary</button>
+        <div class="message" id="responseMessage"></div>
+        <div class="error" id="errorMessage"></div>
+    </form>
+</div>
+
+<script>
+    // Set the author username from local storage
+    const authorUsername = localStorage.getItem('authorUsername') || 'Guest';
+    document.getElementById('authorUsername').value = authorUsername;
+
+    document.getElementById('itineraryForm').addEventListener('submit', async function(event) {
+        event.preventDefault(); // Prevent form submission
+
+        const responseMessage = document.getElementById('responseMessage');
+        const errorMessage = document.getElementById('errorMessage');
+        responseMessage.textContent = ''; // Clear previous messages
+        errorMessage.textContent = ''; // Clear previous errors
+
+        const formData = {
+            Title: document.getElementById('title').value,
+            Activities: document.getElementById('activities').value, // Keep as string
+            Locations: document.getElementById('locations').value,
+            Timeline: document.getElementById('timeline').value,
+            Language: document.getElementById('language').value,
+            Price: parseFloat(document.getElementById('price').value),
+            Date: new Date(document.getElementById('date').value).toISOString(), // Convert to ISO string
+            accessibility: document.getElementById('accessibility').value === 'true', // Convert to boolean
+            pickupLocation: document.getElementById('pickupLocation').value,
+            dropoffLocation: document.getElementById('dropoffLocation').value,
+            isBooked: false, // Hardcoded as per your example
+            Tags: document.getElementById('tags').value.split(',').map(tag => tag.trim()),
+            AuthorUsername: authorUsername // Use the username from local storage
+        };
+
+        try {
+            const response = await fetch('/addItinerary', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(formData)
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                responseMessage.textContent = 'Itinerary added successfully!';
+                responseMessage.style.color = 'green';
+                document.getElementById('itineraryForm').reset(); // Reset the form
+            } else {
+                errorMessage.textContent = `Error: ${result.error}`;
+                errorMessage.style.color = 'red';
+            }
+        } catch (error) {
+            errorMessage.textContent = 'An error occurred. Please try again.';
+            errorMessage.style.color = 'red';
+        }
+    });
+</script>
+
+</body>
+</html>

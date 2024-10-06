@@ -201,8 +201,8 @@ app.post("/filterItinerariesGuest" , filterItinerariesGuest);
 
 
 // Itinerary
-app.post("/createItinerary",createItineraryAsTourGuide);
-app.get("/readItinerary/:title", readItineraryAsTourGuide);
+app.post("/api/createItinerary",createItineraryAsTourGuide);
+app.get("/api/readItinerary/:title", readItineraryAsTourGuide);
 app.put("/updateItinerary/:title",updateItineraryAsTourGuide);
 app.delete("/deleteItinerary/:title",deleteItineraryAsTourGuide);
 app.get("/api/getallItinerarys",getItenrarysByTourGuide);
