@@ -97,8 +97,7 @@ const { default: mongoose } = require('mongoose');
 };
   
 const updateItineraryByTitle = async (req, res) => {
-  const { Title } = req.body;
-  const {
+  const { Title,
       Activities,
       Locations,
       Timeline,
