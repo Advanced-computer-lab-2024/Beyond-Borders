@@ -106,50 +106,61 @@
         console.log("Extracted museumName:", museumName);
         console.log("Extracted AuthorUsername:", AuthorUsername);
 
-        async function loadMuseumData() {
-            if (!museumName || !AuthorUsername) {
-                alert("Museum name or Author Username not found. Please try again.");
-                return;
-            }
-
-            try {
-                console.log("Fetching details for museum name:", museumName, "and author:", AuthorUsername);
-
-                // Making a GET request with the museum name and author username as query parameters
-                const response = await fetch(`/readMuseumByName?name=${encodeURIComponent(museumName)}&author=${encodeURIComponent(AuthorUsername)}`, {
-                    method: "GET",
-                    headers: {
-                        "Content-Type": "application/json",
-                    }
-                });
-
-                const museum = await response.json();
-
-                // Check if response was successful
-                if (response.ok) {
-                    console.log("Fetched museum details:", museum);
-
-                    // Populate the form fields with the museum's existing details
-                    document.getElementById('name').value = museum.name;
-                    document.getElementById('description').value = museum.description;
-                    document.getElementById('location').value = museum.location;
-                    document.getElementById('openingHours').value = museum.openingHours;
-                    document.getElementById('ticketPriceForeigner').value = museum.ticketPrices.foreigner;
-                    document.getElementById('ticketPriceNative').value = museum.ticketPrices.native;
-                    document.getElementById('ticketPriceStudent').value = museum.ticketPrices.student;
-                    document.getElementById('historicalTags').value = museum.HistoricalTags.join(', '); // Assuming HistoricalTags is an array
-                } else {
-                    console.error("Error fetching museum details:", museum);
-                    alert(`Error fetching museum details: ${museum.error || "Unknown error"}`);
-                }
-            } catch (error) {
-                console.error("Error fetching museum details:", error);
-                alert("An error occurred while fetching museum details. Please try again.");
-            }
+        // Load the museum data into the form fields
+        function editMuseum(museum) {
+            document.getElementById('name').value = museum.name;
+            document.getElementById('description').value = museum.description;
+            document.getElementById('location').value = museum.location;
+            document.getElementById('openingHours').value = museum.openingHours;
+            document.getElementById('ticketPriceForeigner').value = museum.ticketPrices.foreigner;
+            document.getElementById('ticketPriceNative').value = museum.ticketPrices.native;
+            document.getElementById('ticketPriceStudent').value = museum.ticketPrices.student;
+            document.getElementById('historicalTags').value = museum.HistoricalTags.join(', '); // Assuming HistoricalTags is an array
         }
 
-        // Load museum data into the form when the page is loaded
-        window.onload = loadMuseumData;
+        
+
+
+        async function loadMuseumData() {
+    if (!museumName || !AuthorUsername) {
+        alert("Museum name or Author Username not found. Please try again.");
+        return;
+    }
+
+    try {
+        console.log("Fetching details for museum name:", museumName, "and author:", AuthorUsername);
+
+        // Making a GET request with the museum name and author username as query parameters
+        const response = await fetch(`/getMuseumByName?name=${encodeURIComponent(museumName)}&author=${encodeURIComponent(AuthorUsername)}`, {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json",
+            }
+        });
+
+        if (response.status === 404) {
+            alert("Museum not found. Please verify the museum name and author.");
+            return;
+        }
+
+        if (!response.ok) {
+            throw new Error("Failed to fetch museum details");
+        }
+
+        const museum = await response.json();
+        console.log("Fetched museum details:", museum);
+
+        // Populate the form fields with the museum's existing details
+        editMuseum(museum);
+
+    } catch (error) {
+        console.error("Error fetching museum details:", error);
+        alert("An error occurred while fetching museum details. Please try again.");
+    }
+}
+
+ window.onload = loadMuseumData;
+       
 
         document.getElementById('editMuseumForm').addEventListener('submit', async function (event) {
             event.preventDefault(); // Prevent form submission
@@ -158,7 +169,7 @@
             const historicalTags = document.getElementById('historicalTags').value.split(',').map(tag => tag.trim());
 
             const updatedMuseum = {
-                name: museumName, // Use the original name to identify the record
+                name: document.getElementById('name').value, // Use the original name (readonly)
                 description: document.getElementById('description').value,
                 location: document.getElementById('location').value,
                 openingHours: document.getElementById('openingHours').value,

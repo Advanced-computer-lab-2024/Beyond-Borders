@@ -189,6 +189,10 @@ input[type="password"] {
         <input type="number" id="Rating" min="1" max="5" placeholder="Rating (1-5)" />
         
         <button id="filter">Apply Filter</button>
+        <button onclick="sortActivitesPriceDescending()">Sort by Price (Descending)</button>
+        <button onclick="sortActivitesPriceAscending()">Sort by Price (Ascending)</button>
+        <button onclick="sortActivitesRatingDescending()">Sort by Rating (Descending)</button>
+        <button onclick="sortActivitesRatingAscending()">Sort by Rating (Ascending)</button>
 
         <!-- Container for displaying activities -->
         <div id="activitiesContainerModal">
@@ -196,6 +200,7 @@ input[type="password"] {
         </div>
     </div>
 </div>
+
 
 <!-- Modal for Activities -->
 <div id="activitiesModal" class="modal">
@@ -223,6 +228,8 @@ input[type="password"] {
     <div class="modal-content">
         <span class="close" onclick="closeItineraryModal()">&times;</span>
         <h2>Upcoming Itinerary Events</h2>
+        <button onclick="sortItinerariesPriceDescending()">Sort by Price (Descending)</button>
+        <button onclick="sortItinerariesPriceAscending()">Sort by Price (Ascending)</button>
         <div id="itineraryContainerModal">
             <!-- Itineraries will be displayed here -->
         </div>
@@ -341,6 +348,8 @@ async function viewAllActivities() {
     }
 }
 
+        
+
 async function viewAllMuseums() {
     try {
         const response = await fetch('/api/ViewAllUpcomingMuseumEventsTourist');
@@ -418,6 +427,110 @@ async function searchActivity() {
     } catch (error) {
         console.error('Error fetching products:', error);
         alert('An error occurred while searching for products.');
+    }
+}
+
+async function sortActivitesPriceDescending() {
+    try {
+        const response = await fetch('/sortActivitiesPriceDescendingTourist');
+        const activities = await response.json();
+
+        if (response.ok) {
+            displayActivities(activities); // Display products in the modal
+            openActivitiesModal();
+        } else {
+            alert(activities.error || 'Failed to sort activities.');
+        }
+    } catch (error) {
+        console.error('Error fetching sorted activities:', error);
+        alert('An error occurred while sorting activities.');
+    }
+}
+
+
+async function sortActivitesPriceAscending() {
+    try {
+        const response = await fetch('/sortActivitiesPriceAscendingTourist');
+        const activities = await response.json();
+
+        if (response.ok) {
+            displayActivities(activities); // Display products in the modal
+            openActivitiesModal();
+        } else {
+            alert(activities.error || 'Failed to sort activities.');
+        }
+    } catch (error) {
+        console.error('Error fetching sorted activities:', error);
+        alert('An error occurred while sorting activities.');
+    }
+}
+
+
+async function sortActivitesRatingDescending() {
+    try {
+        const response = await fetch('/sortActivitiesRatingDescendingTourist');
+        const activities = await response.json();
+
+        if (response.ok) {
+            displayActivities(activities); // Display products in the modal
+            openActivitiesModal();
+        } else {
+            alert(activities.error || 'Failed to sort activities.');
+        }
+    } catch (error) {
+        console.error('Error fetching sorted activities:', error);
+        alert('An error occurred while sorting activities.');
+    }
+}
+
+async function sortActivitesRatingAscending() {
+    try {
+        const response = await fetch('/sortActivitiesRatingAscendingTourist');
+        const activities = await response.json();
+
+        if (response.ok) {
+            displayActivities(activities); // Display products in the modal
+            openActivitiesModal();
+        } else {
+            alert(activities.error || 'Failed to sort activities.');
+        }
+    } catch (error) {
+        console.error('Error fetching sorted activities:', error);
+        alert('An error occurred while sorting activities.');
+    }
+}
+
+async function sortItinerariesPriceDescending() {
+    try {
+        const response = await fetch('/sortItinerariesPriceDescendingTourist');
+        const itineraries = await response.json();
+
+        if (response.ok) {
+            displayItineraries(itineraries); // Display products in the modal
+            openItineraryModal();
+        } else {
+            alert(itineraries.error || 'Failed to sort itineraries.');
+        }
+    } catch (error) {
+        console.error('Error fetching sorted itineraries:', error);
+        alert('An error occurred while sorting itineraries.');
+    }
+}
+
+async function sortItinerariesPriceAscending() {
+    try {
+        const response = await fetch('/sortItinerariesPriceAscendingTourist');
+        const itineraries = await response.json();
+
+        if (response.ok) {
+            displayItineraries(itineraries); // Display products in the modal
+            openItineraryModal();
+        } else {
+            alert(itineraries.error || 'Failed to sort itineraries.');
+        }
+    } catch (error) {
+        console.error('Error fetching sorted itineraries:', error);
+        alert('An error occurred while sorting itineraries.');
     }
 }
 

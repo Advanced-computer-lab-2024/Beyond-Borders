@@ -8,13 +8,12 @@ const { default: mongoose } = require('mongoose');
   const createItinerary = async(req, res) => {
     const {
       Title,
-      Activities,  // This will be an array of activity objects
+      Activities,
       Locations,
       Timeline,
       Language,
       Price,
       Date,
-      availableDates,
       accessibility,
       pickupLocation,
       dropoffLocation,
@@ -22,30 +21,23 @@ const { default: mongoose } = require('mongoose');
       AuthorUsername
     } = req.body;
     try {
-      //  Validate activities array
-      // if (!Array.isArray(Activities) || Activities.length === 0) {
-      //   throw new Error("Activities array is required and cannot be empty.");
-      // }
-  
-      // Validate each activity object in the array
-      // Activities.forEach(activity => {
-      //   if (!activity.name || !activity.location || !activity.timeline || !activity.duration) {
-      //     throw new Error("Each activity must have a name, location, timeline, and duration.");
-      //   }
-      // });
+      // Check if the itinerary title already exists
+    const existingItinerary = await ItineraryModel.findOne({ Title });
+    if (existingItinerary) {
+      return res.status(400).json({ error: "An itinerary with this title already exists!" });
+    }
       const existingTags = await TagsModel.find({ NameOfTags: { $in: Tags } });
       if (existingTags.length !== Tags.length) {
         return res.status(400).json({ error: "One or more tags do not exist!" });
       }
       const itinerary = await ItineraryModel.create({
         Title,
-        Activities,   // No need to explicitly handle sub-fields, Mongoose will handle it based on the schema
+        Activities,
         Locations,
         Timeline,
         Language,
         Price,
         Date,
-        availableDates,
         accessibility,
         pickupLocation,
         dropoffLocation,
@@ -89,9 +81,7 @@ const { default: mongoose } = require('mongoose');
 
     try {
         // Check if an itinerary with the same title exists (case-insensitive)
-        const itinerary = await ItineraryModel.findOne({
-            Title: { $regex: new RegExp(Title, 'i') } // Case-insensitive search
-        });
+        const itinerary = await ItineraryModel.findOne({Title: { $regex: new RegExp(Title, 'i') }});
 
         if (itinerary) {
             // If itinerary found, return the details
@@ -106,7 +96,72 @@ const { default: mongoose } = require('mongoose');
     }
 };
   
-  const updateItineraryByTitle = async (req, res) => {
+const updateItineraryByTitle = async (req, res) => {
+  const { Title,
+      Activities,
+      Locations,
+      Timeline,
+      Language,
+      Price,
+      Date,
+      accessibility,
+      pickupLocation,
+      dropoffLocation,
+      Tags
+  } = req.body;
+
+  try {
+      // Find the itinerary by its title (case-insensitive)
+      const itinerary = await ItineraryModel.findOne({ Title: { $regex: new RegExp(Title, 'i') } });
+
+      // If no itinerary is found, return a 404 error
+      if (!itinerary) {
+          return res.status(404).json({ error: "Itinerary not found!" });
+      }
+
+      // If Tags are provided, check if they exist
+      if (Tags && Tags.length > 0) {
+        const existingTags = await TagsModel.find({ NameOfTags: { $in: Tags } });
+        if (existingTags.length !== Tags.length) {
+            return res.status(400).json({ error: "One or more tags do not exist!" });
+        }
+      }
+
+      // Prepare an object with the fields to update (excluding AdvertiserName and Name)
+      const updateFields = {
+        Activities,
+        Locations,
+        Timeline,
+        Language,
+        Price,
+        Date,
+        accessibility,
+        pickupLocation,
+        dropoffLocation,
+        Tags
+      };
+
+      // Filter out any undefined values to avoid updating fields with undefined
+      Object.keys(updateFields).forEach(key => updateFields[key] === undefined && delete updateFields[key]);
+
+      // Update the itinerary
+      const updatedItinerary = await ItineraryModel.findOneAndUpdate(
+        { Title: Title}, 
+        { $set: updateFields }, // Update only the specified fields
+        { new: true } // Return the updated document
+    );
+
+    // Send the updated activity as a JSON response with a 200 OK status
+    res.status(200).json({ msg: "Itinerary updated successfully!", itinerary: updatedItinerary });
+
+  } catch (error) {
+      // If an error occurs, send a 500 Internal Server Error status with the error message
+      res.status(500).json({ error: error.message });
+  }
+};
+
+
+  /*const updateItineraryByTitle = async (req, res) => {
     const { Title } = req.params; // Assuming the title is passed as a URL parameter
     const {
       Activities,
@@ -155,6 +210,30 @@ const { default: mongoose } = require('mongoose');
       res.status(400).json({ error: error.message });
     }
   };
+*/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   /*const deleteItineraryByTitle = async (req, res) => {
     const { Title } = req.params; // Assuming the title is passed as a URL parameter
   
@@ -188,7 +267,7 @@ const { default: mongoose } = require('mongoose');
 
 
   const deleteItineraryByTitle = async (req, res) => {
-    const { Title } = req.query; // Get the title from the query parameters
+    const { Title } = req.body; // Get the title from the query parameters
 
     try {
         // Check if the itinerary exists by title (case-insensitive)
