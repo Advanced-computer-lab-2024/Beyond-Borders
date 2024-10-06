@@ -163,6 +163,21 @@ input[type="password"] {
     </div>
     
 </div>
+<div class="search-container">
+    <input type="text" id="searchInput" placeholder="Search for a product by name...">
+    <button class="search-button" onclick="searchProducts()">Search</button>
+</div>
+
+<div class="filter-container"></div>
+    <input type="number" id="minPrice" placeholder="Minimum Price" />
+    <input type="number" id="maxPrice" placeholder="Maximum Price" />
+    <button class="search-button" onclick="filterProductsByPrice()">Filter</button>
+</div>
+
+<div class="sort-container">
+    <button onclick="sortProductsDescending()">Sort by Rating (Descending)</button>
+    <button onclick="sortProductsAscending()">Sort by Rating (Ascending)</button>
+</div>
 
 <div id="productsModal" class="modal">
     <div class="modal-content">
@@ -238,6 +253,10 @@ input[type="password"] {
         <input type="text" id="museumSearch" placeholder="Enter search keyword" />
         <button id="museumSearchButton">Search</button>
 
+        <label for="tags">Filter by Tags (comma-separated):</label>
+        <input type="text" id="tags" placeholder="Enter tags" />
+        <button id="filterMuseums">Apply Tag Filter</button>
+
         <div id="museumsContainerModal">
             <!-- Museums will be displayed here -->
         </div>
@@ -290,9 +309,11 @@ input[type="password"] {
         <!-- Search Bar -->
         <label for="historicalPlacesSearch">Search:</label>
         <input type="text" id="historicalPlacesSearch" placeholder="Search for historical places..." />
-        
         <!-- Search Button -->
         <button id="searchHistoricalPlacesButton">Search</button>
+        <label for="historicalTags">Filter by Tags (comma-separated):</label>
+        <input type="text" id="historicalTags" placeholder="Enter tags" />
+        <button id="filterHistoricalPlaces">Apply Tag Filter</button>
 
         <!-- Container for displaying historical places -->
         <div id="HistoricalPlacesContainerModal">
@@ -351,6 +372,111 @@ input[type="password"] {
 
 
 <script>
+
+async function searchProducts() {
+    const searchName = document.getElementById('searchInput').value.trim(); // Correct ID for input
+    if (!searchName) {
+        alert('Please enter a product name to search.');
+        return;
+    }
+
+    try {
+        const response = await fetch(`/api/viewProductsSeller?Name=${encodeURIComponent(searchName)}`, {
+            method: 'GET', // Use GET for query parameters
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+
+        const products = await response.json();
+
+        if (response.ok) {
+            displayProducts(products);
+            openProductsModal();
+        } else {
+            alert(products.error || 'No products found.');
+        }
+    } catch (error) {
+        console.error('Error fetching products:', error);
+        alert('An error occurred while searching for products.');
+    }
+}
+
+async function filterProductsByPrice() {
+    const minimumPrice = document.getElementById('minPrice').value;
+    const maximumPrice = document.getElementById('maxPrice').value;
+
+    // Validate input
+    if (!minimumPrice && !maximumPrice) {
+        alert('Please enter at least one price.');
+        return;
+    }
+
+    const filterCriteria = {};
+    if (minimumPrice) {
+        filterCriteria.MinimumPrice = Number(minimumPrice);
+    }
+    if (maximumPrice) {
+        filterCriteria.MaximumPrice = Number(maximumPrice);
+    }
+
+    try {
+        const response = await fetch('/api/filterProductByPriceTourist', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(filterCriteria)
+        });
+
+        const products = await response.json();
+
+        if (response.ok) {
+            displayProducts(products); // Use the existing display function
+            openProductsModal(); // Open the products modal
+        } else {
+            alert(products.msg || 'No products found in the specified price range.');
+        }
+    } catch (error) {
+        console.error('Error fetching filtered products:', error);
+        alert('An error occurred while filtering products.');
+    }
+}
+
+async function sortProductsDescending() {
+    try {
+        const response = await fetch('/api/sortProductsDescendingTourist');
+        const products = await response.json();
+
+        if (response.ok) {
+            displayProducts(products); // Display products in the modal
+            openProductsModal();
+        } else {
+            alert(products.error || 'Failed to sort products.');
+        }
+    } catch (error) {
+        console.error('Error fetching sorted products:', error);
+        alert('An error occurred while sorting products.');
+    }
+}
+
+async function sortProductsAscending() {
+    try {
+        const response = await fetch('/api/sortProductsAscendingTourist');
+        const products = await response.json();
+
+        if (response.ok) {
+            displayProducts(products); // Display products in the modal
+            openProductsModal();
+        } else {
+            alert(products.error || 'Failed to sort products.');
+        }
+    } catch (error) {
+        console.error('Error fetching sorted products:', error);
+        alert('An error occurred while sorting products.');
+    }
+}
+
 function toggleDetails(button) {
     const details = button.nextElementSibling; // Get the details div
     if (details.style.display === "none") {
@@ -1068,6 +1194,70 @@ function displayProducts(products, showEditButton = false) {
     });
 }
 
+
+document.getElementById('filterMuseums').addEventListener('click', async () => {
+    const tagsInput = document.getElementById('tags').value;
+    const tags = tagsInput.split(',').map(tag => tag.trim()).filter(tag => tag !== '');
+
+    if (tags.length === 0) {
+        alert('Please enter at least one tag to filter.');
+        return;
+    }
+
+    try {
+        const response = await fetch('/api/getMuseumsByTagGuest', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ tags })
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            alert(errorData.error || 'Failed to fetch museums.');
+            return;
+        }
+
+        const museums = await response.json();
+        displayMuseums(museums); // Display filtered museums
+    } catch (error) {
+        console.error('Error fetching filtered museums:', error);
+        alert('An error occurred while fetching museums.');
+    }
+});
+
+document.getElementById('filterHistoricalPlaces').addEventListener('click', async () => {
+    const tagsInput = document.getElementById('historicalTags').value;
+    const tags = tagsInput.split(',').map(tag => tag.trim()).filter(tag => tag !== '');
+
+    if (tags.length === 0) {
+        alert('Please enter at least one tag to filter.');
+        return;
+    }
+
+    try {
+        const response = await fetch('/api/getHistoricalPlacesByTagGuest', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ tags })
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            alert(errorData.error || 'Failed to fetch historical places.');
+            return;
+        }
+
+        const historicalPlaces = await response.json();
+        displayHistoricalPlaces(historicalPlaces); // Display filtered historical places
+    } catch (error) {
+        console.error('Error fetching filtered historical places:', error);
+        alert('An error occurred while fetching historical places.');
+    }
+});
 
 
 
