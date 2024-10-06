@@ -892,7 +892,9 @@ function populateProfileForm(profile) {
     document.getElementById('doB').value = profile.DoB || '';
     document.getElementById('nationality').value = profile.Nationality || '';
     document.getElementById('occupation').value = profile.Occupation || '';
-    document.getElementById('wallet').value = profile.Wallet !== null && profile.Wallet !== undefined ? profile.Wallet : '';
+
+    // Update to display "0" if the wallet is 0
+    document.getElementById('wallet').value = profile.Wallet !== null && profile.Wallet !== undefined ? profile.Wallet : '0';
 }
 
 function openModal() {
