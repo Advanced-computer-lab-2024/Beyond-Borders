@@ -61,8 +61,8 @@ const { default: mongoose } = require('mongoose');
   };
 
   // Search itineraries by title
-  const readItineraryByTitle = async (req, res) => {
-    const { Title } = req.params; // Assuming the title is passed as a URL parameter
+  /*const readItineraryByTitle = async (req, res) => {
+    const { Title } = req.query; // Assuming the title is passed as a URL parameter
   
     try {
       // Find the itinerary by title (case-insensitive)
@@ -81,7 +81,30 @@ const { default: mongoose } = require('mongoose');
       // Catch any errors
       res.status(500).json({ error: error.message });
     }
-  };
+  };*/
+
+
+  const readItineraryByTitle = async (req, res) => {
+    const { Title } = req.query; // Get the title from the query parameters
+
+    try {
+        // Check if an itinerary with the same title exists (case-insensitive)
+        const itinerary = await ItineraryModel.findOne({
+            Title: { $regex: new RegExp(Title, 'i') } // Case-insensitive search
+        });
+
+        if (itinerary) {
+            // If itinerary found, return the details
+            res.status(200).json(itinerary);
+        } else {
+            // If not found, return a 400 error
+            res.status(400).json({ error: "No itinerary found with this title!" });
+        }
+    } catch (error) {
+        // If an error occurs, send a 400 Bad Request status with the error message
+        res.status(400).json({ error: error.message });
+    }
+};
   
   const updateItineraryByTitle = async (req, res) => {
     const { Title } = req.params; // Assuming the title is passed as a URL parameter

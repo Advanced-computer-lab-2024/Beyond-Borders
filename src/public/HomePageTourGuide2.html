@@ -285,7 +285,7 @@
         <form id="create-activity-form">
             <div class="form-row">
                 <label for="itineraryTitle">Title:</label>
-                <input type="text" id="itineraryTitle" readonly>
+                <input type="text" id="itineraryTitle" >
             </div>
             <div class="form-row">
                 <label for="itineraryActivities">Activities:</label>
@@ -404,7 +404,7 @@ activities.forEach(activity => {
 async function openUpdateForm(activityName) {
     try {
         // Use the correct URL endpoint for reading the itinerary by title
-        const response = await fetch(`/api/readItinerary/${encodeURIComponent(activityName)}`, {
+        const response = await fetch(`/api/readItinerary?Title=${encodeURIComponent(activityName)}`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json'
