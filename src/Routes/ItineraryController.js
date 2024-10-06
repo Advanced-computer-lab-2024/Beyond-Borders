@@ -106,7 +106,66 @@ const { default: mongoose } = require('mongoose');
     }
 };
   
-  const updateItineraryByTitle = async (req, res) => {
+const updateItineraryByTitle = async (req, res) => {
+  const { Title } = req.query; // Get the title from the query parameters
+  const {
+    AuthorUsername,
+      Activities,
+      Location,
+      Timeline,
+      Language,
+      Price,
+      Date,
+      accessibility,
+      pickupLocation,
+      dropoffLocation,
+      Tags
+  } = req.body; // Data to update
+
+  try {
+      // Check if the itinerary exists by title (case-insensitive)
+      const existingItinerary = await ItineraryModel.findOne({
+          Title: { $regex: new RegExp(Title, 'i') } // Case-insensitive search
+      });
+
+      if (!existingItinerary) {
+          return res.status(404).json({ error: "Itinerary not found with the given title." });
+      }
+
+      // Prepare an object with the fields to update (excluding Title)
+      const updateFields = {
+        
+          Activities,
+          Location,
+          Timeline,
+          Language,
+          Price,
+          Date,
+          accessibility,
+          pickupLocation,
+          dropoffLocation,
+          Tags
+      };
+
+      // Filter out any undefined values to avoid updating fields with undefined
+      Object.keys(updateFields).forEach(key => updateFields[key] === undefined && delete updateFields[key]);
+
+      // Update the itinerary
+      const updatedItinerary = await ItineraryModel.findOneAndUpdate(
+          { Title: { $regex: new RegExp(Title, 'i') } }, // Find by title
+          { $set: updateFields }, // Update only the specified fields
+          { new: true, runValidators: true } // Return the updated document and run validators
+      );
+
+      // Send the updated itinerary as a JSON response with a 200 OK status
+      res.status(200).json({ msg: "Itinerary updated successfully!", itinerary: updatedItinerary });
+  } catch (error) {
+      // If an error occurs, send a 400 Bad Request status with the error message
+      res.status(400).json({ error: error.message });
+  }
+};
+
+  /*const updateItineraryByTitle = async (req, res) => {
     const { Title } = req.params; // Assuming the title is passed as a URL parameter
     const {
       Activities,
@@ -155,6 +214,30 @@ const { default: mongoose } = require('mongoose');
       res.status(400).json({ error: error.message });
     }
   };
+*/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   /*const deleteItineraryByTitle = async (req, res) => {
     const { Title } = req.params; // Assuming the title is passed as a URL parameter
   

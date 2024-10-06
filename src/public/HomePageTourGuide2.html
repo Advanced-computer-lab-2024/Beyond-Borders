@@ -478,50 +478,42 @@ function populateUpdateForm(activity) {
 //     }
 // }
 async function saveUpdatedActivity() {
-    const Name = document.getElementById('updateName').value;
-    const Date = document.getElementById('updateDate').value;
-    const Time = document.getElementById('updateTime').value;
-    const Price = parseFloat(document.getElementById('updatePrice').value); // Ensure price is a number
-    const Rating = 0; // Or set this based on your logic
-    const address = document.getElementById('updateLocation').value;
-    // Retrieve longitude and latitude from their respective inputs
-    const longitude = parseFloat(document.getElementById('updateLongitude').value);
-    const latitude = parseFloat(document.getElementById('updateLatitude').value);
-    // Construct the Location object
-    const Location = {
-        type: 'Point', // Set to 'Point' for GeoJSON
-        coordinates: [longitude, latitude], // [longitude, latitude]
-        address: address || null, // Optional, set to null if not provided
-    };
-    const Category = document.getElementById('updateCategory').value;
+    const title=document.getElementById('updateitineraryTitle').value;
 
-    // Split tags into an array, handle empty input
-    const TagsInput = document.getElementById('updateTags').value;
-    const Tags = TagsInput ? TagsInput.split(',').map(tag => tag.trim()) : []; // Send an empty array if no tags
+    const date=document.getElementById('updateitineraryDate').value ; // Assuming activity.Date is in ISO format
+    const timeline=document.getElementById('updateitineraryTimeline').value ;
+    const price=document.getElementById('updateitineraryPrice').value ;
+    const locations=document.getElementById('updateitineraryLocations').value ;
+    const activities=document.getElementById('updateitineraryActivities').value ;
+    const language=document.getElementById('updateitineraryLanguage').value ;
+    const pickup= document.getElementById('updateitineraryPickupLocation').value ;
+    const tagsInput = document.getElementById('updateitineraryTags').value;
+    const tags = tagsInput ? tagsInput.split(',').map(tag => tag.trim()) : []; // Send an empty array if no tags
+    const dropoff=document.getElementById('updateitineraryDropoffLocation').value ;
+    const access=document.getElementById('updateitineraryAccessibility').checked ;
 
-    const SpecialDiscount = document.getElementById('updateSpecialDiscount').value;
-    const BookingOpen = document.getElementById('updateBookingStatus').checked; // Use .checked for boolean
-    const AdvertiserName = localStorage.getItem('username');
+   const booking=document.getElementById('updateitineraryBookingStatus').checked;
+    const tourguideName = localStorage.getItem('username');
 
     try {
-        const response = await fetch('/api/updateActivity', {
+        const response = await fetch(`/api/updateItinerary?Title=${encodeURIComponent(tourguideName)}`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ AdvertiserName, Name, Date, Time, Price, Rating, Location, SpecialDiscount, Category, Tags, BookingOpen })
+            body: JSON.stringify({ tourguideName, activities,locations, timeline,language,price,date, access, pickup, dropoff, booking,tags })
         });
 
         if (!response.ok) {
             const errorData = await response.json();
-            throw new Error(errorData.error || 'Error updating activity');
+            throw new Error(errorData.error || 'Error updating itinerary');
         }
 
-        alert('Activity updated successfully!');
+        alert('Itinerary updated successfully!');
         closeUpdateModal(); // Close the modal on successful save
     } catch (error) {
         console.error('Error:', error);
-        alert('Failed to update activity: ' + error.message);
+        alert('Failed to update Itinerary: ' + error.message);
     }
 }
 

@@ -203,7 +203,7 @@ app.post("/filterItinerariesGuest" , filterItinerariesGuest);
 // Itinerary
 app.post("/api/createItinerary",createItineraryAsTourGuide);
 app.get("/api/readItinerary", readItineraryAsTourGuide);
-app.put("/updateItinerary/:title",updateItineraryAsTourGuide);
+app.put("/api/updateItinerary",updateItineraryAsTourGuide);
 app.delete("/api/deleteItinerary",deleteItineraryAsTourGuide);
 app.get("/api/getallItinerarys",getItenrarysByTourGuide);
 //Advertiser
