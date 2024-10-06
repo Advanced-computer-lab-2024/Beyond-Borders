@@ -990,7 +990,9 @@ document.getElementById('filter').addEventListener('click', async () => {
     const minPrice = document.getElementById('minPrice2').value;
     const maxPrice = document.getElementById('maxPrice2').value;
     const InputDate = document.getElementById('InputDate2').value;
-    const Tags = document.getElementById('tags').value.split(',').map(tag => tag.trim()); // Split and trim tags
+    //const Tags = document.getElementById('tags').value.split(',').map(tag => tag.trim()); // Split and trim tags
+    const tagsInput = document.getElementById('tags').value;
+    const Tags2 = tagsInput ? tagsInput.split(',').map(tag => tag.trim()) : [];
 
     // Prepare the request body matching the schema attributes
     const requestBody = {
@@ -998,7 +1000,7 @@ document.getElementById('filter').addEventListener('click', async () => {
         MinPrice: minPrice ? parseFloat(minPrice) : undefined,
         maxPrice: maxPrice ? parseFloat(maxPrice) : undefined,
         InputDate: InputDate || undefined,
-        Tags: Tags.length > 0 ? Tags : undefined
+        Tags: Tags2.length > 0 ? Tags2 : undefined
     };
     console.log(requestBody);
     try {
