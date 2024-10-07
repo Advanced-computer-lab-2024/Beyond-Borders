@@ -40,63 +40,71 @@ const CreateMuseums = async (req, res) => {
     }
 };
  
-  //YAASSIN AND AMINA
-  const getMuseumByName = async (req, res) => {
-    try {
-      const {museumName} = req.body;
-      const museumPlace = await MuseumsModel.findOne({name: museumName});
-  
-      if (museumPlace) {
-        res.status(200).json(museumPlace);
+// Backend: MuseumsController.js
+
+const getMuseumByName = async (req, res) => {
+  try {
+      const { MuseumName } = req.body; // Get Museum name from request body
+      const museum = await MuseumsModel.findOne({ name: MuseumName }); // Find museum by name
+
+      if (museum) {
+          res.status(200).json(museum); // Send museum details if found
       } else {
-        res.status(404).json({ error : "Museum not found" });
+          res.status(404).json({ error: "Museum not found" }); // Museum not found
       }
-    } catch (error) {
-      res.status(400).json({ error: error.message });
-    }
-  }; 
+  } catch (error) {
+      res.status(400).json({ error: error.message }); // Handle any errors
+  }
+};
 
+const updateMuseumByName = async (req, res) => {
+  const { name, description, pictures, location, openingHours, ticketPrices, AuthorUsername, HistoricalTags } = req.body;
 
-  const updateMuseumByName = async (req, res) => {
-    // Destructure fields from the request body
-    const {name, description, pictures, location, openingHours, ticketPrices, AuthorUsername, HistoricalTags} = req.body;
+  try {
+      // Check if the museum exists with the provided name and author username
+      const existingMuseum = await MuseumsModel.findOne({ name: name, AuthorUsername: AuthorUsername });
+      if (!existingMuseum) {
+          return res.status(404).json({ error: "Museum not found for the given Author." });
+      }
 
-    try {
-        // Check if the activity exists with the provided name and advertiser name
-        const existingMuseum = await MuseumsModel.findOne({ name: name, AuthorUsername: AuthorUsername });
-        if (!existingMuseum) {
-            return res.status(404).json({ error: "Museum not found for the given Tourism Governer." });
-        }
-         // If Tags are provided, check if they exist
-         if (HistoricalTags && HistoricalTags.length > 0) {
+      // If Tags are provided, check if they exist (optional, you can skip if no validation is needed)
+      if (HistoricalTags && HistoricalTags.length > 0) {
           const existingTags = await TagsModel.find({ NameOfHistoricalTags: { $in: HistoricalTags } });
           if (existingTags.length !== HistoricalTags.length) {
               return res.status(400).json({ error: "One or more tags do not exist!" });
           }
       }
-       
-        // Prepare an object with the fields to update (excluding AdvertiserName and Name)
-        const updateFields = {
-          description, pictures, location, openingHours, ticketPrices, HistoricalTags
-        };
 
-        // Filter out any undefined values to avoid updating fields with undefined
-        Object.keys(updateFields).forEach(key => updateFields[key] === undefined && delete updateFields[key]);
+      // Prepare an object with the fields to update, including HistoricalTags
+      const updateFields = {
+          description,
+          pictures,
+          location,
+          openingHours,
+          ticketPrices,
+          HistoricalTags, // Ensure HistoricalTags is part of the updateFields
+      };
 
-        // Update the activity
-        const updatedMuseum = await MuseumsModel.findOneAndUpdate(
-            { name: name, AuthorUsername: AuthorUsername }, // Find by Name and AdvertiserName
-            { $set: updateFields }, // Update only the specified fields
-            { new: true } // Return the updated document
-        );
+      // Filter out any undefined values to avoid updating fields with undefined
+      Object.keys(updateFields).forEach((key) => updateFields[key] === undefined && delete updateFields[key]);
 
-        // Send the updated activity as a JSON response with a 200 OK status
-        res.status(200).json({ msg: "Museum updated successfully!", museum: updatedMuseum });
-    } catch (error) {
-        // If an error occurs, send a 400 Bad Request status with the error message
-        res.status(400).json({ error: error.message });
-    }
-}; 
+      // Update the museum
+      const updatedMuseum = await MuseumsModel.findOneAndUpdate(
+          { name: name, AuthorUsername: AuthorUsername }, // Find by name and AuthorUsername
+          { $set: updateFields }, // Update only the specified fields
+          { new: true } // Return the updated document
+      );
+
+      // Send the updated museum as a JSON response with a 200 OK status
+      res.status(200).json({ msg: "Museum updated successfully!", museum: updatedMuseum });
+  } catch (error) {
+      // If an error occurs, send a 400 Bad Request status with the error message
+      res.status(400).json({ error: error.message });
+  }
+};
+
+
+
 const deleteMuseumByName = async (req, res) => {
   try {
       const { name, AuthorUsername } = req.body;

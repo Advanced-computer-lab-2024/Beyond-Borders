@@ -165,8 +165,8 @@ app.put("/updateTourGuidePreviousWork",UpdateTourGuidePreviousWork);
 //Tourist Governer
 app.post("/createHistoricalTag", createNewHistoricalTag);
 app.post("/addMuseum" , createMuseumsAsTourismGoverner);
-app.get("/readMuseumByName" , getMuseumByNameAsTourismGoverner);
-app.put("/updateMuseumByName" , updateMuseumByNameAsTourismGoverner);
+app.post("/readMuseumByName" , getMuseumByNameAsTourismGoverner);
+app.post("/updateMuseumByName" , updateMuseumByNameAsTourismGoverner);
 app.post("/deleteMuseumByName" , deleteMuseumByNameAsTourismGoverner);
 app.post("/readAllMuseums" , getMuseumsByAuthorAsTourismGoverner);
 app.post("/addHistoricalPlace" , createHistoricalPlaceAsTourismGoverner);
