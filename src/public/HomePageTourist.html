@@ -286,8 +286,9 @@ input[type="password"] {
         <label for="InputDate2">Date:</label>
         <input type="date" id="InputDate2" placeholder="date" />
 
-        <label for="tags">Tags:</label>
-        <input type="text" id="tags">
+    
+        <label for="tags2">Tags:</label>
+        <input type="text" id="tags2">
 
         <!-- Buttons for filtering and sorting -->
         <button id="filter1">Apply Filter</button>
@@ -993,7 +994,7 @@ document.getElementById('filter').addEventListener('click', async () => {
     const maxPrice = document.getElementById('maxPrice2').value;
     const InputDate = document.getElementById('InputDate2').value;
     //const Tags = document.getElementById('tags').value.split(',').map(tag => tag.trim()); // Split and trim tags
-    const tagsInput = document.getElementById('tags').value;
+    const tagsInput = document.getElementById('tags2').value;
     const Tags2 = tagsInput ? tagsInput.split(',').map(tag => tag.trim()) : [];
 
     // Prepare the request body matching the schema attributes
