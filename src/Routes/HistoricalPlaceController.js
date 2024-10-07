@@ -5,12 +5,12 @@ const { default: mongoose } = require('mongoose');
 const CreateHistoricalPlace = async (req, res) => {
   try {
       // Destructure the required fields from the request body
-      const { name, description, pictures, location, openingHours, ticketPrices, AuthorUsername, Tags, dateOfEvent } = req.body;
+      const { name, description, pictures, location, openingHours, ticketPrices, AuthorUsername, HistoricalTags, dateOfEvent } = req.body;//changed
 
       // Validate that Tags is an array
-      if (!Array.isArray(Tags) || Tags.length === 0) {
+      if (!Array.isArray(HistoricalTags) || HistoricalTags.length === 0) {
           return res.status(400).json({ error: "Tags must be a valid array." });
-      }
+      }//changed
 
       // Check if a historical place with the same name already exists
       const existingHistoricalPlace = await HistoricalPlacesModel.findOne({ name: name });
@@ -19,8 +19,8 @@ const CreateHistoricalPlace = async (req, res) => {
       }
 
       // Check if all provided tags exist
-      const existingTags = await TagsModel.find({ NameOfHistoricalTags: { $in: Tags } });
-      if (existingTags.length !== Tags.length) {
+      const existingTags = await TagsModel.find({ NameOfHistoricalTags: { $in: HistoricalTags } });//changed
+      if (existingTags.length !== HistoricalTags.length) {
           return res.status(400).json({ error: "One or more tags do not exist!" });
       }
 
@@ -33,7 +33,7 @@ const CreateHistoricalPlace = async (req, res) => {
           openingHours,
           ticketPrices,
           AuthorUsername,
-          Tags,
+          Tags : HistoricalTags,//changed
           dateOfEvent
       });
 
