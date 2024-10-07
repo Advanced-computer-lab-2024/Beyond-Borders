@@ -495,7 +495,7 @@ async function saveUpdatedActivity() {
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ title, activities,locations, timeline,language,price,date, access, pickup, dropoff, tags })
+            body: JSON.stringify({ Title: title, Activities: activities, Locations: locations, Timeline: timeline,Language: language,Price: price,Date: date, accessibility: access, pickupLocation: pickup, dropoffLocation: dropoff, Tags:tags })
         });
 
         if (!response.ok) {

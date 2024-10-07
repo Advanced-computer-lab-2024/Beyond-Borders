@@ -426,6 +426,32 @@ const createTourist = async (req, res) => {
         }
       };
 
+      const ProductRating = async (req, res) => {
+        const { _id, Rating } = req.body; // Destructure _id and Rating from request body
+      
+        if (!_id || Rating === undefined) {
+          return res.status(400).json({ message: 'Missing _id or Rating in the request body' });
+        }
+      
+        try {
+          // Find activity by id and update the rating
+          const updatedRating = await ProductModel.findByIdAndUpdate(
+            _id,
+            { Ratings: Rating }, // Update the Rating field with the new value
+            { new: true } // Option to return the updated document
+          );
+      
+          if (!updatedRating) {
+            return res.status(404).json({ message: 'Product not found' }); // Send a 404 if activity is not found
+          }
+      
+          return res.status(200).json({ message: 'Product updated successfully', updatedRating });
+        } catch (error) {
+          console.error('Error updating Product rating:', error);
+          return res.status(500).json({ message: 'Server error', error: error.message });
+        }
+      };
+
       const sortProductsDescendingTourist = async (req, res) => {
         try {
             // Fetch products sorted by ratings in descending order
@@ -974,4 +1000,4 @@ const HistoricalPlacesSearchAll = async (req, res) => {
 
 
 
-module.exports = {createTourist, getTourist, updateTourist, searchProductTourist, filterActivities, filterProductByPriceTourist, ActivityRating, sortProductsDescendingTourist, sortProductsAscendingTourist, ViewAllUpcomingActivities, ViewAllUpcomingMuseumEventsTourist, getMuseumsByTagTourist, getHistoricalPlacesByTagTourist, ViewAllUpcomingHistoricalPlacesEventsTourist,viewProductsTourist, sortActivitiesPriceAscendingTourist, sortActivitiesPriceDescendingTourist, sortActivitiesRatingAscendingTourist, sortActivitiesRatingDescendingTourist, loginTourist, ViewAllUpcomingItinerariesTourist, sortItinerariesPriceAscendingTourist, sortItinerariesPriceDescendingTourist, filterItinerariesTourist, ActivitiesSearchAll, ItinerarySearchAll, MuseumSearchAll, HistoricalPlacesSearchAll};
+module.exports = {createTourist, getTourist, updateTourist, searchProductTourist, filterActivities, filterProductByPriceTourist, ActivityRating, sortProductsDescendingTourist, sortProductsAscendingTourist, ViewAllUpcomingActivities, ViewAllUpcomingMuseumEventsTourist, getMuseumsByTagTourist, getHistoricalPlacesByTagTourist, ViewAllUpcomingHistoricalPlacesEventsTourist,viewProductsTourist, sortActivitiesPriceAscendingTourist, sortActivitiesPriceDescendingTourist, sortActivitiesRatingAscendingTourist, sortActivitiesRatingDescendingTourist, loginTourist, ViewAllUpcomingItinerariesTourist, sortItinerariesPriceAscendingTourist, sortItinerariesPriceDescendingTourist, filterItinerariesTourist, ActivitiesSearchAll, ItinerarySearchAll, MuseumSearchAll, HistoricalPlacesSearchAll, ProductRating};

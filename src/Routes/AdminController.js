@@ -13,6 +13,7 @@ const NewUnregisteredTourGuideModel = require('../Models/UnregisteredTourGuide.j
 const NewAcceptedTourGuideModel = require('../Models/TourGuide.js');
 const NewUnregisteredAdvertiserModel = require('../Models/UnregisteredAdvertiser.js');
 const NewAcceptedAdvertiserModel = require('../Models/Advertiser.js');
+const ItineraryrModel = require('../Models/Itinerary.js');
 
 
 
@@ -390,6 +391,19 @@ const updateTag = async (req, res) => {
             await ActivityModel.findByIdAndUpdate(activity._id, { Tags: updatedTags });
         }
 
+        // Step 3: Update itineraries that have the old tag
+        const itineraries = await ItineraryrModel.find({ Tags: oldTagName });
+
+        // Loop through each activity and update the Tags array
+        for (const itinerary1 of itineraries) {
+            const updatedTags1 = itinerary1.Tags.map(tag =>
+                tag === oldTagName ? newTagName : tag
+            );
+
+            // Save the updated activity
+            await ItineraryrModel.findByIdAndUpdate(itinerary1._id, { Tags: updatedTags1 });
+        }
+
         res.status(200).json({ msg: "Tag and related activities updated successfully." });
     } catch (error) {
         res.status(400).json({ error: error.message });
@@ -434,6 +448,12 @@ const deleteTag = async (req, res) => {
             { $pull: { Tags: TagName } } // Remove the tag from the Tags array
         );
 
+        // Step 3: Update activities to remove the deleted tag
+        await ItineraryrModel.updateMany(
+            { Tags: TagName }, // Find activities that have the tag
+            { $pull: { Tags: TagName } } // Remove the tag from the Tags array
+        );
+
         res.status(200).json({ msg: "Tag has been deleted and removed from activities!" });
     } catch (error) {
         res.status(400).json({ error: error.message });
@@ -442,47 +462,48 @@ const deleteTag = async (req, res) => {
 
 
 const deleteAccount = async (req, res) => {
-   const {Username} = req.body;
+   const {username} = req.body;
 
    try {
        // Find the unregistered seller by ID
-       const existingUser = await AllUsernamesModel.findOne({Username});
+       const existingUser = await AllUsernamesModel.findOne({Username: username});
        
        if (existingUser) {
            // Delete username from AllUsernames Model
-           await AllUsernamesModel.findOneAndDelete({Username});
-           const existingTourist = await AllTouristModel.findOne({Username});
-           //const existingTourGuide = await AllTouristModel.findOne({Username});
-           const existingAdmin = await NewAdminModel.findOne({Username});
-           const existingSeller = await NewAcceptedSellerModel.findOne({Username});
-           //const existingAdvertiser = await AllTouristModel.findOne({Username});
-           const existingTourismGovernor = await NewTourismGoverner.findOne({Username});
+           await AllUsernamesModel.findOneAndDelete({Username: username});
+           const existingTourist = await AllTouristModel.findOne({Username: username});
+           const existingTourGuide = await NewAcceptedTourGuideModel.findOne({Username: username});
+           const existingAdmin = await NewAdminModel.findOne({Username: username});
+           const existingSeller = await NewAcceptedSellerModel.findOne({Username: username});
+           const existingAdvertiser = await NewAcceptedAdvertiserModel.findOne({Username: username});
+           const existingTourismGovernor = await NewTourismGoverner.findOne({Username: username});
            if (existingTourist) {
-               await AllTouristModel.findOneAndDelete({Username});
+               await AllTouristModel.findOneAndDelete({Username: username});
            }
            else if(existingAdmin){
-               await NewAdminModel.findOneAndDelete({Username});
+               await NewAdminModel.findOneAndDelete({Username: username});
            }
            else if(existingSeller){
-               await NewAcceptedSellerModel.findOneAndDelete({Username});
+               await NewAcceptedSellerModel.findOneAndDelete({Username: username});
            }
            else if(existingTourismGovernor){
-               await NewTourismGoverner.findOneAndDelete({Username});
+               await NewTourismGoverner.findOneAndDelete({Username: username});
+           } 
+            else if(existingTourGuide){
+                await NewAcceptedTourGuideModel.findOneAndDelete({Username: username});
+           }
+           else if(existingAdvertiser){
+            await NewAcceptedAdvertiserModel.findOneAndDelete({Username: username});
            }
            //Redudant else
            else{
                res.status(404).json({ error: "Account with this username doest not exist." });
            }
-         //   else if(){
-            
-         //   }
-         //   else if(){
-            
-         //   }
+         
            // Respond with success message
            res.status(200).json({ msg: "Account has been deleted!" });
        } else {
-           res.status(404).json({ error: "Account with this username doest not exist." });
+           res.status(404).json({ error: "LALALALALALA Account with this username doest not exist." });
        }
    } catch (error) {
        // Handle any errors that occur during the process
