@@ -154,6 +154,30 @@ const getHistoricalByAuthorAsTourismGoverner = async(req,res) =>{
       res.status(500).json({error : error.msg})
    }
 }
+
+const updateGovernorPassword = async (req, res) => {
+   const { Username, newPassword } = req.body;
+
+   try {
+       const existingUser = await TourismGovernerModel.findOne({ Username:Username });
+
+       //Redundant code but extra precaution as you will never do this except after logging in
+       if (!existingUser) {
+           return res.status(404).json({ error: "User not found!" });
+       }
+
+       // Update the password for the admin
+       existingUser.Password = newPassword; // You might want to hash the password before saving
+       await existingUser.save();
+
+       // Send a success response
+       res.status(200).json({ msg: "Password updated successfully!" });
+   } catch (error) {
+       // If an error occurs, send a 400 Bad Request status with the error message
+       res.status(400).json({ error: error.message });
+   }
+};
+
  module.exports = {createNewHistoricalTag,createMuseumsAsTourismGoverner,getMuseumsByAuthorAsTourismGoverner
    ,createHistoricalPlaceAsTourismGoverner , getHistoricalPlaceByNameAsTourismGoverner , updateHistoricalPlaceAsTourismGoverner , deletePlaceAsTourismGoverner , getHistoricalByAuthorAsTourismGoverner, getMuseumByNameAsTourismGoverner, updateMuseumByNameAsTourismGoverner, deleteMuseumByNameAsTourismGoverner
- ,loginGoverner};
+ ,loginGoverner, updateGovernorPassword};

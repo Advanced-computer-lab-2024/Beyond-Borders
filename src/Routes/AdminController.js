@@ -14,6 +14,7 @@ const NewAcceptedTourGuideModel = require('../Models/TourGuide.js');
 const NewUnregisteredAdvertiserModel = require('../Models/UnregisteredAdvertiser.js');
 const NewAcceptedAdvertiserModel = require('../Models/Advertiser.js');
 const ItineraryrModel = require('../Models/Itinerary.js');
+const ComplaintsModel = require('../Models/Complaints.js');
 
 
 
@@ -662,4 +663,127 @@ const viewProducts = async (req, res) => {
     }
 };
 
-module.exports = {createNewAdmin, createNewTourismGoverner, createNewProduct, editProduct, acceptSeller, rejectSeller, createNewCategory, readAllActivityCategories, updateCategory, deleteActivityCategory, deleteAccount, searchProductAdmin, createNewTag, readAllTags, updateTag, deleteTag, acceptTourGuide, rejectTourGuide, acceptAdvertiser, rejectAdvertiser, filterProductByPriceAdmin, sortProductsDescendingAdmin, sortProductsAscendingAdmin,viewProducts, loginAdmin, viewAllProductsAdmin};
+const updateAdminPassword = async (req, res) => {
+    const { Username, newPassword } = req.body;
+
+    try {
+        const existingUser = await NewAdminModel.findOne({ Username:Username });
+
+        //Redundant code but extra precaution as you will never do this except after logging in
+        if (!existingUser) {
+            return res.status(404).json({ error: "User not found!" });
+        }
+
+        // Update the password for the admin
+        existingUser.Password = newPassword; // You might want to hash the password before saving
+        await existingUser.save();
+
+        // Send a success response
+        res.status(200).json({ msg: "Password updated successfully!" });
+    } catch (error) {
+        // If an error occurs, send a 400 Bad Request status with the error message
+        res.status(400).json({ error: error.message });
+    }
+};
+
+const getAllComplaints = async (req, res) => {
+    try {
+        const complaints = await ComplaintsModel.find();
+        res.status(200).json(complaints);
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+};
+
+const updateComplaintStatus = async (req, res) => {
+    const { Title, newStatus } = req.body;
+
+    try {
+        const complaint = await ComplaintsModel.findOne({ Title:Title });
+
+        //Redundant for extra safety
+        if (!complaint) {
+            return res.status(404).json({ error: "Complaint not found!" });
+        }
+        complaint.Status = newStatus;
+        await complaint.save();
+        res.status(200).json({ msg: "Complaint status updated successfully!", complaint });
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+};
+
+const replyToComplaint = async (req, res) => {
+    const { Title, Reply } = req.body;
+
+    try {
+        const complaint = await ComplaintsModel.findOne({ Title:Title });
+
+        //Redundant
+        if (!complaint) {
+            return res.status(404).json({ error: "Complaint not found!" });
+        }
+        complaint.Reply = Reply;
+        await complaint.save();
+        res.status(200).json({ msg: "Complaint reply updated successfully!", complaint });
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+};
+
+//THE FOLLOWING FUCTION COULD BE IMPLEMENTED IN THE FRONTEND WITHOUT USING THIS METHOD
+const getComplaintDetails = async (req, res) => {
+    const { Title } = req.body; 
+
+    try {
+        const complaint = await ComplaintsModel.findOne({ Title : Title});
+        if (!complaint) {
+            return res.status(404).json({ error: "Complaint not found!" });
+        }
+        res.status(200).json(complaint);
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+};
+
+const filterComplaintsByStatus = async (req, res) => {
+    const { Status } = req.body; // Get the status from the query parameters
+
+    try {
+        if (!Status) {
+            return res.status(400).json({ error: "Status is required!" });
+        }
+        const complaints = await ComplaintsModel.find({ Status: Status });
+        if (complaints.length === 0) {
+            return res.status(404).json({ error: "No complaints found with this status!" });
+        }
+        res.status(200).json(complaints);
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+};
+
+const sortComplaintsByRecent = async (req, res) => {
+    try {
+        // Find all complaints and sort by Date in descending order
+        const complaints = await ComplaintsModel.find().sort({ Date: -1 }); // -1 for descending
+        res.status(200).json(complaints);
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+};
+
+// Function to get complaints sorted by oldest to most recent
+const sortComplaintsByOldest = async (req, res) => {
+    try {
+        // Find all complaints and sort by Date in ascending order
+        const complaints = await ComplaintsModel.find().sort({ Date: 1 }); // 1 for ascending
+        res.status(200).json(complaints);
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+};
+
+module.exports = {createNewAdmin, createNewTourismGoverner, createNewProduct, editProduct, acceptSeller, rejectSeller, createNewCategory, readAllActivityCategories, updateCategory, deleteActivityCategory, deleteAccount, searchProductAdmin, createNewTag, readAllTags, updateTag, deleteTag, 
+    acceptTourGuide, rejectTourGuide, acceptAdvertiser, rejectAdvertiser, filterProductByPriceAdmin, sortProductsDescendingAdmin, sortProductsAscendingAdmin,viewProducts, loginAdmin, viewAllProductsAdmin, updateAdminPassword, getAllComplaints, updateComplaintStatus, replyToComplaint, getComplaintDetails, 
+    filterComplaintsByStatus, sortComplaintsByRecent, sortComplaintsByOldest};

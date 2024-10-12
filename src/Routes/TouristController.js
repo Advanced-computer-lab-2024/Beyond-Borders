@@ -6,6 +6,8 @@ const ProductModel = require('../Models/Product.js');
 const MuseumModel = require('../Models/Museums.js');
 const HistoricalPlacesModel = require('../Models/HistoricalPlaces.js');
 const HistoricalTagsModel = require('../Models/HistoricalTags.js');
+const ComplaintsModel = require('../Models/Complaints.js');
+
 
 const ItineraryModel = require('../Models/Itinerary.js');
 const { default: mongoose } = require('mongoose');
@@ -998,6 +1000,39 @@ const HistoricalPlacesSearchAll = async (req, res) => {
   }
 };
 
+const createComplaint = async (req, res) => {
+  const { Title, Body, TouristUsername } = req.body;
 
+  try {
+      // Create a new complaint object
+      const newComplaint = new ComplaintsModel({
+          Title: Title,
+          Body: Body,
+          Date: new Date(),
+          Status: 'pending',
+          TouristUsername: TouristUsername
+      });
 
-module.exports = {createTourist, getTourist, updateTourist, searchProductTourist, filterActivities, filterProductByPriceTourist, ActivityRating, sortProductsDescendingTourist, sortProductsAscendingTourist, ViewAllUpcomingActivities, ViewAllUpcomingMuseumEventsTourist, getMuseumsByTagTourist, getHistoricalPlacesByTagTourist, ViewAllUpcomingHistoricalPlacesEventsTourist,viewProductsTourist, sortActivitiesPriceAscendingTourist, sortActivitiesPriceDescendingTourist, sortActivitiesRatingAscendingTourist, sortActivitiesRatingDescendingTourist, loginTourist, ViewAllUpcomingItinerariesTourist, sortItinerariesPriceAscendingTourist, sortItinerariesPriceDescendingTourist, filterItinerariesTourist, ActivitiesSearchAll, ItinerarySearchAll, MuseumSearchAll, HistoricalPlacesSearchAll, ProductRating};
+      await newComplaint.save();
+
+      res.status(201).json({ msg: "Complaint created successfully!", complaint: newComplaint });
+  } catch (error) {
+      res.status(400).json({ error: error.message });
+  }
+};
+
+const getComplaintsByTouristUsername = async (req, res) => {
+  const { TouristUsername } = req.query;
+
+  try {
+      const complaints = await ComplaintsModel.find({ TouristUsername:  TouristUsername});
+      if (complaints.length === 0) {
+          return res.status(404).json({ error: "You haven't filed any complaints!" });
+      }
+      res.status(200).json(complaints);
+  } catch (error) {
+      res.status(400).json({ error: error.message });
+  }
+};
+
+module.exports = {createTourist, getTourist, updateTourist, searchProductTourist, filterActivities, filterProductByPriceTourist, ActivityRating, sortProductsDescendingTourist, sortProductsAscendingTourist, ViewAllUpcomingActivities, ViewAllUpcomingMuseumEventsTourist, getMuseumsByTagTourist, getHistoricalPlacesByTagTourist, ViewAllUpcomingHistoricalPlacesEventsTourist,viewProductsTourist, sortActivitiesPriceAscendingTourist, sortActivitiesPriceDescendingTourist, sortActivitiesRatingAscendingTourist, sortActivitiesRatingDescendingTourist, loginTourist, ViewAllUpcomingItinerariesTourist, sortItinerariesPriceAscendingTourist, sortItinerariesPriceDescendingTourist, filterItinerariesTourist, ActivitiesSearchAll, ItinerarySearchAll, MuseumSearchAll, HistoricalPlacesSearchAll, ProductRating, createComplaint, getComplaintsByTouristUsername};
