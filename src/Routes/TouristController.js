@@ -1035,4 +1035,246 @@ const getComplaintsByTouristUsername = async (req, res) => {
   }
 };
 
-module.exports = {createTourist, getTourist, updateTourist, searchProductTourist, filterActivities, filterProductByPriceTourist, ActivityRating, sortProductsDescendingTourist, sortProductsAscendingTourist, ViewAllUpcomingActivities, ViewAllUpcomingMuseumEventsTourist, getMuseumsByTagTourist, getHistoricalPlacesByTagTourist, ViewAllUpcomingHistoricalPlacesEventsTourist,viewProductsTourist, sortActivitiesPriceAscendingTourist, sortActivitiesPriceDescendingTourist, sortActivitiesRatingAscendingTourist, sortActivitiesRatingDescendingTourist, loginTourist, ViewAllUpcomingItinerariesTourist, sortItinerariesPriceAscendingTourist, sortItinerariesPriceDescendingTourist, filterItinerariesTourist, ActivitiesSearchAll, ItinerarySearchAll, MuseumSearchAll, HistoricalPlacesSearchAll, ProductRating, createComplaint, getComplaintsByTouristUsername};
+const ChooseActivitiesByCategory = async (req, res) => {
+  const { Category } = req.body; // req.query
+
+  if (!Category) {
+    return res.status(400).json({ error: "Category is required." });
+  }
+
+  try {
+    const activities = await ActivityModel.find({ Category: Category });
+
+    if (activities.length === 0) {
+      return res.status(404).json({ msg: "No activities found for this category." });
+    }
+
+    res.status(200).json(activities);
+  } catch (error) {
+    console.error('Error fetching activities by category:', error);
+    res.status(500).json({ msg: "An error occurred while fetching activities." });
+  }
+};
+
+
+
+const bookActivity = async (req, res) => {
+  const { touristUsername, activityName } = req.body;
+
+  try {
+    
+    const activity = await ActivityModel.findOne({ Name: activityName });
+    
+    if (!activity) {
+      return res.status(404).json({ msg: 'Activity not found' });
+    }
+
+    
+    const tourist = await TouristModel.findOne({ Username: touristUsername });
+    
+    if (!tourist) {
+      return res.status(404).json({ msg: 'Tourist not found' });
+    }
+
+    //tourist's age
+    const today = new Date();
+    const birthDate = new Date(tourist.DoB);
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const monthDifference = today.getMonth() - birthDate.getMonth();
+    
+    if (monthDifference < 0 || (monthDifference === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+
+    
+    if (age < 18) {
+      return res.status(403).json({ msg: 'You must be 18 or older to book an activity.' });
+    }
+
+    
+    if (!tourist.BookedActivities) {
+      tourist.BookedActivities = [];
+    }
+
+   
+    tourist.BookedActivities.push({
+      activityName: activity.Name,
+      confirmed: true 
+    });
+
+    
+    await tourist.save();
+
+    
+    res.status(201).json({ msg: 'Activity booked successfully!', activityName: activity.Name, totalCost: activity.Price });
+  } catch (error) {
+    console.error('Error booking activity:', error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+
+
+const bookItinerary = async (req, res) => {
+  const { touristUsername, itineraryName } = req.body;
+
+  try {
+    const itinerary = await ItineraryModel.findOne({ Title: itineraryName });
+    
+    if (!itinerary) {
+      return res.status(404).json({ msg: 'Itinerary not found' });
+    }
+
+    const tourist = await TouristModel.findOne({ Username: touristUsername });
+    
+    if (!tourist) {
+      return res.status(404).json({ msg: 'Tourist not found' });
+    }
+
+    const today = new Date();
+    const birthDate = new Date(tourist.DoB);
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const monthDifference = today.getMonth() - birthDate.getMonth();
+    
+    if (monthDifference < 0 || (monthDifference === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+    if (age < 18) {
+      return res.status(403).json({ msg: 'You must be 18 or older to book an itinerary.' });
+    }
+
+   
+    if (!tourist.BookedItineraries) {
+      tourist.BookedItineraries = [];
+    }
+
+    tourist.BookedItineraries.push({
+      ItineraryName: itinerary.Title,  
+      booked: true 
+    });
+
+    
+    await tourist.save();
+
+    // Respond with success
+    res.status(201).json({ msg: 'Itinerary booked successfully!', itineraryName: itinerary.Title, totalCost: itinerary.Price });
+  } catch (error) {
+    console.error('Error booking itinerary:', error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+const bookMuseum = async (req, res) => {
+  const { touristUsername, museumName } = req.body;
+
+  try {
+    const museum = await MuseumModel.findOne({ name: museumName });
+    if (!museum) {
+      return res.status(404).json({ msg: 'Museum not found' });
+    }
+
+    const tourist = await TouristModel.findOne({ Username: touristUsername });
+    
+    if (!tourist) {
+      return res.status(404).json({ msg: 'Tourist not found' });
+    }
+
+    const today = new Date();
+    const birthDate = new Date(tourist.DoB);
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const monthDifference = today.getMonth() - birthDate.getMonth();
+    
+    if (monthDifference < 0 || (monthDifference === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+
+    if (age < 18) {
+      return res.status(403).json({ msg: 'You must be 18 or older to book a museum.' });
+    }
+
+    let ticketPrice;
+    if (tourist.Occupation.toLowerCase() === 'student') {
+      ticketPrice = museum.ticketPrices.student;
+    } else if (tourist.Nationality.toLowerCase() === 'egyptian') {
+      ticketPrice = museum.ticketPrices.native;
+    } else {
+      ticketPrice = museum.ticketPrices.foreigner;
+    }
+
+    if (!tourist.BookedMuseums) {
+      tourist.BookedMuseums = [];
+    }
+
+    tourist.BookedMuseums.push({
+      MuseumName: museum.name,  
+      booked: true 
+    });
+
+    await tourist.save();
+
+    res.status(201).json({ msg: 'Museum booked successfully!', museumName: museum.name, ticketPrice });
+  } catch (error) {
+    console.error('Error booking museum:', error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+const bookHistoricalPlace = async (req, res) => {
+  const { touristUsername, historicalPlaceName } = req.body;
+
+  try {
+    const historicalPlace = await HistoricalPlacesModel.findOne({ name: historicalPlaceName });
+    
+    if (!historicalPlace) {
+      return res.status(404).json({ msg: 'Historical Place not found' });
+    }
+
+    const tourist = await TouristModel.findOne({ Username: touristUsername });
+    
+    if (!tourist) {
+      return res.status(404).json({ msg: 'Tourist not found' });
+    }
+
+    const today = new Date();
+    const birthDate = new Date(tourist.DoB);
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const monthDifference = today.getMonth() - birthDate.getMonth();
+    
+    if (monthDifference < 0 || (monthDifference === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+    if (age < 18) {
+      return res.status(403).json({ msg: 'You must be 18 or older to book a historical place.' });
+    }
+
+    let ticketPrice;
+    if (tourist.Occupation.toLowerCase() === 'student') {
+      ticketPrice = historicalPlace.ticketPrices.student;
+    } else if (tourist.Nationality.toLowerCase() === 'egyptian') {
+      ticketPrice = historicalPlace.ticketPrices.native;
+    } else {
+      ticketPrice = historicalPlace.ticketPrices.foreigner;
+    }
+
+    if (!tourist.BookedHistPlaces) {
+      tourist.BookedHistPlaces = [];
+    }
+
+    tourist.BookedHistPlaces.push({
+      HistPlaceName: historicalPlace.name,  
+      booked: true 
+    });
+
+    await tourist.save();
+
+    res.status(201).json({ msg: 'Historical Place booked successfully!', historicalPlaceName: historicalPlace.name, ticketPrice });
+  } catch (error) {
+    console.error('Error booking historical place:', error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+
+
+
+module.exports = {createTourist, getTourist, updateTourist, searchProductTourist, filterActivities, filterProductByPriceTourist, ActivityRating, sortProductsDescendingTourist, sortProductsAscendingTourist, ViewAllUpcomingActivities, ViewAllUpcomingMuseumEventsTourist, getMuseumsByTagTourist, getHistoricalPlacesByTagTourist, ViewAllUpcomingHistoricalPlacesEventsTourist,viewProductsTourist, sortActivitiesPriceAscendingTourist, sortActivitiesPriceDescendingTourist, sortActivitiesRatingAscendingTourist, sortActivitiesRatingDescendingTourist, loginTourist, ViewAllUpcomingItinerariesTourist, sortItinerariesPriceAscendingTourist, sortItinerariesPriceDescendingTourist, filterItinerariesTourist, ActivitiesSearchAll, ItinerarySearchAll, MuseumSearchAll, HistoricalPlacesSearchAll, ProductRating, createComplaint, getComplaintsByTouristUsername,ChooseActivitiesByCategory,bookActivity,bookItinerary,bookMuseum,bookHistoricalPlace};

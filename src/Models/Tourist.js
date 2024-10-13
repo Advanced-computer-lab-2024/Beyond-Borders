@@ -34,7 +34,51 @@ const TouristSchema = new Schema({
     type: Number,
     required: false
     
-  }
+  },
+  BookedActivities: [
+    {
+      activityName: {
+        type: String,
+        required: true },
+      booked: {
+        type: Boolean, 
+        default: true, 
+        required: true } 
+    }
+  ],
+  BookedItineraries: [
+    {
+      ItineraryName: {
+        type: String,
+        required: true },
+      booked: {
+        type: Boolean, 
+        default: true, 
+        required: true } 
+    }
+  ],
+  BookedMuseums: [
+    {
+      MuseumName: {
+        type: String,
+        required: true },
+      booked: {
+        type: Boolean, 
+        default: true, 
+        required: true } 
+    }
+  ],
+  BookedHistPlaces: [
+    {
+      HistPlaceName: {
+        type: String,
+        required: true },
+      booked: {
+        type: Boolean, 
+        default: true, 
+        required: true } 
+    }
+  ]
 }, { timestamps: true }); //adds 2 more field (Created At:) & (Updated At:)
 
 const Tourist = mongoose.model('Tourist', TouristSchema);
