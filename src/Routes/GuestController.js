@@ -388,10 +388,30 @@ const ViewAllUpcomingActivitiesGuest = async (req, res) => {
         res.status(500).json({ msg: "An error occurred while fetching itineraries." });
     }
   };
-
+  
+  const ChooseActivitiesByCategoryGuest = async (req, res) => {
+    const { Category } = req.body; // req.query
+  
+    if (!Category) {
+      return res.status(400).json({ error: "Category is required." });
+    }
+  
+    try {
+      const activities = await ActivityModel.find({ Category: Category });
+  
+      if (activities.length === 0) {
+        return res.status(404).json({ msg: "No activities found for this category." });
+      }
+  
+      res.status(200).json(activities);
+    } catch (error) {
+      console.error('Error fetching activities by category:', error);
+      res.status(500).json({ msg: "An error occurred while fetching activities." });
+    }
+  };
   
 
 
 
 
-module.exports = {filterActivitiesGuest, getMuseumsByTagGuest,ViewAllUpcomingActivitiesGuest, ViewAllUpcomingMuseumEventsGuest, getHistoricalPlacesByTagGuest, ViewAllUpcomingHistoricalPlacesEventsGuest, sortActivitiesPriceAscendingGuest, sortActivitiesPriceDescendingGuest, sortActivitiesRatingDescendingGuest, sortActivitiesRatingAscendingGuest, ViewAllUpcomingItinerariesGuest, sortItinerariesPriceAscendingGuest, sortItinerariesPriceDescendingGuest, filterItinerariesGuest};
+module.exports = {filterActivitiesGuest, getMuseumsByTagGuest,ViewAllUpcomingActivitiesGuest, ViewAllUpcomingMuseumEventsGuest, getHistoricalPlacesByTagGuest, ViewAllUpcomingHistoricalPlacesEventsGuest, sortActivitiesPriceAscendingGuest, sortActivitiesPriceDescendingGuest, sortActivitiesRatingDescendingGuest, sortActivitiesRatingAscendingGuest, ViewAllUpcomingItinerariesGuest, sortItinerariesPriceAscendingGuest, sortItinerariesPriceDescendingGuest, filterItinerariesGuest,ChooseActivitiesByCategoryGuest};
