@@ -1,6 +1,7 @@
 // External variables
 const express = require("express"); //importing express
 const path = require('path');
+const cors = require('cors');
 
 const mongoose = require('mongoose'); //importing mongoose
 mongoose.set('strictQuery', false);
@@ -59,7 +60,7 @@ app.get("/home", (req, res) => {
   //404 - error
 
 // #Routing to userController here
-
+app.use(cors());
 app.use(express.json())
 app.post("/addTourist", createTourist);
 app.post("/addUnregisteredTourGuide", createUnregisteredTourGuide);

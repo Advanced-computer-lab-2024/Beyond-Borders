@@ -28,7 +28,8 @@ const Begin = () => {
           gap: '30px',             // Space between buttons
         }}
       >
-        <Button variant="contained" sx={{ backgroundColor: '#00c853', color: 'white', borderRadius: '20px', '&:hover': { backgroundColor: '#69f0ae' } }}>
+        <Button variant="contained" sx={{ backgroundColor: '#00c853', color: 'white', borderRadius: '20px', '&:hover': { backgroundColor: '#69f0ae' } }}
+        onClick={() => window.location.href=`addTourist`}>
           Register as Tourist
         </Button>
         <Button variant="contained" sx={{ backgroundColor: '#00c853', color: 'white', borderRadius: '20px', '&:hover': { backgroundColor: '#69f0ae' } }}>
