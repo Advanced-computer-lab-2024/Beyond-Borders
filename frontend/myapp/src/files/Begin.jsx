@@ -39,7 +39,8 @@ const Begin = () => {
         onClick={() => window.location.href=`addUnregisteredSeller`}>
           Register as Seller
         </Button>
-        <Button variant="contained" sx={{ backgroundColor: '#00c853', color: 'white', borderRadius: '20px', '&:hover': { backgroundColor: '#69f0ae' } }}>
+        <Button variant="contained" sx={{ backgroundColor: '#00c853', color: 'white', borderRadius: '20px', '&:hover': { backgroundColor: '#69f0ae' } }}
+        onClick={() => window.location.href=`addUnregisteredAdvertiser`}>
           Register as Advertiser
         </Button>
       </Box>
