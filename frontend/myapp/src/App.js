@@ -8,7 +8,11 @@ import RegisterTourGuide from './files/RegisterTourGuide';
 import RegisterSeller from './files/registerSeller';
 import LoginTourist from './files/loginTourist';
 import RegisterAdvertiser from './files/RegisterAdvertiser';
+<<<<<<< Updated upstream
 import LoginAdvertiser from './files/loginAdvertiser';
+=======
+import LoginTourGuide from './files/loginTourGuide';
+>>>>>>> Stashed changes
 
 
 
@@ -24,7 +28,11 @@ function App() {
         <Route path="/addUnregisteredTourGuide" element={<RegisterTourGuide/>}/>
         <Route path="/addUnregisteredSeller" element={<RegisterSeller/>}/>
         <Route path="/loginTourist" element={<LoginTourist/>}/>
+<<<<<<< Updated upstream
         <Route path="/loginAdvertiser" element={<LoginAdvertiser/>}/>
+=======
+        <Route path="/loginTourGuide" element={<LoginTourGuide/>}/>
+>>>>>>> Stashed changes
 
         
         
