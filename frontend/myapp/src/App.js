@@ -7,6 +7,8 @@ import RegisterTourist from './files/registerTourist';
 import RegisterTourGuide from './files/RegisterTourGuide';
 import RegisterSeller from './files/registerSeller';
 import LoginTourist from './files/loginTourist';
+import RegisterAdvertiser from './files/RegisterAdvertiser';
+
 
 
 
@@ -24,6 +26,7 @@ function App() {
 
         
         
+        <Route path="addUnregisteredAdvertiser" element={<RegisterAdvertiser />} /> 
        
        
       </Routes>
