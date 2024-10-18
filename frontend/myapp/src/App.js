@@ -6,6 +6,9 @@ import Begin from './files/Begin';
 import RegisterTourist from './files/registerTourist';
 import RegisterTourGuide from './files/RegisterTourGuide';
 import RegisterSeller from './files/registerSeller';
+import RegisterAdvertiser from './files/RegisterAdvertiser';
+
+
 
 
 function App() {
@@ -18,6 +21,7 @@ function App() {
         <Route path="/addTourist" element={<RegisterTourist/>}/>
         <Route path="/addUnregisteredTourGuide" element={<RegisterTourGuide/>}/>
         <Route path="/addUnregisteredSeller" element={<RegisterSeller/>}/>
+        <Route path="addUnregisteredAdvertiser" element={<RegisterAdvertiser />} /> 
        
        
       </Routes>
