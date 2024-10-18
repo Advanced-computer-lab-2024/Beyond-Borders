@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Box, Button, TextField, Typography } from '@mui/material';
+import axios from 'axios';
 
 const RegisterTourGuide = () => {
   const [formData, setFormData] = useState({
@@ -21,36 +22,38 @@ const RegisterTourGuide = () => {
     });
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  // Handle form submission
+const handleSubmit = async (e) => {
+    e.preventDefault(); // Prevent the default form submission
     setResponseMessage(''); // Clear previous messages
 
     try {
-      // Send the POST request to register the tour guide
-      const response = await fetch('/addUnregisteredTourGuide', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData), // Ensure formData is correctly structured
-      });
+        // Send the POST request to register the tour guide
+        const response = await axios.post('http://localhost:8000/addUnregisteredTourGuide', formData);
+        const result = response.data; // Access the response data
 
-      const result = await response.json(); // Parse the response
+        // Check if the response is successful
+        if (response.status === 200) { // Assuming a 200 status indicates success
+            setResponseMessage('Tour Guide registered successfully!');
 
-      // Check if the response is successful
-      if (response.ok) {
-        setResponseMessage('Tour Guide registered successfully!');
-        setTimeout(() => {
-          window.location.href = '/login'; // Redirect to login page
-        }, 2000); // Redirect after 2 seconds
-      } else {
-        setResponseMessage(`Error: ${result.error || 'Failed to register tour guide.'}`);
-      }
+            // Redirect after 2 seconds
+            setTimeout(() => {
+                window.location.href = '/login'; // Redirect to login page
+            }, 2000);
+        } else {
+            // Handle error case if the response doesn't indicate success
+            setResponseMessage(`Error: ${result.error || 'Failed to register tour guide.'}`);
+        }
     } catch (error) {
-      // Handle fetch errors
-      setResponseMessage('An error occurred. Please try again.');
+        // Handle Axios errors
+        if (error.response && error.response.data) {
+            setResponseMessage(`Error: ${error.response.data.error || 'An error occurred.'}`);
+        } else {
+            setResponseMessage('An error occurred. Please try again.');
+        }
+        console.error('Error registering tour guide:', error); // Log the error for debugging
     }
-  };
+};
 
   return (
     <Box
