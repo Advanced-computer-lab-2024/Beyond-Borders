@@ -8,6 +8,7 @@ import RegisterTourGuide from './files/RegisterTourGuide';
 import RegisterSeller from './files/registerSeller';
 import LoginTourist from './files/loginTourist';
 import RegisterAdvertiser from './files/RegisterAdvertiser';
+import LoginAdvertiser from './files/loginAdvertiser';
 
 
 
@@ -23,6 +24,7 @@ function App() {
         <Route path="/addUnregisteredTourGuide" element={<RegisterTourGuide/>}/>
         <Route path="/addUnregisteredSeller" element={<RegisterSeller/>}/>
         <Route path="/loginTourist" element={<LoginTourist/>}/>
+        <Route path="/loginAdvertiser" element={<LoginAdvertiser/>}/>
 
         
         

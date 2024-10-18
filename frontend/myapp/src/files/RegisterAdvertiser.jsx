@@ -41,7 +41,7 @@ const RegisterAdvertiser = () => {
 
         // Redirect after 2 seconds
         setTimeout(() => {
-          window.location.href = '/login'; // Redirect to login page
+          window.location.href = '/loginAdvertiser'; // Redirect to login page
         }, 2000);
       } else {
         // Handle error case if the response doesn't indicate success
