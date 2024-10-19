@@ -49,7 +49,7 @@ const Begin = () => {
           Login as Admin
         </Button>
         <Button variant="contained" sx={{ backgroundColor: '#00c853', color: 'white', borderRadius: '20px', '&:hover': { backgroundColor: '#69f0ae' } }}
-        onClick={() => window.location.href=`loginGovernor`}>
+        onClick={() => window.location.href=`loginTourismGovernor`}>
           Login as Tourism governor
         </Button>
       </Box>

@@ -13,6 +13,7 @@ import HomePageAdvertiser from './files/HomePageAdvertiser'; // Import HomePageA
 import LoginSeller from './files/loginSeller';
 import Login from './files/login';
 import LoginAdmin from './files/loginAdmin';
+import LoginTourismGovernor from './files/loginTourismGovernor';
 
 function App() {
   return (
@@ -31,6 +32,7 @@ function App() {
           <Route path="/loginSeller" element={<LoginSeller/>}/>
           <Route path="/login" element={<Login/>}/>
           <Route path="/loginAdmin" element={<LoginAdmin/>}/>
+          <Route path="/loginTourismGovernor" element={<LoginTourismGovernor/>}/>
 
         </Routes>
       </BrowserRouter>
