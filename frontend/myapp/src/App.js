@@ -11,6 +11,8 @@ import LoginAdvertiser from './files/loginAdvertiser';
 import LoginTourGuide from './files/loginTourGuide';
 import HomePageAdvertiser from './files/HomePageAdvertiser'; // Import HomePageAdvertiser component
 import LoginSeller from './files/loginSeller';
+import Login from './files/login';
+import LoginAdmin from './files/loginAdmin';
 
 function App() {
   return (
@@ -27,6 +29,9 @@ function App() {
           <Route path="/homepageAdvertiser" element={<HomePageAdvertiser />} /> {/* Add HomePageAdvertiser route */}
           <Route path="/addUnregisteredAdvertiser" element={<RegisterAdvertiser />} />
           <Route path="/loginSeller" element={<LoginSeller/>}/>
+          <Route path="/login" element={<Login/>}/>
+          <Route path="/loginAdmin" element={<LoginAdmin/>}/>
+
         </Routes>
       </BrowserRouter>
     </div>

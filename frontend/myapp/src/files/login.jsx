@@ -1,7 +1,7 @@
 import React from 'react';
 import Button from '@mui/material/Button'; // Import MUI Button
 import Box from '@mui/material/Box'; // Import MUI Box
-import { Link } from 'react-router-dom';
+
 
 const Begin = () => {
   return (
@@ -21,7 +21,7 @@ const Begin = () => {
         marginTop: '150px'     // Margin from top
       }}
     >
-      <h2>Select Registration Type</h2>
+      <h2>Select a login Type</h2>
       <Box
         sx={{
           display: 'flex',         // Use flexbox for alignment
@@ -30,30 +30,32 @@ const Begin = () => {
         }}
       >
         <Button variant="contained" sx={{ backgroundColor: '#00c853', color: 'white', borderRadius: '20px', '&:hover': { backgroundColor: '#69f0ae' } }}
-        onClick={() => window.location.href=`addTourist`}>
-          Register as Tourist
+        onClick={() => window.location.href=`loginTourist`}>
+          Login as Tourist
         </Button>
-        <Button variant="contained" sx={{ backgroundColor: '#00c853', color: 'white', borderRadius: '20px', '&:hover': { backgroundColor: '#69f0ae' } }}onClick={() => window.location.href=`addUnregisteredTourGuide`}>
-          Register as Tour Guide
-        </Button>
-        <Button variant="contained" sx={{ backgroundColor: '#00c853', color: 'white', borderRadius: '20px', '&:hover': { backgroundColor: '#69f0ae' } }}
-        onClick={() => window.location.href=`addUnregisteredSeller`}>
-          Register as Seller
+        <Button variant="contained" sx={{ backgroundColor: '#00c853', color: 'white', borderRadius: '20px', '&:hover': { backgroundColor: '#69f0ae' } }}onClick={() => window.location.href=`loginTourGuide`}>
+          Login as Tour Guide
         </Button>
         <Button variant="contained" sx={{ backgroundColor: '#00c853', color: 'white', borderRadius: '20px', '&:hover': { backgroundColor: '#69f0ae' } }}
-        onClick={() => window.location.href=`addUnregisteredAdvertiser`}>
-          Register as Advertiser
+        onClick={() => window.location.href=`loginSeller`}>
+          Login as Seller
+        </Button>
+        <Button variant="contained" sx={{ backgroundColor: '#00c853', color: 'white', borderRadius: '20px', '&:hover': { backgroundColor: '#69f0ae' } }}
+        onClick={() => window.location.href=`loginAdvertiser`}>
+          Login as Advertiser
+        </Button>
+        <Button variant="contained" sx={{ backgroundColor: '#00c853', color: 'white', borderRadius: '20px', '&:hover': { backgroundColor: '#69f0ae' } }}
+        onClick={() => window.location.href=`loginAdmin`}>
+          Login as Admin
+        </Button>
+        <Button variant="contained" sx={{ backgroundColor: '#00c853', color: 'white', borderRadius: '20px', '&:hover': { backgroundColor: '#69f0ae' } }}
+        onClick={() => window.location.href=`loginGovernor`}>
+          Login as Tourism governor
         </Button>
       </Box>
       <div>
       {/* Space between buttons and links */}
-      <p>
-        <Link to="/login">Already have an account? Login here</Link>
-      </p>
-      
-      <p>
-        <Link to="/homeGuest">Continue as guest? Click here</Link>
-      </p>
+     
     </div>
     </Box>
   );
