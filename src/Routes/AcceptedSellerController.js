@@ -55,7 +55,7 @@ const updateSeller = async (req, res) => {
     const{Name,Description,Price,Quantity, Seller,Picture} = req.body;
     try{
           //add a new user to the database with Name, Email and Age
-          const user = await NewProduct.create({Name,Description,Price,Quantity, Seller,Picture, Reviews: "",Ratings: 0});
+          const user = await NewProduct.create({Name,Description,Price,Quantity, Seller,Picture, Reviews: [],Ratings: 0});
           //Send the created use as a JSON response with a 200 OK status 
           res.status(200).json({msg:"New Product is created!"});
           //res.status(200).json(user);
@@ -64,6 +64,8 @@ const updateSeller = async (req, res) => {
        res.status(400).json({ error: error.message});
     }
  }
+
+ 
 
   // const editProductSeller = async (req, res) => {
   //   const {ProductID} = req.body;  // Extract the _id from the request body

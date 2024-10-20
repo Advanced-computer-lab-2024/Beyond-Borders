@@ -39,44 +39,52 @@ const TouristSchema = new Schema({
     {
       activityName: {
         type: String,
-        required: true },
+        required: false },
       booked: {
         type: Boolean, 
         default: true, 
-        required: true } 
+        required: false } 
     }
   ],
   BookedItineraries: [
     {
       ItineraryName: {
         type: String,
-        required: true },
+        required: false },
       booked: {
         type: Boolean, 
         default: true, 
-        required: true } 
+        required: false } 
     }
   ],
   BookedMuseums: [
     {
       MuseumName: {
         type: String,
-        required: true },
+        required: false },
       booked: {
         type: Boolean, 
         default: true, 
-        required: true } 
+        required: false } 
     }
   ],
   BookedHistPlaces: [
     {
       HistPlaceName: {
         type: String,
-        required: true },
+        required: false },
       booked: {
         type: Boolean, 
         default: true, 
-        required: true } 
+        required: false } 
+    }
+  ],
+  purchasedProducts: [
+    {
+      productName: {
+        type: String,
+        required: false 
+      }
     }
   ]
 }, { timestamps: true }); //adds 2 more field (Created At:) & (Updated At:)

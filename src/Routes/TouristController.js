@@ -33,7 +33,8 @@ const createTourist = async (req, res) => {
               DoB,
               Nationality,
               Occupation,
-              Wallet: 0 // Initialize wallet to 0
+              Wallet: 0, // Initialize wallet to 0
+              purchasedProducts: [] // Initialize purchasedProducts as an empty array
           });
 
           // Send the created user as a JSON response with a 201 Created status
@@ -44,6 +45,7 @@ const createTourist = async (req, res) => {
       res.status(400).json({ error: error.message });
   }
 };
+
 
 /*const getTourist = async (req, res) => {
    //retrieve all users from the database
@@ -1274,7 +1276,126 @@ const bookHistoricalPlace = async (req, res) => {
   }
 };
 
+const addPurchasedProducts = async (req, res) => {
+  const { touristUsername, productNames } = req.body; // Expecting an array of product names
+
+  try {
+    // Find the tourist by username
+    const tourist = await TouristModel.findOne({ Username: touristUsername });
+    if (!tourist) {
+      return res.status(404).json({ msg: 'Tourist not found' });
+    }
+
+    // Check if productNames is an array
+    if (!Array.isArray(productNames)) {
+      return res.status(400).json({ msg: 'Product names must be provided as an array' });
+    }
+
+    // Loop through the product names and add them to purchasedProducts
+    productNames.forEach(productName => {
+      // Check if the product is already in the purchasedProducts
+      const existingProduct = tourist.purchasedProducts.find(p => p.Name === productName);
+      if (!existingProduct) {
+        tourist.purchasedProducts.push({ productName }); // Add product name without rating
+      }
+    });
+
+    // Save the updated tourist document
+    await tourist.save();
+
+    // Send a response with the updated tourist data
+    res.status(200).json({ msg: 'Purchased products added successfully!', purchasedProducts: tourist.purchasedProducts });
+  } catch (error) {
+    console.error('Error adding purchased products:', error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+
+const ratePurchasedProduct = async (req, res) => {
+  const { touristUsername, productName, rating } = req.body;
+
+  try {
+    if (rating < 1 || rating > 5) {
+      return res.status(400).json({ msg: 'Rating must be between 1 and 5' });
+    }
+    const tourist = await TouristModel.findOne({ Username: touristUsername });
+    if (!tourist) {
+      return res.status(404).json({ msg: 'Tourist not found' });
+    }
+    const product = await ProductModel.findOne({ Name: productName });
+    if (!product) {
+      return res.status(404).json({ msg: 'Product not found' });
+    }
+    if (!tourist.purchasedProducts) {
+      tourist.purchasedProducts = [];
+    }
+    const purchasedProduct = tourist.purchasedProducts.find(p => p.productName === productName);
+    if (!purchasedProduct) {
+      return res.status(400).json({ msg: 'You have not purchased this product.' });
+    }
+    purchasedProduct.rating = rating;
+    await tourist.save();
+
+    const previousRating = product.Ratings || 0; 
+    const ratingCount = (product.RatingCount || 0) + 1; 
+    const newAverageRating = ((previousRating * (ratingCount - 1)) + rating) / ratingCount;
+
+    product.Ratings = newAverageRating;
+    product.RatingCount = ratingCount; 
+    await product.save();
+
+    res.status(200).json({ msg: 'Product rated successfully!', productName, newAverageRating });
+  } catch (error) {
+    console.error('Error rating product:', error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+const reviewPurchasedProduct = async (req, res) => {
+  const { touristUsername, productName, review } = req.body;
+
+  try {
+    // Check if the review is provided
+    if (!review || review.trim() === '') {
+      return res.status(400).json({ msg: 'Review cannot be empty' });
+    }
+
+    // Find the tourist by username
+    const tourist = await TouristModel.findOne({ Username: touristUsername });
+    if (!tourist) {
+      return res.status(404).json({ msg: 'Tourist not found' });
+    }
+
+    // Check if the product exists in purchasedProducts
+    const purchasedProduct = tourist.purchasedProducts.find(p => p.productName === productName);
+    if (!purchasedProduct) {
+      return res.status(400).json({ msg: 'You have not purchased this product.' });
+    }
+
+    // Find the product to update its reviews
+    const product = await ProductModel.findOne({ Name: productName });
+    if (!product) {
+      return res.status(404).json({ msg: 'Product not found' });
+    }
+
+    // Add the review to the product's Reviews array
+    product.Reviews.push(review);
+    await product.save();
+
+    res.status(200).json({ msg: 'Review added successfully!', productName, review });
+  } catch (error) {
+    console.error('Error adding review:', error);
+    res.status(500).json({ error: error.message });
+  }
+};
 
 
 
-module.exports = {createTourist, getTourist, updateTourist, searchProductTourist, filterActivities, filterProductByPriceTourist, ActivityRating, sortProductsDescendingTourist, sortProductsAscendingTourist, ViewAllUpcomingActivities, ViewAllUpcomingMuseumEventsTourist, getMuseumsByTagTourist, getHistoricalPlacesByTagTourist, ViewAllUpcomingHistoricalPlacesEventsTourist,viewProductsTourist, sortActivitiesPriceAscendingTourist, sortActivitiesPriceDescendingTourist, sortActivitiesRatingAscendingTourist, sortActivitiesRatingDescendingTourist, loginTourist, ViewAllUpcomingItinerariesTourist, sortItinerariesPriceAscendingTourist, sortItinerariesPriceDescendingTourist, filterItinerariesTourist, ActivitiesSearchAll, ItinerarySearchAll, MuseumSearchAll, HistoricalPlacesSearchAll, ProductRating, createComplaint, getComplaintsByTouristUsername,ChooseActivitiesByCategoryTourist,bookActivity,bookItinerary,bookMuseum,bookHistoricalPlace};
+
+
+
+
+
+
+module.exports = {createTourist, getTourist, updateTourist, searchProductTourist, filterActivities, filterProductByPriceTourist, ActivityRating, sortProductsDescendingTourist, sortProductsAscendingTourist, ViewAllUpcomingActivities, ViewAllUpcomingMuseumEventsTourist, getMuseumsByTagTourist, getHistoricalPlacesByTagTourist, ViewAllUpcomingHistoricalPlacesEventsTourist,viewProductsTourist, sortActivitiesPriceAscendingTourist, sortActivitiesPriceDescendingTourist, sortActivitiesRatingAscendingTourist, sortActivitiesRatingDescendingTourist, loginTourist, ViewAllUpcomingItinerariesTourist, sortItinerariesPriceAscendingTourist, sortItinerariesPriceDescendingTourist, filterItinerariesTourist, ActivitiesSearchAll, ItinerarySearchAll, MuseumSearchAll, HistoricalPlacesSearchAll, ProductRating, createComplaint, getComplaintsByTouristUsername,ChooseActivitiesByCategoryTourist,bookActivity,bookItinerary,bookMuseum,bookHistoricalPlace, ratePurchasedProduct, addPurchasedProducts, reviewPurchasedProduct};

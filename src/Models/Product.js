@@ -27,12 +27,18 @@ const ProductSchema = new Schema({
     required: true
   },
   Reviews: {
-    type: String,
+    type: [String],
     required: false
   },
   Ratings: {
     type: Number,
+    default: 0,
     required: false
+  },
+  RatingCount: {
+    type: Number,
+    default: 0,
+    required: false 
   }
 }, { timestamps: true }); //adds 2 more field (Created At:) & (Updated At:)
 

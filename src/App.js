@@ -7,7 +7,7 @@ const mongoose = require('mongoose'); //importing mongoose
 mongoose.set('strictQuery', false);
 require("dotenv").config(); //load enviironment variables
 //const {createUser,getUsers, updateUser, deleteUser} = require("./Routes/userController");
-const {createTourist,getTourist, updateTourist, searchProductTourist, filterActivities, filterProductByPriceTourist, ActivityRating, sortProductsDescendingTourist, sortProductsAscendingTourist, ViewAllUpcomingActivities, ViewAllUpcomingMuseumEventsTourist, getMuseumsByTagTourist, getHistoricalPlacesByTagTourist, ViewAllUpcomingHistoricalPlacesEventsTourist,viewProductsTourist, sortActivitiesPriceAscendingTourist, sortActivitiesPriceDescendingTourist, sortActivitiesRatingAscendingTourist, sortActivitiesRatingDescendingTourist, loginTourist, ViewAllUpcomingItinerariesTourist, sortItinerariesPriceAscendingTourist, sortItinerariesPriceDescendingTourist, filterItinerariesTourist,ActivitiesSearchAll, ItinerarySearchAll, MuseumSearchAll, HistoricalPlacesSearchAll, ProductRating, createComplaint, getComplaintsByTouristUsername,ChooseActivitiesByCategoryTourist,bookActivity,bookItinerary,bookMuseum,bookHistoricalPlace} = require("./Routes/TouristController");
+const {createTourist,getTourist, updateTourist, searchProductTourist, filterActivities, filterProductByPriceTourist, ActivityRating, sortProductsDescendingTourist, sortProductsAscendingTourist, ViewAllUpcomingActivities, ViewAllUpcomingMuseumEventsTourist, getMuseumsByTagTourist, getHistoricalPlacesByTagTourist, ViewAllUpcomingHistoricalPlacesEventsTourist,viewProductsTourist, sortActivitiesPriceAscendingTourist, sortActivitiesPriceDescendingTourist, sortActivitiesRatingAscendingTourist, sortActivitiesRatingDescendingTourist, loginTourist, ViewAllUpcomingItinerariesTourist, sortItinerariesPriceAscendingTourist, sortItinerariesPriceDescendingTourist, filterItinerariesTourist,ActivitiesSearchAll, ItinerarySearchAll, MuseumSearchAll, HistoricalPlacesSearchAll, ProductRating, createComplaint, getComplaintsByTouristUsername,ChooseActivitiesByCategoryTourist,bookActivity,bookItinerary,bookMuseum,bookHistoricalPlace, ratePurchasedProduct, addPurchasedProducts, reviewPurchasedProduct} = require("./Routes/TouristController");
 const {createUnregisteredAdvertiser} = require("./Routes/UnregisteredAdvertiserController");
 const {createUnregisteredTourGuide} = require("./Routes/UnregisteredTourGuideController");
 const {createUnregisteredSeller} = require("./Routes/UnregisteredSellerController");
@@ -157,13 +157,25 @@ app.get("/sortComplaintsByRecent",sortComplaintsByRecent);
 app.get("/sortComplaintsByOldest",sortComplaintsByOldest);
 app.get("/api/getComplaintsByTouristUsername" , getComplaintsByTouristUsername);
 
-//Tourist sprint 2
+//SPRINT 2 MALAK AND JANA
 app.get("/ChooseActivitiesByCategoryTourist",ChooseActivitiesByCategoryTourist);
 app.get("/ChooseActivitiesByCategoryGuest",ChooseActivitiesByCategoryGuest);
 app.put("/bookActivity",bookActivity);
 app.put("/bookItinerary",bookItinerary);
 app.put("/bookMuseum",bookMuseum);
 app.put("/bookHistoricalPlace",bookHistoricalPlace);
+app.put("/ratePurchasedProduct",ratePurchasedProduct);
+app.put("/addPurchasedProducts",addPurchasedProducts);
+app.put("/reviewPurchasedProduct",reviewPurchasedProduct);
+
+
+
+
+
+
+
+
+
 
 
 
