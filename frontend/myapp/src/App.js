@@ -14,6 +14,10 @@ import LoginSeller from './files/loginSeller';
 import Login from './files/login';
 import LoginAdmin from './files/loginAdmin';
 import LoginTourismGovernor from './files/loginTourismGovernor';
+import TourismGovernorDashboard from './files/TourismGovernorDashboard ';
+import MuseumTG from './files/MuseumTG';
+import EditMuseum from './files/editMuseum';
+import CreateMuseum from './files/createMuseum';
 
 function App() {
   return (
@@ -28,8 +32,13 @@ function App() {
           <Route path="/loginAdvertiser" element={<LoginAdvertiser />} />
           <Route path="/loginTourGuide" element={<LoginTourGuide />} />
           <Route path="/homepageAdvertiser" element={<HomePageAdvertiser />} /> {/* Add HomePageAdvertiser route */}
+          <Route path="/TourismGovernorDashboard" element={<TourismGovernorDashboard />} /> 
           <Route path="/addUnregisteredAdvertiser" element={<RegisterAdvertiser />} />
           <Route path="/loginSeller" element={<LoginSeller/>}/>
+          <Route path="/MuseumTG" element={<MuseumTG/>}/>
+          <Route path="/createMuseum" element={<CreateMuseum/>}/>
+
+          <Route path="/EditMuseum" element={<EditMuseum/>}/>
           <Route path="/login" element={<Login/>}/>
           <Route path="/loginAdmin" element={<LoginAdmin/>}/>
           <Route path="/loginTourismGovernor" element={<LoginTourismGovernor/>}/>

@@ -33,7 +33,7 @@ const LoginTourismGovernor = () => {
         localStorage.setItem('username', result.TourismGoverner.Username);
         setResponseMessage(`Welcome, ${result.TourismGoverner.Username}!`);
         setTimeout(() => {
-          window.location.href = '/homePageGovernor';
+          window.location.href = '/TourismGovernorDashboard';
         }, 2000);
       } else {
         setResponseMessage(`Error: ${result.error || 'Failed to log in.'}`);

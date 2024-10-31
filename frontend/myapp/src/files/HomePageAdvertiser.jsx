@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
 const HomePageAdvertiser = () => {
-  // State management
   const [activities, setActivities] = useState([]); 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -86,22 +85,20 @@ const HomePageAdvertiser = () => {
   }, []);
 
   return (
-    <div className="container">
-      {/* Header Section */}
-      <div className="header">
-        <h1>Beyond Borders</h1>
+    <div style={styles.container}>
+      <div style={styles.header}>
+        <h1 style={styles.headerTitle}>Beyond Borders</h1>
         <nav>
-          <ul>
-            <li><a href="#" onClick={loadMyActivities}>My Activities</a></li>
-            <li><a href="#" onClick={loadProfile}>My Profile</a></li>
+          <ul style={styles.navList}>
+            <li><a href="#" style={styles.navLink} onClick={loadMyActivities}>My Activities</a></li>
+            <li><a href="#" style={styles.navLink} onClick={loadProfile}>My Profile</a></li>
           </ul>
         </nav>
       </div>
 
-      {/* Main Content Section */}
-      <div className="main-content">
+      <div style={styles.mainContent}>
         {loading && <p>Loading...</p>}
-        {error && <p style={{ color: 'red' }}>{error}</p>}
+        {error && <p style={styles.error}>{error}</p>}
 
         {isLoggedIn && (
           <div>
@@ -109,9 +106,9 @@ const HomePageAdvertiser = () => {
             {activities.length === 0 ? (
               <p>No activities found.</p>
             ) : (
-              <div className="activities-list">
+              <div style={styles.activitiesList}>
                 {activities.map((activity, index) => (
-                  <div key={index} className="activity-item">
+                  <div key={index} style={styles.activityItem}>
                     <h3>{activity.Name}</h3>
                     <p>Date: {new Date(activity.Date).toLocaleDateString()}</p>
                     <p>Time: {activity.Time}</p>
@@ -123,114 +120,32 @@ const HomePageAdvertiser = () => {
             )}
           </div>
         )}
-        <style jsx="true">{`
-  body {
-    font-family: Arial, sans-serif;
-    background-color: #f4f4f4;
-    margin: 0;
-    padding: 0;
-    justify-content: flex-start;
-    text-align: left;
-  }
-  .header {
-    background-color: #218838;
-    color: white;
-    padding: 15px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
-
-  nav ul {
-    list-style: none;
-    display: flex;
-    gap: 35px;
-    margin-left: 500px;
-  }
-  nav ul li {
-    display: inline;
-  }
-  nav ul li a {
-    color: #fff;
-    text-decoration: none;
-  }
-  nav ul li a:hover {
-    color: #95d0a2;
-    text-decoration: none;
-  }
-
-  .header h1 {
-    margin: 0;
-    font-size: 24px;
-    text-align: left;
-  }
-  .button-container {
-    margin-left: 15px;
-  }
-  .button-container button {
-    background-color: #40be5b;
-    color: white;
-    padding: 10px 20px;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 20px;
-    transition: background-color 0.3s;
-  }
-  .button-container button:hover {
-    background-color: #7ccf8e;
-  }
-  .container {
-    max-width: 800px;
-    margin: auto;
-    background: #fff;
-    padding: 20px;
-    border-radius: 5px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-    margin-top: 20px;
-  }
-  .activity-item {
-    border: 1px solid #ccc;
-    padding: 10px;
-    margin: 10px 0;
-    border-radius: 5px;
-  }
-  .form-row {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 15px;
-  }
-  label {
-    width: 30%;
-  }
-`}</style>
-
 
         {showProfile && (
           <div>
             <h2>My Profile</h2>
             <form>
-              <div className="form-row">
+              <div style={styles.formRow}>
                 <label>Username: </label>
                 <input type="text" value={profile.Username || ''} readOnly />
               </div>
-              <div className="form-row">
+              <div style={styles.formRow}>
                 <label>Email: </label>
                 <input type="email" value={profile.Email || ''} onChange={(e) => setProfile({ ...profile, Email: e.target.value })} />
               </div>
-              <div className="form-row">
+              <div style={styles.formRow}>
                 <label>Password: </label>
                 <input type="password" value={profile.Password || ''} onChange={(e) => setProfile({ ...profile, Password: e.target.value })} />
               </div>
-              <div className="form-row">
+              <div style={styles.formRow}>
                 <label>Company Profile: </label>
                 <input type="text" value={profile.CompanyProfile || ''} onChange={(e) => setProfile({ ...profile, CompanyProfile: e.target.value })} />
               </div>
-              <div className="form-row">
+              <div style={styles.formRow}>
                 <label>Hotline: </label>
                 <input type="text" value={profile.Hotline || ''} onChange={(e) => setProfile({ ...profile, Hotline: e.target.value })} />
               </div>
-              <div className="form-row">
+              <div style={styles.formRow}>
                 <label>Website: </label>
                 <input type="url" value={profile.Website || ''} onChange={(e) => setProfile({ ...profile, Website: e.target.value })} />
               </div>
@@ -240,8 +155,80 @@ const HomePageAdvertiser = () => {
         )}
       </div>
     </div>
-    
   );
+};
+
+// Inline styling
+const styles = {
+  container: {
+    maxWidth: '800px',
+    margin: 'auto',
+    background: '#fff',
+    padding: '20px',
+    borderRadius: '5px',
+    boxShadow: '0 0 10px rgba(0, 0, 0, 0.1)',
+    marginTop: '20px'
+  },
+  header: {
+    backgroundColor: '#218838',
+    color: 'white',
+    padding: '15px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between'
+  },
+  headerTitle: {
+    margin: 0,
+    fontSize: '24px',
+    textAlign: 'left'
+  },
+  navList: {
+    listStyle: 'none',
+    display: 'flex',
+    gap: '35px',
+    marginLeft: '500px'
+  },
+  navLink: {
+    color: '#fff',
+    textDecoration: 'none'
+  },
+  navLinkHover: {
+    color: '#95d0a2',
+    textDecoration: 'none'
+  },
+  mainContent: {
+    textAlign: 'left'
+  },
+  error: {
+    color: 'red'
+  },
+  activitiesList: {
+    marginTop: '15px'
+  },
+  activityItem: {
+    border: '1px solid #ccc',
+    padding: '10px',
+    margin: '10px 0',
+    borderRadius: '5px'
+  },
+  formRow: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    marginBottom: '15px'
+  },
+  button: {
+    backgroundColor: '#40be5b',
+    color: 'white',
+    padding: '10px 20px',
+    border: 'none',
+    borderRadius: '4px',
+    cursor: 'pointer',
+    fontSize: '20px',
+    transition: 'background-color 0.3s'
+  },
+  buttonHover: {
+    backgroundColor: '#7ccf8e'
+  }
 };
 
 export default HomePageAdvertiser;
