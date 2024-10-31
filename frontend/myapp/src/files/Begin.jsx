@@ -10,7 +10,7 @@ const Begin = () => {
       sx={{
         textAlign: 'center',    // Center align text
         margin: '20px',        // Add margin
-        padding: '20px',       // Add padding
+        padding: '25px',       // Add padding
         backgroundColor: '#fff', // Background color for the container
         borderRadius: '8px',    // Rounded corners
         boxShadow: '0 0 10px rgba(0, 0, 0, 0.3)', // Soft shadow
