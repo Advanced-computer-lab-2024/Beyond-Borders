@@ -1,9 +1,13 @@
 import React, { useState } from 'react';
-import { Box, Button, Typography, Modal, TextField } from '@mui/material';
+import { Box, Button, Typography, Modal, TextField, IconButton, InputAdornment } from '@mui/material';
+import { Visibility, VisibilityOff } from '@mui/icons-material';
 import axios from 'axios';
 
 const HomePageTourGuide = () => {
-    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isItinerariesModalOpen, setIsItinerariesModalOpen] = useState(false);
+    const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
+    const [itineraries, setItineraries] = useState([]);
     const [profileData, setProfileData] = useState({
         username: '',
         email: '',
@@ -12,6 +16,43 @@ const HomePageTourGuide = () => {
         yearsOfExperience: '',
         previousWork: ''
     });
+
+    const handleTogglePassword = () => {
+        setShowPassword((prev) => !prev);
+    };
+
+    // Load itineraries from backend
+    const loadMyActivities = async () => {
+        const username = localStorage.getItem('username');
+        if (!username) {
+            alert('You need to log in first.');
+            return;
+        }
+
+        try {
+            const response = await fetch(`/api/getallItinerarys?AuthorUsername=${encodeURIComponent(username)}`);
+            const activities = await response.json();
+
+            if (response.ok) {
+                setItineraries(activities); // Set the itineraries in state
+                setIsItinerariesModalOpen(true); // Open the itineraries modal
+            } else {
+                alert(activities.error);
+            }
+        } catch (error) {
+            console.error('Error fetching activities:', error);
+            alert('An error occurred while loading itineraries');
+        }
+    };
+
+    // Toggle details visibility for each itinerary
+    const toggleDetails = (index) => {
+        setItineraries((prevItineraries) =>
+            prevItineraries.map((itinerary, i) =>
+                i === index ? { ...itinerary, showDetails: !itinerary.showDetails } : itinerary
+            )
+        );
+    };
 
     // Open and fetch profile data
     const readMyProfile = async () => {
@@ -22,13 +63,10 @@ const HomePageTourGuide = () => {
         }
 
         try {
-            // Make an Axios request to fetch profile data with username as a query parameter
             const response = await axios.get(`/api/TourGuideProfile?username=${encodeURIComponent(username)}`);
-
             if (response.status === 200) {
                 const data = response.data.TourGuide;
 
-                // Update state with the retrieved profile data
                 setProfileData({
                     username: data.Username || '',
                     email: data.Email || '',
@@ -38,8 +76,7 @@ const HomePageTourGuide = () => {
                     previousWork: data.PreviousWork || ''
                 });
 
-                // Open modal to show profile information
-                setIsModalOpen(true);
+                setIsProfileModalOpen(true); // Open the profile modal
             } else {
                 alert(response.data.error || 'Failed to fetch profile data.');
             }
@@ -65,7 +102,7 @@ const HomePageTourGuide = () => {
 
             if (response.status === 200) {
                 alert('Profile updated successfully!');
-                setIsModalOpen(false); // Close the modal on successful save
+                setIsProfileModalOpen(false); // Close the profile modal on successful save
             } else {
                 const errorData = response.data;
                 throw new Error(errorData.error || 'Error updating tour guide information');
@@ -75,9 +112,6 @@ const HomePageTourGuide = () => {
             alert('Failed to update profile: ' + error.message);
         }
     };
-
-    // Function to close the modal
-    const closeModal = () => setIsModalOpen(false);
 
     return (
         <Box 
@@ -118,7 +152,7 @@ const HomePageTourGuide = () => {
                         <Button
                             variant="outlined"
                             color="inherit"
-                            onClick={() => console.log('Load My Itineraries')}
+                            onClick={loadMyActivities} // Load itineraries on click
                             sx={{
                                 borderColor: 'white',  
                                 color: 'white',        
@@ -160,13 +194,63 @@ const HomePageTourGuide = () => {
                     borderRadius: '20px',
                     '&:hover': { backgroundColor: '#69f0ae' }
                 }}
-                onClick={readMyProfile} // Fetch profile data and open modal
+                onClick={readMyProfile} // Fetch profile data and open profile modal
             >
                 My Profile
             </Button>
 
-            {/* Modal for Profile */}
-            <Modal open={isModalOpen} onClose={closeModal}>
+            {/* Itineraries Modal */}
+            <Modal open={isItinerariesModalOpen} onClose={() => setIsItinerariesModalOpen(false)}>
+                <Box sx={{
+                    position: 'absolute', top: '50%', left: '50%',
+                    transform: 'translate(-50%, -50%)', width: '80%', maxWidth: '800px',
+                    bgcolor: 'background.paper', p: 4, borderRadius: 1,
+                    boxShadow: 24, maxHeight: '80vh', overflowY: 'auto'
+                }}>
+                    <Typography variant="h6" component="h2">My Itineraries</Typography>
+                    {itineraries.length > 0 ? (
+                        itineraries.map((activity, index) => (
+                            <Box
+                                key={activity.Title}
+                                sx={{
+                                    mb: 3,
+                                    padding: '20px',
+                                    backgroundColor: '#ffffff',
+                                    borderRadius: '10px',
+                                    boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                                }}
+                            >
+                                <Typography variant="h6" sx={{ display: 'inline' }}>{activity.Title}</Typography>
+                                <Button onClick={() => console.log(`Delete ${activity.Title}`)} sx={{ ml: 1, color: '#00c853' }}>Delete</Button>
+                                <Button onClick={() => console.log(`Update ${activity.Title}`)} sx={{ ml: 1, color: '#00c853' }}>Update</Button>
+                                <Button onClick={() => toggleDetails(index)} sx={{ ml: 1, color: '#00c853' }}>View Details</Button>
+
+                                {activity.showDetails && (
+                                    <Box sx={{ mt: 2 }}>
+                                        <Typography variant="body2"><strong>Activities:</strong> {activity.Activities}</Typography>
+                                        <Typography variant="body2"><strong>Locations:</strong> {activity.Locations}</Typography>
+                                        <Typography variant="body2"><strong>Timeline:</strong> {activity.Timeline}</Typography>
+                                        <Typography variant="body2"><strong>Language:</strong> {activity.Language}</Typography>
+                                        <Typography variant="body2"><strong>Price:</strong> ${activity.Price}</Typography>
+                                        <Typography variant="body2"><strong>Date:</strong> {new Date(activity.Date).toLocaleDateString()}</Typography>
+                                        <Typography variant="body2"><strong>Accessible:</strong> {activity.accessibility ? 'Yes' : 'No'}</Typography>
+                                        <Typography variant="body2"><strong>Pickup Location:</strong> {activity.pickupLocation}</Typography>
+                                        <Typography variant="body2"><strong>Dropoff Location:</strong> {activity.dropoffLocation}</Typography>
+                                        <Typography variant="body2"><strong>Booked:</strong> {activity.isBooked ? 'Yes' : 'No'}</Typography>
+                                        <Typography variant="body2"><strong>Tags:</strong> {activity.Tags.join(', ')}</Typography>
+                                        <Typography variant="body2"><strong>Author:</strong> {activity.AuthorUsername}</Typography>
+                                    </Box>
+                                )}
+                            </Box>
+                        ))
+                    ) : (
+                        <Typography variant="body1">No Itineraries found.</Typography>
+                    )}
+                </Box>
+            </Modal>
+
+            {/* Profile Modal */}
+            <Modal open={isProfileModalOpen} onClose={() => setIsProfileModalOpen(false)}>
                 <Box sx={{
                     position: 'absolute', top: '50%', left: '50%',
                     transform: 'translate(-50%, -50%)', width: 400,
@@ -197,10 +281,19 @@ const HomePageTourGuide = () => {
                             fullWidth
                             label="Password"
                             id="password"
-                            type="password"
+                            type={showPassword ? "text" : "password"} // Toggle between text and password
                             value={profileData.password}
                             onChange={(e) => setProfileData({ ...profileData, password: e.target.value })}
                             margin="dense"
+                            InputProps={{
+                                endAdornment: (
+                                    <InputAdornment position="end">
+                                        <IconButton onClick={handleTogglePassword} edge="end">
+                                            {showPassword ? <VisibilityOff /> : <Visibility />}
+                                        </IconButton>
+                                    </InputAdornment>
+                                )
+                            }}
                         />
                         <TextField
                             fullWidth
@@ -228,9 +321,20 @@ const HomePageTourGuide = () => {
                             margin="dense"
                         />
                         <Button
-                            variant="contained"
+                            variant="outlined"
                             onClick={saveProfile} // Save changes to profile
-                            sx={{ mt: 2 }}
+                            sx={{
+                                mt: 2,
+                                borderColor: '#00c853',    // Green outline
+                                color: '#00c853',           // Green text
+                                backgroundColor: 'white',   // White background
+                                borderRadius: '20px',       // Rounded corners
+                                '&:hover': {
+                                    backgroundColor: '#e0f2f1', // Slightly darker white on hover
+                                    borderColor: '#00c853',     // Green border remains on hover
+                                    color: '#00c853'            // Green text remains on hover
+                                }
+                            }}
                         >
                             Save Changes
                         </Button>
