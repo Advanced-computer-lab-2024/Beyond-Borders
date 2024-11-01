@@ -18,6 +18,7 @@ import TourismGovernorDashboard from './files/TourismGovernorDashboard ';
 import MuseumTG from './files/MuseumTG';
 import EditMuseum from './files/editMuseum';
 import CreateMuseum from './files/createMuseum';
+import HomePageTourGuide from './files/HomePageTourGuide';
 
 function App() {
   return (
@@ -37,6 +38,8 @@ function App() {
           <Route path="/loginSeller" element={<LoginSeller/>}/>
           <Route path="/MuseumTG" element={<MuseumTG/>}/>
           <Route path="/createMuseum" element={<CreateMuseum/>}/>
+          <Route path="/HomePageTourGuide" element={<HomePageTourGuide/>}/>
+
 
           <Route path="/EditMuseum" element={<EditMuseum/>}/>
           <Route path="/login" element={<Login/>}/>
