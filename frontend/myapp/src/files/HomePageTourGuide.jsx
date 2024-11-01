@@ -7,6 +7,7 @@ const HomePageTourGuide = () => {
     const [profileData, setProfileData] = useState({
         username: '',
         email: '',
+        password: '',
         mobileNum: '',
         yearsOfExperience: '',
         previousWork: ''
@@ -31,6 +32,7 @@ const HomePageTourGuide = () => {
                 setProfileData({
                     username: data.Username || '',
                     email: data.Email || '',
+                    password: '', // Password field remains blank for security
                     mobileNum: data.MobileNum || '',
                     yearsOfExperience: data.YearsOfExperience || '',
                     previousWork: data.PreviousWork || ''
@@ -44,6 +46,33 @@ const HomePageTourGuide = () => {
         } catch (error) {
             console.error('Error fetching profile:', error);
             alert('An error occurred while loading the profile.');
+        }
+    };
+
+    // Save profile data to the backend
+    const saveProfile = async () => {
+        const { username, password, email, mobileNum, yearsOfExperience, previousWork } = profileData;
+
+        try {
+            const response = await axios.put('/api/updateTourGuideProfile', {
+                Username: username,
+                Password: password,
+                Email: email,
+                MobileNum: mobileNum,
+                YearsOfExperience: yearsOfExperience,
+                PreviousWork: previousWork
+            });
+
+            if (response.status === 200) {
+                alert('Profile updated successfully!');
+                setIsModalOpen(false); // Close the modal on successful save
+            } else {
+                const errorData = response.data;
+                throw new Error(errorData.error || 'Error updating tour guide information');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Failed to update profile: ' + error.message);
         }
     };
 
@@ -161,7 +190,16 @@ const HomePageTourGuide = () => {
                             id="email"
                             type="email"
                             value={profileData.email}
-                            InputProps={{ readOnly: true }}
+                            onChange={(e) => setProfileData({ ...profileData, email: e.target.value })}
+                            margin="dense"
+                        />
+                        <TextField
+                            fullWidth
+                            label="Password"
+                            id="password"
+                            type="password"
+                            value={profileData.password}
+                            onChange={(e) => setProfileData({ ...profileData, password: e.target.value })}
                             margin="dense"
                         />
                         <TextField
@@ -169,7 +207,7 @@ const HomePageTourGuide = () => {
                             label="Mobile Number"
                             id="mobileNum"
                             value={profileData.mobileNum}
-                            InputProps={{ readOnly: true }}
+                            onChange={(e) => setProfileData({ ...profileData, mobileNum: e.target.value })}
                             margin="dense"
                         />
                         <TextField
@@ -177,7 +215,7 @@ const HomePageTourGuide = () => {
                             label="Years of Experience"
                             id="yearsOfExperience"
                             value={profileData.yearsOfExperience}
-                            InputProps={{ readOnly: true }}
+                            onChange={(e) => setProfileData({ ...profileData, yearsOfExperience: e.target.value })}
                             margin="dense"
                         />
                         <TextField
@@ -186,15 +224,15 @@ const HomePageTourGuide = () => {
                             id="previousWork"
                             type="url"
                             value={profileData.previousWork}
-                            InputProps={{ readOnly: true }}
+                            onChange={(e) => setProfileData({ ...profileData, previousWork: e.target.value })}
                             margin="dense"
                         />
                         <Button
                             variant="contained"
-                            onClick={closeModal}
+                            onClick={saveProfile} // Save changes to profile
                             sx={{ mt: 2 }}
                         >
-                            Close
+                            Save Changes
                         </Button>
                     </Box>
                 </Box>
