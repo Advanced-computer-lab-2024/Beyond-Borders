@@ -169,7 +169,7 @@ const HomePageTourGuide = () => {
                         <Button
                             variant="outlined"
                             color="inherit"
-                            onClick={() => console.log('Open Create New Itinerary Modal')}
+                            onClick={() => window.location.href = `/CreateItinerary`}
                             sx={{
                                 borderColor: 'white',   
                                 color: 'white',         
