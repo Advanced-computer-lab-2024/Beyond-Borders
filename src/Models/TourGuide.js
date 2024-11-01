@@ -25,7 +25,28 @@ const TourGuideSchema = new Schema({
   PreviousWork : {
   type : String ,
   required : false,
-  }
+  },
+  Rating : {
+    type : Number ,
+    required : false,
+    },
+    RatingCount: {
+      type: Number,
+      default: 0,
+      required: false 
+    },
+    Comments: [
+      {
+        TouristUsername: {
+          type: String,
+          required: false 
+        },
+        Comment: {
+          type: String, 
+          required: false 
+        } 
+      }
+    ]
 }, { timestamps: true }); //adds 2 more field (Created At:) & (Updated At:)
 
 const TourGuide = mongoose.model('TourGuide', TourGuideSchema);

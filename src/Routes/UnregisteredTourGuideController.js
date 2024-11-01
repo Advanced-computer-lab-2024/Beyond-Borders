@@ -16,7 +16,7 @@ const createUnregisteredTourGuide = async(req,res) => {
       else{
          await AllUsernamesModel.create({Username});
          //add a new user to the database with Name, Email and Age
-         const user = await UnregisteredTourGuideModel.create({Username, Email, Password, MobileNum, YearsOfExperience, PreviousWork});
+         const user = await UnregisteredTourGuideModel.create({Username, Email, Password, MobileNum, YearsOfExperience, PreviousWork, Rating: 0, Comments: []});
          //Send the created use as a JSON response with a 200 OK status 
          res.status(200).json({msg:"Unregistered Tour Guide is created!"});
          //res.status(200).json(user);

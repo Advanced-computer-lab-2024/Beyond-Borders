@@ -26,10 +26,18 @@ const ProductSchema = new Schema({
     type: String,
     required: true
   },
-  Reviews: {
-    type: [String],
-    required: false
-  },
+  Reviews: [
+    {
+      touristUsername: {
+        type: String,
+        required: false 
+      },
+      Review: {
+        type: String,  
+        required: false 
+      } 
+    }
+  ],
   Ratings: {
     type: Number,
     default: 0,

@@ -33,50 +33,57 @@ const TouristSchema = new Schema({
   Wallet: {
     type: Number,
     required: false
-    
   },
   BookedActivities: [
     {
       activityName: {
         type: String,
-        required: false },
+        required: false 
+      },
       booked: {
         type: Boolean, 
         default: true, 
-        required: false } 
+        required: false 
+      } 
     }
   ],
   BookedItineraries: [
     {
       ItineraryName: {
         type: String,
-        required: false },
+        required: false 
+      },
       booked: {
         type: Boolean, 
         default: true, 
-        required: false } 
+        required: false 
+      } 
     }
   ],
   BookedMuseums: [
     {
       MuseumName: {
         type: String,
-        required: false },
+        required: false 
+      },
       booked: {
         type: Boolean, 
         default: true, 
-        required: false } 
+        required: false 
+      } 
     }
   ],
   BookedHistPlaces: [
     {
       HistPlaceName: {
         type: String,
-        required: false },
+        required: false 
+      },
       booked: {
         type: Boolean, 
         default: true, 
-        required: false } 
+        required: false 
+      } 
     }
   ],
   purchasedProducts: [
@@ -86,8 +93,16 @@ const TouristSchema = new Schema({
         required: false 
       }
     }
+  ],
+  completedItineraries: [
+    {
+      ItineraryName: {
+        type: String,
+        required: true
+      }
+    }
   ]
-}, { timestamps: true }); //adds 2 more field (Created At:) & (Updated At:)
+}, { timestamps: true }); // adds Created At & Updated At fields
 
 const Tourist = mongoose.model('Tourist', TouristSchema);
 module.exports = Tourist;
