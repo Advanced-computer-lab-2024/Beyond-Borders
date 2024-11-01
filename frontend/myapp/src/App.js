@@ -17,6 +17,7 @@ import LoginTourismGovernor from './files/loginTourismGovernor';
 import TourismGovernorDashboard from './files/TourismGovernorDashboard ';
 import MuseumTG from './files/MuseumTG';
 import EditMuseum from './files/editMuseum';
+import EditItinerary from './files/EditItinerary';
 import CreateMuseum from './files/createMuseum';
 import CreateItinerary from './files/CreateItinerary';
 import HomePageTourGuide from './files/HomePageTourGuide';
@@ -51,6 +52,7 @@ function App() {
 
 
           <Route path="/EditMuseum" element={<EditMuseum/>}/>
+          <Route path="/EditItinerary" element={<EditItinerary/>}/>
           <Route path="/login" element={<Login/>}/>
           <Route path="/loginAdmin" element={<LoginAdmin/>}/>
           <Route path="/loginTourismGovernor" element={<LoginTourismGovernor/>}/>
