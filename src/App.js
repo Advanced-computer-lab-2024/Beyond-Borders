@@ -7,7 +7,7 @@ const mongoose = require('mongoose'); //importing mongoose
 mongoose.set('strictQuery', false);
 require("dotenv").config(); //load enviironment variables
 //const {createUser,getUsers, updateUser, deleteUser} = require("./Routes/userController");
-const {createTourist,getTourist, updateTourist, searchProductTourist, filterActivities, filterProductByPriceTourist, ActivityRating, sortProductsDescendingTourist, sortProductsAscendingTourist, ViewAllUpcomingActivities, ViewAllUpcomingMuseumEventsTourist, getMuseumsByTagTourist, getHistoricalPlacesByTagTourist, ViewAllUpcomingHistoricalPlacesEventsTourist,viewProductsTourist, sortActivitiesPriceAscendingTourist, sortActivitiesPriceDescendingTourist, sortActivitiesRatingAscendingTourist, sortActivitiesRatingDescendingTourist, loginTourist, ViewAllUpcomingItinerariesTourist, sortItinerariesPriceAscendingTourist, sortItinerariesPriceDescendingTourist, filterItinerariesTourist,ActivitiesSearchAll, ItinerarySearchAll, MuseumSearchAll, HistoricalPlacesSearchAll, ProductRating, createComplaint, getComplaintsByTouristUsername,ChooseActivitiesByCategoryTourist,bookActivity,bookItinerary,bookMuseum,bookHistoricalPlace, ratePurchasedProduct, addPurchasedProducts, reviewPurchasedProduct, addCompletedItinerary, rateTourGuide, commentOnTourGuide, rateCompletedItinerary, commentOnItinerary} = require("./Routes/TouristController");
+const {createTourist,getTourist, updateTourist, searchProductTourist, filterActivities, filterProductByPriceTourist, ActivityRating, sortProductsDescendingTourist, sortProductsAscendingTourist, ViewAllUpcomingActivities, ViewAllUpcomingMuseumEventsTourist, getMuseumsByTagTourist, getHistoricalPlacesByTagTourist, ViewAllUpcomingHistoricalPlacesEventsTourist,viewProductsTourist, sortActivitiesPriceAscendingTourist, sortActivitiesPriceDescendingTourist, sortActivitiesRatingAscendingTourist, sortActivitiesRatingDescendingTourist, loginTourist, ViewAllUpcomingItinerariesTourist, sortItinerariesPriceAscendingTourist, sortItinerariesPriceDescendingTourist, filterItinerariesTourist,ActivitiesSearchAll, ItinerarySearchAll, MuseumSearchAll, HistoricalPlacesSearchAll, ProductRating, createComplaint, getComplaintsByTouristUsername,ChooseActivitiesByCategoryTourist,bookActivity,bookItinerary,bookMuseum,bookHistoricalPlace, ratePurchasedProduct, addPurchasedProducts, reviewPurchasedProduct, addCompletedItinerary, rateTourGuide, commentOnTourGuide, rateCompletedItinerary, commentOnItinerary, addCompletedActivities, addCompletedMuseumEvents, addCompletedHPEvents, rateCompletedActivity, rateCompletedMuseum, rateCompletedHP, commentOnActivity, commentOnMuseum, commentOnHP} = require("./Routes/TouristController");
 const {createUnregisteredAdvertiser} = require("./Routes/UnregisteredAdvertiserController");
 const {createUnregisteredTourGuide} = require("./Routes/UnregisteredTourGuideController");
 const {createUnregisteredSeller} = require("./Routes/UnregisteredSellerController");
@@ -172,6 +172,26 @@ app.put("/rateTourGuide",rateTourGuide);
 app.put("/commentOnTourGuide",commentOnTourGuide);
 app.put("/rateCompletedItinerary",rateCompletedItinerary);
 app.put("/commentOnItinerary",commentOnItinerary);
+app.put("/addCompletedActivities",addCompletedActivities);
+app.put("/addCompletedMuseumEvents",addCompletedMuseumEvents);
+app.put("/addCompletedHPEvents",addCompletedHPEvents);
+app.put("/rateCompletedActivity",rateCompletedActivity);
+app.put("/rateCompletedMuseum",rateCompletedMuseum);
+app.put("/rateCompletedHP",rateCompletedHP);
+app.put("/commentOnActivity",commentOnActivity);
+app.put("/commentOnMuseum",commentOnMuseum);
+app.put("/commentOnHP",commentOnHP);
+
+
+
+
+
+
+
+
+
+
+
 
 
 

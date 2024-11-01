@@ -1442,6 +1442,146 @@ const addCompletedItinerary = async (req, res) => {
   }
 };
 
+const addCompletedActivities = async (req, res) => {
+  const { touristUsername, activityName } = req.body;
+
+  try {
+    // Find the tourist by username
+    const tourist = await TouristModel.findOne({ Username: touristUsername });
+    if (!tourist) {
+      return res.status(404).json({ msg: 'Tourist not found' });
+    }
+
+    const bookedActivity = tourist.BookedActivities.find(activity => activity.activityName === activityName);
+    if (!bookedActivity) {
+      return res.status(400).json({ msg: 'Activity not booked by the tourist' });
+    }
+
+    // Fetch the activity to check the date
+    const activity = await ActivityModel.findOne({ Name: activityName });
+    if (!activity) {
+      return res.status(404).json({ msg: 'Activity not found' });
+    }
+
+    // Check if the activity date is in the past
+    const currentDate = new Date();
+    if (activity.Date > currentDate) {
+      return res.status(400).json({ msg: 'The activity date has not passed yet' });
+    }
+
+    // Add the completed activity to the completedActivities array
+    tourist.completedActivities.push({ ActivityName: activityName });
+
+    // Save the updated tourist document
+    await tourist.save();
+
+    // Send a response with the updated tourist data
+    res.status(200).json({
+      msg: 'Activity marked as completed successfully!',
+      completedActivities: tourist.completedActivities
+    });
+  } catch (error) {
+    console.error('Error adding completed activity:', error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+const addCompletedMuseumEvents = async (req, res) => {
+  const { touristUsername, museumName } = req.body;
+
+  try {
+    // Find the tourist by username
+    const tourist = await TouristModel.findOne({ Username: touristUsername });
+    if (!tourist) {
+      return res.status(404).json({ msg: 'Tourist not found' });
+    }
+
+    // Check if the museum is in the bookedMuseums array
+    const bookedMuseum = tourist.BookedMuseums.find(museum => museum.MuseumName === museumName);
+    if (!bookedMuseum) {
+      return res.status(400).json({ msg: 'Museum event not booked by the tourist' });
+    }
+
+    // Fetch the museum event to check the date
+    const museumEvent = await MuseumModel.findOne({ name: museumName }); // Use the correct model name
+    if (!museumEvent) {
+      return res.status(404).json({ msg: 'Museum event not found' });
+    }
+
+    // Check if the museum event date is in the past
+    const currentDate = new Date();
+    if (museumEvent.dateOfEvent > currentDate) { // Correctly access the dateOfEvent property
+      return res.status(400).json({ msg: 'The museum event date has not passed yet' });
+    }
+
+    // Add the completed museum event to the completedMuseumEvents array
+    tourist.completedMuseumEvents.push({ MuseumName: museumName });
+
+    // Save the updated tourist document
+    await tourist.save();
+
+    // Send a response with the updated tourist data
+    res.status(200).json({
+      msg: 'Museum event marked as completed successfully!',
+      completedMuseumEvents: tourist.completedMuseumEvents
+    });
+  } catch (error) {
+    console.error('Error adding completed museum event:', error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+const addCompletedHPEvents = async (req, res) => {
+  const { touristUsername, hpName } = req.body;
+
+  try {
+    // Find the tourist by username
+    const tourist = await TouristModel.findOne({ Username: touristUsername });
+    if (!tourist) {
+      return res.status(404).json({ msg: 'Tourist not found' });
+    }
+
+    // Check if the historical place is in the bookedHistPlaces array
+    const bookedHP = tourist.BookedHistPlaces.find(hp => hp.HistPlaceName === hpName);
+    if (!bookedHP) {
+      return res.status(400).json({ msg: 'Historical Place event not booked by the tourist' });
+    }
+
+    // Fetch the historical place event to check the date
+    const hpEvent = await HistoricalPlacesModel.findOne({ name: hpName }); // Correct model name
+    if (!hpEvent) {
+      return res.status(404).json({ msg: 'Historical Place event not found' });
+    }
+
+    // Check if the historical place event date is in the past
+    const currentDate = new Date();
+    if (hpEvent.dateOfEvent > currentDate) { // Correctly access the dateOfEvent property
+      return res.status(400).json({ msg: 'The Historical Place event date has not passed yet' });
+    }
+
+    // Add the completed historical place event to the completedHistoricalPlaceEvent array
+    tourist.completedHistoricalPlaceEvent.push({ HistoricalPlaceName: hpName });
+
+    // Save the updated tourist document
+    await tourist.save();
+
+    // Send a response with the updated tourist data
+    res.status(200).json({
+      msg: 'Historical Place event marked as completed successfully!',
+      completedHistoricalPlaceEvent: tourist.completedHistoricalPlaceEvent // Correctly reference the completed event
+    });
+  } catch (error) {
+    console.error('Error adding completed Historical Place event:', error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+
+
+
+
+
+
 const rateTourGuide = async (req, res) => {
   const { touristUsername, itineraryName, rating } = req.body;
 
@@ -1626,6 +1766,264 @@ const commentOnItinerary = async (req, res) => {
   }
 };
 
+const rateCompletedActivity = async (req, res) => {
+  const { touristUsername, activityName, rating } = req.body;
+
+  try {
+    // Validate the rating
+    if (rating < 1 || rating > 5) {
+      return res.status(400).json({ msg: 'Rating must be between 1 and 5' });
+    }
+
+    // Find the tourist by username
+    const tourist = await TouristModel.findOne({ Username: touristUsername });
+    if (!tourist) {
+      return res.status(404).json({ msg: 'Tourist not found' });
+    }
+
+    // Find the completed itinerary
+    const completedActivity = tourist.completedActivities.find(ac => ac.ActivityName === activityName);
+    if (!completedActivity) {
+      return res.status(400).json({ msg: 'You must complete the activity before rating' });
+    }
+
+    
+    const activity = await ActivityModel.findOne({ Name: activityName });
+    if (!activity) {
+      return res.status(404).json({ msg: 'activity not found' });
+    }
+
+    // Update the rating in the completed itinerary
+    completedActivity.rating = rating;
+
+    // Save the tourist model
+    await tourist.save();
+
+    // Update the itinerary's ratings
+    const previousRating = activity.Rating || 0;
+    const ratingCount = (activity.RatingCount || 0) + 1;
+    const newAverageRating = ((previousRating * (ratingCount - 1)) + rating) / ratingCount;
+
+    activity.Rating = newAverageRating;
+    activity.RatingCount = ratingCount;
+    await activity.save();
+
+    res.status(200).json({ msg: 'activity rated successfully!', activityName, newAverageRating });
+  } catch (error) {
+    console.error('Error rating itinerary:', error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+
+const rateCompletedMuseum = async (req, res) => {
+  const { touristUsername, museumName, rating } = req.body;
+
+  try {
+    // Validate the rating
+    if (rating < 1 || rating > 5) {
+      return res.status(400).json({ msg: 'Rating must be between 1 and 5' });
+    }
+
+    // Find the tourist by username
+    const tourist = await TouristModel.findOne({ Username: touristUsername });
+    if (!tourist) {
+      return res.status(404).json({ msg: 'Tourist not found' });
+    }
+
+    // Find the completed itinerary
+    const completedMuseum = tourist.completedMuseumEvents.find(ac => ac.MuseumName === museumName);
+    if (!completedMuseum) {
+      return res.status(400).json({ msg: 'You must complete the museum event before rating' });
+    }
+
+    
+    const museum = await MuseumModel.findOne({ name: museumName });
+    if (!museum) {
+      return res.status(404).json({ msg: 'museum not found' });
+    }
+
+    // Update the rating in the completed itinerary
+    completedMuseum.Ratings = rating;
+
+    // Save the tourist model
+    await tourist.save();
+
+    // Update the itinerary's ratings
+    const previousRating = museum.Ratings || 0;
+    const ratingCount = (museum.RatingCount || 0) + 1;
+    const newAverageRating = ((previousRating * (ratingCount - 1)) + rating) / ratingCount;
+
+    museum.Ratings = newAverageRating;
+    museum.RatingCount = ratingCount;
+    await museum.save();
+
+    res.status(200).json({ msg: 'museum rated successfully!', museumName, newAverageRating });
+  } catch (error) {
+    console.error('Error rating museum:', error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+const rateCompletedHP = async (req, res) => {
+  const { touristUsername, HPname, rating } = req.body;
+
+  try {
+    // Validate the rating
+    if (rating < 1 || rating > 5) {
+      return res.status(400).json({ msg: 'Rating must be between 1 and 5' });
+    }
+
+    // Find the tourist by username
+    const tourist = await TouristModel.findOne({ Username: touristUsername });
+    if (!tourist) {
+      return res.status(404).json({ msg: 'Tourist not found' });
+    }
+
+    // Find the completed itinerary
+    const completedHP = tourist.completedHistoricalPlaceEvent.find(ac => ac.HistoricalPlaceName === HPname);
+    if (!completedHP) {
+      return res.status(400).json({ msg: 'You must complete the historical place event before rating' });
+    }
+
+    
+    const hp = await HistoricalPlacesModel.findOne({ name: HPname });
+    if (!hp) {
+      return res.status(404).json({ msg: 'hp not found' });
+    }
+
+    // Update the rating in the completed itinerary
+    completedHP.Ratings = rating;
+
+    // Save the tourist model
+    await tourist.save();
+
+    // Update the itinerary's ratings
+    const previousRating = hp.Ratings || 0;
+    const ratingCount = (hp.RatingCount || 0) + 1;
+    const newAverageRating = ((previousRating * (ratingCount - 1)) + rating) / ratingCount;
+
+    hp.Ratings = newAverageRating;
+    hp.RatingCount = ratingCount;
+    await hp.save();
+
+    res.status(200).json({ msg: 'hp rated successfully!', HPname, newAverageRating });
+  } catch (error) {
+    console.error('Error rating hp:', error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+const commentOnActivity = async (req, res) => {
+  const { touristUsername, activityName, comment } = req.body;
+
+  try {
+    // Validate comment
+    if (!comment || comment.trim().length === 0) {
+      return res.status(400).json({ msg: 'Comment cannot be empty' });
+    }
+
+    // Find the tourist by username
+    const tourist = await TouristModel.findOne({ Username: touristUsername });
+    if (!tourist) {
+      return res.status(404).json({ msg: 'Tourist not found' });
+    }
+
+    const completedActivity = tourist.completedActivities.find(it => it.ActivityName === activityName);
+    if (!completedActivity) {
+      return res.status(400).json({ msg: 'You must complete the activity before rating' });
+    }
+
+    // Find the itinerary
+    const activity = await ActivityModel.findOne({ Name: activityName });
+    if (!activity) {
+      return res.status(404).json({ msg: 'activity not found' });
+    }
+
+    // Add the comment to the itinerary's Comments array
+    activity.Comments.push({ touristUsername, Comment: comment });
+    await activity.save();
+
+    res.status(200).json({ msg: 'Comment added successfully!', comments: activity.Comments });
+  } catch (error) {
+    console.error('Error commenting on activity:', error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+const commentOnMuseum = async (req, res) => {
+  const { touristUsername, museumName, comment } = req.body;
+
+  try {
+    // Validate comment
+    if (!comment || comment.trim().length === 0) {
+      return res.status(400).json({ msg: 'Comment cannot be empty' });
+    }
+
+    // Find the tourist by username
+    const tourist = await TouristModel.findOne({ Username: touristUsername });
+    if (!tourist) {
+      return res.status(404).json({ msg: 'Tourist not found' });
+    }
+
+    const completedMuseum = tourist.completedMuseumEvents.find(it => it.MuseumName === museumName);
+    if (!completedMuseum) {
+      return res.status(400).json({ msg: 'You must complete the museum event before rating' });
+    }
+
+    // Find the itinerary
+    const museum = await MuseumModel.findOne({ name: museumName });
+    if (!museum) {
+      return res.status(404).json({ msg: 'museum not found' });
+    }
+
+    // Add the comment to the itinerary's Comments array
+    museum.Comments.push({ touristUsername, Comment: comment });
+    await museum.save();
+
+    res.status(200).json({ msg: 'Comment added successfully!', comments: museum.Comments });
+  } catch (error) {
+    console.error('Error commenting on museum:', error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+const commentOnHP = async (req, res) => {
+  const { touristUsername, HPname, comment } = req.body;
+
+  try {
+    // Validate comment
+    if (!comment || comment.trim().length === 0) {
+      return res.status(400).json({ msg: 'Comment cannot be empty' });
+    }
+
+    // Find the tourist by username
+    const tourist = await TouristModel.findOne({ Username: touristUsername });
+    if (!tourist) {
+      return res.status(404).json({ msg: 'Tourist not found' });
+    }
+
+    const completedHP = tourist.completedHistoricalPlaceEvent.find(it => it.HistoricalPlaceName === HPname);
+    if (!completedHP) {
+      return res.status(400).json({ msg: 'You must complete the hp event before rating' });
+    }
+
+    // Find the itinerary
+    const hp = await HistoricalPlacesModel.findOne({ name: HPname });
+    if (!hp) {
+      return res.status(404).json({ msg: 'hp not found' });
+    }
+
+    // Add the comment to the itinerary's Comments array
+    hp.Comments.push({ touristUsername, Comment: comment });
+    await hp.save();
+
+    res.status(200).json({ msg: 'Comment added successfully!', comments: hp.Comments });
+  } catch (error) {
+    console.error('Error commenting on hp:', error);
+    res.status(500).json({ error: error.message });
+  }
+};
 
 
 
@@ -1645,4 +2043,5 @@ const commentOnItinerary = async (req, res) => {
 
 
 
-module.exports = {createTourist, getTourist, updateTourist, searchProductTourist, filterActivities, filterProductByPriceTourist, ActivityRating, sortProductsDescendingTourist, sortProductsAscendingTourist, ViewAllUpcomingActivities, ViewAllUpcomingMuseumEventsTourist, getMuseumsByTagTourist, getHistoricalPlacesByTagTourist, ViewAllUpcomingHistoricalPlacesEventsTourist,viewProductsTourist, sortActivitiesPriceAscendingTourist, sortActivitiesPriceDescendingTourist, sortActivitiesRatingAscendingTourist, sortActivitiesRatingDescendingTourist, loginTourist, ViewAllUpcomingItinerariesTourist, sortItinerariesPriceAscendingTourist, sortItinerariesPriceDescendingTourist, filterItinerariesTourist, ActivitiesSearchAll, ItinerarySearchAll, MuseumSearchAll, HistoricalPlacesSearchAll, ProductRating, createComplaint, getComplaintsByTouristUsername,ChooseActivitiesByCategoryTourist,bookActivity,bookItinerary,bookMuseum,bookHistoricalPlace, ratePurchasedProduct, addPurchasedProducts, reviewPurchasedProduct, addCompletedItinerary, rateTourGuide, commentOnTourGuide, rateCompletedItinerary, commentOnItinerary};
+
+module.exports = {createTourist, getTourist, updateTourist, searchProductTourist, filterActivities, filterProductByPriceTourist, ActivityRating, sortProductsDescendingTourist, sortProductsAscendingTourist, ViewAllUpcomingActivities, ViewAllUpcomingMuseumEventsTourist, getMuseumsByTagTourist, getHistoricalPlacesByTagTourist, ViewAllUpcomingHistoricalPlacesEventsTourist,viewProductsTourist, sortActivitiesPriceAscendingTourist, sortActivitiesPriceDescendingTourist, sortActivitiesRatingAscendingTourist, sortActivitiesRatingDescendingTourist, loginTourist, ViewAllUpcomingItinerariesTourist, sortItinerariesPriceAscendingTourist, sortItinerariesPriceDescendingTourist, filterItinerariesTourist, ActivitiesSearchAll, ItinerarySearchAll, MuseumSearchAll, HistoricalPlacesSearchAll, ProductRating, createComplaint, getComplaintsByTouristUsername,ChooseActivitiesByCategoryTourist,bookActivity,bookItinerary,bookMuseum,bookHistoricalPlace, ratePurchasedProduct, addPurchasedProducts, reviewPurchasedProduct, addCompletedItinerary, rateTourGuide, commentOnTourGuide, rateCompletedItinerary, commentOnItinerary, addCompletedActivities, addCompletedMuseumEvents, addCompletedHPEvents, rateCompletedActivity, rateCompletedMuseum, rateCompletedHP, commentOnActivity, commentOnMuseum, commentOnHP};

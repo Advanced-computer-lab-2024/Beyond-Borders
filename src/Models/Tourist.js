@@ -101,6 +101,30 @@ const TouristSchema = new Schema({
         required: true
       }
     }
+  ],
+  completedActivities: [
+    {
+      ActivityName: {
+        type: String,
+        required: true
+      }
+    }
+  ],
+  completedMuseumEvents: [
+    {
+      MuseumName: {
+        type: String,
+        required: true
+      }
+    }
+  ],
+  completedHistoricalPlaceEvent: [
+    {
+      HistoricalPlaceName: {
+        type: String,
+        required: true
+      }
+    }
   ]
 }, { timestamps: true }); // adds Created At & Updated At fields
 

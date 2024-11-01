@@ -28,7 +28,10 @@ const CreateMuseums = async (req, res) => {
             ticketPrices,
             AuthorUsername,
             HistoricalTags,
-            dateOfEvent
+            dateOfEvent,
+            Ratings: 0,
+            RatingCount: 0,
+            Comments: []
 
         });
 
