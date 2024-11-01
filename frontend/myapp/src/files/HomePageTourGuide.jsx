@@ -56,7 +56,7 @@ const HomePageTourGuide = () => {
 
     // Open and fetch profile data
     const readMyProfile = async () => {
-        const username = localStorage.getItem('username'); // Retrieve username from localStorage
+        const username = localStorage.getItem('username');
         if (!username) {
             alert('You need to log in first.');
             return;
@@ -70,13 +70,13 @@ const HomePageTourGuide = () => {
                 setProfileData({
                     username: data.Username || '',
                     email: data.Email || '',
-                    password: '', // Password field remains blank for security
+                    password: '',
                     mobileNum: data.MobileNum || '',
                     yearsOfExperience: data.YearsOfExperience || '',
                     previousWork: data.PreviousWork || ''
                 });
 
-                setIsProfileModalOpen(true); // Open the profile modal
+                setIsProfileModalOpen(true);
             } else {
                 alert(response.data.error || 'Failed to fetch profile data.');
             }
@@ -102,7 +102,7 @@ const HomePageTourGuide = () => {
 
             if (response.status === 200) {
                 alert('Profile updated successfully!');
-                setIsProfileModalOpen(false); // Close the profile modal on successful save
+                setIsProfileModalOpen(false);
             } else {
                 const errorData = response.data;
                 throw new Error(errorData.error || 'Error updating tour guide information');
@@ -124,12 +124,10 @@ const HomePageTourGuide = () => {
                 justifyContent: 'space-between' 
             }}
         >
-            {/* Title */}
             <Typography variant="h5" component="h1" sx={{ margin: 0 }}>
                 Beyond Borders
             </Typography>
 
-            {/* Navigation Links */}
             <Box
                 component="nav"
                 sx={{
@@ -152,7 +150,7 @@ const HomePageTourGuide = () => {
                         <Button
                             variant="outlined"
                             color="inherit"
-                            onClick={loadMyActivities} // Load itineraries on click
+                            onClick={loadMyActivities}
                             sx={{
                                 borderColor: 'white',  
                                 color: 'white',        
@@ -185,7 +183,6 @@ const HomePageTourGuide = () => {
                 </Box>
             </Box>
 
-            {/* Profile Button */}
             <Button 
                 variant="contained" 
                 sx={{ 
@@ -194,12 +191,11 @@ const HomePageTourGuide = () => {
                     borderRadius: '20px',
                     '&:hover': { backgroundColor: '#69f0ae' }
                 }}
-                onClick={readMyProfile} // Fetch profile data and open profile modal
+                onClick={readMyProfile}
             >
                 My Profile
             </Button>
 
-            {/* Itineraries Modal */}
             <Modal open={isItinerariesModalOpen} onClose={() => setIsItinerariesModalOpen(false)}>
                 <Box sx={{
                     position: 'absolute', top: '50%', left: '50%',
@@ -222,7 +218,20 @@ const HomePageTourGuide = () => {
                             >
                                 <Typography variant="h6" sx={{ display: 'inline' }}>{activity.Title}</Typography>
                                 <Button onClick={() => console.log(`Delete ${activity.Title}`)} sx={{ ml: 1, color: '#00c853' }}>Delete</Button>
-                                <Button onClick={() => console.log(`Update ${activity.Title}`)} sx={{ ml: 1, color: '#00c853' }}>Update</Button>
+                                <Button 
+                                    onClick={() => {
+                                        const AuthorUsername = localStorage.getItem('username');
+                                        if (!AuthorUsername) {
+                                            alert('Author username not found. Please log in again.');
+                                            return;
+                                        }
+                                        window.location.href = `/editItinerary?title=${encodeURIComponent(activity.Title)}&author=${encodeURIComponent(AuthorUsername)}`;
+                                    }}
+                                    sx={{ ml: 1, color: '#00c853' }}
+                                >
+                                    Update
+                                </Button>
+
                                 <Button onClick={() => toggleDetails(index)} sx={{ ml: 1, color: '#00c853' }}>View Details</Button>
 
                                 {activity.showDetails && (
@@ -249,7 +258,6 @@ const HomePageTourGuide = () => {
                 </Box>
             </Modal>
 
-            {/* Profile Modal */}
             <Modal open={isProfileModalOpen} onClose={() => setIsProfileModalOpen(false)}>
                 <Box sx={{
                     position: 'absolute', top: '50%', left: '50%',
@@ -281,7 +289,7 @@ const HomePageTourGuide = () => {
                             fullWidth
                             label="Password"
                             id="password"
-                            type={showPassword ? "text" : "password"} // Toggle between text and password
+                            type={showPassword ? "text" : "password"}
                             value={profileData.password}
                             onChange={(e) => setProfileData({ ...profileData, password: e.target.value })}
                             margin="dense"
@@ -322,17 +330,17 @@ const HomePageTourGuide = () => {
                         />
                         <Button
                             variant="outlined"
-                            onClick={saveProfile} // Save changes to profile
+                            onClick={saveProfile}
                             sx={{
                                 mt: 2,
-                                borderColor: '#00c853',    // Green outline
-                                color: '#00c853',           // Green text
-                                backgroundColor: 'white',   // White background
-                                borderRadius: '20px',       // Rounded corners
+                                borderColor: '#00c853',    
+                                color: '#00c853',           
+                                backgroundColor: 'white',   
+                                borderRadius: '20px',       
                                 '&:hover': {
-                                    backgroundColor: '#e0f2f1', // Slightly darker white on hover
-                                    borderColor: '#00c853',     // Green border remains on hover
-                                    color: '#00c853'            // Green text remains on hover
+                                    backgroundColor: '#e0f2f1', 
+                                    borderColor: '#00c853',     
+                                    color: '#00c853'            
                                 }
                             }}
                         >
