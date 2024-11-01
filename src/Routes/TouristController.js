@@ -7,6 +7,8 @@ const MuseumModel = require('../Models/Museums.js');
 const HistoricalPlacesModel = require('../Models/HistoricalPlaces.js');
 const HistoricalTagsModel = require('../Models/HistoricalTags.js');
 const ComplaintsModel = require('../Models/Complaints.js');
+const TourGuideModel = require('../Models/TourGuide.js');
+
 
 
 const ItineraryModel = require('../Models/Itinerary.js');
@@ -34,7 +36,8 @@ const createTourist = async (req, res) => {
               Nationality,
               Occupation,
               Wallet: 0, // Initialize wallet to 0
-              purchasedProducts: [] // Initialize purchasedProducts as an empty array
+              purchasedProducts: [], // Initialize purchasedProducts as an empty array
+              completedItineraries: []
           });
 
           // Send the created user as a JSON response with a 201 Created status
@@ -1356,8 +1359,8 @@ const reviewPurchasedProduct = async (req, res) => {
   const { touristUsername, productName, review } = req.body;
 
   try {
-    // Check if the review is provided
-    if (!review || review.trim() === '') {
+    // Validate review
+    if (!review || review.trim().length === 0) {
       return res.status(400).json({ msg: 'Review cannot be empty' });
     }
 
@@ -1380,8 +1383,10 @@ const reviewPurchasedProduct = async (req, res) => {
     }
 
     // Add the review to the product's Reviews array
-    product.Reviews.push(review);
+    product.Reviews.push({ touristUsername: touristUsername, Review: review });
     await product.save();
+
+  
 
     res.status(200).json({ msg: 'Review added successfully!', productName, review });
   } catch (error) {
@@ -1395,7 +1400,163 @@ const reviewPurchasedProduct = async (req, res) => {
 
 
 
+const addCompletedItinerary = async (req, res) => {
+  const { touristUsername, itineraryName } = req.body;
+
+  try {
+    // Find the tourist by username
+    const tourist = await TouristModel.findOne({ Username: touristUsername });
+    if (!tourist) {
+      return res.status(404).json({ msg: 'Tourist not found' });
+    }
+
+    // Find the booked itinerary
+    const bookedItinerary = tourist.BookedItineraries.find(itinerary => itinerary.ItineraryName === itineraryName);
+    if (!bookedItinerary) {
+      return res.status(400).json({ msg: 'Itinerary not booked by the tourist' });
+    }
+
+    // Fetch the itinerary from the ItineraryModel to check the date
+    const itinerary = await ItineraryModel.findOne({ Title: itineraryName }); // Assuming `name` is the key for the itinerary
+    if (!itinerary) {
+      return res.status(404).json({ msg: 'Itinerary not found' });
+    }
+
+    // Check if the date has passed
+    const currentDate = new Date();
+    if (itinerary.Date > currentDate) { 
+      return res.status(400).json({ msg: 'The itinerary date has not passed yet' });
+    }
+
+    // Add the completed itinerary to the completedItineraries array
+    tourist.completedItineraries.push({
+      ItineraryName: itineraryName
+    });
+
+    // Save the updated tourist document
+    await tourist.save();
+
+    // Send a response with the updated tourist data
+    res.status(200).json({ msg: 'Itinerary marked as completed successfully!', completedItineraries: tourist.completedItineraries });
+  } catch (error) {
+    console.error('Error adding completed itinerary:', error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+const rateTourGuide = async (req, res) => {
+  const { touristUsername, itineraryName, rating } = req.body;
+
+  try {
+    // Validate rating
+    if (rating < 1 || rating > 5) {
+      return res.status(400).json({ msg: 'Rating must be between 1 and 5' });
+    }
+
+    // Find the tourist by username
+    const tourist = await TouristModel.findOne({ Username: touristUsername });
+    if (!tourist) {
+      return res.status(404).json({ msg: 'Tourist not found' });
+    }
+
+    // Find the completed itinerary
+    const completedItinerary = tourist.completedItineraries.find(it => it.ItineraryName === itineraryName);
+    if (!completedItinerary) {
+      return res.status(400).json({ msg: 'You must complete the itinerary before rating' });
+    }
+
+    // Get the itinerary and the AuthorUsername
+    const itinerary = await ItineraryModel.findOne({ Title: itineraryName });
+    if (!itinerary) {
+      return res.status(404).json({ msg: 'Itinerary not found' });
+    }
+    
+    const authorUsername = itinerary.AuthorUsername;
+
+    // Find the tour guide by username
+    const tourGuide = await TourGuideModel.findOne({ Username: authorUsername });
+    if (!tourGuide) {
+      return res.status(404).json({ msg: 'Tour guide not found' });
+    }
+
+    // Calculate new average rating
+    const previousRating = tourGuide.Rating || 0; 
+    const ratingCount = tourGuide.RatingCount + 1; // Increment rating count
+    const newAverageRating = ((previousRating * tourGuide.RatingCount) + rating) / ratingCount;
+
+    // Update tour guide's ratings
+    tourGuide.Rating = newAverageRating; // Update average rating
+    tourGuide.RatingCount = ratingCount; // Update rating count
+    await tourGuide.save();
+
+    res.status(200).json({ msg: 'Tour guide rated successfully!', newAverageRating });
+  } catch (error) {
+    console.error('Error rating tour guide:', error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+const commentOnTourGuide = async (req, res) => {
+  const { touristUsername, itineraryName, comment } = req.body;
+
+  try {
+    // Validate comment
+    if (!comment || comment.trim().length === 0) {
+      return res.status(400).json({ msg: 'Comment cannot be empty' });
+    }
+
+    // Find the tourist by username
+    const tourist = await TouristModel.findOne({ Username: touristUsername });
+    if (!tourist) {
+      return res.status(404).json({ msg: 'Tourist not found' });
+    }
+
+    // Find the completed itinerary
+    const completedItinerary = tourist.completedItineraries.find(it => it.ItineraryName === itineraryName);
+    if (!completedItinerary) {
+      return res.status(400).json({ msg: 'You must complete the itinerary before commenting' });
+    }
+
+    // Get the itinerary and the AuthorUsername
+    const itinerary = await ItineraryModel.findOne({ Title: itineraryName });
+    if (!itinerary) {
+      return res.status(404).json({ msg: 'Itinerary not found' });
+    }
+    
+    const authorUsername = itinerary.AuthorUsername;
+
+    // Find the tour guide by username
+    const tourGuide = await TourGuideModel.findOne({ Username: authorUsername });
+    if (!tourGuide) {
+      return res.status(404).json({ msg: 'Tour guide not found' });
+    }
+
+    // Add the comment to the tour guide's comments array
+    tourGuide.Comments.push({ TouristUsername: touristUsername, Comment: comment });
+    await tourGuide.save();
+
+    res.status(200).json({ msg: 'Comment added successfully!', comments: tourGuide.Comments });
+  } catch (error) {
+    console.error('Error commenting on tour guide:', error);
+    res.status(500).json({ error: error.message });
+  }
+};
 
 
 
-module.exports = {createTourist, getTourist, updateTourist, searchProductTourist, filterActivities, filterProductByPriceTourist, ActivityRating, sortProductsDescendingTourist, sortProductsAscendingTourist, ViewAllUpcomingActivities, ViewAllUpcomingMuseumEventsTourist, getMuseumsByTagTourist, getHistoricalPlacesByTagTourist, ViewAllUpcomingHistoricalPlacesEventsTourist,viewProductsTourist, sortActivitiesPriceAscendingTourist, sortActivitiesPriceDescendingTourist, sortActivitiesRatingAscendingTourist, sortActivitiesRatingDescendingTourist, loginTourist, ViewAllUpcomingItinerariesTourist, sortItinerariesPriceAscendingTourist, sortItinerariesPriceDescendingTourist, filterItinerariesTourist, ActivitiesSearchAll, ItinerarySearchAll, MuseumSearchAll, HistoricalPlacesSearchAll, ProductRating, createComplaint, getComplaintsByTouristUsername,ChooseActivitiesByCategoryTourist,bookActivity,bookItinerary,bookMuseum,bookHistoricalPlace, ratePurchasedProduct, addPurchasedProducts, reviewPurchasedProduct};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+module.exports = {createTourist, getTourist, updateTourist, searchProductTourist, filterActivities, filterProductByPriceTourist, ActivityRating, sortProductsDescendingTourist, sortProductsAscendingTourist, ViewAllUpcomingActivities, ViewAllUpcomingMuseumEventsTourist, getMuseumsByTagTourist, getHistoricalPlacesByTagTourist, ViewAllUpcomingHistoricalPlacesEventsTourist,viewProductsTourist, sortActivitiesPriceAscendingTourist, sortActivitiesPriceDescendingTourist, sortActivitiesRatingAscendingTourist, sortActivitiesRatingDescendingTourist, loginTourist, ViewAllUpcomingItinerariesTourist, sortItinerariesPriceAscendingTourist, sortItinerariesPriceDescendingTourist, filterItinerariesTourist, ActivitiesSearchAll, ItinerarySearchAll, MuseumSearchAll, HistoricalPlacesSearchAll, ProductRating, createComplaint, getComplaintsByTouristUsername,ChooseActivitiesByCategoryTourist,bookActivity,bookItinerary,bookMuseum,bookHistoricalPlace, ratePurchasedProduct, addPurchasedProducts, reviewPurchasedProduct, addCompletedItinerary, rateTourGuide, commentOnTourGuide};
