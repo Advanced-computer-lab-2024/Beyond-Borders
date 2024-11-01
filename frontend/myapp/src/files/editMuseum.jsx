@@ -48,7 +48,7 @@ const EditMuseum = () => {
     try {
       const response = await axios.post('/updateMuseumByName', updatedMuseum);
       alert(response.data.msg || "Museum updated successfully.");
-      window.location.href = "museumsTG.html"; // Redirect back to the museums management page
+      window.location.href = "/MuseumTG"; // Redirect back to the museums management page
     } catch (error) {
       console.error("Error updating museum:", error);
       alert(`An error occurred while updating the museum: ${error.response.data.error || "Unknown error"}`);
