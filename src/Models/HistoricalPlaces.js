@@ -15,7 +15,29 @@ const HistoricalPlaceSchema = new mongoose.Schema({
   ticketPrices: { type: ticketPriceSchema, required: true }  ,
   AuthorUsername :{type : String , required: true } , 
   Tags : [{type : String , required :true}],
-  dateOfEvent: { type: Date, required: false }
+  dateOfEvent: { type: Date, required: false },
+  Comments: [
+    {
+      touristUsername: {
+        type: String,
+        required: false 
+      },
+      Comment: {
+        type: String,  
+        required: false 
+      } 
+    }
+  ],
+  Ratings: {
+    type: Number,
+    default: 0,
+    required: false
+  },
+  RatingCount: {
+    type: Number,
+    default: 0,
+    required: false 
+  }
 }, { timestamps: true });
 
 const MuseumPlace = mongoose.model('Historical Place', HistoricalPlaceSchema);

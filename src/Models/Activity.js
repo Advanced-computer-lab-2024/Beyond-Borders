@@ -55,7 +55,24 @@ const ActivitySchema = new Schema({
   },
   Tags: [{
     type: String, // Store the names of the tags
-  }]
+  }],
+  Comments: [
+    {
+      touristUsername: {
+        type: String,
+        required: false 
+      },
+      Comment: {
+        type: String,  
+        required: false 
+      } 
+    }
+  ],
+  RatingCount: {
+    type: Number,
+    default: 0,
+    required: false 
+  }
 },
 { timestamps: true }); //adds 2 more field (Created At:) & (Updated At:)
 

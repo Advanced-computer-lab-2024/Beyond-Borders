@@ -43,7 +43,10 @@ const { default: mongoose } = require('mongoose');
         dropoffLocation,
         isBooked : false ,
         Tags,
-        AuthorUsername
+        AuthorUsername,
+        Comments:[],
+        Ratings,
+        RatingCount
       });
   
       res.status(200).json(itinerary);

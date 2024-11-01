@@ -34,7 +34,10 @@ const CreateHistoricalPlace = async (req, res) => {
           ticketPrices,
           AuthorUsername,
           Tags : HistoricalTags,//changed
-          dateOfEvent
+          dateOfEvent,
+          Ratings: 0,
+          RatingCount: 0,
+          Comments: []
       });
 
       // Respond with the created document and a 201 Created status
