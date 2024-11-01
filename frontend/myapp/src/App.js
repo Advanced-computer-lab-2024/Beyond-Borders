@@ -18,6 +18,7 @@ import TourismGovernorDashboard from './files/TourismGovernorDashboard ';
 import MuseumTG from './files/MuseumTG';
 import EditMuseum from './files/editMuseum';
 import CreateMuseum from './files/createMuseum';
+import CreateItinerary from './files/CreateItinerary';
 import HomePageTourGuide from './files/HomePageTourGuide';
 import TouristHomePage from './files/Tourist/TouristHomePage';
 import TouristProductModal from './files/Tourist/TouristProductModal';
@@ -25,6 +26,7 @@ import TouristActivitiesModal from './files/Tourist/TouristActivitiesModal';
 import TouristMuseumsModal from './files/Tourist/TouristMuseumsModal';
 import TouristItineraryModal from './files/Tourist/TouristItineraryModal';
 import TouristHistoricalPlacesModal from './files/Tourist/TouristHistoricalPlacesModal';
+
 
 function App() {
   return (
@@ -44,6 +46,7 @@ function App() {
           <Route path="/loginSeller" element={<LoginSeller/>}/>
           <Route path="/MuseumTG" element={<MuseumTG/>}/>
           <Route path="/createMuseum" element={<CreateMuseum/>}/>
+          <Route path="/CreateItinerary" element={<CreateItinerary/>}/>
           <Route path="/HomePageTourGuide" element={<HomePageTourGuide/>}/>
 
 
