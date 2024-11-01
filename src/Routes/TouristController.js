@@ -1398,8 +1398,6 @@ const reviewPurchasedProduct = async (req, res) => {
 
 
 
-
-
 const addCompletedItinerary = async (req, res) => {
   const { touristUsername, itineraryName } = req.body;
 
@@ -1542,6 +1540,91 @@ const commentOnTourGuide = async (req, res) => {
   }
 };
 
+const rateCompletedItinerary = async (req, res) => {
+  const { touristUsername, itineraryName, rating } = req.body;
+
+  try {
+    // Validate the rating
+    if (rating < 1 || rating > 5) {
+      return res.status(400).json({ msg: 'Rating must be between 1 and 5' });
+    }
+
+    // Find the tourist by username
+    const tourist = await TouristModel.findOne({ Username: touristUsername });
+    if (!tourist) {
+      return res.status(404).json({ msg: 'Tourist not found' });
+    }
+
+    // Find the completed itinerary
+    const completedItinerary = tourist.completedItineraries.find(it => it.ItineraryName === itineraryName);
+    if (!completedItinerary) {
+      return res.status(400).json({ msg: 'You must complete the itinerary before rating' });
+    }
+
+    
+    const itinerary = await ItineraryModel.findOne({ Title: itineraryName });
+    if (!itinerary) {
+      return res.status(404).json({ msg: 'Itinerary not found' });
+    }
+
+    // Update the rating in the completed itinerary
+    completedItinerary.rating = rating;
+
+    // Save the tourist model
+    await tourist.save();
+
+    // Update the itinerary's ratings
+    const previousRating = itinerary.Ratings || 0;
+    const ratingCount = (itinerary.RatingCount || 0) + 1;
+    const newAverageRating = ((previousRating * (ratingCount - 1)) + rating) / ratingCount;
+
+    itinerary.Ratings = newAverageRating;
+    itinerary.RatingCount = ratingCount;
+    await itinerary.save();
+
+    res.status(200).json({ msg: 'Itinerary rated successfully!', itineraryName, newAverageRating });
+  } catch (error) {
+    console.error('Error rating itinerary:', error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+const commentOnItinerary = async (req, res) => {
+  const { touristUsername, itineraryName, comment } = req.body;
+
+  try {
+    // Validate comment
+    if (!comment || comment.trim().length === 0) {
+      return res.status(400).json({ msg: 'Comment cannot be empty' });
+    }
+
+    // Find the tourist by username
+    const tourist = await TouristModel.findOne({ Username: touristUsername });
+    if (!tourist) {
+      return res.status(404).json({ msg: 'Tourist not found' });
+    }
+
+    const completedItinerary = tourist.completedItineraries.find(it => it.ItineraryName === itineraryName);
+    if (!completedItinerary) {
+      return res.status(400).json({ msg: 'You must complete the itinerary before rating' });
+    }
+
+    // Find the itinerary
+    const itinerary = await ItineraryModel.findOne({ Title: itineraryName });
+    if (!itinerary) {
+      return res.status(404).json({ msg: 'Itinerary not found' });
+    }
+
+    // Add the comment to the itinerary's Comments array
+    itinerary.Comments.push({ touristUsername, Comment: comment });
+    await itinerary.save();
+
+    res.status(200).json({ msg: 'Comment added successfully!', comments: itinerary.Comments });
+  } catch (error) {
+    console.error('Error commenting on itinerary:', error);
+    res.status(500).json({ error: error.message });
+  }
+};
 
 
 
@@ -1559,4 +1642,7 @@ const commentOnTourGuide = async (req, res) => {
 
 
 
-module.exports = {createTourist, getTourist, updateTourist, searchProductTourist, filterActivities, filterProductByPriceTourist, ActivityRating, sortProductsDescendingTourist, sortProductsAscendingTourist, ViewAllUpcomingActivities, ViewAllUpcomingMuseumEventsTourist, getMuseumsByTagTourist, getHistoricalPlacesByTagTourist, ViewAllUpcomingHistoricalPlacesEventsTourist,viewProductsTourist, sortActivitiesPriceAscendingTourist, sortActivitiesPriceDescendingTourist, sortActivitiesRatingAscendingTourist, sortActivitiesRatingDescendingTourist, loginTourist, ViewAllUpcomingItinerariesTourist, sortItinerariesPriceAscendingTourist, sortItinerariesPriceDescendingTourist, filterItinerariesTourist, ActivitiesSearchAll, ItinerarySearchAll, MuseumSearchAll, HistoricalPlacesSearchAll, ProductRating, createComplaint, getComplaintsByTouristUsername,ChooseActivitiesByCategoryTourist,bookActivity,bookItinerary,bookMuseum,bookHistoricalPlace, ratePurchasedProduct, addPurchasedProducts, reviewPurchasedProduct, addCompletedItinerary, rateTourGuide, commentOnTourGuide};
+
+
+
+module.exports = {createTourist, getTourist, updateTourist, searchProductTourist, filterActivities, filterProductByPriceTourist, ActivityRating, sortProductsDescendingTourist, sortProductsAscendingTourist, ViewAllUpcomingActivities, ViewAllUpcomingMuseumEventsTourist, getMuseumsByTagTourist, getHistoricalPlacesByTagTourist, ViewAllUpcomingHistoricalPlacesEventsTourist,viewProductsTourist, sortActivitiesPriceAscendingTourist, sortActivitiesPriceDescendingTourist, sortActivitiesRatingAscendingTourist, sortActivitiesRatingDescendingTourist, loginTourist, ViewAllUpcomingItinerariesTourist, sortItinerariesPriceAscendingTourist, sortItinerariesPriceDescendingTourist, filterItinerariesTourist, ActivitiesSearchAll, ItinerarySearchAll, MuseumSearchAll, HistoricalPlacesSearchAll, ProductRating, createComplaint, getComplaintsByTouristUsername,ChooseActivitiesByCategoryTourist,bookActivity,bookItinerary,bookMuseum,bookHistoricalPlace, ratePurchasedProduct, addPurchasedProducts, reviewPurchasedProduct, addCompletedItinerary, rateTourGuide, commentOnTourGuide, rateCompletedItinerary, commentOnItinerary};
