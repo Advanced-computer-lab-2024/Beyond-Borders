@@ -30,15 +30,11 @@ const HomePageTourGuide = () => {
         }
 
         try {
-            const response = await fetch(`/api/getallItinerarys?AuthorUsername=${encodeURIComponent(username)}`);
-            const activities = await response.json();
-
-            if (response.ok) {
-                setItineraries(activities); // Set the itineraries in state
-                setIsItinerariesModalOpen(true); // Open the itineraries modal
-            } else {
-                alert(activities.error);
-            }
+            const response = await axios.get(`/api/getallItinerarys`, {
+                params: { AuthorUsername: username }
+            });
+            setItineraries(response.data); // Set the itineraries in state
+            setIsItinerariesModalOpen(true); // Open the itineraries modal
         } catch (error) {
             console.error('Error fetching activities:', error);
             alert('An error occurred while loading itineraries');
@@ -63,23 +59,21 @@ const HomePageTourGuide = () => {
         }
 
         try {
-            const response = await axios.get(`/api/TourGuideProfile?username=${encodeURIComponent(username)}`);
-            if (response.status === 200) {
-                const data = response.data.TourGuide;
+            const response = await axios.get(`/api/TourGuideProfile`, {
+                params: { username }
+            });
+            const data = response.data.TourGuide;
 
-                setProfileData({
-                    username: data.Username || '',
-                    email: data.Email || '',
-                    password: '',
-                    mobileNum: data.MobileNum || '',
-                    yearsOfExperience: data.YearsOfExperience || '',
-                    previousWork: data.PreviousWork || ''
-                });
+            setProfileData({
+                username: data.Username || '',
+                email: data.Email || '',
+                password: data.Password ||'',
+                mobileNum: data.MobileNum || '',
+                yearsOfExperience: data.YearsOfExperience || '',
+                previousWork: data.PreviousWork || ''
+            });
 
-                setIsProfileModalOpen(true);
-            } else {
-                alert(response.data.error || 'Failed to fetch profile data.');
-            }
+            setIsProfileModalOpen(true);
         } catch (error) {
             console.error('Error fetching profile:', error);
             alert('An error occurred while loading the profile.');
@@ -100,16 +94,40 @@ const HomePageTourGuide = () => {
                 PreviousWork: previousWork
             });
 
-            if (response.status === 200) {
-                alert('Profile updated successfully!');
-                setIsProfileModalOpen(false);
-            } else {
-                const errorData = response.data;
-                throw new Error(errorData.error || 'Error updating tour guide information');
-            }
+            alert('Profile updated successfully!');
+            setIsProfileModalOpen(false);
         } catch (error) {
             console.error('Error:', error);
             alert('Failed to update profile: ' + error.message);
+        }
+    };
+
+    // Delete activity
+    const deleteActivity = async (activityName) => {
+        const tourguideName = localStorage.getItem('username');
+
+        if (!tourguideName) {
+            alert('Tour guide username not found. Please log in again.');
+            return;
+        }
+
+        if (window.confirm(`Are you sure you want to delete the activity "${activityName}"?`)) {
+            try {
+                const response = await axios.delete(`/api/deleteItinerary`, {
+                    data: { Title: activityName, AuthorUsername: tourguideName }
+                });
+
+                alert(response.data.message || 'Itinerary deleted successfully!');
+                loadMyActivities(); // Refresh the list of activities
+            } catch (error) {
+                console.error('Delete error:', error);
+
+                if (error.response?.data?.error === "Cannot delete a booked itinerary.") {
+                    alert('This itinerary is booked and cannot be deleted.');
+                } else {
+                    alert('An error occurred while deleting the itinerary. Please try again.');
+                }
+            }
         }
     };
 
@@ -217,7 +235,13 @@ const HomePageTourGuide = () => {
                                 }}
                             >
                                 <Typography variant="h6" sx={{ display: 'inline' }}>{activity.Title}</Typography>
-                                <Button onClick={() => console.log(`Delete ${activity.Title}`)} sx={{ ml: 1, color: '#00c853' }}>Delete</Button>
+                                <Button 
+                                    onClick={() => deleteActivity(activity.Title)} 
+                                    sx={{ ml: 1, color: '#00c853' }}
+                                >
+                                    Delete
+                                </Button>
+
                                 <Button 
                                     onClick={() => {
                                         const AuthorUsername = localStorage.getItem('username');
