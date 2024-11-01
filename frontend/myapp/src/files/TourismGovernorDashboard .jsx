@@ -59,7 +59,7 @@ const TourismGovernorDashboard = () => {
       </button>
       <button
         style={styles.button}
-        onClick={() => (window.location.href = 'historicalPlacesTG.html')}
+        onClick={() => (window.location.href = '/HistoricalPlaceTG')}
       >
         Historical Places
       </button>
