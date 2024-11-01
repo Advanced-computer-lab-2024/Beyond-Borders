@@ -38,7 +38,7 @@ const LoginTourist = () => {
 
         // Redirect after 2 seconds
         setTimeout(() => {
-          window.location.href = '/homePageTourist'; // Redirect to home page after login
+          window.location.href = '/touristHome'; // Redirect to home page after login
         }, 2000);
       } else {
         setResponseMessage(`Error: ${result.error || 'Failed to log in.'}`);
@@ -115,7 +115,7 @@ const LoginTourist = () => {
         </Typography>
       )}
     </Box>
-  );
+  );  
 };
 
 export default LoginTourist;

@@ -19,6 +19,12 @@ import MuseumTG from './files/MuseumTG';
 import EditMuseum from './files/editMuseum';
 import CreateMuseum from './files/createMuseum';
 import HomePageTourGuide from './files/HomePageTourGuide';
+import TouristHomePage from './files/Tourist/TouristHomePage';
+import TouristProductModal from './files/Tourist/TouristProductModal';
+import TouristActivitiesModal from './files/Tourist/TouristActivitiesModal';
+import TouristMuseumsModal from './files/Tourist/TouristMuseumsModal';
+import TouristItineraryModal from './files/Tourist/TouristItineraryModal';
+import TouristHistoricalPlacesModal from './files/Tourist/TouristHistoricalPlacesModal';
 
 function App() {
   return (
@@ -45,6 +51,12 @@ function App() {
           <Route path="/login" element={<Login/>}/>
           <Route path="/loginAdmin" element={<LoginAdmin/>}/>
           <Route path="/loginTourismGovernor" element={<LoginTourismGovernor/>}/>
+          <Route path="/touristHome" element={<TouristHomePage />} />
+          <Route path="/touristProducts" element={<TouristProductModal closeModal={() => {}} />} />
+          <Route path="/touristActivities" element={<TouristActivitiesModal closeModal={() => {}} />} />
+          <Route path="/touristMuseums" element={<TouristMuseumsModal closeModal={() => {}} />} />
+          <Route path="/touristItineraries" element={<TouristItineraryModal closeModal={() => {}} />} />
+          <Route path="/touristHistorical" element={<TouristHistoricalPlacesModal closeModal={() => {}} />} />
 
         </Routes>
       </BrowserRouter>
