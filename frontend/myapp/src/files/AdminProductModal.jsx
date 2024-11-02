@@ -1,4 +1,3 @@
-// src/files/Tourist/TouristProductModal.jsx
 import React, { useState, useEffect } from 'react';
 import { Box, Button, Typography, Modal } from '@mui/material';
 import axios from 'axios';

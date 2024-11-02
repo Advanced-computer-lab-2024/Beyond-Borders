@@ -1,5 +1,3 @@
-// src/files/Tourist/TouristHomePage.jsx
-// src/files/Tourist/TouristHomePage.jsx
 import React, { useState, useEffect } from 'react';
 import { Box, Button, Typography, Modal, TextField } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
@@ -14,6 +12,7 @@ function HomePageAdmin() {
   const [maxPrice, setMaxPrice] = useState('');
   const [filteredResults, setFilteredResults] = useState([]);
   const [tagName, setTagName] = useState(''); // New state for tag name
+  const [categoryName, setCategoryName] = useState('');
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -91,11 +90,17 @@ function HomePageAdmin() {
   };
 
   const saveNewTag = async () => {
+    if (!tagName.trim()) {
+      alert('Tag name cannot be empty.');
+      return;
+    }
+  
     try {
+      console.log("Tag name:", tagName); // Debugging line
       const response = await axios.post('/api/createNewTag', {
-        NameOfTags: tagName,
+        NameOfTags: tagName.trim(),
       });
-
+  
       if (response.status === 200) {
         alert('Tag created successfully!');
         setActiveModal(null);
@@ -103,11 +108,62 @@ function HomePageAdmin() {
         throw new Error('Error creating tag');
       }
     } catch (error) {
-      console.error('Error:', error);
-      alert('Failed to create tag: ' + error.message);
+      if (error.response) {
+        const serverMessage = error.response.data?.error; // Access the "error" field from backend response
+  
+        if (error.response.status === 400 && serverMessage === "Tag already exists!") {
+          alert(`Failed to create tag: ${serverMessage}`);
+        } else if (error.response.status === 400) {
+          alert(`Failed to create tag: ${serverMessage || 'Invalid input.'}`);
+        } else {
+          alert(`Failed to create tag: ${serverMessage || 'An unexpected error occurred.'}`);
+        }
+      } else {
+        console.error('Error:', error);
+        alert('Failed to create tag: ' + error.message);
+      }
     }
   };
+  
+  
 
+
+  const saveNewCategory = async () => {
+    if (!categoryName.trim()) {
+      alert('Category name cannot be empty.');
+      return;
+    }
+  
+    try {
+      console.log("Category name being sent:", categoryName); // Debugging line
+      const response = await axios.post('/api/createNewCategory', {
+        NameOfCategory: categoryName.trim(),
+      });
+  
+      if (response.status === 200) {
+        alert('Category created successfully!');
+        setActiveModal(null);
+      } else {
+        throw new Error('Error creating category');
+      }
+    } catch (error) {
+      if (error.response) {
+        const serverMessage = error.response.data?.error; // Access the "error" field from backend response
+  
+        if (error.response.status === 400 && serverMessage === "Category already exists!") {
+          alert(`Failed to create category: ${serverMessage}`);
+        } else if (error.response.status === 400) {
+          alert(`Failed to create category: ${serverMessage || 'Invalid input.'}`);
+        } else {
+          alert(`Failed to create category: ${serverMessage || 'An unexpected error occurred.'}`);
+        }
+      } else {
+        console.error('Error:', error);
+        alert('Failed to create category: ' + error.message);
+      }
+    }
+  };
+  
   return (
     <Box sx={styles.container}>
       <Typography variant="h5" component="h1" sx={styles.title}>
@@ -117,7 +173,7 @@ function HomePageAdmin() {
       <Box sx={styles.buttonContainer}>
         <Button sx={styles.button} onClick={() => navigate('/AdminProductModal')}>View All Products</Button>
         <Button sx={styles.button} onClick={() => setActiveModal('createTag')}>Add New Tag</Button>
-        <Button sx={styles.button} onClick={() => navigate('/touristMuseums')}>View All Museums</Button>
+        <Button sx={styles.button} onClick={() => setActiveModal('createCategory')}>Add New Category</Button>
         <Button sx={styles.button} onClick={() => navigate('/touristItineraries')}>View All Itineraries</Button>
         <Button sx={styles.button} onClick={() => navigate('/touristHistorical')}>View All Historical Places</Button>
         <Button sx={styles.profileButton} onClick={() => setActiveModal('profile')}>My Profile</Button>
@@ -170,6 +226,26 @@ function HomePageAdmin() {
           </Box>
         </Modal>
       )}
+      {/* Create Category Modal */}
+      {activeModal === 'createCategory' && (
+        <Modal open={true} onClose={() => setActiveModal(null)}>
+          <Box sx={styles.modalContent}>
+            <Typography variant="h6" component="h2">Create New Category</Typography>
+            <TextField
+              label="Name of Category"
+              variant="outlined"
+              fullWidth
+              value={categoryName}
+              onChange={(e) => setCategoryName(e.target.value)}
+              sx={{ mb: 2 }}
+            />
+            <Button variant="contained" onClick={saveNewCategory} sx={styles.doneButton}>Create Category</Button>
+          </Box>
+        </Modal>
+      )}
+
+
+
 
       {activeModal === 'profile' && (
         <Modal open={true} onClose={() => setActiveModal(null)}>
