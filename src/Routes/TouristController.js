@@ -37,7 +37,9 @@ const createTourist = async (req, res) => {
               Occupation,
               Wallet: 0, // Initialize wallet to 0
               purchasedProducts: [], // Initialize purchasedProducts as an empty array
-              completedItineraries: []
+              completedItineraries: [],
+              Points: 0,
+              BadgeLevelOfPoints: 1
           });
 
           // Send the created user as a JSON response with a 201 Created status
@@ -2226,6 +2228,179 @@ const deleteBookedHP= async (req, res) => {
 };
 
 
+const payActivity = async (req, res) => {
+  const { touristUsername, activityName } = req.body;
+
+  try {
+    // Find the activity by name
+    const activity = await ActivityModel.findOne({ Name: activityName });
+    if (!activity) {
+      return res.status(404).json({ msg: 'Activity not found' });
+    }
+     
+    
+    // Find the tourist by username
+    const tourist = await TouristModel.findOne({ Username: touristUsername });
+    if (!tourist) {
+      return res.status(404).json({ msg: 'Tourist not found' });
+    }
+    const bookedActivity = tourist.BookedActivities.find(
+      (activity) => activity.activityName === activityName
+    );
+
+    if (!bookedActivity) {
+      return res.status(400).json({ msg: 'Activity not found in booked activities. Please book the activity first.' });
+    }
+    // Calculate ticket price
+    const ticketPrice = activity.Price;
+
+    // Check if the tourist has enough funds in the wallet
+    if (tourist.Wallet < ticketPrice) {
+      return res.status(400).json({ msg: 'Insufficient funds in wallet.' });
+    }
+
+    // Deduct the ticket price from the tourist's wallet
+    tourist.Wallet -= ticketPrice;
+    if(tourist.BadgeLevelOfPoints ===1){
+      tourist.Points+= 0.5* ticketPrice;
+      if(tourist.Points>100000){
+        tourist.BadgeLevelOfPoints=2;}
+      else if(tourist.Points>500000){
+        tourist.BadgeLevelOfPoints=3;
+      }
+    }
+    else if(tourist.BadgeLevelOfPoints ===2){
+      tourist.Points+= ticketPrice;
+       if(tourist.Points>500000){
+        tourist.BadgeLevelOfPoints=3;
+      }
+
+    }
+    else if(tourist.BadgeLevelOfPoints ===3){
+      tourist.Points+= 1.5*ticketPrice;
+    }
+    
+    // Save the updated tourist information
+    await tourist.save();
+
+    // Respond with success and remaining wallet balance
+    res.status(200).json({ msg: 'Payment successful!', activityName: activity.Name, remainingWallet: tourist.Wallet ,BadgeLevelOfPoints: tourist.BadgeLevelOfPoints, Points:tourist.Points});
+  } catch (error) {
+    console.error('Error processing payment for activity:', error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+const updateWallet = async (req, res) => {
+  const { username, amount } = req.body;
+
+  try {
+    // Find the tourist by username
+    const tourist = await TouristModel.findOne({ Username: username });
+    if (!tourist) {
+      return res.status(404).json({ msg: 'Tourist not found' });
+    }
+
+    // Update the wallet balance
+    tourist.Wallet = (tourist.Wallet || 0) + amount;
+
+    // Save the updated tourist document
+    await tourist.save();
+
+    // Respond with success and updated wallet balance
+    res.status(200).json({ msg: 'Wallet updated successfully!', updatedWallet: tourist.Wallet});
+  } catch (error) {
+    console.error('Error updating wallet:', error);
+    res.status(500).json({ error: error.message });
+  }
+};
+const updatepoints = async (req, res) => {
+  const { username, points,level } = req.body;
+
+  try {
+    // Find the tourist by username
+    const tourist = await TouristModel.findOne({ Username: username });
+    if (!tourist) {
+      return res.status(404).json({ msg: 'Tourist not found' });
+    }
+
+    // Update the wallet balance
+    tourist.Points = points;
+    tourist.BadgeLevelOfPoints = level;
+
+    // Save the updated tourist document
+    await tourist.save();
+
+    // Respond with success and updated wallet balance
+    res.status(200).json({ msg: 'Wallet updated successfully!', updatedPoints: tourist.Points, updatedLevel:tourist.BadgeLevelOfPoints});
+  } catch (error) {
+    console.error('Error updating wallet:', error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+const payItinerary = async (req, res) => {
+  const { touristUsername, ItineraryName } = req.body;
+
+  try {
+    // Find the activity by name
+    const itinerary = await ItineraryModel.findOne({ Title: ItineraryName });
+    if (!itinerary) {
+      return res.status(404).json({ msg: 'itinerary not found' });
+    }
+     
+    
+    // Find the tourist by username
+    const tourist = await TouristModel.findOne({ Username: touristUsername });
+    if (!tourist) {
+      return res.status(404).json({ msg: 'Tourist not found' });
+    }
+    const BookedItinerary = tourist.BookedItineraries.find(
+      (itinerary) => itinerary.ItineraryName === ItineraryName
+    );
+
+    if (!BookedItinerary) {
+      return res.status(400).json({ msg: 'itinerary not found in booked activities. Please book the activity first.' });
+    }
+    // Calculate ticket price
+    const ticketPrice = itinerary.Price;
+
+    // Check if the tourist has enough funds in the wallet
+    if (tourist.Wallet < ticketPrice) {
+      return res.status(400).json({ msg: 'Insufficient funds in wallet.' });
+    }
+
+    // Deduct the ticket price from the tourist's wallet
+    tourist.Wallet -= ticketPrice;
+    if(tourist.BadgeLevelOfPoints ===1){
+      tourist.Points+= 0.5* ticketPrice;
+      if(tourist.Points>100000){
+        tourist.BadgeLevelOfPoints=2;}
+      else if(tourist.Points>500000){
+        tourist.BadgeLevelOfPoints=3;
+      }
+    }
+    else if(tourist.BadgeLevelOfPoints ===2){
+      tourist.Points+= ticketPrice;
+       if(tourist.Points>500000){
+        tourist.BadgeLevelOfPoints=3;
+      }
+
+    }
+    else if(tourist.BadgeLevelOfPoints ===3){
+      tourist.Points+= 1.5*ticketPrice;
+    }
+    
+    // Save the updated tourist information
+    await tourist.save();
+
+    // Respond with success and remaining wallet balance
+    res.status(200).json({ msg: 'Payment successful!', ItineraryName: itinerary.Title, remainingWallet: tourist.Wallet ,BadgeLevelOfPoints: tourist.BadgeLevelOfPoints, Points:tourist.Points});
+  } catch (error) {
+    console.error('Error processing payment for itinerary:', error);
+    res.status(500).json({ error: error.message });
+  }
+};
 
 
 
@@ -2234,6 +2409,4 @@ const deleteBookedHP= async (req, res) => {
 
 
 
-
-
-module.exports = {createTourist, getTourist, updateTourist, searchProductTourist, filterActivities, filterProductByPriceTourist, ActivityRating, sortProductsDescendingTourist, sortProductsAscendingTourist, ViewAllUpcomingActivities, ViewAllUpcomingMuseumEventsTourist, getMuseumsByTagTourist, getHistoricalPlacesByTagTourist, ViewAllUpcomingHistoricalPlacesEventsTourist,viewProductsTourist, sortActivitiesPriceAscendingTourist, sortActivitiesPriceDescendingTourist, sortActivitiesRatingAscendingTourist, sortActivitiesRatingDescendingTourist, loginTourist, ViewAllUpcomingItinerariesTourist, sortItinerariesPriceAscendingTourist, sortItinerariesPriceDescendingTourist, filterItinerariesTourist, ActivitiesSearchAll, ItinerarySearchAll, MuseumSearchAll, HistoricalPlacesSearchAll, ProductRating, createComplaint, getComplaintsByTouristUsername,ChooseActivitiesByCategoryTourist,bookActivity,bookItinerary,bookMuseum,bookHistoricalPlace, ratePurchasedProduct, addPurchasedProducts, reviewPurchasedProduct, addCompletedItinerary, rateTourGuide, commentOnTourGuide, rateCompletedItinerary, commentOnItinerary, addCompletedActivities, addCompletedMuseumEvents, addCompletedHPEvents, rateCompletedActivity, rateCompletedMuseum, rateCompletedHP, commentOnActivity, commentOnMuseum, commentOnHP,deleteBookedActivity,deleteBookedItinerary,deleteBookedMuseum,deleteBookedHP};
+module.exports = {createTourist, getTourist, updateTourist, searchProductTourist, filterActivities, filterProductByPriceTourist, ActivityRating, sortProductsDescendingTourist, sortProductsAscendingTourist, ViewAllUpcomingActivities, ViewAllUpcomingMuseumEventsTourist, getMuseumsByTagTourist, getHistoricalPlacesByTagTourist, ViewAllUpcomingHistoricalPlacesEventsTourist,viewProductsTourist, sortActivitiesPriceAscendingTourist, sortActivitiesPriceDescendingTourist, sortActivitiesRatingAscendingTourist, sortActivitiesRatingDescendingTourist, loginTourist, ViewAllUpcomingItinerariesTourist, sortItinerariesPriceAscendingTourist, sortItinerariesPriceDescendingTourist, filterItinerariesTourist, ActivitiesSearchAll, ItinerarySearchAll, MuseumSearchAll, HistoricalPlacesSearchAll, ProductRating, createComplaint, getComplaintsByTouristUsername,ChooseActivitiesByCategoryTourist,bookActivity,bookItinerary,bookMuseum,bookHistoricalPlace, ratePurchasedProduct, addPurchasedProducts, reviewPurchasedProduct, addCompletedItinerary, rateTourGuide, commentOnTourGuide, rateCompletedItinerary, commentOnItinerary, addCompletedActivities, addCompletedMuseumEvents, addCompletedHPEvents, rateCompletedActivity, rateCompletedMuseum, rateCompletedHP, commentOnActivity, commentOnMuseum, commentOnHP,deleteBookedActivity,deleteBookedItinerary,deleteBookedMuseum,deleteBookedHP,payActivity,updateWallet,updatepoints,payItinerary};
