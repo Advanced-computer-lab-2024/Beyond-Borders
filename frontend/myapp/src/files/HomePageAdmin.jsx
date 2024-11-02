@@ -171,10 +171,11 @@ function HomePageAdmin() {
       </Typography>
 
       <Box sx={styles.buttonContainer}>
-        <Button sx={styles.button} onClick={() => navigate('/AdminProductModal')}>View All Products</Button>
+        
         <Button sx={styles.button} onClick={() => setActiveModal('createTag')}>Add New Tag</Button>
         <Button sx={styles.button} onClick={() => setActiveModal('createCategory')}>Add New Category</Button>
-        <Button sx={styles.button} onClick={() => navigate('/touristItineraries')}>View All Itineraries</Button>
+        <Button sx={styles.button} onClick={() => navigate('/AdminProductModal')}>View All Products</Button>
+        <Button sx={styles.button} onClick={() => navigate('/AdminTagsModal')}>View All tags</Button>
         <Button sx={styles.button} onClick={() => navigate('/touristHistorical')}>View All Historical Places</Button>
         <Button sx={styles.profileButton} onClick={() => setActiveModal('profile')}>My Profile</Button>
       </Box>
