@@ -536,7 +536,7 @@ const createTourist = async (req, res) => {
         currentDate.setHours(0, 0, 0, 0); 
         const itineraries = await ItineraryModel.find(); 
         const upcomingItineraries = itineraries.filter(itineraries => {
-          return itineraries.Date >= currentDate; // Include only upcoming activities
+          return itineraries.Date >= currentDate && itineraries.flagged === false;
         });
     
         // Return the upcoming activities as a JSON response

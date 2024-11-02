@@ -895,7 +895,28 @@ const unarchiveProduct = async (req, res) => {
     }
 };
 
+const flagItinerary = async (req, res) => {
+    try {
+      const { title } = req.body;
+      const itinerary = await ItineraryrModel.findOneAndUpdate(
+        { Title: title },
+        { flagged: true },
+        { new: true }
+      );
+  
+      if (!itinerary) {
+        return res.status(404).json({ error: "Itinerary not found!" });
+      }
+  
+      res.status(200).json({ message: "Itinerary has been flagged successfully!", itinerary });
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  };
+  
+  
+
 
 module.exports = {createNewAdmin, createNewTourismGoverner, createNewProduct, editProduct, acceptSeller, rejectSeller, createNewCategory, readAllActivityCategories, updateCategory, deleteActivityCategory, deleteAccount, searchProductAdmin, createNewTag, readAllTags, updateTag, deleteTag, 
     acceptTourGuide, rejectTourGuide, acceptAdvertiser, rejectAdvertiser, filterProductByPriceAdmin, sortProductsDescendingAdmin, sortProductsAscendingAdmin,viewProducts, loginAdmin, viewAllProductsAdmin, updateAdminPassword, getAllComplaints, updateComplaintStatus, replyToComplaint, getComplaintDetails, 
-    filterComplaintsByStatus, sortComplaintsByRecent, sortComplaintsByOldest, archiveProduct, unarchiveProduct};
+    filterComplaintsByStatus, sortComplaintsByRecent, sortComplaintsByOldest, archiveProduct, unarchiveProduct, flagItinerary};

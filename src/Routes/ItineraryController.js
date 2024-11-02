@@ -4,7 +4,7 @@ const { default: mongoose } = require('mongoose');
 
 
 
-;
+
   const createItinerary = async(req, res) => {
     const {
       Title,
@@ -45,8 +45,9 @@ const { default: mongoose } = require('mongoose');
         Tags,
         AuthorUsername,
         Comments:[],
-        Ratings,
-        RatingCount
+        Ratings: 0,
+        RatingCount: 0,
+        flagged : false
       });
   
       res.status(200).json(itinerary);
