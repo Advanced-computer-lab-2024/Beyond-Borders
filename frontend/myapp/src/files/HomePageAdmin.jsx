@@ -174,6 +174,8 @@ function HomePageAdmin() {
         
         <Button sx={styles.button} onClick={() => setActiveModal('createTag')}>Add New Tag</Button>
         <Button sx={styles.button} onClick={() => setActiveModal('createCategory')}>Add New Category</Button>
+        <Button sx={styles.button} onClick={() => navigate('/AdminAddAdmin')}>Add admin</Button>
+        <Button sx={styles.button} onClick={() => navigate('/AdminAddGov')}>Add Tourism governor</Button>
         <Button sx={styles.button} onClick={() => navigate('/AdminProductModal')}>View All Products</Button>
         <Button sx={styles.button} onClick={() => navigate('/AdminTagsModal')}>View All tags</Button>
         <Button sx={styles.button} onClick={() => navigate('/touristHistorical')}>View All Historical Places</Button>
