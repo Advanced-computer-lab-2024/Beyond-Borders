@@ -1,5 +1,7 @@
 // #Task route solution
 const TourGuideModel = require('../Models/TourGuide.js');
+const Itinerary = require('../Models/Itinerary.js'); // Adjust the path as necessary
+const DeactivatedItinerary = require('../Models/DeactivatedItineraries.js'); // Adjust the path as necessary
 const { default: mongoose } = require('mongoose');
 
 // const createTourGuide = async(req,res) => {
@@ -291,7 +293,7 @@ const readItineraryAsTourGuide = async (req, res) => {
       // Increment LoginCount
       tourguide.LoginCount = tourguide.LoginCount + 1; // If LoginCount doesn't exist, set it to 0 and increment
       await tourguide.save();
-      
+
       // Successful authentication
       res.status(200).json({ message: "Login successful!", tourguide });
     } catch (error) {
@@ -306,10 +308,49 @@ const readItineraryAsTourGuide = async (req, res) => {
       res.status(400).json({ error: error.message });
     }
   };
-  
 
-  
-  
+  const deactivateItinerary = async (req, res) => {
+    try {
+        const { title } = req.body; // Get the title from the request body
 
+        // Find the itinerary by title
+        const itinerary = await Itinerary.findOne({ Title: title });
+        if (!itinerary) {
+            return res.status(404).json({ error: "Itinerary not found!" });
+        }
 
-module.exports = {ReadTourGuideProfile , UpdateTourGuideEmail , UpdateTourGuidePassword, UpdateTourGuideMobileNum , UpdateTourGuideYearsofExperience ,UpdateTourGuidePreviousWork ,createItineraryAsTourGuide,readItineraryAsTourGuide,updateItineraryAsTourGuide,deleteItineraryAsTourGuide, updateTourGuideProfile,loginTourGuide,getItenrarysByTourGuide};
+        // Create a new deactivated itinerary document from the found itinerary
+        const deactivatedItinerary = new DeactivatedItinerary({
+            Title: itinerary.Title,
+            Activities: itinerary.Activities,
+            Locations: itinerary.Locations,
+            Timeline: itinerary.Timeline,
+            Language: itinerary.Language,
+            Price: itinerary.Price,
+            Date: itinerary.Date,
+            accessibility: itinerary.accessibility,
+            pickupLocation: itinerary.pickupLocation,
+            dropoffLocation: itinerary.dropoffLocation,
+            isBooked: itinerary.isBooked,
+            Tags: itinerary.Tags,
+            AuthorUsername: itinerary.AuthorUsername,
+            Comments: itinerary.Comments,
+            Ratings: itinerary.Ratings,
+            RatingCount: itinerary.RatingCount
+        });
+
+        // Save the new deactivated itinerary
+        await deactivatedItinerary.save();
+
+        // Delete the original itinerary
+        await Itinerary.deleteOne({ Title: title });
+
+        // Respond with success message
+        res.status(200).json({ msg: "Itinerary has been deactivated!" });
+    } catch (error) {
+        // Handle any errors that occur during the process
+        res.status(500).json({ error: error.message });
+    }
+};
+  
+module.exports = {ReadTourGuideProfile , UpdateTourGuideEmail , UpdateTourGuidePassword, UpdateTourGuideMobileNum , UpdateTourGuideYearsofExperience ,UpdateTourGuidePreviousWork ,createItineraryAsTourGuide,readItineraryAsTourGuide,updateItineraryAsTourGuide,deleteItineraryAsTourGuide, updateTourGuideProfile,loginTourGuide,getItenrarysByTourGuide, deactivateItinerary};
