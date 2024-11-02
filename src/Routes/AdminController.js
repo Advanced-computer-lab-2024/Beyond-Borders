@@ -15,6 +15,7 @@ const NewUnregisteredAdvertiserModel = require('../Models/UnregisteredAdvertiser
 const NewAcceptedAdvertiserModel = require('../Models/Advertiser.js');
 const ItineraryrModel = require('../Models/Itinerary.js');
 const ComplaintsModel = require('../Models/Complaints.js');
+const ArchivedProductsModel = require('../Models/ArchivedProducts.js');
 
 
 
@@ -784,6 +785,117 @@ const sortComplaintsByOldest = async (req, res) => {
     }
 };
 
+// const archiveProduct = async (req, res) => {
+//     try {
+//         const { ProductID } = req.body;  
+//         const archivedProduct = await NewProduct.findById(ProductID);
+//         const{Name,Description,Price,Quantity, Seller,Picture, Reviews, Ratings,RatingCount} = archivedProduct; // Destructure the relevant fields
+//         const createArchivedProduct = await ArchivedProductsModel.create({Name: Name,Description:Description,Price:Price,Quantity:Quantity, Seller:Seller,Picture:Picture, Reviews:Reviews, Ratings:Ratings,RatingCount:RatingCount});
+//         await NewProduct.findByIdAndDelete(ProductID);
+//         res.status(200).json({ msg: "Product has been archived!" });
+//     } catch (error) {
+//         // Handle any errors that occur during the process
+//         res.status(500).json({ error: error.message });
+//     }
+// };
+
+const archiveProduct = async (req, res) => {
+    try {
+        const { ProductID } = req.body;  
+        // Find the product by ID
+        const archivedProduct = await NewProduct.findById(ProductID);
+        if (!archivedProduct) {
+            return res.status(404).json({ error: "Product not found!" });
+        }
+        // Destructure fields with default values for optional fields
+        const { Name, Description, Price, Quantity, Seller, Picture, Reviews = [],Ratings, RatingCount } = archivedProduct;
+
+        // Ensure Reviews has the correct structure
+        const validatedReviews = Array.isArray(Reviews)
+            ? Reviews.map(review => ({
+                touristUsername: review.touristUsername || "",
+                Review: review.Review || ""
+              }))
+            : []; // If not an array, default to empty array
+
+        // Create a new archived product entry
+        const createArchivedProduct = await ArchivedProductsModel.create({
+            Name,
+            Description,
+            Price,
+            Quantity,
+            Seller,
+            Picture,
+            Reviews: validatedReviews,
+            Ratings,
+            RatingCount
+        });
+
+        // Delete the product from NewProduct collection
+        await NewProduct.findByIdAndDelete(ProductID);
+
+        res.status(200).json({ msg: "Product has been archived!" });
+    } catch (error) {
+        // Handle any errors that occur during the process
+        res.status(500).json({ error: error.message });
+    }
+};
+
+const unarchiveProduct = async (req, res) => {
+    try {
+        const { ProductID } = req.body;  
+        
+        // Find the product by ID in the ArchivedProductsModel
+        const archivedProduct = await ArchivedProductsModel.findById(ProductID);
+        if (!archivedProduct) {
+            return res.status(404).json({ error: "Archived product not found!" });
+        }
+        
+        // Destructure fields with default values for optional fields
+        const { 
+            Name, 
+            Description, 
+            Price, 
+            Quantity, 
+            Seller, 
+            Picture, 
+            Reviews = [], 
+            Ratings, 
+            RatingCount 
+        } = archivedProduct;
+
+        // Ensure Reviews has the correct structure
+        const validatedReviews = Array.isArray(Reviews)
+            ? Reviews.map(review => ({
+                touristUsername: review.touristUsername || "",
+                Review: review.Review || ""
+              }))
+            : []; // If not an array, default to empty array
+
+        // Recreate the product in NewProduct collection
+        const recreateProduct = await NewProduct.create({
+            Name,
+            Description,
+            Price,
+            Quantity,
+            Seller,
+            Picture,
+            Reviews: validatedReviews,
+            Ratings,
+            RatingCount
+        });
+
+        // Delete the product from ArchivedProductsModel
+        await ArchivedProductsModel.findByIdAndDelete(ProductID);
+
+        res.status(200).json({ msg: "Product has been unarchived!" });
+    } catch (error) {
+        // Handle any errors that occur during the process
+        res.status(500).json({ error: error.message });
+    }
+};
+
+
 module.exports = {createNewAdmin, createNewTourismGoverner, createNewProduct, editProduct, acceptSeller, rejectSeller, createNewCategory, readAllActivityCategories, updateCategory, deleteActivityCategory, deleteAccount, searchProductAdmin, createNewTag, readAllTags, updateTag, deleteTag, 
     acceptTourGuide, rejectTourGuide, acceptAdvertiser, rejectAdvertiser, filterProductByPriceAdmin, sortProductsDescendingAdmin, sortProductsAscendingAdmin,viewProducts, loginAdmin, viewAllProductsAdmin, updateAdminPassword, getAllComplaints, updateComplaintStatus, replyToComplaint, getComplaintDetails, 
-    filterComplaintsByStatus, sortComplaintsByRecent, sortComplaintsByOldest};
+    filterComplaintsByStatus, sortComplaintsByRecent, sortComplaintsByOldest, archiveProduct, unarchiveProduct};
