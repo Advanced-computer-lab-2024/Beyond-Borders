@@ -20,7 +20,7 @@ const{ReadAdvertiserProfile , updateAdvertiser, createNewActivity, readActivity,
 const {filterActivitiesGuest, getMuseumsByTagGuest, ViewAllUpcomingActivitiesGuest, ViewAllUpcomingMuseumEventsGuest, getHistoricalPlacesByTagGuest, ViewAllUpcomingHistoricalPlacesEventsGuest, sortActivitiesPriceAscendingGuest, sortActivitiesPriceDescendingGuest, sortActivitiesRatingDescendingGuest, sortActivitiesRatingAscendingGuest, ViewAllUpcomingItinerariesGuest, sortItinerariesPriceDescendingGuest, sortItinerariesPriceAscendingGuest, filterItinerariesGuest,ChooseActivitiesByCategoryGuest} = require("./Routes/GuestController");
 
 //const {createNewTourismGoverner, createNewAdmin, createNewProduct, editProduct} = require("./Routes/AdminController");
-const{ReadTourGuideProfile , UpdateTourGuideEmail , UpdateTourGuidePassword, UpdateTourGuideMobileNum , UpdateTourGuideYearsofExperience ,UpdateTourGuidePreviousWork, createItineraryAsTourGuide, readItineraryAsTourGuide, updateItineraryAsTourGuide, deleteItineraryAsTourGuide, updateTourGuideProfile,loginTourGuide,getItenrarysByTourGuide} = require("./Routes/TourGuideController")
+const{ReadTourGuideProfile , UpdateTourGuideEmail , UpdateTourGuidePassword, UpdateTourGuideMobileNum , UpdateTourGuideYearsofExperience ,UpdateTourGuidePreviousWork, createItineraryAsTourGuide, readItineraryAsTourGuide, updateItineraryAsTourGuide, deleteItineraryAsTourGuide, updateTourGuideProfile,loginTourGuide,getItenrarysByTourGuide, deactivateItinerary} = require("./Routes/TourGuideController")
 //importing a set of functions
 const MongoURI = process.env.MONGO_URI ;
 
@@ -158,6 +158,7 @@ app.get("/sortComplaintsByOldest",sortComplaintsByOldest);
 app.get("/api/getComplaintsByTouristUsername" , getComplaintsByTouristUsername);
 app.post("/api/archiveProduct" , archiveProduct);
 app.post("/api/unarchiveProduct" , unarchiveProduct);
+app.post("/api/deactivateItinerary" , deactivateItinerary);
 
 //SPRINT 2 MALAK AND JANA
 app.get("/ChooseActivitiesByCategoryTourist",ChooseActivitiesByCategoryTourist);
