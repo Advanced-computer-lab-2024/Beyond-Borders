@@ -32,6 +32,9 @@ import CreateHistoricalPlace from './files/HistoricalPlace';
 import EditHistoricalPlace from './files/EditHistoricalPlace';
 
 
+import HomePageAdmin from './files/HomePageAdmin';
+
+
 
 
 
@@ -56,6 +59,11 @@ function App() {
           <Route path="/createMuseum" element={<CreateMuseum/>}/>
           <Route path="/CreateItinerary" element={<CreateItinerary/>}/>
           <Route path="/HomePageTourGuide" element={<HomePageTourGuide/>}/>
+
+
+
+
+          <Route path="/HomePageAdmin" element={<HomePageAdmin/>}/>
 
 
           <Route path="/EditMuseum" element={<EditMuseum/>}/>
