@@ -2027,6 +2027,203 @@ const commentOnHP = async (req, res) => {
 
 
 
+const deleteBookedActivity = async (req, res) => {
+  const { touristUsername, activityName } = req.body;
+
+  try {
+    // Find the activity by name
+    const activity = await ActivityModel.findOne({ Name: activityName });
+    if (!activity) {
+      return res.status(404).json({ msg: 'Activity not found' });
+    }
+
+    // Find the tourist by username
+    const tourist = await TouristModel.findOne({ Username: touristUsername });
+    if (!tourist) {
+      return res.status(404).json({ msg: 'Tourist not found' });
+    }
+
+    // Calculate the time difference
+    const today = new Date();
+    const eventDate = new Date(activity.Date);
+    const timeDifference = eventDate - today;
+    const daysBeforeEvent = timeDifference / (1000 * 60 * 60 * 24);
+
+    // Check if cancellation is allowed (more than 2 days before the event)
+    if (daysBeforeEvent < 2) {
+      return res.status(403).json({ msg: 'Cannot cancel activity less than 2 days before the event.' });
+    }
+
+    // Find the activity in the BookedActivities array and remove it
+    const index = tourist.BookedActivities.findIndex(
+      (activity) => activity.activityName === activityName
+    );
+    if (index === -1) {
+      return res.status(404).json({ msg: 'Activity not found in booked activities.' });
+    }
+
+    // Remove the activity from the array
+    tourist.BookedActivities.splice(index, 1);
+
+    // Save the updated tourist document
+    await tourist.save();
+
+    // Respond with success
+    res.status(200).json({ msg: 'Activity canceled successfully.' });
+  } catch (error) {
+    console.error('Error deleting activity:', error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+const deleteBookedItinerary = async (req, res) => {
+  const { touristUsername, itineraryName } = req.body;
+
+  try {
+    // Find the activity by name
+    const itinerary = await ItineraryModel.findOne({ Title: itineraryName });
+    if (!itinerary) {
+      return res.status(404).json({ msg: 'itinerary not found' });
+    }
+
+    // Find the tourist by username
+    const tourist = await TouristModel.findOne({ Username: touristUsername });
+    if (!tourist) {
+      return res.status(404).json({ msg: 'Tourist not found' });
+    }
+
+    // Calculate the time difference
+    const today = new Date();
+    const eventDate = new Date(itinerary.Date);
+    const timeDifference = eventDate - today;
+    const daysBeforeEvent = timeDifference / (1000 * 60 * 60 * 24);
+
+    // Check if cancellation is allowed (more than 2 days before the event)
+    if (daysBeforeEvent < 2) {
+      return res.status(403).json({ msg: 'Cannot cancel itinerary less than 2 days before the event.' });
+    }
+
+    // Find the activity in the BookedActivities array and remove it
+    const index = tourist.BookedItineraries.findIndex(
+      (itinerary) => itinerary.ItineraryName === itineraryName
+    );
+    if (index === -1) {
+      return res.status(404).json({ msg: 'Activity not found in booked activities.' });
+    }
+
+    // Remove the activity from the array
+    tourist.BookedItineraries.splice(index, 1);
+
+    // Save the updated tourist document
+    await tourist.save();
+
+    // Respond with success
+    res.status(200).json({ msg: 'itinerary canceled successfully.' });
+  } catch (error) {
+    console.error('Error itinerary activity:', error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+
+
+const deleteBookedMuseum= async (req, res) => {
+  const { touristUsername, museumName } = req.body;
+
+  try {
+    // Find the activity by name
+    const museum = await MuseumModel.findOne({ name: museumName });
+    if (!museum) {
+      return res.status(404).json({ msg: 'museum not found' });
+    }
+
+    // Find the tourist by username
+    const tourist = await TouristModel.findOne({ Username: touristUsername });
+    if (!tourist) {
+      return res.status(404).json({ msg: 'Tourist not found' });
+    }
+
+    // Calculate the time difference
+    const today = new Date();
+    const eventDate = new Date(museum.dateOfEvent);
+    const timeDifference = eventDate - today;
+    const daysBeforeEvent = timeDifference / (1000 * 60 * 60 * 24);
+
+    // Check if cancellation is allowed (more than 2 days before the event)
+    if (daysBeforeEvent < 2) {
+      return res.status(403).json({ msg: 'Cannot cancel museum event less than 2 days before the event.' });
+    }
+
+    // Find the activity in the BookedActivities array and remove it
+    const index = tourist.BookedMuseums.findIndex(
+      (museum) => museum.MuseumName === museumName
+    );
+    if (index === -1) {
+      return res.status(404).json({ msg: 'museum not found in booked museum events.' });
+    }
+
+    // Remove the activity from the array
+    tourist.BookedMuseums.splice(index, 1);
+
+    // Save the updated tourist document
+    await tourist.save();
+
+    // Respond with success
+    res.status(200).json({ msg: 'museum event canceled successfully.' });
+  } catch (error) {
+    console.error('Error museum activity:', error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+const deleteBookedHP= async (req, res) => {
+  const { touristUsername, HPName } = req.body;
+
+  try {
+    // Find the activity by name
+    const hp = await HistoricalPlacesModel.findOne({ name: HPName });
+    if (!hp) {
+      return res.status(404).json({ msg: 'hp not found' });
+    }
+
+    // Find the tourist by username
+    const tourist = await TouristModel.findOne({ Username: touristUsername });
+    if (!tourist) {
+      return res.status(404).json({ msg: 'Tourist not found' });
+    }
+
+    // Calculate the time difference
+    const today = new Date();
+    const eventDate = new Date(hp.dateOfEvent);
+    const timeDifference = eventDate - today;
+    const daysBeforeEvent = timeDifference / (1000 * 60 * 60 * 24);
+
+    // Check if cancellation is allowed (more than 2 days before the event)
+    if (daysBeforeEvent < 2) {
+      return res.status(403).json({ msg: 'Cannot cancel HP event less than 2 days before the event.' });
+    }
+
+    // Find the activity in the BookedActivities array and remove it
+    const index = tourist.BookedHistPlaces.findIndex(
+      (hp) => hp.HistPlaceName === HPName
+    );
+    if (index === -1) {
+      return res.status(404).json({ msg: 'hp not found in booked hp events.' });
+    }
+
+    // Remove the activity from the array
+    tourist.BookedHistPlaces.splice(index, 1);
+
+    // Save the updated tourist document
+    await tourist.save();
+
+    // Respond with success
+    res.status(200).json({ msg: 'hp event canceled successfully.' });
+  } catch (error) {
+    console.error('Error hp activity:', error);
+    res.status(500).json({ error: error.message });
+  }
+};
 
 
 
@@ -2039,9 +2236,4 @@ const commentOnHP = async (req, res) => {
 
 
 
-
-
-
-
-
-module.exports = {createTourist, getTourist, updateTourist, searchProductTourist, filterActivities, filterProductByPriceTourist, ActivityRating, sortProductsDescendingTourist, sortProductsAscendingTourist, ViewAllUpcomingActivities, ViewAllUpcomingMuseumEventsTourist, getMuseumsByTagTourist, getHistoricalPlacesByTagTourist, ViewAllUpcomingHistoricalPlacesEventsTourist,viewProductsTourist, sortActivitiesPriceAscendingTourist, sortActivitiesPriceDescendingTourist, sortActivitiesRatingAscendingTourist, sortActivitiesRatingDescendingTourist, loginTourist, ViewAllUpcomingItinerariesTourist, sortItinerariesPriceAscendingTourist, sortItinerariesPriceDescendingTourist, filterItinerariesTourist, ActivitiesSearchAll, ItinerarySearchAll, MuseumSearchAll, HistoricalPlacesSearchAll, ProductRating, createComplaint, getComplaintsByTouristUsername,ChooseActivitiesByCategoryTourist,bookActivity,bookItinerary,bookMuseum,bookHistoricalPlace, ratePurchasedProduct, addPurchasedProducts, reviewPurchasedProduct, addCompletedItinerary, rateTourGuide, commentOnTourGuide, rateCompletedItinerary, commentOnItinerary, addCompletedActivities, addCompletedMuseumEvents, addCompletedHPEvents, rateCompletedActivity, rateCompletedMuseum, rateCompletedHP, commentOnActivity, commentOnMuseum, commentOnHP};
+module.exports = {createTourist, getTourist, updateTourist, searchProductTourist, filterActivities, filterProductByPriceTourist, ActivityRating, sortProductsDescendingTourist, sortProductsAscendingTourist, ViewAllUpcomingActivities, ViewAllUpcomingMuseumEventsTourist, getMuseumsByTagTourist, getHistoricalPlacesByTagTourist, ViewAllUpcomingHistoricalPlacesEventsTourist,viewProductsTourist, sortActivitiesPriceAscendingTourist, sortActivitiesPriceDescendingTourist, sortActivitiesRatingAscendingTourist, sortActivitiesRatingDescendingTourist, loginTourist, ViewAllUpcomingItinerariesTourist, sortItinerariesPriceAscendingTourist, sortItinerariesPriceDescendingTourist, filterItinerariesTourist, ActivitiesSearchAll, ItinerarySearchAll, MuseumSearchAll, HistoricalPlacesSearchAll, ProductRating, createComplaint, getComplaintsByTouristUsername,ChooseActivitiesByCategoryTourist,bookActivity,bookItinerary,bookMuseum,bookHistoricalPlace, ratePurchasedProduct, addPurchasedProducts, reviewPurchasedProduct, addCompletedItinerary, rateTourGuide, commentOnTourGuide, rateCompletedItinerary, commentOnItinerary, addCompletedActivities, addCompletedMuseumEvents, addCompletedHPEvents, rateCompletedActivity, rateCompletedMuseum, rateCompletedHP, commentOnActivity, commentOnMuseum, commentOnHP,deleteBookedActivity,deleteBookedItinerary,deleteBookedMuseum,deleteBookedHP};
