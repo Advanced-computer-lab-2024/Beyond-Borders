@@ -288,7 +288,10 @@ const readItineraryAsTourGuide = async (req, res) => {
       if (tourguide.Password !== password) {
         return res.status(401).json({ error: "Invalid password." });
       }
-  
+      // Increment LoginCount
+      tourguide.LoginCount = tourguide.LoginCount + 1; // If LoginCount doesn't exist, set it to 0 and increment
+      await tourguide.save();
+      
       // Successful authentication
       res.status(200).json({ message: "Login successful!", tourguide });
     } catch (error) {
