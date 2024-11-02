@@ -177,6 +177,7 @@ function HomePageAdmin() {
         <Button sx={styles.button} onClick={() => navigate('/AdminProductModal')}>View All Products</Button>
         <Button sx={styles.button} onClick={() => navigate('/AdminTagsModal')}>View All tags</Button>
         <Button sx={styles.button} onClick={() => navigate('/touristHistorical')}>View All Historical Places</Button>
+        <Button sx={styles.button} onClick={() => navigate('/AdminDeleteAccount')}>Delete account</Button>
         <Button sx={styles.profileButton} onClick={() => setActiveModal('profile')}>My Profile</Button>
       </Box>
 

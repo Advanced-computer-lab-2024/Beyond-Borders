@@ -35,6 +35,7 @@ import EditHistoricalPlace from './files/EditHistoricalPlace';
 import HomePageAdmin from './files/HomePageAdmin';
 import AdminProductModal from './files/AdminProductModal';
 import AdminTagsModal from './files/AdminTagsModal';
+import AdminDeleteAccount from './files/AdminDeleteAccount';
 
 
 
@@ -68,6 +69,8 @@ function App() {
           <Route path="/HomePageAdmin" element={<HomePageAdmin/>}/>
           <Route path="/AdminProductModal" element={<AdminProductModal/>}/>
           <Route path="/AdminTagsModal" element={<AdminTagsModal/>}/>
+          <Route path="/AdminDeleteAccount" element={<AdminDeleteAccount/>}/>
+
 
 
           <Route path="/EditMuseum" element={<EditMuseum/>}/>
