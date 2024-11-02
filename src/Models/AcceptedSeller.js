@@ -21,6 +21,11 @@ const AcceptedSellerSchema = new Schema({
   Description: {
     type: String,
     required: false,
+  },
+  LoginCount: {
+    type: Number,
+    default: 0,
+    required: false 
   }
 }, { timestamps: true }); //adds 2 more field (Created At:) & (Updated At:)
 

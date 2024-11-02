@@ -298,7 +298,11 @@ const getProductsBySeller = async (req, res) => {
       if (seller.Password !== password) {
         return res.status(401).json({ error: "Invalid password." });
       }
-  
+
+      // Increment LoginCount
+      seller.LoginCount = seller.LoginCount + 1; // If LoginCount doesn't exist, set it to 0 and increment
+      await seller.save();
+      
       // Successful authentication
       res.status(200).json({ message: "Login successful!", seller });
     } catch (error) {

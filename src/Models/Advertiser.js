@@ -25,6 +25,11 @@ const AdvertiserSchema = new Schema({
   CompanyProfile : {
   type : String ,
   required : true,
+  },
+  LoginCount: {
+    type: Number,
+    default: 0,
+    required: false 
   }
 }, { timestamps: true }); //adds 2 more field (Created At:) & (Updated At:)
 

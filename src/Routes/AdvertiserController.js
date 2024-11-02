@@ -272,7 +272,11 @@ const { default: mongoose } = require('mongoose');
       if (advertiser.Password !== password) {
         return res.status(401).json({ error: "Invalid password." });
       }
-  
+
+      // Increment LoginCount
+      advertiser.LoginCount = advertiser.LoginCount + 1; // If LoginCount doesn't exist, set it to 0 and increment
+      await advertiser.save();
+      
       // Successful authentication
       res.status(200).json({ message: "Login successful!", advertiser });
     } catch (error) {
