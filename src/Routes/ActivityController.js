@@ -2,7 +2,7 @@ const ActivityModel = require('../Models/Activity.js');
 const { default: mongoose } = require('mongoose');
 const createNewActivity = async (req, res) => {
     // Destructure fields from the request body
-    const { AdvertiserName, Name, Date, Time, SpecialDiscount, BookingOpen, Price, Rating, Location, Category, Tags } = req.body;
+    const { AdvertiserName, Name, Date, Time, SpecialDiscount, BookingOpen, Price, Location, Category, Tags } = req.body;
   
     try {
       // Check if the category exists
@@ -19,7 +19,7 @@ const createNewActivity = async (req, res) => {
   
       // Create the new activity
       const newActivity = await ActivityModel.create({AdvertiserName,Name,Date,Time,SpecialDiscount,BookingOpen,
-        Price, Rating, Location,Category,Tags});
+        Price, Rating: 0, Location, Category,Tags, Comments:[], RatingCount: 0});
   
       // Send the created activity as a JSON response with a 200 OK status
       res.status(200).json({ msg: "New activity is created!", activity: newActivity });
