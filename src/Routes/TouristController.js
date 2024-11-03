@@ -37,6 +37,13 @@ const createTourist = async (req, res) => {
               Occupation,
               Wallet: 0, // Initialize wallet to 0
               purchasedProducts: [], // Initialize purchasedProducts as an empty array
+              BookedActivities:[],
+              BookedItineraries:[],
+              BookedMuseums:[],
+              BookedHistPlaces:[],
+              completedActivities:[],
+              completedMuseumEvents:[],
+              completedHistoricalPlaceEvent:[],
               completedItineraries: [],
               Points: 0,
               BadgeLevelOfPoints: 1
