@@ -1,19 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import { Box, Button, Typography, Modal, TextField } from '@mui/material';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
+
 
 function AdminProductModal({ filteredProducts, onClose }) {
   const [products, setProducts] = useState([]);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [activeModal, setActiveModal] = useState('products');
-  const navigate = useNavigate();
+
 
   useEffect(() => {
     if (filteredProducts) {
-      setProducts(filteredProducts); // Set products to filtered results
+      // Use filtered products if provided
+      setProducts(filteredProducts);
     } else {
-      fetchProducts(); // Otherwise, fetch all products
+      // Otherwise, fetch all products
+      fetchProducts();
     }
   }, [filteredProducts]);
 
@@ -52,7 +54,7 @@ function AdminProductModal({ filteredProducts, onClose }) {
       {activeModal === 'products' && (
         <Modal open={true} onClose={onClose}>
           <Box sx={styles.modalContent}>
-            <Typography variant="h6" component="h2">Filtered Products</Typography>
+            <Typography variant="h6" component="h2">Products</Typography>
             <Box sx={styles.listContainer}>
               {products.length > 0 ? (
                 products.map((product) => (

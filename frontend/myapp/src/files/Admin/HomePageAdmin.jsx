@@ -43,28 +43,22 @@ function HomePageAdmin() {
     }
   }, [activeModal]);
 
+ 
   const handleSearch = async () => {
     try {
       const response = await axios.get('/api/viewProductsSeller', { params: { Name: searchKeyword } });
       if (response.data && response.data.length > 0) {
         setFilteredResults(response.data);
-        setActiveModal('searchResults');
-        setErrorMessage(''); // Clear any previous error messages
+        setActiveModal('filteredProducts'); // Set to 'searchResults' to show only search results in the modal
       } else {
         setErrorMessage('No products found matching the search criteria.');
-        setActiveModal('error'); // Show error message in modal or UI
+        setActiveModal('error');
       }
     } catch (error) {
-      if (error.response && error.response.status === 404) {
-        setErrorMessage('No products found matching the search criteria.');
-      } else {
-        // Handle other errors (e.g., network issues, server errors)
-        setErrorMessage('An error occurred while searching for products.');
-      }  
-      setActiveModal('error'); // Show error message in modal or UI
+      setErrorMessage('An error occurred while searching for products.');
+      setActiveModal('error');
     }
   };
-
   const handleFilter = async () => {
     try {
       const response = await axios.post('/api/filterProductByPriceSeller', {
@@ -252,9 +246,9 @@ function HomePageAdmin() {
 
  {/* Admin Product Modal */}
 {/* Admin Product Modal */}
-{activeModal === 'viewAllProducts' || activeModal === 'filteredProducts' ? (
+{activeModal === 'viewAllProducts' || activeModal === 'filteredProducts' || activeModal === 'searchResults' ? (
         <AdminProductModal
-          filteredProducts={activeModal === 'filteredProducts' ? filteredResults : null}
+          filteredProducts={activeModal === 'filteredProducts' || activeModal === 'searchResults' ? filteredResults : null}
           onClose={() => setActiveModal(null)}
         />
       ) : null}
