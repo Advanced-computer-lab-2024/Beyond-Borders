@@ -41,6 +41,9 @@ import AdminAddGov from './files/Admin/AdminAddGov';
 import AdminAddProduct from './files/Admin/AdminAddProduct';
 import AdminActivityModal from './files/Admin/AdminActivityModal';
 
+import HomePageGuest from './files/HomePageGuest';
+
+
 
 
 
@@ -103,6 +106,8 @@ function App() {
           <Route path="/EditHistoricalPlace" element={<EditHistoricalPlace/>} />
           <Route path="/HomePageSeller" element={<SellerHomePage/>} />
           
+
+          <Route path="/homeGuest" element={<HomePageGuest />} />
 
 
           
