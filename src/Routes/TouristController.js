@@ -1119,11 +1119,12 @@ const bookActivity = async (req, res) => {
       confirmed: true 
     });
 
-    
+    activity.isBooked = true;
+    await activity.save(); 
     await tourist.save();
 
     
-    res.status(201).json({ msg: 'Activity booked successfully!', activityName: activity.Name, totalCost: activity.Price });
+    res.status(201).json({ msg: 'Activity booked successfully!', activityName: activity.Name, totalCost: activity.Price});
   } catch (error) {
     console.error('Error booking activity:', error);
     res.status(500).json({ error: error.message });
