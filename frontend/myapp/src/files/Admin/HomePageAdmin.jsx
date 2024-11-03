@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Box, Button, Typography, Modal, TextField } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import AdminProductModal from './AdminProductModal';
 
 function HomePageAdmin() {
   const [activeModal, setActiveModal] = useState(null);
@@ -66,27 +67,21 @@ function HomePageAdmin() {
 
   const handleFilter = async () => {
     try {
-      const response = await axios.post('/api/filterProductByPriceTourist', {
+      const response = await axios.post('/api/filterProductByPriceSeller', {
         MinimumPrice: minPrice ? parseFloat(minPrice) : undefined,
         MaximumPrice: maxPrice ? parseFloat(maxPrice) : undefined,
       });
       if (response.data && response.data.length > 0) {
-        setFilteredResults(response.data);
-        setActiveModal('searchResults');
-        setErrorMessage(''); // Clear any previous error messages
+        setFilteredResults(response.data); // Set filtered results
+        setActiveModal('filteredProducts'); // Open the products modal to display filtered results
       } else {
         setErrorMessage('No products found in the specified price range.');
-        setActiveModal('error'); // Show error message in modal or UI
+        setActiveModal('error');
       }
     } catch (error) {
-      if (error.response && error.response.status === 404) {
-        setErrorMessage('No products found in the specified price range.');
-      } else {
-        // Handle other errors (e.g., network issues, server errors)
-        setErrorMessage('An error occurred while filtering products.');
-      }
-      setActiveModal('error'); // Show error message in modal or UI
-  }
+      setErrorMessage('An error occurred while filtering products.');
+      setActiveModal('error');
+    }
   };
 
   const saveNewTag = async () => {
@@ -163,6 +158,10 @@ function HomePageAdmin() {
       }
     }
   };
+
+
+
+  
   
   return (
     <Box sx={styles.container}>
@@ -251,6 +250,14 @@ function HomePageAdmin() {
 
 
 
+ {/* Admin Product Modal */}
+{/* Admin Product Modal */}
+{activeModal === 'viewAllProducts' || activeModal === 'filteredProducts' ? (
+        <AdminProductModal
+          filteredProducts={activeModal === 'filteredProducts' ? filteredResults : null}
+          onClose={() => setActiveModal(null)}
+        />
+      ) : null}
 
       {activeModal === 'profile' && (
         <Modal open={true} onClose={() => setActiveModal(null)}>

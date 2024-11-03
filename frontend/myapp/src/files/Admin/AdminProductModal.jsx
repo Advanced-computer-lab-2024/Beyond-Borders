@@ -3,11 +3,19 @@ import { Box, Button, Typography, Modal, TextField } from '@mui/material';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
-function AdminProductModal() {
+function AdminProductModal({ filteredProducts, onClose }) {
   const [products, setProducts] = useState([]);
   const [selectedProduct, setSelectedProduct] = useState(null);
-  const [activeModal, setActiveModal] = useState('products'); // 'products' or 'editProduct'
+  const [activeModal, setActiveModal] = useState('products');
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (filteredProducts) {
+      setProducts(filteredProducts); // Set products to filtered results
+    } else {
+      fetchProducts(); // Otherwise, fetch all products
+    }
+  }, [filteredProducts]);
 
   const fetchProducts = async () => {
     try {
@@ -18,16 +26,11 @@ function AdminProductModal() {
     }
   };
 
-  useEffect(() => {
-    fetchProducts();
-  }, []);
-
   const editProduct = async () => {
     if (!selectedProduct || !selectedProduct.Name || !selectedProduct.Seller) {
       alert('Product name and seller are required for editing.');
       return;
     }
-
     try {
       const response = await axios.put('/api/editProductSeller', selectedProduct);
       if (response.status === 200) {
@@ -35,7 +38,7 @@ function AdminProductModal() {
         fetchProducts(); // Refresh product list after editing
         setActiveModal('products'); // Close edit modal
       } else {
-        alert('Failed to update product: Unexpected server response.');
+        alert('Failed to update product.');
       }
     } catch (error) {
       console.error('Error updating product:', error);
@@ -47,36 +50,40 @@ function AdminProductModal() {
     <Box>
       {/* Products Modal */}
       {activeModal === 'products' && (
-        <Modal open={true} onClose={() => navigate('/HomePageAdmin')}>
+        <Modal open={true} onClose={onClose}>
           <Box sx={styles.modalContent}>
-            <Typography variant="h6" component="h2">All Products</Typography>
+            <Typography variant="h6" component="h2">Filtered Products</Typography>
             <Box sx={styles.listContainer}>
-              {products.map((product) => (
-                <Box key={product._id} sx={styles.item}>
-                  {product.Picture && (
-                    <img src={product.Picture} alt={product.Name} style={styles.productImage} />
-                  )}
-                  <Typography variant="body1"><strong>Name:</strong> {product.Name}</Typography>
-                  <Typography variant="body2"><strong>Price:</strong> ${product.Price}</Typography>
-                  <Typography variant="body2"><strong>Description:</strong> {product.Description}</Typography>
-                  <Typography variant="body2"><strong>Quantity:</strong> {product.Quantity}</Typography>
-                  <Typography variant="body2"><strong>Seller:</strong> {product.Seller}</Typography>
-                  <Typography variant="body2"><strong>Rating:</strong> {JSON.stringify(product.Ratings)}</Typography>
-                  <Typography variant="body2"><strong>Reviews:</strong> {JSON.stringify(product.Reviews)}</Typography>
-                  <Button
-                    variant="contained"
-                    onClick={() => {
-                      setSelectedProduct(product); // Set selected product
-                      setActiveModal('editProduct'); // Open edit modal
-                    }}
-                    sx={styles.editButton}
-                  >
-                    Edit
-                  </Button>
-                </Box>
-              ))}
+              {products.length > 0 ? (
+                products.map((product) => (
+                  <Box key={product._id} sx={styles.item}>
+                    {product.Picture && (
+                      <img src={product.Picture} alt={product.Name} style={styles.productImage} />
+                    )}
+                    <Typography variant="body1"><strong>Name:</strong> {product.Name}</Typography>
+                    <Typography variant="body2"><strong>Price:</strong> ${product.Price}</Typography>
+                    <Typography variant="body2"><strong>Description:</strong> {product.Description}</Typography>
+                    <Typography variant="body2"><strong>Quantity:</strong> {product.Quantity}</Typography>
+                    <Typography variant="body2"><strong>Seller:</strong> {product.Seller}</Typography>
+                    <Typography variant="body2"><strong>Rating:</strong> {JSON.stringify(product.Ratings)}</Typography>
+                    <Typography variant="body2"><strong>Reviews:</strong> {JSON.stringify(product.Reviews)}</Typography>
+                    <Button
+                      variant="contained"
+                      onClick={() => {
+                        setSelectedProduct(product); // Set selected product
+                        setActiveModal('editProduct'); // Open edit modal
+                      }}
+                      sx={styles.editButton}
+                    >
+                      Edit
+                    </Button>
+                  </Box>
+                ))
+              ) : (
+                <Typography>No products found.</Typography>
+              )}
             </Box>
-            <Button variant="contained" sx={styles.doneButton} onClick={() => navigate('/HomePageAdmin')}>
+            <Button variant="contained" sx={styles.doneButton} onClick={onClose}>
               Done
             </Button>
           </Box>
