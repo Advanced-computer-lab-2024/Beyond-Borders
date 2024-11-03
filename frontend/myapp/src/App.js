@@ -39,6 +39,7 @@ import AdminDeleteAccount from './files/Admin/AdminDeleteAccount';
 import AdminAddAdmin from './files/Admin/AdminAddAdmin';
 import AdminAddGov from './files/Admin/AdminAddGov';
 import AdminAddProduct from './files/Admin/AdminAddProduct';
+import AdminActivityModal from './files/Admin/AdminActivityModal';
 
 
 
@@ -74,10 +75,13 @@ function App() {
           <Route path="/HomePageAdmin" element={<HomePageAdmin/>}/>
           <Route path="/AdminProductModal" element={<AdminProductModal/>}/>
           <Route path="/AdminTagsModal" element={<AdminTagsModal/>}/>
+          <Route path="/AdminActivityModal" element={<AdminActivityModal/>}/>
           <Route path="/AdminDeleteAccount" element={<AdminDeleteAccount/>}/>
           <Route path="/AdminAddAdmin" element={<AdminAddAdmin/>}/>
           <Route path="/AdminAddGov" element={<AdminAddGov/>}/>
           <Route path="/AdminAddProduct" element={<AdminAddProduct/>}/>
+         
+
 
 
 
