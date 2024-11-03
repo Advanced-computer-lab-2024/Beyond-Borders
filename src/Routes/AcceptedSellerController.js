@@ -1,6 +1,8 @@
 // #Task route solution
 const AcceptedSellerModel = require('../Models/AcceptedSeller.js');
 const NewProduct = require('../Models/Product.js');
+const ArchivedProductsModel = require('../Models/ArchivedProducts.js');
+
 const { default: mongoose } = require('mongoose');
 
 
@@ -133,7 +135,6 @@ const updateSeller = async (req, res) => {
     }
 };
 
-//didnt put in apps
 const getProductsBySeller = async (req, res) => {
   try {
     // Assuming you get the author's username from query parameters
@@ -310,9 +311,26 @@ const getProductsBySeller = async (req, res) => {
     }
   };
 
-  
+const viewMyArchivedProductsSeller = async (req, res) => {
+  try {
+    // Assuming you get the author's username from query parameters
+    const { Seller } = req.query; 
+    
+    // Validate that AuthorUsername is provided
+    if (!Seller) {
+      return res.status(400).json({ error: "Seller username is required." });
+    }
 
+    const products = await ArchivedProductsModel.find({ Seller: Seller });
 
-  
+    if (!products.length) {
+      return res.status(404).json({ error: "You have not created any products." });
+    }
 
-module.exports = {readSellerProfile, updateSeller, editProductSeller, createNewProductSeller, searchProductSeller, filterProductByPriceSeller, sortProductsAscendingSeller, sortProductsDescendingSeller,viewProductsSeller,viewAllProductsSeller,loginSeller,getProductsBySeller};
+    res.status(200).json(products);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+module.exports = {readSellerProfile, updateSeller, editProductSeller, createNewProductSeller, searchProductSeller, filterProductByPriceSeller, sortProductsAscendingSeller, sortProductsDescendingSeller,viewProductsSeller,viewAllProductsSeller,loginSeller,getProductsBySeller, viewMyArchivedProductsSeller};
