@@ -2662,6 +2662,44 @@ const fetchFlights = async (req, res) => {
   }
 };
 
+const viewBookedItineraries = async (req, res) => {
+  const { touristUsername } = req.query; // Get the tourist's username from the query parameters
+
+  try {
+      // Find the tourist by their username
+      const tourist = await TouristModel.findOne({ Username: touristUsername });
+      
+      if (!tourist) {
+          return res.status(404).json({ msg: 'Tourist not found' });
+      }
+
+      // Check if the tourist has any booked itineraries
+      if (!tourist.BookedItineraries || tourist.BookedItineraries.length === 0) {
+          return res.status(200).json({ msg: 'No itineraries booked yet.' });
+      }
+
+      // Extract the itinerary names from the tourist's booked itineraries
+      const bookedItineraryNames = tourist.BookedItineraries.map(itinerary => itinerary.ItineraryName);
+
+      // Find the itineraries in the Itinerary model
+      const activeItineraries = await ItineraryModel.find({ Title: { $in: bookedItineraryNames } });
+
+      // Find the itineraries in the DeactivatedItinerariesModel
+      const deactivatedItineraries = await DeactivatedItinerariesModel.find({ Title: { $in: bookedItineraryNames } });
+
+      // Combine both active and deactivated itineraries
+      const allBookedItineraries = [...activeItineraries, ...deactivatedItineraries];
+
+      // Respond with the detailed list of all booked itineraries
+      res.status(200).json({
+          msg: 'Booked itineraries retrieved successfully',
+          bookedItineraries: allBookedItineraries
+      });
+  } catch (error) {
+      console.error('Error retrieving booked itineraries:', error);
+      res.status(500).json({ error: error.message });
+  }
+};
 
 
 
@@ -2671,5 +2709,4 @@ const fetchFlights = async (req, res) => {
 
 
 
-
-module.exports = {createTourist, getTourist, updateTourist, searchProductTourist, filterActivities, filterProductByPriceTourist, ActivityRating, sortProductsDescendingTourist, sortProductsAscendingTourist, ViewAllUpcomingActivities, ViewAllUpcomingMuseumEventsTourist, getMuseumsByTagTourist, getHistoricalPlacesByTagTourist, ViewAllUpcomingHistoricalPlacesEventsTourist,viewProductsTourist, sortActivitiesPriceAscendingTourist, sortActivitiesPriceDescendingTourist, sortActivitiesRatingAscendingTourist, sortActivitiesRatingDescendingTourist, loginTourist, ViewAllUpcomingItinerariesTourist, sortItinerariesPriceAscendingTourist, sortItinerariesPriceDescendingTourist, filterItinerariesTourist, ActivitiesSearchAll, ItinerarySearchAll, MuseumSearchAll, HistoricalPlacesSearchAll, ProductRating, createComplaint, getComplaintsByTouristUsername,ChooseActivitiesByCategoryTourist,bookActivity,bookItinerary,bookMuseum,bookHistoricalPlace, ratePurchasedProduct, addPurchasedProducts, reviewPurchasedProduct, addCompletedItinerary, rateTourGuide, commentOnTourGuide, rateCompletedItinerary, commentOnItinerary, addCompletedActivities, addCompletedMuseumEvents, addCompletedHPEvents, rateCompletedActivity, rateCompletedMuseum, rateCompletedHP, commentOnActivity, commentOnMuseum, commentOnHP,deleteBookedActivity,deleteBookedItinerary,deleteBookedMuseum,deleteBookedHP,payActivity,updateWallet,updatepoints,payItinerary,payMuseum,payHP,redeemPoints, convertEgp, fetchFlights};
+module.exports = {createTourist, getTourist, updateTourist, searchProductTourist, filterActivities, filterProductByPriceTourist, ActivityRating, sortProductsDescendingTourist, sortProductsAscendingTourist, ViewAllUpcomingActivities, ViewAllUpcomingMuseumEventsTourist, getMuseumsByTagTourist, getHistoricalPlacesByTagTourist, ViewAllUpcomingHistoricalPlacesEventsTourist,viewProductsTourist, sortActivitiesPriceAscendingTourist, sortActivitiesPriceDescendingTourist, sortActivitiesRatingAscendingTourist, sortActivitiesRatingDescendingTourist, loginTourist, ViewAllUpcomingItinerariesTourist, sortItinerariesPriceAscendingTourist, sortItinerariesPriceDescendingTourist, filterItinerariesTourist, ActivitiesSearchAll, ItinerarySearchAll, MuseumSearchAll, HistoricalPlacesSearchAll, ProductRating, createComplaint, getComplaintsByTouristUsername,ChooseActivitiesByCategoryTourist,bookActivity,bookItinerary,bookMuseum,bookHistoricalPlace, ratePurchasedProduct, addPurchasedProducts, reviewPurchasedProduct, addCompletedItinerary, rateTourGuide, commentOnTourGuide, rateCompletedItinerary, commentOnItinerary, addCompletedActivities, addCompletedMuseumEvents, addCompletedHPEvents, rateCompletedActivity, rateCompletedMuseum, rateCompletedHP, commentOnActivity, commentOnMuseum, commentOnHP,deleteBookedActivity,deleteBookedItinerary,deleteBookedMuseum,deleteBookedHP,payActivity,updateWallet,updatepoints,payItinerary,payMuseum,payHP,redeemPoints, convertEgp, fetchFlights,viewBookedItineraries};
