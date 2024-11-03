@@ -30,7 +30,7 @@ import TouristHistoricalPlacesModal from './files/Tourist/TouristHistoricalPlace
 import HistoricalPlaceTG from './files/HistoricalPlaceTG';
 import CreateHistoricalPlace from './files/HistoricalPlace';
 import EditHistoricalPlace from './files/EditHistoricalPlace';
-
+import SellerHomePage from './files/Seller/SellerHomePage';
 
 import HomePageAdmin from './files/HomePageAdmin';
 import AdminProductModal from './files/AdminProductModal';
@@ -95,6 +95,9 @@ function App() {
           <Route path="/HistoricalPlace" element={<CreateHistoricalPlace />} />
 
           <Route path="/EditHistoricalPlace" element={<EditHistoricalPlace/>} />
+          <Route path="/HomePageSeller" element={<SellerHomePage/>} />
+          
+
 
           
           
