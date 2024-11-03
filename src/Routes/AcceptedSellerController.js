@@ -333,4 +333,14 @@ const viewMyArchivedProductsSeller = async (req, res) => {
   }
 };
 
-module.exports = {readSellerProfile, updateSeller, editProductSeller, createNewProductSeller, searchProductSeller, filterProductByPriceSeller, sortProductsAscendingSeller, sortProductsDescendingSeller,viewProductsSeller,viewAllProductsSeller,loginSeller,getProductsBySeller, viewMyArchivedProductsSeller};
+const requestDeleteAccountSeller = async (req, res) => {
+  try {
+      const { Username } = req.body;  
+      await DeleteRequestsModel.create({Username : Username,Type: "Seller"});
+      res.status(200).json({ msg: "You have reqeuested to delete your account, an admin will view your request!" });
+  } catch (error) {
+      res.status(500).json({ error: error.message });
+  }
+};
+
+module.exports = {readSellerProfile, updateSeller, editProductSeller, createNewProductSeller, searchProductSeller, filterProductByPriceSeller, sortProductsAscendingSeller, sortProductsDescendingSeller,viewProductsSeller,viewAllProductsSeller,loginSeller,getProductsBySeller, viewMyArchivedProductsSeller, requestDeleteAccountSeller};
