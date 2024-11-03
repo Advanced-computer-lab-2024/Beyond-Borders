@@ -10,7 +10,7 @@ const ComplaintsModel = require('../Models/Complaints.js');
 const TourGuideModel = require('../Models/TourGuide.js');
 const axios = require('axios');
 
-
+const DeactivatedItinerariesModel = require('../Models/DeactivatedItineraries.js');
 
 const ItineraryModel = require('../Models/Itinerary.js');
 const { default: mongoose } = require('mongoose');
@@ -1290,8 +1290,43 @@ const bookHistoricalPlace = async (req, res) => {
   }
 };
 
+// const addPurchasedProducts = async (req, res) => {
+//   const { touristUsername, productNames } = req.body; // Expecting an array of product names
+
+//   try {
+//     // Find the tourist by username
+//     const tourist = await TouristModel.findOne({ Username: touristUsername });
+//     if (!tourist) {
+//       return res.status(404).json({ msg: 'Tourist not found' });
+//     }
+
+//     // Check if productNames is an array
+//     if (!Array.isArray(productNames)) {
+//       return res.status(400).json({ msg: 'Product names must be provided as an array' });
+//     }
+
+//     // Loop through the product names and add them to purchasedProducts
+//     productNames.forEach(productName => {
+//       // Check if the product is already in the purchasedProducts
+//       const existingProduct = tourist.purchasedProducts.find(p => p.Name === productName);
+//       if (!existingProduct) {
+//         tourist.purchasedProducts.push({ productName }); // Add product name without rating
+//       }
+//     });
+
+//     // Save the updated tourist document
+//     await tourist.save();
+
+//     // Send a response with the updated tourist data
+//     res.status(200).json({ msg: 'Purchased products added successfully!', purchasedProducts: tourist.purchasedProducts });
+//   } catch (error) {
+//     console.error('Error adding purchased products:', error);
+//     res.status(500).json({ error: error.message });
+//   }
+// };
+
 const addPurchasedProducts = async (req, res) => {
-  const { touristUsername, productNames } = req.body; // Expecting an array of product names
+  const { touristUsername, products } = req.body; // Expecting an array of products with names and quantities
 
   try {
     // Find the tourist by username
@@ -1300,19 +1335,46 @@ const addPurchasedProducts = async (req, res) => {
       return res.status(404).json({ msg: 'Tourist not found' });
     }
 
-    // Check if productNames is an array
-    if (!Array.isArray(productNames)) {
-      return res.status(400).json({ msg: 'Product names must be provided as an array' });
+    // Check if products is an array
+    if (!Array.isArray(products)) {
+      return res.status(400).json({ msg: 'Products must be provided as an array' });
     }
 
-    // Loop through the product names and add them to purchasedProducts
-    productNames.forEach(productName => {
-      // Check if the product is already in the purchasedProducts
-      const existingProduct = tourist.purchasedProducts.find(p => p.Name === productName);
-      if (!existingProduct) {
-        tourist.purchasedProducts.push({ productName }); // Add product name without rating
+    // Loop through the products and process each purchase
+    for (const { productName, quantity } of products) {
+      // Find the product by name
+      const product = await ProductModel.findOne({ Name: productName });
+      if (!product) {
+        return res.status(404).json({ msg: `Product not found: ${productName}` });
       }
-    });
+
+      // Check if there's sufficient quantity
+      if (product.Quantity < quantity) {
+        return res.status(400).json({ msg: `Insufficient quantity for product: ${productName}` });
+      }
+
+      // Calculate total price for the purchased quantity
+      const totalPriceOfSales = product.Price * quantity;
+
+      // Update TotalPriceOfSales by adding to the existing total
+      product.TotalPriceOfSales += totalPriceOfSales;
+
+      // Decrease quantity and increase sales
+      product.Quantity -= quantity;  // Decrease quantity by the specified amount
+      product.Sales += quantity;     // Increase sales by the specified amount
+      await product.save();          // Save the product changes
+
+      // Check if the product is already in the purchasedProducts
+      const existingProduct = tourist.purchasedProducts.find(p => p.productName === productName);
+      if (existingProduct) {
+        // If it exists, update the quantity and total price
+        existingProduct.quantity += quantity;
+        existingProduct.TotalPriceOfSales += totalPriceOfSales; // Update total price
+      } else {
+        // If it does not exist, push the product with its quantity and total price
+        tourist.purchasedProducts.push({ productName, quantity, TotalPriceOfSales: totalPriceOfSales });
+      }
+    }
 
     // Save the updated tourist document
     await tourist.save();
@@ -1324,6 +1386,9 @@ const addPurchasedProducts = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
+
+
 
 
 const ratePurchasedProduct = async (req, res) => {

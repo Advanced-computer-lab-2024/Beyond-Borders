@@ -76,7 +76,7 @@ const createNewTourismGoverner = async(req,res) => {
       const existingSeller = await NewAcceptedSellerModel.findOne({ Username: Seller });
        if (existingSeller) {
          //add a new user to the database with Name, Email and Age
-         const user = await NewProduct.create({Name,Description,Price,Quantity, Seller,Picture, Reviews: "",Ratings: 0});
+         const user = await NewProduct.create({Name,Description,Price,Quantity, Seller,Picture, Reviews: "",Ratings: 0,Sales: 0,TotalPriceOfSales: 0});
          //Send the created use as a JSON response with a 200 OK status 
          res.status(200).json({msg:"New Product is created!"});
          //res.status(200).json(user);
@@ -817,7 +817,7 @@ const archiveProduct = async (req, res) => {
             return res.status(404).json({ error: "Product not found!" });
         }
         // Destructure fields with default values for optional fields
-        const { Name, Description, Price, Quantity, Seller, Picture, Reviews = [],Ratings, RatingCount } = archivedProduct;
+        const { Name, Description, Price, Quantity, Seller, Picture, Reviews = [],Ratings, RatingCount, Sales,TotalPriceOfSales } = archivedProduct;
 
         // Ensure Reviews has the correct structure
         const validatedReviews = Array.isArray(Reviews)
@@ -837,7 +837,9 @@ const archiveProduct = async (req, res) => {
             Picture,
             Reviews: validatedReviews,
             Ratings,
-            RatingCount
+            RatingCount,
+            Sales,
+            TotalPriceOfSales
         });
 
         // Delete the product from NewProduct collection
@@ -870,7 +872,9 @@ const unarchiveProduct = async (req, res) => {
             Picture, 
             Reviews = [], 
             Ratings, 
-            RatingCount 
+            RatingCount,
+            Sales,
+            TotalPriceOfSales 
         } = archivedProduct;
 
         // Ensure Reviews has the correct structure
@@ -891,7 +895,9 @@ const unarchiveProduct = async (req, res) => {
             Picture,
             Reviews: validatedReviews,
             Ratings,
-            RatingCount
+            RatingCount,
+            Sales,
+            TotalPriceOfSales
         });
 
         // Delete the product from ArchivedProductsModel

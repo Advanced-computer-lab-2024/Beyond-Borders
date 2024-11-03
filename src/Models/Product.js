@@ -47,6 +47,17 @@ const ProductSchema = new Schema({
     type: Number,
     default: 0,
     required: false 
+  },
+  Sales: {
+    type: Number,
+    default: 0,
+    required: true,
+  }
+  ,
+  TotalPriceOfSales: {
+    type: Number,
+    default: 0,
+    required: true,
   }
 }, { timestamps: true }); //adds 2 more field (Created At:) & (Updated At:)
 
