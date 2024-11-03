@@ -133,7 +133,41 @@ const TouristSchema = new Schema({
   BadgeLevelOfPoints: {
     type: Number,
     required: false
-  }
+  },
+  BookedFlights: [
+    {
+      flightID: {
+        type: Number,
+        required: false
+      }
+    },
+    {
+      origin: {
+        type: String,
+        required: false
+      }
+    },
+    {
+      destination: {
+        type: String,
+        required: false
+      }
+    },
+    {
+      departureDate: {
+        type: Date,
+        required: false
+      }
+    },
+    {
+      ArrivalDate: {
+        type: Date,
+        required: false
+      }
+
+    }
+  ]
+
 }, { timestamps: true }); // adds Created At & Updated At fields
 
 const Tourist = mongoose.model('Tourist', TouristSchema);

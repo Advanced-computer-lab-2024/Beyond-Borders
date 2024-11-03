@@ -8,6 +8,7 @@ const HistoricalPlacesModel = require('../Models/HistoricalPlaces.js');
 const HistoricalTagsModel = require('../Models/HistoricalTags.js');
 const ComplaintsModel = require('../Models/Complaints.js');
 const TourGuideModel = require('../Models/TourGuide.js');
+const axios = require('axios');
 
 
 
@@ -46,7 +47,8 @@ const createTourist = async (req, res) => {
               completedHistoricalPlaceEvent:[],
               completedItineraries: [],
               Points: 0,
-              BadgeLevelOfPoints: 1
+              BadgeLevelOfPoints: 1,
+              BookedFlights:[]
           });
 
           // Send the created user as a JSON response with a 201 Created status
@@ -2604,7 +2606,70 @@ function convertEgp(priceEgp, currency) {
 
 
 
+const fetchFlights = async (req, res) => {
+  const { origin, destination, departureDate, arrivalDate } = req.body;
+
+  // Validate input
+  if (!origin || !destination || !departureDate || !arrivalDate) {
+      return res.status(400).json({ msg: "Origin, destination, departure date, and arrival date are required." });
+  }
+
+  try {
+      const apiKey = 'R7I0zjR1VKm8bGjuDyptuKbOobYnqoKu'; 
+      const apiSecret = 'unDRSQSWZtYDRwS8'; // Your actual API secret
+      const tokenUrl = 'https://test.api.amadeus.com/v1/security/oauth2/token';
+      const apiUrl = 'https://test.api.amadeus.com/v2/shopping/flight-offers';
+
+      // Get access token
+      const tokenResponse = await axios.post(tokenUrl, new URLSearchParams({
+          grant_type: 'client_credentials',
+          client_id: apiKey,
+          client_secret: apiSecret,
+      }), {
+          headers: {
+              'Content-Type': 'application/x-www-form-urlencoded',
+          },
+      });
+
+      const accessToken = tokenResponse.data.access_token;
+
+      // Fetch flight offers
+      const flightResponse = await axios.get(apiUrl, {
+          headers: {
+              Authorization: `Bearer ${accessToken}`,
+          },
+          params: {
+              originLocationCode: origin,
+              destinationLocationCode: destination,
+              departureDate: departureDate,
+              returnDate: arrivalDate, // Include the arrival date as return date
+              adults: 1, // Adjust as needed
+          },
+      });
+
+      const flights = flightResponse.data.data;
+
+      // Check if flights are found
+      if (!flights || flights.length === 0) {
+          return res.status(404).json({ msg: "No flights found for the given criteria." });
+      }
+
+      // Return the flights in the response
+      res.status(200).json(flights);
+  } catch (error) {
+      console.error('Error fetching flights:', error);
+      res.status(500).json({ msg: "An error occurred while fetching flights.", error: error.message });
+  }
+};
 
 
 
-module.exports = {createTourist, getTourist, updateTourist, searchProductTourist, filterActivities, filterProductByPriceTourist, ActivityRating, sortProductsDescendingTourist, sortProductsAscendingTourist, ViewAllUpcomingActivities, ViewAllUpcomingMuseumEventsTourist, getMuseumsByTagTourist, getHistoricalPlacesByTagTourist, ViewAllUpcomingHistoricalPlacesEventsTourist,viewProductsTourist, sortActivitiesPriceAscendingTourist, sortActivitiesPriceDescendingTourist, sortActivitiesRatingAscendingTourist, sortActivitiesRatingDescendingTourist, loginTourist, ViewAllUpcomingItinerariesTourist, sortItinerariesPriceAscendingTourist, sortItinerariesPriceDescendingTourist, filterItinerariesTourist, ActivitiesSearchAll, ItinerarySearchAll, MuseumSearchAll, HistoricalPlacesSearchAll, ProductRating, createComplaint, getComplaintsByTouristUsername,ChooseActivitiesByCategoryTourist,bookActivity,bookItinerary,bookMuseum,bookHistoricalPlace, ratePurchasedProduct, addPurchasedProducts, reviewPurchasedProduct, addCompletedItinerary, rateTourGuide, commentOnTourGuide, rateCompletedItinerary, commentOnItinerary, addCompletedActivities, addCompletedMuseumEvents, addCompletedHPEvents, rateCompletedActivity, rateCompletedMuseum, rateCompletedHP, commentOnActivity, commentOnMuseum, commentOnHP,deleteBookedActivity,deleteBookedItinerary,deleteBookedMuseum,deleteBookedHP,payActivity,updateWallet,updatepoints,payItinerary,payMuseum,payHP,redeemPoints, convertEgp};
+
+
+
+
+
+
+
+
+module.exports = {createTourist, getTourist, updateTourist, searchProductTourist, filterActivities, filterProductByPriceTourist, ActivityRating, sortProductsDescendingTourist, sortProductsAscendingTourist, ViewAllUpcomingActivities, ViewAllUpcomingMuseumEventsTourist, getMuseumsByTagTourist, getHistoricalPlacesByTagTourist, ViewAllUpcomingHistoricalPlacesEventsTourist,viewProductsTourist, sortActivitiesPriceAscendingTourist, sortActivitiesPriceDescendingTourist, sortActivitiesRatingAscendingTourist, sortActivitiesRatingDescendingTourist, loginTourist, ViewAllUpcomingItinerariesTourist, sortItinerariesPriceAscendingTourist, sortItinerariesPriceDescendingTourist, filterItinerariesTourist, ActivitiesSearchAll, ItinerarySearchAll, MuseumSearchAll, HistoricalPlacesSearchAll, ProductRating, createComplaint, getComplaintsByTouristUsername,ChooseActivitiesByCategoryTourist,bookActivity,bookItinerary,bookMuseum,bookHistoricalPlace, ratePurchasedProduct, addPurchasedProducts, reviewPurchasedProduct, addCompletedItinerary, rateTourGuide, commentOnTourGuide, rateCompletedItinerary, commentOnItinerary, addCompletedActivities, addCompletedMuseumEvents, addCompletedHPEvents, rateCompletedActivity, rateCompletedMuseum, rateCompletedHP, commentOnActivity, commentOnMuseum, commentOnHP,deleteBookedActivity,deleteBookedItinerary,deleteBookedMuseum,deleteBookedHP,payActivity,updateWallet,updatepoints,payItinerary,payMuseum,payHP,redeemPoints, convertEgp, fetchFlights};
