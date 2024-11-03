@@ -126,7 +126,7 @@ const ViewAllUpcomingActivitiesGuest = async (req, res) => {
   
       // Filter activities where the Date is greater than or equal to the current date
       const upcomingActivities = activities.filter(activity => {
-        return activity.Date >= currentDate; // Include only upcoming activities
+        return activity.Date >= currentDate  && activities.flagged === false; 
       });
   
       // Return the upcoming activities as a JSON response

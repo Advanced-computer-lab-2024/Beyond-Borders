@@ -72,7 +72,8 @@ const ActivitySchema = new Schema({
     type: Number,
     default: 0,
     required: false 
-  }
+  },
+  flagged: { type: Boolean}
 },
 { timestamps: true }); //adds 2 more field (Created At:) & (Updated At:)
 

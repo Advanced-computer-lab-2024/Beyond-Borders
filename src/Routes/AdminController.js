@@ -929,9 +929,28 @@ const flagItinerary = async (req, res) => {
     }
   };
   
+
+  const flagActivity = async (req, res) => {
+    try {
+      const { title } = req.body;
+      const activity = await ActivityModel.findOneAndUpdate(
+        { Name: title },
+        { flagged: true },
+        { new: true }
+      );
+  
+      if (!activity) {
+        return res.status(404).json({ error: "Activity not found!" });
+      }
+  
+      res.status(200).json({ message: "Activity has been flagged successfully!", activity });
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  };
   
 
 
 module.exports = {createNewAdmin, createNewTourismGoverner, createNewProduct, editProduct, acceptSeller, rejectSeller, createNewCategory, readAllActivityCategories, updateCategory, deleteActivityCategory, deleteAccount, searchProductAdmin, createNewTag, readAllTags, updateTag, deleteTag, 
     acceptTourGuide, rejectTourGuide, acceptAdvertiser, rejectAdvertiser, filterProductByPriceAdmin, sortProductsDescendingAdmin, sortProductsAscendingAdmin,viewProducts, loginAdmin, viewAllProductsAdmin, updateAdminPassword, getAllComplaints, updateComplaintStatus, replyToComplaint, getComplaintDetails, 
-    filterComplaintsByStatus, sortComplaintsByRecent, sortComplaintsByOldest, archiveProduct, unarchiveProduct, flagItinerary, viewArchivedProductsAdmin};
+    filterComplaintsByStatus, sortComplaintsByRecent, sortComplaintsByOldest, archiveProduct, unarchiveProduct, flagItinerary, flagActivity, viewArchivedProductsAdmin};
