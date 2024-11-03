@@ -99,8 +99,13 @@ function SellerHomePage() {
         setActiveModal('error');
       }
     } catch (error) {
-      setErrorMessage('An error occurred while searching for products.');
-      setActiveModal('error');
+        if (error.response && error.response.status === 404) {
+            setErrorMessage('No products found matching the search criteria.');
+          } else {
+            // Handle other errors (e.g., network issues, server errors)
+            setErrorMessage('An error occurred while searching for products.');
+          }  
+          setActiveModal('error'); // Show error message in modal or UI
     }
   };
 
@@ -122,8 +127,13 @@ function SellerHomePage() {
         setActiveModal('error');
       }
     } catch (error) {
-      setErrorMessage('An error occurred while filtering products.');
-      setActiveModal('error');
+        if (error.response && error.response.status === 404) {
+            setErrorMessage('No products found in the specified price range.');
+          } else {
+            // Handle other errors (e.g., network issues, server errors)
+            setErrorMessage('An error occurred while filtering products.');
+          }
+          setActiveModal('error'); // Show error message in modal or UI
     }
   };
 
@@ -217,7 +227,19 @@ function SellerHomePage() {
         <Button sx={styles.button} onClick={sortProductsAscending}>Sort by Rating Ascending</Button>
         <Button sx={styles.button} onClick={() => setActiveModal('addProduct')}>Add New Product</Button>
         <Button sx={styles.profileButton} onClick={() => setActiveModal('profile')}>My Profile</Button>
-        <Button sx={styles.button} onClick={() => setActiveModal('editProfile')}>Edit Profile</Button> 
+        <Button
+  sx={styles.button}
+  onClick={() => {
+    if (!profile) {
+      // Fetch profile data if it's not already loaded
+      fetchProfile().then(() => setActiveModal('editProfile'));
+    } else {
+      setActiveModal('editProfile');
+    }
+  }}
+>
+  Edit Profile
+</Button>
       </Box>
 
       <Box sx={{ display: 'flex', gap: 2, mt: 3, mb: 3 }}>
@@ -370,27 +392,33 @@ function SellerHomePage() {
 )}
 
 
-      {activeModal === 'searchResults' && (
-        <Modal open={true} onClose={() => setActiveModal(null)}>
-          <Box sx={styles.modalContent}>
-            <Typography variant="h6" component="h2">Search Results</Typography>
-            {searchResults.length > 0 ? (
-              <Box sx={styles.resultsContainer}>
-                {searchResults.map((result, index) => (
-                  <Box key={index} sx={styles.resultItem}>
-                    <Typography variant="subtitle1"><strong>{result.Name}</strong></Typography>
-                    <Typography>Price: ${result.Price}</Typography>
-                    <Typography>{result.Description}</Typography>
-                  </Box>
-                ))}
-              </Box>
-            ) : (
-              <Typography>No results found.</Typography>
-            )}
-            <Button variant="contained" onClick={() => setActiveModal(null)} sx={styles.doneButton}>Close</Button>
-          </Box>
-        </Modal>
+{activeModal === 'searchResults' && (
+  <Modal open={true} onClose={() => setActiveModal(null)}>
+    <Box sx={styles.modalContent}>
+      <Typography variant="h6" component="h2">All Products</Typography>
+      {searchResults.length > 0 ? (
+        <Box sx={styles.resultsContainer}>
+          {searchResults.map((product, index) => (
+            <Box key={product._id || index} sx={styles.resultItem}>
+              <img src={product.Picture} alt={product.Name} style={{ width: '50px', height: '50px', marginBottom: '10px' }} />
+              <Typography><strong>Name:</strong> {product.Name}</Typography>
+              <Typography><strong>Price:</strong> ${product.Price}</Typography>
+              <Typography><strong>Description:</strong> {product.Description}</Typography>
+              <Typography><strong>Quantity:</strong> {product.Quantity}</Typography>
+              <Typography><strong>Seller:</strong> {product.Seller}</Typography>
+              <Typography><strong>Rating:</strong> {product.Ratings}</Typography>
+              <Typography><strong>Reviews:</strong> {product.Reviews.length > 0 ? product.Reviews.join(', ') : 'No reviews'}</Typography>
+            </Box>
+          ))}
+        </Box>
+      ) : (
+        <Typography>No results found.</Typography>
       )}
+      <Button variant="contained" onClick={() => setActiveModal(null)} sx={styles.doneButton}>Done</Button>
+    </Box>
+  </Modal>
+)}
+
 {activeModal === 'myProducts' && (
   <Modal open={true} onClose={() => setActiveModal(null)}>
     <Box sx={styles.modalContent}>
@@ -399,17 +427,33 @@ function SellerHomePage() {
         <Box sx={styles.resultsContainer}>
           {myProducts.map((product, index) => (
             <Box key={product._id || index} sx={styles.resultItem}>
-              <Typography variant="subtitle1"><strong>{product.Name}</strong></Typography>
-              <Typography>Price: ${product.Price}</Typography>
-              <Typography>{product.Description}</Typography>
-              <Typography>Rating Count: {product.RatingCount}</Typography>
+              <img src={product.Picture} alt={product.Name} style={{ width: '50px', height: '50px', marginBottom: '10px' }} />
+              <Typography><strong>Name:</strong> {product.Name}</Typography>
+              <Typography><strong>Price:</strong> ${product.Price}</Typography>
+              <Typography><strong>Description:</strong> {product.Description}</Typography>
+              <Typography><strong>Quantity:</strong> {product.Quantity}</Typography>
+              <Typography><strong>Seller:</strong> {product.Seller}</Typography>
+              <Typography><strong>Rating:</strong> {product.Ratings}</Typography>
+              <Typography><strong>Reviews:</strong></Typography>
+
+              {Array.isArray(product.Reviews) && product.Reviews.length > 0 ? (
+                product.Reviews.map((review, idx) => (
+                  <Box key={idx} sx={{ mt: 1, mb: 1, padding: '5px', borderBottom: '1px solid #ccc' }}>
+                    <Typography><strong>Username:</strong> {review.touristUsername}</Typography>
+                    <Typography><strong>Review:</strong> {review.Review }</Typography>
+                  </Box>
+                ))
+              ) : (
+                <Typography>No reviews available</Typography>
+              )}
+
               <Button
-                variant="outlined"
+                variant="contained"
                 onClick={() => {
-                  setSelectedProduct(product);  // Set the selected product
-                  setActiveModal('editProduct'); // Open the edit modal
+                  setSelectedProduct(product);
+                  setActiveModal('editProduct');
                 }}
-                sx={{ mt: 1 }}
+                sx={{ mt: 1, backgroundColor: '#4CAF50', color: 'white' }}
               >
                 Edit
               </Button>
@@ -419,10 +463,14 @@ function SellerHomePage() {
       ) : (
         <Typography>No products found.</Typography>
       )}
-      <Button variant="contained" onClick={() => setActiveModal(null)} sx={styles.doneButton}>Close</Button>
+      <Button variant="contained" onClick={() => setActiveModal(null)} sx={styles.doneButton}>Done</Button>
     </Box>
   </Modal>
 )}
+
+
+
+
 {activeModal === 'editProduct' && selectedProduct && (
   <Modal open={true} onClose={() => setActiveModal(null)}>
     <Box sx={styles.modalContent}>
@@ -490,45 +538,70 @@ function SellerHomePage() {
 }
 
 const styles = {
-  container: {
-    backgroundColor: '#00c853',
-    color: 'white',
-    padding: '15px',
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    textAlign: 'center',
-  },
-  title: { marginBottom: 3 },
-  buttonContainer: {
-    display: 'flex',
-    justifyContent: 'center',
-    gap: 2,
-    mt: 2,
-  },
-  button: {
-    backgroundColor: 'white',
-    color: '#00c853',
-    padding: '10px 20px',
-    fontWeight: 'bold',
-    '&:hover': { backgroundColor: '#69f0ae' },
-  },
-  profileButton: { backgroundColor: '#4CAF50', color: 'white', padding: '10px 20px', fontWeight: 'bold', '&:hover': { backgroundColor: '#69f0ae' } },
-  modalContent: {
-    position: 'absolute',
-    top: '50%',
-    left: '50%',
-    transform: 'translate(-50%, -50%)',
-    width: 400,
-    bgcolor: 'background.paper',
-    p: 4,
-    borderRadius: 2,
-    boxShadow: 24,
-  },
-  profileInfo: { mt: 2, display: 'flex', flexDirection: 'column', gap: 1 },
-  doneButton: { mt: 2, backgroundColor: '#00c853', color: 'white', '&:hover': { backgroundColor: '#69f0ae' } },
-  resultsContainer: { mt: 2 },
-  resultItem: { borderBottom: '1px solid #ccc', paddingBottom: 2, mb: 2 },
-};
+    container: {
+      backgroundColor: '#00c853',
+      color: 'white',
+      padding: '15px',
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      textAlign: 'center',
+    },
+    title: { marginBottom: 3 },
+    buttonContainer: {
+      display: 'flex',
+      justifyContent: 'center',
+      gap: 2,
+      mt: 2,
+    },
+    button: {
+      backgroundColor: 'white',
+      color: '#00c853',
+      padding: '10px 20px',
+      fontWeight: 'bold',
+      '&:hover': { backgroundColor: '#69f0ae' },
+    },
+    profileButton: { 
+      backgroundColor: '#4CAF50', 
+      color: 'white', 
+      padding: '10px 20px', 
+      fontWeight: 'bold', 
+      '&:hover': { backgroundColor: '#69f0ae' } 
+    },
+    modalContent: {
+      position: 'absolute',
+      top: '10%', // Positions the modal closer to the top
+      left: '50%',
+      transform: 'translate(-50%, 0)',
+      width: '90%', // Takes up 90% of the screen width
+      maxHeight: '80vh', // Limits height to 80% of the viewport height
+      overflowY: 'auto', // Enables scrolling if content overflows
+      bgcolor: 'background.paper',
+      padding: '20px', // Adds padding for content spacing
+      borderRadius: '8px',
+      boxShadow: 24,
+    },
+    profileInfo: { 
+      mt: 2, 
+      display: 'flex', 
+      flexDirection: 'column', 
+      gap: 1 
+    },
+    doneButton: { 
+      mt: 2, 
+      backgroundColor: '#00c853', 
+      color: 'white', 
+      '&:hover': { backgroundColor: '#69f0ae' } 
+    },
+    resultsContainer: { 
+      mt: 2 
+    },
+    resultItem: { 
+      borderBottom: '1px solid #ccc', 
+      paddingBottom: 2, 
+      mb: 2 
+    },
+  };
+  
 
 export default SellerHomePage;
