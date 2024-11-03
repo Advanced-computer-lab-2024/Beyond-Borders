@@ -353,4 +353,48 @@ const readItineraryAsTourGuide = async (req, res) => {
     }
 };
   
-module.exports = {ReadTourGuideProfile , UpdateTourGuideEmail , UpdateTourGuidePassword, UpdateTourGuideMobileNum , UpdateTourGuideYearsofExperience ,UpdateTourGuidePreviousWork ,createItineraryAsTourGuide,readItineraryAsTourGuide,updateItineraryAsTourGuide,deleteItineraryAsTourGuide, updateTourGuideProfile,loginTourGuide,getItenrarysByTourGuide, deactivateItinerary};
+const activateItinerary = async (req, res) => {
+  try {
+      const { title } = req.body; // Get the title from the request body
+
+      // Find the deactivated itinerary by title
+      const deactivatedItinerary = await DeactivatedItinerary.findOne({ Title: title });
+      if (!deactivatedItinerary) {
+          return res.status(404).json({ error: "Deactivated itinerary not found!" });
+      }
+
+      // Create a new itinerary document from the deactivated itinerary
+      const itinerary = new Itinerary({
+          Title: deactivatedItinerary.Title,
+          Activities: deactivatedItinerary.Activities,
+          Locations: deactivatedItinerary.Locations,
+          Timeline: deactivatedItinerary.Timeline,
+          Language: deactivatedItinerary.Language,
+          Price: deactivatedItinerary.Price,
+          Date: deactivatedItinerary.Date,
+          accessibility: deactivatedItinerary.accessibility,
+          pickupLocation: deactivatedItinerary.pickupLocation,
+          dropoffLocation: deactivatedItinerary.dropoffLocation,
+          isBooked: deactivatedItinerary.isBooked,
+          Tags: deactivatedItinerary.Tags,
+          AuthorUsername: deactivatedItinerary.AuthorUsername,
+          Comments: deactivatedItinerary.Comments,
+          Ratings: deactivatedItinerary.Ratings,
+          RatingCount: deactivatedItinerary.RatingCount
+      });
+
+      // Save the new itinerary
+      await itinerary.save();
+
+      // Delete the original deactivated itinerary
+      await DeactivatedItinerary.deleteOne({ Title: title });
+
+      // Respond with success message
+      res.status(200).json({ msg: "Itinerary has been reactivated!" });
+  } catch (error) {
+      // Handle any errors that occur during the process
+      res.status(500).json({ error: error.message });
+  }
+};
+
+module.exports = {ReadTourGuideProfile , UpdateTourGuideEmail , UpdateTourGuidePassword, UpdateTourGuideMobileNum , UpdateTourGuideYearsofExperience ,UpdateTourGuidePreviousWork ,createItineraryAsTourGuide,readItineraryAsTourGuide,updateItineraryAsTourGuide,deleteItineraryAsTourGuide, updateTourGuideProfile,loginTourGuide,getItenrarysByTourGuide, deactivateItinerary,activateItinerary};
