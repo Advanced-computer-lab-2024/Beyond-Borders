@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Box, Button, Typography, Modal, TextField } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
@@ -6,7 +6,7 @@ import AdminProductModal from './AdminProductModal';
 
 function HomePageAdmin() {
   const [activeModal, setActiveModal] = useState(null);
-  const [profile, setProfile] = useState(null);
+ 
   const [errorMessage, setErrorMessage] = useState('');
   const [searchKeyword, setSearchKeyword] = useState('');
   const [minPrice, setMinPrice] = useState('');
@@ -15,33 +15,6 @@ function HomePageAdmin() {
   const [tagName, setTagName] = useState(''); // New state for tag name
   const [categoryName, setCategoryName] = useState('');
   const navigate = useNavigate();
-
-  useEffect(() => {
-    if (activeModal === 'profile') {
-      const fetchProfile = async () => {
-        try {
-          const Username = localStorage.getItem('username');
-          if (!Username) {
-            setErrorMessage('Username not found. Please log in.');
-            setActiveModal('error');
-            return;
-          }
-          const response = await axios.get('/api/viewTourist', { params: { Username } });
-          if (response.data) {
-            setProfile(response.data);
-          } else {
-            setErrorMessage('Profile data could not be retrieved.');
-            setActiveModal('error');
-          }
-        } catch (error) {
-          console.error('Error fetching profile:', error);
-          setErrorMessage('An error occurred while loading your profile.');
-          setActiveModal('error');
-        }
-      };
-      fetchProfile();
-    }
-  }, [activeModal]);
 
  
   const handleSearch = async () => {
@@ -75,6 +48,36 @@ function HomePageAdmin() {
     } catch (error) {
       setErrorMessage('An error occurred while filtering products.');
       setActiveModal('error');
+    }
+  };
+
+
+
+  const sortProductsDescending = async () => {
+    try {
+      const response = await axios.get('/api/sortProductsDescendingSeller');
+      if (response.status === 200) {
+        setFilteredResults(response.data); // Update with sorted products
+        setActiveModal('filteredProducts'); // Set to display sorted products
+      } else {
+        alert('Failed to sort products.');
+      }
+    } catch (error) {
+      alert('An error occurred while sorting products.');
+    }
+  };
+
+  const sortProductsAscending = async () => {
+    try {
+      const response = await axios.get('/api/sortProductsAscendingSeller');
+      if (response.status === 200) {
+        setFilteredResults(response.data); // Update with sorted products
+        setActiveModal('filteredProducts'); // Set to display sorted products
+      } else {
+        alert('Failed to sort products.');
+      }
+    } catch (error) {
+      alert('An error occurred while sorting products.');
     }
   };
 
@@ -174,7 +177,7 @@ function HomePageAdmin() {
         <Button sx={styles.button} onClick={() => navigate('/AdminTagsModal')}>View All tags</Button>
         <Button sx={styles.button} onClick={() => navigate('/AdminActivityModal')}>View All Activity Categories</Button>
         <Button sx={styles.button} onClick={() => navigate('/AdminDeleteAccount')}>Delete account</Button>
-        <Button sx={styles.profileButton} onClick={() => setActiveModal('profile')}>My Profile</Button>
+        
       </Box>
 
       {/* Search and Filter Section */}
@@ -204,6 +207,20 @@ function HomePageAdmin() {
         />
         <Button variant="contained" onClick={handleFilter} sx={{ backgroundColor: '#4CAF50', color: 'white' }}>
           Filter
+        </Button>
+
+
+
+
+        <Button variant="contained" onClick={sortProductsAscending} sx={{ backgroundColor: '#4CAF50', color: 'white' }}>
+          Sort Ascending
+        </Button>
+
+
+
+
+        <Button variant="contained" onClick={sortProductsDescending} sx={{ backgroundColor: '#4CAF50', color: 'white' }}>
+         Sort Descneding
         </Button>
       </Box>
       
@@ -246,36 +263,15 @@ function HomePageAdmin() {
 
  {/* Admin Product Modal */}
 {/* Admin Product Modal */}
-{activeModal === 'viewAllProducts' || activeModal === 'filteredProducts' || activeModal === 'searchResults' ? (
+{/* Admin Product Modal */}
+{activeModal === 'viewAllProducts' || activeModal === 'filteredProducts' || activeModal === 'searchResults' || activeModal === 'sortedProducts' ? (
         <AdminProductModal
-          filteredProducts={activeModal === 'filteredProducts' || activeModal === 'searchResults' ? filteredResults : null}
+          filteredProducts={activeModal === 'filteredProducts' || activeModal === 'searchResults' || activeModal === 'sortedProducts' ? filteredResults : null}
           onClose={() => setActiveModal(null)}
         />
       ) : null}
 
-      {activeModal === 'profile' && (
-        <Modal open={true} onClose={() => setActiveModal(null)}>
-          <Box sx={styles.modalContent}>
-            <Typography variant="h6" component="h2">My Profile</Typography>
-            {errorMessage ? (
-              <Typography color="error">{errorMessage}</Typography>
-            ) : profile ? (
-              <Box sx={styles.profileInfo}>
-                <Typography><strong>Username:</strong> {profile.Username}</Typography>
-                <Typography><strong>Email:</strong> {profile.Email}</Typography>
-                <Typography><strong>Mobile Number:</strong> {profile.MobileNumber}</Typography>
-                <Typography><strong>Date of Birth:</strong> {profile.DoB}</Typography>
-                <Typography><strong>Nationality:</strong> {profile.Nationality}</Typography>
-                <Typography><strong>Occupation:</strong> {profile.Occupation}</Typography>
-                <Typography><strong>Wallet Balance:</strong> ${profile.Wallet}</Typography>
-              </Box>
-            ) : (
-              <Typography>Loading...</Typography>
-            )}
-            <Button variant="contained" onClick={() => setActiveModal(null)} sx={styles.doneButton}>Done</Button>
-          </Box>
-        </Modal>
-      )}
+     
 
       {activeModal === 'searchResults' && (
         <Modal open={true} onClose={() => setActiveModal(null)}>

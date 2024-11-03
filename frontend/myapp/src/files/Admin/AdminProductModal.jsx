@@ -1,12 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { Box, Button, Typography, Modal, TextField } from '@mui/material';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
+
 
 
 function AdminProductModal({ filteredProducts, onClose }) {
   const [products, setProducts] = useState([]);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [activeModal, setActiveModal] = useState('products');
+  const navigate = useNavigate();
 
 
   useEffect(() => {
@@ -85,7 +88,7 @@ function AdminProductModal({ filteredProducts, onClose }) {
                 <Typography>No products found.</Typography>
               )}
             </Box>
-            <Button variant="contained" sx={styles.doneButton} onClick={onClose}>
+            <Button variant="contained" sx={styles.doneButton} onClick={() => navigate('/HomePageAdmin')}>
               Done
             </Button>
           </Box>
