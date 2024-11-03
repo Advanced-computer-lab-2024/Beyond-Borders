@@ -32,12 +32,13 @@ import CreateHistoricalPlace from './files/HistoricalPlace';
 import EditHistoricalPlace from './files/EditHistoricalPlace';
 import SellerHomePage from './files/Seller/SellerHomePage';
 
-import HomePageAdmin from './files/HomePageAdmin';
-import AdminProductModal from './files/AdminProductModal';
-import AdminTagsModal from './files/AdminTagsModal';
-import AdminDeleteAccount from './files/AdminDeleteAccount';
-import AdminAddAdmin from './files/AdminAddAdmin';
-import AdminAddGov from './files/AdminAddGov';
+import HomePageAdmin from './files/Admin/HomePageAdmin';
+import AdminProductModal from './files/Admin/AdminProductModal';
+import AdminTagsModal from './files/Admin/AdminTagsModal';
+import AdminDeleteAccount from './files/Admin/AdminDeleteAccount';
+import AdminAddAdmin from './files/Admin/AdminAddAdmin';
+import AdminAddGov from './files/Admin/AdminAddGov';
+import AdminAddProduct from './files/Admin/AdminAddProduct';
 
 
 
@@ -76,6 +77,7 @@ function App() {
           <Route path="/AdminDeleteAccount" element={<AdminDeleteAccount/>}/>
           <Route path="/AdminAddAdmin" element={<AdminAddAdmin/>}/>
           <Route path="/AdminAddGov" element={<AdminAddGov/>}/>
+          <Route path="/AdminAddProduct" element={<AdminAddProduct/>}/>
 
 
 
