@@ -10,6 +10,7 @@ const ComplaintsModel = require('../Models/Complaints.js');
 const TourGuideModel = require('../Models/TourGuide.js');
 const DeleteRequestsModel = require('../Models/DeleteRequests.js');
 const axios = require('axios');
+const nodemailer = require('nodemailer'); 
 
 const DeactivatedItinerariesModel = require('../Models/DeactivatedItineraries.js');
 
@@ -3112,41 +3113,81 @@ const getMuseumDetails = async (req, res) => {
 
 
 function copyToClipboard(entityType, entityName) {
- const baseUrl = 'http://localhost:8000';
-
-  // Construct the URL based on the entity type and name
-  let url;
-  if (entityType === 'activity') {
-    url = `${baseUrl}/api/activity/details/${encodeURIComponent(entityName)}`;
-  } else if (entityType === 'historicalPlace') {
-    url = `${baseUrl}/api/historicalPlace/details/${encodeURIComponent(entityName)}`;
-  } else if (entityType === 'museum') {
-    url = `${baseUrl}/api/museum/details/${encodeURIComponent(entityName)}`;
-  } else {
-    console.error('Invalid entity type');
+  const baseUrl = 'http://localhost:8000';
+ 
+   // Construct the URL based on the entity type and name
+   let url;
+   if (entityType === 'activity') {
+     url = `${baseUrl}/api/activity/details/${encodeURIComponent(entityName)}`;
+   } else if (entityType === 'historicalPlace') {
+     url = `${baseUrl}/api/historicalPlace/details/${encodeURIComponent(entityName)}`;
+   } else if (entityType === 'museum') {
+     url = `${baseUrl}/api/museum/details/${encodeURIComponent(entityName)}`;
+   } else {
+     console.error('Invalid entity type');
+    
+   }
+   ////////////////CHECK COPY IN FRONTEND M3RAFSH LAW SHAGHALA
+   // navigator.clipboard.writeText(url)
+   //   .then(() => {
+   //     alert(`Link copied to clipboard: ${url}`);
+   //   })
+   //   .catch(err => {
+   //     console.error('Failed to copy link: ', err);
+   //   });
+   return url;
    
-  }
-  ////////////////CHECK COPY IN FRONTEND M3RAFSH LAW SHAGHALA
-  // navigator.clipboard.writeText(url)
-  //   .then(() => {
-  //     alert(`Link copied to clipboard: ${url}`);
-  //   })
-  //   .catch(err => {
-  //     console.error('Failed to copy link: ', err);
-  //   });
-  return url;
-  
-}
-
-const GetCopyLink = (req, res) => {
-  try {
-    const { entityType, entityName } = req.body;
-    const url = copyToClipboard(entityType, entityName);
-    res.json({ link: url });
-  } catch (error) {
-    res.status(400).json({ error: error.message });
-  }
-};
+ }
+ 
+ 
+ async function sendEmailLink(email, url) {
+   const transporter = nodemailer.createTransport({
+     service: 'gmail', // Use your email provider
+     auth: {
+       user: 'malook25062003@gmail.com', // Your email
+       pass: 'sxvo feuu woie gpfn' // Your email password or app password
+     }
+   });
+ 
+   const mailOptions = {
+     from: 'malook25062003@gmail.com',
+     to: email,
+     subject: 'Check out this link',
+     text: `Here is the link: ${url}`
+   };
+ 
+   await transporter.sendMail(mailOptions);
+ }
+ 
+ 
+ // const GetCopyLink1 = (req, res) => {
+ //   try {
+ //     const { entityType, entityName } = req.body;
+ //     const url = copyToClipboard(entityType, entityName);
+ //     res.json({ link: url });
+ //   } catch (error) {
+ //     res.status(400).json({ error: error.message });
+ //   }
+ // };
+ 
+ const GetCopyLink = async (req, res) => {
+   try {
+     const { entityType, entityName, email } = req.body;
+     const url = copyToClipboard(entityType, entityName);
+ 
+     if (email) {
+       // Send the link via email
+       await sendEmailLink(email, url);
+       res.json({ msg: 'Link sent via email!', link: url });
+     } else {
+       // Just respond with the link for copy
+       res.json({ link: url });
+     }
+   } catch (error) {
+     console.error('Error generating or sending link:', error);
+     res.status(400).json({ error: error.message });
+   }
+ };
 
 let ids = []; // Global array to store hotel IDs 
 
