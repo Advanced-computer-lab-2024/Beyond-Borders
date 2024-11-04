@@ -171,9 +171,6 @@ function HomePageAdmin() {
     }
   };
   
-  
-
-
   const saveNewCategory = async () => {
     if (!categoryName.trim()) {
       alert('Category name cannot be empty.');

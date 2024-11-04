@@ -2,7 +2,7 @@
 const AcceptedSellerModel = require('../Models/AcceptedSeller.js');
 const NewProduct = require('../Models/Product.js');
 const ArchivedProductsModel = require('../Models/ArchivedProducts.js');
-
+const DeleteRequestsModel = require('../Models/DeleteRequests.js')
 const { default: mongoose } = require('mongoose');
 
 

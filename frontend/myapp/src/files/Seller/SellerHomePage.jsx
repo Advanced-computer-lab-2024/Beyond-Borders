@@ -37,8 +37,18 @@ function SellerHomePage() {
   };
 
   const editProfile = async () => {
+    // Check if the password fields are provided and match
+    if (profile.newPassword && profile.confirmPassword) {
+      if (profile.newPassword !== profile.confirmPassword) {
+        alert("Passwords do not match.");
+        return;
+      }
+      // Only add the new password to the update payload if provided and matched
+      profile.Password = profile.newPassword;
+    }
+  
     try {
-      const response = await axios.put('/api/updateSeller', profile); // Adjust endpoint if necessary
+      const response = await axios.put('/api/updateSeller', profile);
       if (response.status === 200) {
         alert('Profile updated successfully!');
         setActiveModal(null);
@@ -48,9 +58,10 @@ function SellerHomePage() {
       }
     } catch (error) {
       console.error('Error updating profile:', error);
-      alert('An error occurred while updating profile.'+ (error.response?.data?.error || error.message));
+      alert('An error occurred while updating profile: ' + (error.response?.data?.error || error.message));
     }
   };
+  
 
   const fetchProducts = async () => {
     try {
@@ -214,6 +225,28 @@ function SellerHomePage() {
       alert('An error occurred while sorting products.');
     }
   };
+
+  const RequestDeleteAccount = async () => {
+    try {
+      const username = localStorage.getItem('username');
+      console.log('Username :' , username)
+      const response = await axios.post('/api/requestDeleteAccountSeller', { Username: username });
+      
+      if (response.status === 200) {
+        alert('Account deletion request submitted successfully!');
+        setActiveModal(null); 
+      } else {
+        setErrorMessage('Failed to submit account deletion request.');
+        setActiveModal('error');
+      }
+    } catch (error) {
+      console.error('Error requesting account deletion:', error);
+      setErrorMessage('An error occurred while requesting the deletion of your account.');
+      setActiveModal('error');
+    }
+  };
+  
+  
   return (
     <Box sx={styles.container}>
       <Typography variant="h5" component="h1" sx={styles.title}>
@@ -227,6 +260,12 @@ function SellerHomePage() {
         <Button sx={styles.button} onClick={sortProductsAscending}>Sort by Rating Ascending</Button>
         <Button sx={styles.button} onClick={() => setActiveModal('addProduct')}>Add New Product</Button>
         <Button sx={styles.profileButton} onClick={() => setActiveModal('profile')}>My Profile</Button>
+        <Button 
+  sx={{ ...styles.button, backgroundColor: 'red', color: 'white', '&:hover': { backgroundColor: '#ff6666' } }} 
+  onClick={RequestDeleteAccount}
+>
+  Request Account Deletion
+</Button>
         <Button
   sx={styles.button}
   onClick={() => {
@@ -291,42 +330,60 @@ function SellerHomePage() {
         </Modal>
       )}
 
-      {activeModal === 'editProfile' && (
-        <Modal open={true} onClose={() => setActiveModal(null)}>
-          <Box sx={styles.modalContent}>
-            <Typography variant="h6">Edit Profile</Typography>
-            <TextField
-              label="Username"
-              value={profile.Username}
-              onChange={(e) => setProfile({ ...profile, Username: e.target.value })}
-              fullWidth
-              margin="normal"
-              disabled // Assuming username is not editable
-            />
-            <TextField
-              label="Email"
-              value={profile.Email}
-              onChange={(e) => setProfile({ ...profile, Email: e.target.value })}
-              fullWidth
-              margin="normal"
-            />
-            <TextField
-              label="Phone Number"
-              value={profile.MobileNumber}
-              onChange={(e) => setProfile({ ...profile, MobileNumber: e.target.value })}
-              fullWidth
-              margin="normal"
-            />
-            <Button
-              variant="contained"
-              onClick={editProfile}
-              sx={{ mt: 2, backgroundColor: '#4CAF50', color: 'white' }}
-            >
-              Save Changes
-            </Button>
-          </Box>
-        </Modal>
-      )}
+{activeModal === 'editProfile' && (
+  <Modal open={true} onClose={() => setActiveModal(null)}>
+    <Box sx={styles.modalContent}>
+      <Typography variant="h6">Edit Profile</Typography>
+      <TextField
+        label="Username"
+        value={profile.Username}
+        onChange={(e) => setProfile({ ...profile, Username: e.target.value })}
+        fullWidth
+        margin="normal"
+        disabled // Assuming username is not editable
+      />
+      <TextField
+        label="Email"
+        value={profile.Email}
+        onChange={(e) => setProfile({ ...profile, Email: e.target.value })}
+        fullWidth
+        margin="normal"
+      />
+      <TextField
+        label="Phone Number"
+        value={profile.MobileNumber}
+        onChange={(e) => setProfile({ ...profile, MobileNumber: e.target.value })}
+        fullWidth
+        margin="normal"
+      />
+      <TextField
+        label="New Password"
+        type="password"
+        value={profile.newPassword || ''}
+        onChange={(e) => setProfile({ ...profile, newPassword: e.target.value })}
+        fullWidth
+        margin="normal"
+      />
+      <TextField
+        label="Confirm Password"
+        type="password"
+        value={profile.confirmPassword || ''}
+        onChange={(e) => setProfile({ ...profile, confirmPassword: e.target.value })}
+        fullWidth
+        margin="normal"
+       />
+
+      <Button
+        variant="contained"
+        onClick={editProfile}
+        sx={{ mt: 2, backgroundColor: '#4CAF50', color: 'white' }}
+      >
+        Save Changes
+      </Button>
+    </Box>
+  </Modal>
+)}
+
 
 {activeModal === 'addProduct' && (
     <Modal open={true} onClose={() => setActiveModal(null)}>
@@ -432,6 +489,8 @@ function SellerHomePage() {
               <Typography><strong>Price:</strong> ${product.Price}</Typography>
               <Typography><strong>Description:</strong> {product.Description}</Typography>
               <Typography><strong>Quantity:</strong> {product.Quantity}</Typography>
+              <Typography><strong>Sales:</strong> {product.Sales}</Typography>
+              <Typography><strong>Total Price of Sales:</strong> ${product.TotalPriceOfSales}</Typography>
               <Typography><strong>Seller:</strong> {product.Seller}</Typography>
               <Typography><strong>Rating:</strong> {product.Ratings}</Typography>
               <Typography><strong>Reviews:</strong></Typography>
@@ -440,7 +499,7 @@ function SellerHomePage() {
                 product.Reviews.map((review, idx) => (
                   <Box key={idx} sx={{ mt: 1, mb: 1, padding: '5px', borderBottom: '1px solid #ccc' }}>
                     <Typography><strong>Username:</strong> {review.touristUsername}</Typography>
-                    <Typography><strong>Review:</strong> {review.Review }</Typography>
+                    <Typography><strong>Review:</strong> {review.Review}</Typography>
                   </Box>
                 ))
               ) : (
@@ -467,6 +526,7 @@ function SellerHomePage() {
     </Box>
   </Modal>
 )}
+
 
 
 
