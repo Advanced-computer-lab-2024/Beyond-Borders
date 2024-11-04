@@ -2780,4 +2780,144 @@ const requestDeleteAccountTourist = async (req, res) => {
 
 
 
-module.exports = {createTourist, getTourist, updateTourist, searchProductTourist, filterActivities, filterProductByPriceTourist, ActivityRating, sortProductsDescendingTourist, sortProductsAscendingTourist, ViewAllUpcomingActivities, ViewAllUpcomingMuseumEventsTourist, getMuseumsByTagTourist, getHistoricalPlacesByTagTourist, ViewAllUpcomingHistoricalPlacesEventsTourist,viewProductsTourist, sortActivitiesPriceAscendingTourist, sortActivitiesPriceDescendingTourist, sortActivitiesRatingAscendingTourist, sortActivitiesRatingDescendingTourist, loginTourist, ViewAllUpcomingItinerariesTourist, sortItinerariesPriceAscendingTourist, sortItinerariesPriceDescendingTourist, filterItinerariesTourist, ActivitiesSearchAll, ItinerarySearchAll, MuseumSearchAll, HistoricalPlacesSearchAll, ProductRating, createComplaint, getComplaintsByTouristUsername,ChooseActivitiesByCategoryTourist,bookActivity,bookItinerary,bookMuseum,bookHistoricalPlace, ratePurchasedProduct, addPurchasedProducts, reviewPurchasedProduct, addCompletedItinerary, rateTourGuide, commentOnTourGuide, rateCompletedItinerary, commentOnItinerary, addCompletedActivities, addCompletedMuseumEvents, addCompletedHPEvents, rateCompletedActivity, rateCompletedMuseum, rateCompletedHP, commentOnActivity, commentOnMuseum, commentOnHP,deleteBookedActivity,deleteBookedItinerary,deleteBookedMuseum,deleteBookedHP,payActivity,updateWallet,updatepoints,payItinerary,payMuseum,payHP,redeemPoints, convertEgp, fetchFlights,viewBookedItineraries, requestDeleteAccountTourist};
+async function convertCurrency(priceEgp, targetCurrency) {
+    const apiKey = 'ae43cffa2c28efd24e159e2a'; 
+    const apiUrl = `https://api.exchangerate-api.com/v4/latest/EGP`; //  EGP base currency
+
+    try {
+        // Fetch exchange rates
+        const response = await axios.get(apiUrl, { params: { access_key: apiKey } });
+        const rates = response.data.rates;
+
+        // Check if the target currency exists in the response
+        if (!rates[targetCurrency]) {
+            throw new Error(`Currency ${targetCurrency} not supported.`);
+        }
+
+        // Convert the price to the target currency
+        const convertedPrice = priceEgp * rates[targetCurrency];
+        return convertedPrice.toFixed(2); // rounding to 2 decimal places
+    } catch (error) {
+        console.error('Error converting currency:', error.message);
+        throw error;
+    }
+}
+
+const convertCurr = async (req, res) => {
+  const { priceEgp, targetCurrency } = req.body;
+
+  if (!priceEgp || !targetCurrency) {
+      return res.status(400).json({ error: 'Please provide both priceEgp and targetCurrency in the request body.' });
+  }
+
+  try {
+      // Call the convertCurrency function
+      const convertedPrice = await convertCurrency(priceEgp, targetCurrency);
+
+      // Respond with the converted price
+      res.status(200).json({ convertedPrice, currency: targetCurrency });
+  } catch (error) {
+      res.status(500).json({ error: error.message });
+  }
+};
+
+
+const getActivityDetails = async (req, res) => {
+  const { activityName } = req.params; // Get activity name from the route parameter
+
+  try {
+    // Find the activity by name, excluding the RatingCount field
+    console.log("Searching for activity:", activityName); // Add this line
+
+    const activity = await ActivityModel.findOne({ Name: activityName }).select('-RatingCount');
+
+    // If no activity is found, return a 404 response
+    if (!activity) {
+      return res.status(404).json({ msg: 'Activity not found' });
+    }
+
+    // Respond with the activity details, excluding RatingCount
+    res.status(200).json(activity);
+  } catch (error) {
+    console.error('Error fetching activity details:', error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+const getHistoricalPlaceDetails = async (req, res) => {
+  const { HPname } = req.params; // Get historical place name from the route parameter
+
+  try {
+    // Find the historical place by name, excluding the RatingCount field
+    const place = await HistoricalPlacesModel.findOne({ name: HPname }).select('-RatingCount');
+    
+    // If no historical place is found, return a 404 response
+    if (!place) {
+      return res.status(404).json({ msg: 'Historical place not found' });
+    }
+
+    // Respond with the historical place details, excluding RatingCount
+    res.status(200).json(place);
+  } catch (error) {
+    console.error('Error fetching historical place details:', error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+const getMuseumDetails = async (req, res) => {
+  const { museumName } = req.params; // Get museum name from the route parameter
+
+  try {
+    const museum = await MuseumModel.findOne({ name: museumName }).select('-RatingCount');
+    
+    if (!museum) {
+      return res.status(404).json({ msg: 'Museum not found' });
+    }
+
+    res.status(200).json(museum);
+  } catch (error) {
+    console.error('Error fetching museum details:', error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+
+function copyToClipboard(entityType, entityName) {
+ const baseUrl = 'http://localhost:8000';
+
+  // Construct the URL based on the entity type and name
+  let url;
+  if (entityType === 'activity') {
+    url = `${baseUrl}/api/activity/details/${encodeURIComponent(entityName)}`;
+  } else if (entityType === 'historicalPlace') {
+    url = `${baseUrl}/api/historicalPlace/details/${encodeURIComponent(entityName)}`;
+  } else if (entityType === 'museum') {
+    url = `${baseUrl}/api/museum/details/${encodeURIComponent(entityName)}`;
+  } else {
+    console.error('Invalid entity type');
+   
+  }
+  ////////////////CHECK COPY IN FRONTEND M3RAFSH LAW SHAGHALA
+  // navigator.clipboard.writeText(url)
+  //   .then(() => {
+  //     alert(`Link copied to clipboard: ${url}`);
+  //   })
+  //   .catch(err => {
+  //     console.error('Failed to copy link: ', err);
+  //   });
+  return url;
+  
+}
+
+const GetCopyLink = (req, res) => {
+  try {
+    const { entityType, entityName } = req.body;
+    const url = copyToClipboard(entityType, entityName);
+    res.json({ link: url });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+};
+
+
+module.exports = {createTourist, getTourist, updateTourist, searchProductTourist, filterActivities, filterProductByPriceTourist, ActivityRating, sortProductsDescendingTourist, sortProductsAscendingTourist, ViewAllUpcomingActivities, ViewAllUpcomingMuseumEventsTourist, getMuseumsByTagTourist, getHistoricalPlacesByTagTourist, ViewAllUpcomingHistoricalPlacesEventsTourist,viewProductsTourist, sortActivitiesPriceAscendingTourist, sortActivitiesPriceDescendingTourist, sortActivitiesRatingAscendingTourist, sortActivitiesRatingDescendingTourist, loginTourist, ViewAllUpcomingItinerariesTourist, sortItinerariesPriceAscendingTourist, sortItinerariesPriceDescendingTourist, filterItinerariesTourist, ActivitiesSearchAll, ItinerarySearchAll, MuseumSearchAll, HistoricalPlacesSearchAll, ProductRating, createComplaint, getComplaintsByTouristUsername,ChooseActivitiesByCategoryTourist,bookActivity,bookItinerary,bookMuseum,bookHistoricalPlace, ratePurchasedProduct, addPurchasedProducts, reviewPurchasedProduct, addCompletedItinerary, rateTourGuide, commentOnTourGuide, rateCompletedItinerary, commentOnItinerary, addCompletedActivities, addCompletedMuseumEvents, addCompletedHPEvents, rateCompletedActivity, rateCompletedMuseum, rateCompletedHP, commentOnActivity, commentOnMuseum, commentOnHP,deleteBookedActivity,deleteBookedItinerary,deleteBookedMuseum,deleteBookedHP,payActivity,updateWallet,updatepoints,payItinerary,payMuseum,payHP,redeemPoints, convertEgp, fetchFlights,viewBookedItineraries, requestDeleteAccountTourist,convertCurr,getActivityDetails,getHistoricalPlaceDetails,getMuseumDetails,GetCopyLink};
