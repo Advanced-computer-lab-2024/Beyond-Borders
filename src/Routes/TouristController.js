@@ -10,6 +10,8 @@ const ComplaintsModel = require('../Models/Complaints.js');
 const TourGuideModel = require('../Models/TourGuide.js');
 const DeleteRequestsModel = require('../Models/DeleteRequests.js');
 const axios = require('axios');
+const nodemailer = require('nodemailer');
+
 
 const DeactivatedItinerariesModel = require('../Models/DeactivatedItineraries.js');
 
@@ -3137,15 +3139,54 @@ function copyToClipboard(entityType, entityName) {
   
 }
 
-const GetCopyLink = (req, res) => {
+
+async function sendEmailLink(email, url) {
+  const transporter = nodemailer.createTransport({
+    service: 'gmail', // Use your email provider
+    auth: {
+      user: 'malook25062003@gmail.com', // Your email
+      pass: 'sxvo feuu woie gpfn' // Your email password or app password
+    }
+  });
+
+  const mailOptions = {
+    from: 'malook25062003@gmail.com',
+    to: email,
+    subject: 'Check out this link',
+    text: `Here is the link: ${url}`
+  };
+
+  await transporter.sendMail(mailOptions);
+}
+
+
+// const GetCopyLink1 = (req, res) => {
+//   try {
+//     const { entityType, entityName } = req.body;
+//     const url = copyToClipboard(entityType, entityName);
+//     res.json({ link: url });
+//   } catch (error) {
+//     res.status(400).json({ error: error.message });
+//   }
+// };
+
+const GetCopyLink = async (req, res) => {
   try {
-    const { entityType, entityName } = req.body;
+    const { entityType, entityName, email } = req.body;
     const url = copyToClipboard(entityType, entityName);
-    res.json({ link: url });
+
+    if (email) {
+      // Send the link via email
+      await sendEmailLink(email, url);
+      res.json({ msg: 'Link sent via email!', link: url });
+    } else {
+      // Just respond with the link for copy
+      res.json({ link: url });
+    }
   } catch (error) {
+    console.error('Error generating or sending link:', error);
     res.status(400).json({ error: error.message });
   }
 };
-
 
 module.exports = {createTourist, getTourist, updateTourist, searchProductTourist, filterActivities, filterProductByPriceTourist, ActivityRating, sortProductsDescendingTourist, sortProductsAscendingTourist, ViewAllUpcomingActivities, ViewAllUpcomingMuseumEventsTourist, getMuseumsByTagTourist, getHistoricalPlacesByTagTourist, ViewAllUpcomingHistoricalPlacesEventsTourist,viewProductsTourist, sortActivitiesPriceAscendingTourist, sortActivitiesPriceDescendingTourist, sortActivitiesRatingAscendingTourist, sortActivitiesRatingDescendingTourist, loginTourist, ViewAllUpcomingItinerariesTourist, sortItinerariesPriceAscendingTourist, sortItinerariesPriceDescendingTourist, filterItinerariesTourist, ActivitiesSearchAll, ItinerarySearchAll, MuseumSearchAll, HistoricalPlacesSearchAll, ProductRating, createComplaint, getComplaintsByTouristUsername,ChooseActivitiesByCategoryTourist,bookActivity,bookItinerary,bookMuseum,bookHistoricalPlace, ratePurchasedProduct, addPurchasedProducts, reviewPurchasedProduct, addCompletedItinerary, rateTourGuide, commentOnTourGuide, rateCompletedItinerary, commentOnItinerary, addCompletedActivities, addCompletedMuseumEvents, addCompletedHPEvents, rateCompletedActivity, rateCompletedMuseum, rateCompletedHP, commentOnActivity, commentOnMuseum, commentOnHP,deleteBookedActivity,deleteBookedItinerary,deleteBookedMuseum,deleteBookedHP,payActivity,updateWallet,updatepoints,payItinerary,payMuseum,payHP,redeemPoints, convertEgp, fetchFlights,viewBookedItineraries, requestDeleteAccountTourist,convertCurr,getActivityDetails,getHistoricalPlaceDetails,getMuseumDetails,GetCopyLink, bookFlight};
