@@ -664,6 +664,23 @@ const viewProducts = async (req, res) => {
     }
 };
 
+const viewAllActivitiesAdmin = async (req, res) => {
+    try {
+        const products = await ActivityModel.find({}).sort({ createdAt: -1 });
+        res.status(200).json(products);
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+};
+
+const viewAllItinerariesAdmin = async (req, res) => {
+    try {
+        const products = await ItineraryrModel.find({}).sort({ createdAt: -1 });
+        res.status(200).json(products);
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+};
 const viewArchivedProductsAdmin = async (req, res) => {
     try {
         const products = await ArchivedProductsModel.find({}).sort({ createdAt: -1 });
@@ -953,4 +970,4 @@ const flagItinerary = async (req, res) => {
 
 module.exports = {createNewAdmin, createNewTourismGoverner, createNewProduct, editProduct, acceptSeller, rejectSeller, createNewCategory, readAllActivityCategories, updateCategory, deleteActivityCategory, deleteAccount, searchProductAdmin, createNewTag, readAllTags, updateTag, deleteTag, 
     acceptTourGuide, rejectTourGuide, acceptAdvertiser, rejectAdvertiser, filterProductByPriceAdmin, sortProductsDescendingAdmin, sortProductsAscendingAdmin,viewProducts, loginAdmin, viewAllProductsAdmin, updateAdminPassword, getAllComplaints, updateComplaintStatus, replyToComplaint, getComplaintDetails, 
-    filterComplaintsByStatus, sortComplaintsByRecent, sortComplaintsByOldest, archiveProduct, unarchiveProduct, flagItinerary, flagActivity, viewArchivedProductsAdmin};
+    filterComplaintsByStatus, sortComplaintsByRecent, sortComplaintsByOldest, archiveProduct, unarchiveProduct, flagItinerary, flagActivity, viewArchivedProductsAdmin , viewAllActivitiesAdmin ,viewAllItinerariesAdmin};
