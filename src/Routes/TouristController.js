@@ -2673,7 +2673,7 @@ function convertEgp(priceEgp, currency) {
 
 
 
-const fetchFlights = async (req, res) => {
+/*const fetchFlights = async (req, res) => {
   const { origin, destination, departureDate, arrivalDate } = req.body;
 
   // Validate input
@@ -2683,7 +2683,88 @@ const fetchFlights = async (req, res) => {
 
   try {
       const apiKey = 'R7I0zjR1VKm8bGjuDyptuKbOobYnqoKu'; 
-      const apiSecret = 'unDRSQSWZtYDRwS8'; // Your actual API secret
+      const apiSecret =  'unDRSQSWZtYDRwS8'; 
+      const tokenUrl = 'https://test.api.amadeus.com/v1/security/oauth2/token';
+      const apiUrl = 'https://test.api.amadeus.com/v2/shopping/flight-offers';
+
+      // Get access token
+      const tokenResponse = await axios.post(tokenUrl, new URLSearchParams({
+          grant_type: 'client_credentials',
+          client_id: apiKey,
+          client_secret: apiSecret,
+      }), {
+          headers: {
+              'Content-Type': 'application/x-www-form-urlencoded',
+          },
+      });
+
+      const accessToken = tokenResponse.data.access_token;
+
+      // Fetch flight offers
+      const flightResponse = await axios.get(apiUrl, {
+          headers: {
+              Authorization: Bearer ${accessToken},
+          },
+          params: {
+              originLocationCode: origin,
+              destinationLocationCode: destination,
+              departureDate: departureDate,
+              returnDate: arrivalDate,
+              adults: 1,
+          },
+      });
+
+      const flights = flightResponse.data.data;
+
+      // Check if flights are found
+      if (!flights || flights.length === 0) {
+          return res.status(404).json({ msg: "No flights found for the given criteria." });
+      }
+
+      // Map flights to the desired structure, including flight ID and consolidating segments
+      const flightDetailsArray = flights.map(flight => {
+          return flight.itineraries.map(itinerary => ({
+              flightID: flight.id, // Assuming each flight has a unique ID
+              segments: itinerary.segments.map(segment => ({
+                  departure: {
+                      iataCode: segment.departure.iataCode,
+                      terminal: segment.departure.terminal,
+                      at: segment.departure.at,
+                  },
+                  arrival: {
+                      iataCode: segment.arrival.iataCode,
+                      terminal: segment.arrival.terminal,
+                      at: segment.arrival.at,
+                  }
+              }))
+          }));
+      }).flat(); // Flatten the itineraries into a single array
+
+      // Return the structured flight details
+      res.status(200).json(flightDetailsArray);
+  } catch (error) {
+      console.error('Error fetching flights:', error);
+      res.status(500).json({ msg: "An error occurred while fetching flights.", error: error.message });
+  }
+}; */ 
+
+
+
+
+// Declare a global variable for storing flight details
+let flightDetailsArray = []; // Static flight details array
+
+const fetchFlights = async (req, res) => {
+  const { origin, destination, departureDate, returnDate, adults, direct } = req.body;
+
+  // Validate input
+  if (!origin || !destination || !departureDate || !returnDate || !adults) {
+      return res.status(400).json({ msg: "Origin, destination, departure date, return date, and number of adults are required." });
+  }
+
+  try {
+      const apiKey = 'R7I0zjR1VKm8bGjuDyptuKbOobYnqoKu'; 
+      const apiSecret = 'unDRSQSWZtYDRwS8'; 
       const tokenUrl = 'https://test.api.amadeus.com/v1/security/oauth2/token';
       const apiUrl = 'https://test.api.amadeus.com/v2/shopping/flight-offers';
 
@@ -2709,8 +2790,9 @@ const fetchFlights = async (req, res) => {
               originLocationCode: origin,
               destinationLocationCode: destination,
               departureDate: departureDate,
-              returnDate: arrivalDate, // Include the arrival date as return date
-              adults: 1, // Adjust as needed
+              returnDate: returnDate,
+              adults: adults,
+              nonStop: direct ? 'true' : undefined, // If direct is true, add nonStop parameter
           },
       });
 
@@ -2721,13 +2803,159 @@ const fetchFlights = async (req, res) => {
           return res.status(404).json({ msg: "No flights found for the given criteria." });
       }
 
-      // Return the flights in the response
-      res.status(200).json(flights);
+      // Use an object to group by flightID
+      const flightMap = {};
+
+      flights.forEach(flight => {
+          flight.itineraries.forEach(itinerary => {
+              const flightDetails = {
+                  flightID: flight.id,
+                  price: flight.price.total,
+                  currency: flight.price.currency,
+                  segments: itinerary.segments.map(segment => ({
+                      departure: {
+                          iataCode: segment.departure.iataCode,
+                          terminal: segment.departure.terminal,
+                          at: segment.departure.at,
+                      },
+                      arrival: {
+                          iataCode: segment.arrival.iataCode,
+                          terminal: segment.arrival.terminal,
+                          at: segment.arrival.at,
+                      }
+                  }))
+              };
+
+              // Add to flightMap based on flightID
+              if (flightMap[flight.id]) {
+                  flightMap[flight.id].push(flightDetails);
+              } else {
+                  flightMap[flight.id] = [flightDetails];
+              }
+          });
+      });
+
+      // Convert flightMap to an array of flights with the same flightID grouped together
+      flightDetailsArray = Object.values(flightMap);
+
+      // Log the flight details
+      console.log("Flight details array updated:", flightDetailsArray);
+
+      // Return the structured flight details
+      res.status(200).json(flightDetailsArray);
   } catch (error) {
       console.error('Error fetching flights:', error);
       res.status(500).json({ msg: "An error occurred while fetching flights.", error: error.message });
   }
 };
+
+const bookFlight = async (req, res) => {
+  const { touristUsername, flightID } = req.body;
+  
+  // Validate input
+  if (!touristUsername || !flightID) {
+      return res.status(400).json({ msg: "Tourist username and flight ID are required." });
+  }
+
+  try {
+      // Fetch the tourist document by username
+      const tourist = await TouristModel.findOne({ Username: touristUsername });
+      if (!tourist) {
+          return res.status(404).json({ msg: "Tourist not found." });
+      }
+
+      // Convert flightID to index (assuming flightID is 1-based)
+      const index = parseInt(flightID, 10) - 1;
+
+      // Check if index is valid
+      if (index < 0 || index >= flightDetailsArray.length) {
+          return res.status(404).json({ msg: "Flight not found." });
+      }
+
+      // Fetch flight details from flightDetailsArray using the calculated index
+      const flightDetails = flightDetailsArray[index];
+
+      // Create the booked flight entry
+      const bookedFlight = {
+          flightID: flightID,
+          flightDetails: flightDetails,
+          booked: true
+      };
+
+      // Add to bookedFlights array
+      tourist.BookedFlights = tourist.BookedFlights || []; // Ensure BookedFlights array exists
+      tourist.BookedFlights.push(bookedFlight);
+
+      // Save the tourist document
+      await tourist.save();
+
+      res.status(200).json({ msg: "Flight booked successfully!", bookedFlight });
+  } catch (error) {
+      console.error('Error booking flight:', error);
+      res.status(500).json({ msg: "An error occurred while booking the flight.", error: error.message });
+  }
+};
+
+
+/* oggg   const fetchFlights = async (req, res) => {
+  const { origin, destination, departureDate, arrivalDate } = req.body;
+
+  // Validate input
+  if (!origin || !destination || !departureDate || !arrivalDate) {
+    return res.status(400).json({ msg: "Origin, destination, departure date, and arrival date are required." });
+  }
+
+  try {
+    const apiKey = 'R7I0zjR1VKm8bGjuDyptuKbOobYnqoKu'; 
+    const apiSecret = 'unDRSQSWZtYDRwS8';
+    const tokenUrl = 'https://test.api.amadeus.com/v1/security/oauth2/token';
+    const apiUrl = 'https://test.api.amadeus.com/v2/shopping/flight-offers';
+
+    // Get access token
+    const tokenResponse = await axios.post(
+      tokenUrl,
+      new URLSearchParams({
+        grant_type: 'client_credentials',
+        client_id: apiKey,
+        client_secret: apiSecret,
+      }),
+      {
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+      }
+    );
+
+    const accessToken = tokenResponse.data.access_token;
+
+    // Fetch flight offers
+    const flightResponse = await axios.get(apiUrl, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`, // Corrected syntax here
+      },
+      params: {
+        originLocationCode: origin,
+        destinationLocationCode: destination,
+        departureDate: departureDate,
+        returnDate: arrivalDate, // Include the arrival date as return date
+        adults: 1, // Adjust as needed
+      },
+    });
+
+    const flights = flightResponse.data.data;
+
+    // Check if flights are found
+    if (!flights || flights.length === 0) {
+      return res.status(404).json({ msg: "No flights found for the given criteria." });
+    }
+
+    // Return the flights in the response
+    res.status(200).json(flights);
+  } catch (error) {
+    console.error('Error fetching flights:', error);
+    res.status(500).json({ msg: "An error occurred while fetching flights.", error: error.message });
+  }
+};*/
 
 const viewBookedItineraries = async (req, res) => {
   const { touristUsername } = req.query; // Get the tourist's username from the query parameters
@@ -2920,4 +3148,4 @@ const GetCopyLink = (req, res) => {
 };
 
 
-module.exports = {createTourist, getTourist, updateTourist, searchProductTourist, filterActivities, filterProductByPriceTourist, ActivityRating, sortProductsDescendingTourist, sortProductsAscendingTourist, ViewAllUpcomingActivities, ViewAllUpcomingMuseumEventsTourist, getMuseumsByTagTourist, getHistoricalPlacesByTagTourist, ViewAllUpcomingHistoricalPlacesEventsTourist,viewProductsTourist, sortActivitiesPriceAscendingTourist, sortActivitiesPriceDescendingTourist, sortActivitiesRatingAscendingTourist, sortActivitiesRatingDescendingTourist, loginTourist, ViewAllUpcomingItinerariesTourist, sortItinerariesPriceAscendingTourist, sortItinerariesPriceDescendingTourist, filterItinerariesTourist, ActivitiesSearchAll, ItinerarySearchAll, MuseumSearchAll, HistoricalPlacesSearchAll, ProductRating, createComplaint, getComplaintsByTouristUsername,ChooseActivitiesByCategoryTourist,bookActivity,bookItinerary,bookMuseum,bookHistoricalPlace, ratePurchasedProduct, addPurchasedProducts, reviewPurchasedProduct, addCompletedItinerary, rateTourGuide, commentOnTourGuide, rateCompletedItinerary, commentOnItinerary, addCompletedActivities, addCompletedMuseumEvents, addCompletedHPEvents, rateCompletedActivity, rateCompletedMuseum, rateCompletedHP, commentOnActivity, commentOnMuseum, commentOnHP,deleteBookedActivity,deleteBookedItinerary,deleteBookedMuseum,deleteBookedHP,payActivity,updateWallet,updatepoints,payItinerary,payMuseum,payHP,redeemPoints, convertEgp, fetchFlights,viewBookedItineraries, requestDeleteAccountTourist,convertCurr,getActivityDetails,getHistoricalPlaceDetails,getMuseumDetails,GetCopyLink};
+module.exports = {createTourist, getTourist, updateTourist, searchProductTourist, filterActivities, filterProductByPriceTourist, ActivityRating, sortProductsDescendingTourist, sortProductsAscendingTourist, ViewAllUpcomingActivities, ViewAllUpcomingMuseumEventsTourist, getMuseumsByTagTourist, getHistoricalPlacesByTagTourist, ViewAllUpcomingHistoricalPlacesEventsTourist,viewProductsTourist, sortActivitiesPriceAscendingTourist, sortActivitiesPriceDescendingTourist, sortActivitiesRatingAscendingTourist, sortActivitiesRatingDescendingTourist, loginTourist, ViewAllUpcomingItinerariesTourist, sortItinerariesPriceAscendingTourist, sortItinerariesPriceDescendingTourist, filterItinerariesTourist, ActivitiesSearchAll, ItinerarySearchAll, MuseumSearchAll, HistoricalPlacesSearchAll, ProductRating, createComplaint, getComplaintsByTouristUsername,ChooseActivitiesByCategoryTourist,bookActivity,bookItinerary,bookMuseum,bookHistoricalPlace, ratePurchasedProduct, addPurchasedProducts, reviewPurchasedProduct, addCompletedItinerary, rateTourGuide, commentOnTourGuide, rateCompletedItinerary, commentOnItinerary, addCompletedActivities, addCompletedMuseumEvents, addCompletedHPEvents, rateCompletedActivity, rateCompletedMuseum, rateCompletedHP, commentOnActivity, commentOnMuseum, commentOnHP,deleteBookedActivity,deleteBookedItinerary,deleteBookedMuseum,deleteBookedHP,payActivity,updateWallet,updatepoints,payItinerary,payMuseum,payHP,redeemPoints, convertEgp, fetchFlights,viewBookedItineraries, requestDeleteAccountTourist,convertCurr,getActivityDetails,getHistoricalPlaceDetails,getMuseumDetails,GetCopyLink, bookFlight};

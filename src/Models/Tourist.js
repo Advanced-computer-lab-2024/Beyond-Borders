@@ -137,34 +137,13 @@ const TouristSchema = new Schema({
   BookedFlights: [
     {
       flightID: {
-        type: Number,
-        required: false
-      }
-    },
-    {
-      origin: {
         type: String,
         required: false
-      }
-    },
-    {
-      destination: {
-        type: String,
+      },
+      flightDetails: {
+        type: Object,
         required: false
       }
-    },
-    {
-      departureDate: {
-        type: Date,
-        required: false
-      }
-    },
-    {
-      ArrivalDate: {
-        type: Date,
-        required: false
-      }
-
     }
   ]
 
