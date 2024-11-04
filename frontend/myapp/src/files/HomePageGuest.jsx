@@ -5,158 +5,141 @@ const HomePageGuest = () => {
   const [activities, setActivities] = useState([]);
   const [museums, setMuseums] = useState([]);
   const [itineraries, setItineraries] = useState([]);
-  const [historicalPlaces, setHistoricalPlaces] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [modalType, setModalType] = useState(null);
+  const [modalType, setModalType] = useState(null); // Tracks which modal is open
+  const [expandedItems, setExpandedItems] = useState({});
+  const [tags, setTags] = useState('');
 
   const openModal = (type) => setModalType(type);
   const closeModal = () => setModalType(null);
 
-  
-  const displayMuseums = async () => {
+  // Fetch Activities
+  const fetchActivities = async () => {
     setLoading(true);
     setError('');
     try {
-      const response = await axios.get('/api/museums');
-      if (response.status === 200) {
-        setMuseums(response.data);
-        openModal('museums');
-      } else {
-        setError('Failed to load museums');
-      }
-    } catch (error) {
-      setError('Error fetching museums');
-    } finally {
-      setLoading(false);
-    }
-  };
-  
-
-
-  const displayActivities = async (endpoint) => {
-    setLoading(true);
-    setError('');
-    try {
-      const response = await axios.get(endpoint);
-      if (response.status === 200) {
-        setActivities(response.data);
-        openModal('activities');
-      } else {
-        setError('Failed to load activities');
-      }
-    } catch (error) {
+      const response = await axios.get('/api/ViewAllUpcomingActivitiesGuest');
+      setActivities(response.data);
+      openModal('activities');
+    } catch {
       setError('Error fetching activities');
     } finally {
       setLoading(false);
     }
   };
 
-  const displayHistoricalPlaces = async (endpoint) => {
+  // Fetch Museums
+  const fetchMuseums = async () => {
     setLoading(true);
     setError('');
     try {
-      const response = await axios.get(endpoint);
-      if (response.status === 200) {
-        setHistoricalPlaces(response.data);
-        openModal('historicalPlaces');
-      } else {
-        setError('Failed to load historical places');
-      }
-    } catch (error) {
-      setError('Error fetching historical places');
+      const response = await axios.get('/api/ViewAllUpcomingMuseumEventsGuest');
+      setMuseums(response.data);
+      openModal('museums');
+    } catch {
+      setError('Error fetching museums');
     } finally {
       setLoading(false);
     }
   };
-  
 
-  const sortActivities = (criterion, order) => {
-    const sortedData = [...activities].sort((a, b) => {
-      if (criterion === 'Price') {
-        return order === 'Ascending' ? a.Price - b.Price : b.Price - a.Price;
-      } else if (criterion === 'Rating') {
-        return order === 'Ascending' ? a.Rating - b.Rating : b.Rating - a.Rating;
-      }
-      return 0;
-    });
-    setActivities(sortedData);
-  };
-  
-  
-
-  const displayItineraries = async (endpoint) => {
+  // Fetch Itineraries
+  const fetchItineraries = async () => {
     setLoading(true);
     setError('');
     try {
-        const response = await axios.get(endpoint);
-        console.log("API response for itineraries:", response.data); // Log response data
-        if (response.status === 200) {
-            const sortedData = response.data.sort((a, b) => a.Price - b.Price); // Default sorting by price ascending
-            setItineraries(sortedData);
-            openModal('itineraries'); // Open modal after data is set and sorted
-        } else {
-            setError('Failed to load itineraries');
-        }
-    } catch (error) {
-        setError('Error fetching itineraries');
+      const response = await axios.get('/api/ViewAllUpcomingItinerariesGuest');
+      setItineraries(response.data);
+      openModal('itineraries');
+    } catch {
+      setError('Error fetching itineraries');
     } finally {
-        setLoading(false);
+      setLoading(false);
     }
-};
+  };
 
-
-const sortItineraries = (order) => {
-  const sortedData = [...itineraries].sort((a, b) => {
-    return order === 'Ascending' ? a.Price - b.Price : b.Price - a.Price;
-  });
-  setItineraries(sortedData);
-};
-
-
-  const filterActivities = async (filters) => {
+  const applyTagFilter = async () => {
     setLoading(true);
+    setError('');
+    try {
+      const tagsArray = tags.split(',').map(tag => tag.trim()).filter(tag => tag);
+      const response = await axios.post('/api/getMuseumsByTagGuest', { tags: tagsArray });
+      if (response.status === 200) {
+        setMuseums(response.data);
+      } else {
+        setError(response.data.error || 'Failed to filter museums');
+      }
+    } catch (err) {
+      console.error(err);
+      setError('Error filtering museums');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const applyFilters = async (filters) => {
+    setLoading(true);
+    setError('');
     try {
       const response = await axios.post('/api/filterActivities', filters);
-      if (response.status === 200) {
-        setActivities(response.data);
-        openModal('activities');
-      } else {
-        setError('Failed to filter activities');
-      }
-    } catch (error) {
-      setError('Error filtering activities');
+      setActivities(response.data);
+    } catch {
+      setError('Error applying filters');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleActivityFilterSubmit = (e) => {
-    e.preventDefault();
-    const filters = {
-      Category: e.target.category.value || undefined,
-      minPrice: e.target.minPrice.value ? parseFloat(e.target.minPrice.value) : undefined,
-      maxPrice: e.target.maxPrice.value ? parseFloat(e.target.maxPrice.value) : undefined,
-      InputDate: e.target.InputDate.value || undefined,
-      Rating: e.target.Rating.value ? parseInt(e.target.Rating.value) : undefined
-    };
-    filterActivities(filters);
+  const applyItineraryFilters = async (filters) => {
+    setLoading(true);
+    try {
+      const response = await axios.post('/api/filterItinerariesTourist', filters);
+      setItineraries(response.data);
+      openModal('itineraries');
+    } catch {
+      setError('Error applying filters to itineraries');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const sortActivities = (criterion, order) => {
+    const sortedActivities = [...activities].sort((a, b) => {
+      if (criterion === 'Price') return order === 'Ascending' ? a.Price - b.Price : b.Price - a.Price;
+      if (criterion === 'Rating') return order === 'Ascending' ? a.Rating - b.Rating : b.Rating - a.Rating;
+      return 0;
+    });
+    setActivities(sortedActivities);
+  };
+
+  const sortItineraries = (order) => {
+    const sortedItineraries = [...itineraries].sort((a, b) => {
+      return order === 'Ascending' ? a.Price - b.Price : b.Price - a.Price;
+    });
+    setItineraries(sortedItineraries);
+  };
+
+  const toggleDetails = (index) => {
+    setExpandedItems((prev) => ({
+      ...prev,
+      [index]: !prev[index]
+    }));
   };
 
   return (
     <div style={styles.container}>
       <header style={styles.header}>
         <h1 style={styles.headerTitle}>Beyond Borders</h1>
-        <nav>
-          <ul style={styles.navList}>
-            <li><a href="#" style={styles.navLink} onClick={() => displayActivities('/api/ViewAllUpcomingActivitiesGuest')}>View All Activities</a></li>
-            <li><a href="#" style={styles.navLink} onClick={displayMuseums}>View All Museums</a></li>
-            <li><a href="#" style={styles.navLink} onClick={() => openModal('itineraries')}>View All Itineraries</a></li>
-            {/* <li><a href="#" style={styles.navLink} onClick={() => openModal('historicalPlaces')}>View All Historical Places</a></li> */}
-            <li><a href="#" style={styles.navLink} onClick={() => displayHistoricalPlaces('/api/ViewAllUpcomingHistoricalPlacesEventsGuest')}>View All Historical Places</a></li>
-
-          </ul>
-        </nav>
+        <button style={styles.button} onClick={fetchActivities}>
+          View All Activities
+        </button>
+        <button style={styles.button} onClick={fetchMuseums}>
+          View All Museums
+        </button>
+        <button style={styles.button} onClick={fetchItineraries}>
+          View All Itineraries
+        </button>
       </header>
 
       <div style={styles.mainContent}>
@@ -165,40 +148,87 @@ const sortItineraries = (order) => {
 
         {/* Activities Modal */}
         {modalType === 'activities' && (
-  <Modal onClose={closeModal} title="Activities">
-    <form onSubmit={handleActivityFilterSubmit}>
-      <input type="text" name="category" placeholder="Category" />
-      <input type="number" name="minPrice" placeholder="Min Price" />
-      <input type="number" name="maxPrice" placeholder="Max Price" />
-      <input type="date" name="InputDate" />
-      <input type="number" name="Rating" min="1" max="5" placeholder="Rating (1-5)" />
-      <button type="submit">Apply Filter</button>
-    </form>
-    <button onClick={() => sortActivities('Price', 'Descending')}>Sort by Price Descending</button>
-    <button onClick={() => sortActivities('Price', 'Ascending')}>Sort by Price Ascending</button>
-    <button onClick={() => sortActivities('Rating', 'Descending')}>Sort by Rating Descending</button>
-    <button onClick={() => sortActivities('Rating', 'Ascending')}>Sort by Rating Ascending</button>
-    <ContentList items={activities} />
-  </Modal>
-)}
-
-        {modalType === 'historicalPlaces' && (
-  <Modal onClose={closeModal} title="Historical Places">
-    <ContentList items={historicalPlaces} />
-  </Modal>
-)}
-      {modalType === 'museums' && (
-          <Modal onClose={closeModal} title="Museums">
-            <ContentList items={museums} />
+          <Modal onClose={closeModal} title="Upcoming Activities">
+            <ActivityFilters onApply={applyFilters} />
+            <button style={styles.button} onClick={() => sortActivities('Price', 'Descending')}>Sort by Price (Descending)</button>
+            <button style={styles.button} onClick={() => sortActivities('Price', 'Ascending')}>Sort by Price (Ascending)</button>
+            <button style={styles.button} onClick={() => sortActivities('Rating', 'Descending')}>Sort by Rating (Descending)</button>
+            <button style={styles.button} onClick={() => sortActivities('Rating', 'Ascending')}>Sort by Rating (Ascending)</button>
+            {activities.length > 0 ? <ContentList items={activities} /> : <p>No activities found.</p>}
           </Modal>
         )}
 
+        {/* Museums Modal */}
+        {modalType === 'museums' && (
+          <Modal onClose={closeModal} title="Upcoming Museum Events">
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                applyTagFilter();
+              }}
+              style={styles.form}
+            >
+              <label>Filter by Tags (comma-separated):</label>
+              <input
+                type="text"
+                value={tags}
+                onChange={(e) => setTags(e.target.value)}
+                placeholder="Enter tags"
+                style={styles.input}
+              />
+              <button style={styles.button} type="submit">Apply Tag Filter</button>
+            </form>
+
+            <div style={styles.activitiesList}>
+              {museums.map((item, index) => (
+                <div key={index} style={styles.activityItem}>
+                  <h3 style={styles.title}>{item.Name || item.Title || 'Unnamed Museum'}</h3>
+                  <button style={styles.button} onClick={() => toggleDetails(index)}>
+                    {expandedItems[index] ? 'Hide Details' : 'View Details'}
+                  </button>
+                  {expandedItems[index] && (
+                    <div style={styles.details}>
+                      {item.description && <p><strong>Description:</strong> {item.description}</p>}
+                      {item.pictures && (
+                        <p>
+                          <strong>Pictures:</strong> {item.pictures.join(', ')}
+                        </p>
+                      )}
+                      {item.Location && <p><strong>Location:</strong> {item.Location}</p>}
+                      {item.OpeningHours && <p><strong>Opening Hours:</strong> {item.OpeningHours}</p>}
+                      {item.TicketPrices && (
+                        <p>
+                          <strong>Ticket Prices:</strong>
+                          <ul>
+                            {item.TicketPrices.foreigner && <li>Foreigner: ${item.TicketPrices.foreigner}</li>}
+                            {item.TicketPrices.native && <li>Native: ${item.TicketPrices.native}</li>}
+                            {item.TicketPrices.student && <li>Student: ${item.TicketPrices.student}</li>}
+                          </ul>
+                        </p>
+                      )}
+                      {item.author && <p><strong>Author:</strong> {item.author}</p>}
+                      {item.HistoricalTags && (
+                        <p><strong>Historical Tags:</strong> {item.HistoricalTags.join(', ')}</p>
+                      )}
+                      {item.dateOfEvent && (
+                        <p><strong>Date of Event:</strong> {new Date(item.dateOfEvent).toLocaleDateString()}</p>
+                      )}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </Modal>
+        )}
 
         {/* Itineraries Modal */}
         {modalType === 'itineraries' && (
-          <Modal onClose={closeModal} title="Itineraries">
-            <button onClick={() => sortItineraries('Descending')}>Sort by Price Descending</button>
-            <button onClick={() => sortItineraries('Ascending')}>Sort by Price Ascending</button>
+          <Modal onClose={closeModal} title="Upcoming Itinerary Events">
+            <ItineraryFilters onApply={applyItineraryFilters} />
+            <div style={styles.sortingButtons}>
+              <button style={styles.button} onClick={() => sortItineraries('Descending')}>Sort by Price (Descending)</button>
+              <button style={styles.button} onClick={() => sortItineraries('Ascending')}>Sort by Price (Ascending)</button>
+            </div>
             <ContentList items={itineraries} />
           </Modal>
         )}
@@ -207,37 +237,91 @@ const sortItineraries = (order) => {
   );
 };
 
+// Reusable Modal Component
 const Modal = ({ onClose, title, children }) => (
   <div style={styles.modal}>
     <div style={styles.modalContent}>
-      <span style={styles.close} onClick={onClose}>&times;</span>
+      <span style={styles.close} onClick={onClose}>
+        &times;
+      </span>
       <h2>{title}</h2>
       {children}
     </div>
   </div>
 );
 
+// Activity Filters Component
+const ActivityFilters = ({ onApply }) => {
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    const filters = {
+      category: e.target.category.value,
+      minPrice: e.target.minPrice.value ? parseFloat(e.target.minPrice.value) : undefined,
+      maxPrice: e.target.maxPrice.value ? parseFloat(e.target.maxPrice.value) : undefined,
+      date: e.target.date.value,
+      rating: e.target.rating.value ? parseInt(e.target.rating.value) : undefined
+    };
+    onApply(filters);
+  };
 
+  return (
+    <form onSubmit={handleSubmit} style={styles.filterForm}>
+      <label>Category:</label>
+      <input type="text" name="category" placeholder="Enter category" style={styles.input} />
+      <label>Min Price:</label>
+      <input type="number" name="minPrice" placeholder="Minimum Price" style={styles.input} />
+      <label>Max Price:</label>
+      <input type="number" name="maxPrice" placeholder="Maximum Price" style={styles.input} />
+      <label>Date:</label>
+      <input type="date" name="date" style={styles.input} />
+      <label>Rating:</label>
+      <input type="number" name="rating" min="1" max="5" placeholder="Rating" style={styles.input} />
+      <button style={styles.button} type="submit">Apply Filter</button>
+    </form>
+  );
+};
+
+// Itinerary Filters Component
+const ItineraryFilters = ({ onApply }) => {
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    const filters = {
+      Language: e.target.language.value,
+      MinPrice: e.target.minPrice.value ? parseFloat(e.target.minPrice.value) : undefined,
+      MaxPrice: e.target.maxPrice.value ? parseFloat(e.target.maxPrice.value) : undefined,
+      InputDate: e.target.InputDate.value,
+      Tags: e.target.tags.value.split(',').map(tag => tag.trim()).filter(tag => tag)
+    };
+    onApply(filters);
+  };
+
+  return (
+    <form onSubmit={handleSubmit} style={styles.filterForm}>
+      <input type="text" name="language" placeholder="Language" style={styles.input} />
+      <input type="number" name="minPrice" placeholder="Min Price" style={styles.input} />
+      <input type="number" name="maxPrice" placeholder="Max Price" style={styles.input} />
+      <input type="date" name="InputDate" style={styles.input} />
+      <input type="text" name="tags" placeholder="Tags (comma-separated)" style={styles.input} />
+      <button style={styles.button} type="submit">Apply Filter</button>
+    </form>
+  );
+};
+
+// Content List Component for Activities
 const ContentList = ({ items }) => (
   <div style={styles.activitiesList}>
-    {items.length === 0 ? (
-      <p>No items found.</p>
-    ) : (
-      items.map((item, index) => (
-        <div key={index} style={styles.activityItem}>
-          <h3>{item.Name || item.name || item.Title}</h3>
-          {item.Date && <p>Date: {new Date(item.Date).toLocaleDateString()}</p>}
-          {item.Time && <p>Time: {item.Time}</p>}
-          {item.Price && <p>Price: ${item.Price}</p>}
-          {item.Location?.address && <p>Location: {item.Location.address}</p>}
-          {item.description && <p>Description: {item.description}</p>}
-          {/* Additional fields as needed */}
-        </div>
-      ))
-    )}
+    {items.map((item, index) => (
+      <div key={index} style={styles.activityItem}>
+        <h3>{item.Name || item.Title}</h3>
+        {item.Price && <p>Price: ${item.Price}</p>}
+        {item.Rating && <p>Rating: {item.Rating}</p>}
+        {item.Date && <p>Date: {new Date(item.Date).toLocaleDateString()}</p>}
+      </div>
+    ))}
   </div>
 );
 
+// Styling
 const styles = {
   container: {
     maxWidth: '800px',
@@ -260,14 +344,16 @@ const styles = {
     margin: 0,
     fontSize: '24px'
   },
-  navList: {
-    listStyle: 'none',
-    display: 'flex',
-    gap: '20px'
-  },
-  navLink: {
-    color: '#fff',
-    textDecoration: 'none'
+  button: {
+    backgroundColor: '#40be5b',
+    color: 'white',
+    padding: '10px 20px',
+    border: 'none',
+    borderRadius: '4px',
+    cursor: 'pointer',
+    fontSize: '16px',
+    transition: 'background-color 0.3s',
+    margin: '5px 0'
   },
   mainContent: {
     textAlign: 'left'
@@ -281,30 +367,29 @@ const styles = {
     left: 0,
     width: '100%',
     height: '100%',
-    backgroundColor: 'rgba(0,0,0,0.7)', // Slightly darker overlay for better focus
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
-    zIndex: 1000 // Ensure it appears above other elements
+    zIndex: 1000
   },
   modalContent: {
     backgroundColor: '#fefefe',
     padding: '20px',
     width: '90%',
     maxWidth: '800px',
-    maxHeight: '90vh', // Set max height for scrolling
-    overflowY: 'auto',  // Enables scrolling within the modal content
+    maxHeight: '90vh',
+    overflowY: 'auto',
     borderRadius: '8px',
     boxShadow: '0 0 15px rgba(0, 0, 0, 0.3)'
   },
   close: {
     fontSize: '24px',
     cursor: 'pointer',
-    alignSelf: 'flex-end',
     position: 'absolute',
     top: '15px',
     right: '20px',
-    color: '#000',
+    color: '#000'
   },
   activitiesList: {
     marginTop: '15px'
@@ -314,13 +399,27 @@ const styles = {
     padding: '10px',
     margin: '10px 0',
     borderRadius: '5px',
-    backgroundColor: '#f9f9f9',
+    backgroundColor: '#f9f9f9'
+  },
+  input: {
+    padding: '10px',
+    margin: '10px 0',
+    width: '100%',
+    boxSizing: 'border-box'
   },
   details: {
     marginTop: '10px',
     padding: '10px',
-    borderTop: '1px solid #ddd',
+    borderTop: '1px solid #ddd'
   },
+  sortingButtons: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    marginTop: '10px'
+  },
+  filterForm: {
+    marginBottom: '10px'
+  }
 };
 
 export default HomePageGuest;
