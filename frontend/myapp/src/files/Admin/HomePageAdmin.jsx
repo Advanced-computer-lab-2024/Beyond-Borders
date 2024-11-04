@@ -86,6 +86,38 @@ function HomePageAdmin() {
   };
 
 
+  const sortComplaintsByRecent = async () => {
+    try {
+      const response = await axios.get('/sortComplaintsByRecent');
+      if (response.status === 200) {
+        setFilteredComplaints(response.data); // Update with sorted complaints by recent
+        setActiveModal('filteredComplaints'); // Set to display sorted complaints
+      } else {
+        alert('Failed to sort complaints by recent.');
+      }
+    } catch (error) {
+      alert('An error occurred while sorting complaints by recent.');
+      console.error(error);
+    }
+  };
+  
+  const sortComplaintsByOldest = async () => {
+    try {
+      const response = await axios.get('/sortComplaintsByOldest');
+      if (response.status === 200) {
+        setFilteredComplaints(response.data); // Update with sorted complaints by oldest
+        setActiveModal('filteredComplaints'); // Set to display sorted complaints
+      } else {
+        alert('Failed to sort complaints by oldest.');
+      }
+    } catch (error) {
+      alert('An error occurred while sorting complaints by oldest.');
+      console.error(error);
+    }
+  };
+  
+
+
   const handleFilterComplaints = async () => {
     try {
         const response = await axios.post('http://localhost:8000/api/filterComplaintsByStatus', { Status: statusFilter });
@@ -247,6 +279,24 @@ function HomePageAdmin() {
         </Button>
 
 
+                <Button 
+          variant="contained" 
+          onClick={sortComplaintsByRecent} 
+          sx={{ backgroundColor: '#4CAF50', color: 'white', marginRight: '10px' }}
+        >
+          Sort by Most Recent
+        </Button>
+
+        <Button 
+          variant="contained" 
+          onClick={sortComplaintsByOldest} 
+          sx={{ backgroundColor: '#4CAF50', color: 'white' }}
+        >
+          Sort by Oldest
+        </Button>
+
+
+
 
 
 
@@ -308,9 +358,7 @@ function HomePageAdmin() {
       )}
 
 
- {/* Admin Product Modal */}
-{/* Admin Product Modal */}
-{/* Admin Product Modal */}
+ 
 {activeModal === 'viewAllProducts' || activeModal === 'filteredProducts' || activeModal === 'searchResults' || activeModal === 'sortedProducts' ? (
         <AdminProductModal
           filteredProducts={activeModal === 'filteredProducts' || activeModal === 'searchResults' || activeModal === 'sortedProducts' ? filteredResults : null}
@@ -344,13 +392,17 @@ function HomePageAdmin() {
 
 
 
-      {/* Filtered Complaints Modal */}
-      {activeModal === 'filteredComplaints' && (
-        <AdminComplaintsModal
-          complaints={filteredComplaints} // Pass filtered complaints to modal
-          onClose={() => setActiveModal(null)}
-        />
-      )}
+     {/* Complaints Modal Handling Similar to Products */} 
+{activeModal === 'viewAllComplaints' || activeModal === 'filteredComplaints' || activeModal === 'searchResults' || activeModal === 'sortedComplaints' ? (
+  <AdminComplaintsModal
+    filteredComplaints={
+      activeModal === 'filteredComplaints' || activeModal === 'searchResults' || activeModal === 'sortedComplaints'
+        ? filteredComplaints
+        : null
+    }
+    onClose={() => setActiveModal(null)}
+  />
+) : null}
 
       {/* Error Modal */}
       {activeModal === 'error' && (

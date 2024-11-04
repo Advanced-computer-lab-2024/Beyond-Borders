@@ -10,14 +10,17 @@ function AdminComplaintsModal({ filteredComplaints, onClose }) {
   const [activeModal, setActiveModal] = useState('complaints');
   const navigate = useNavigate();
 
-  useEffect(() => {
-    // If filtered complaints are provided, use them; otherwise, fetch all complaints
-    if (filteredComplaints) {
-      setComplaints(filteredComplaints);
-    } else {
-      fetchComplaints();
-    }
-  }, [filteredComplaints]);
+  
+   
+  
+    useEffect(() => {
+      // Use filtered complaints if provided, otherwise fetch all complaints
+      if (filteredComplaints) {
+        setComplaints(filteredComplaints);
+      } else {
+        fetchComplaints();
+      }
+    }, [filteredComplaints]);
 
   const fetchComplaints = async () => {
     try {
