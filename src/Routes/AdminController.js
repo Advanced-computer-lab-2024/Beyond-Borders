@@ -13,6 +13,10 @@ const NewUnregisteredTourGuideModel = require('../Models/UnregisteredTourGuide.j
 const NewAcceptedTourGuideModel = require('../Models/TourGuide.js');
 const NewUnregisteredAdvertiserModel = require('../Models/UnregisteredAdvertiser.js');
 const NewAcceptedAdvertiserModel = require('../Models/Advertiser.js');
+
+const NewUnregisteredTransportationAdvertiserModel = require('../Models/UnregisteredTranspAdvertiser.js');
+const NewAcceptedTransportationAdvertiserModel = require('../Models/TransportationAdvertiser.js');
+
 const ItineraryrModel = require('../Models/Itinerary.js');
 const ComplaintsModel = require('../Models/Complaints.js');
 const ArchivedProductsModel = require('../Models/ArchivedProducts.js');
@@ -181,6 +185,31 @@ const acceptTourGuide = async (req, res) => {
     }
  };
 
+ const acceptTranspAdvertiser = async (req, res) => {
+    const {AdvertiserUsername} = req.body;
+ 
+    try {
+        // Find the unregistered seller by ID
+        const existingUser = await NewUnregisteredTransportationAdvertiserModel.findOne({Username: AdvertiserUsername});
+        
+        if (existingUser) {
+            // Create a new accepted seller with the existing user's details
+            const {Username,Email,Password,CompanyName,Website,Hotline,CompanyProfile} = existingUser; 
+            const createdSeller = await NewAcceptedTransportationAdvertiserModel.create({Username,Email,Password,CompanyName,Website,Hotline,CompanyProfile});
+            // Delete the unregistered seller
+            await NewUnregisteredTransportationAdvertiserModel.findOneAndDelete({Username: AdvertiserUsername});
+            // Respond with success message
+            res.status(200).json({ msg: "Transportation Advertiser has been accepted!" });
+        } else {
+            res.status(404).json({ error: "Unregistered Transportation Advertiser not found." });
+        }
+    } catch (error) {
+        // Handle any errors that occur during the process
+        res.status(400).json({ error: error.message });
+    }
+ };
+
+
 const rejectSeller = async (req, res) => {
    const { UnregisteredSellerID } = req.body;
 
@@ -246,6 +275,30 @@ const rejectTourGuide = async (req, res) => {
             res.status(200).json({ msg: "Advertiser has been rejected!" });
         } else {
             res.status(404).json({ error: "Advertiser not found." });
+        }
+    } catch (error) {
+        // Handle any errors that occur during the process
+        res.status(400).json({ error: error.message });
+    }
+ };
+
+ const rejectTranspAdvertiser = async (req, res) => {
+    const {AdvertiserUsername} = req.body;
+ 
+    try {
+        // Find the unregistered seller by ID
+        const existingUser = await NewUnregisteredTransportationAdvertiserModel.findOne({Username: AdvertiserUsername});
+        
+        if (existingUser) {
+             // Extract Username
+             const {Username} = existingUser;
+             await AllUsernamesModel.findOneAndDelete({Username});
+            // Delete the unregistered seller
+            await NewUnregisteredTransportationAdvertiserModel.findOneAndDelete({Username: AdvertiserUsername});
+            // Respond with success message
+            res.status(200).json({ msg: "Transportation Advertiser has been rejected!" });
+        } else {
+            res.status(404).json({ error: "Transportation Advertiser not found." });
         }
     } catch (error) {
         // Handle any errors that occur during the process
@@ -970,4 +1023,4 @@ const flagItinerary = async (req, res) => {
 
 module.exports = {createNewAdmin, createNewTourismGoverner, createNewProduct, editProduct, acceptSeller, rejectSeller, createNewCategory, readAllActivityCategories, updateCategory, deleteActivityCategory, deleteAccount, searchProductAdmin, createNewTag, readAllTags, updateTag, deleteTag, 
     acceptTourGuide, rejectTourGuide, acceptAdvertiser, rejectAdvertiser, filterProductByPriceAdmin, sortProductsDescendingAdmin, sortProductsAscendingAdmin,viewProducts, loginAdmin, viewAllProductsAdmin, updateAdminPassword, getAllComplaints, updateComplaintStatus, replyToComplaint, getComplaintDetails, 
-    filterComplaintsByStatus, sortComplaintsByRecent, sortComplaintsByOldest, archiveProduct, unarchiveProduct, flagItinerary, flagActivity, viewArchivedProductsAdmin , viewAllActivitiesAdmin ,viewAllItinerariesAdmin};
+    filterComplaintsByStatus, sortComplaintsByRecent, sortComplaintsByOldest, archiveProduct, unarchiveProduct, flagItinerary, flagActivity, viewArchivedProductsAdmin , viewAllActivitiesAdmin ,viewAllItinerariesAdmin,acceptTranspAdvertiser,rejectTranspAdvertiser};
