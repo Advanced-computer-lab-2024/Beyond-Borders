@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { Box, Button, Typography, Modal, TextField } from '@mui/material';
+import { Box, Button, Typography, Modal, TextField, Select, MenuItem, FormControl, InputLabel } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import AdminProductModal from './AdminProductModal';
 import AdminItineraryModal from './AdminItineraryModal';
+import AdminComplaintsModal from './AdminComplaintsModal';
 
 function HomePageAdmin() {
   const [activeModal, setActiveModal] = useState(null);
@@ -15,6 +16,8 @@ function HomePageAdmin() {
   const [filteredResults, setFilteredResults] = useState([]);
   const [tagName, setTagName] = useState(''); // New state for tag name
   const [categoryName, setCategoryName] = useState('');
+  const [statusFilter, setStatusFilter] = useState(''); // State for complaint status filter
+  const [filteredComplaints, setFilteredComplaints] = useState([]);
   const navigate = useNavigate();
 
  
@@ -81,6 +84,24 @@ function HomePageAdmin() {
       alert('An error occurred while sorting products.');
     }
   };
+
+
+  const handleFilterComplaints = async () => {
+    try {
+        const response = await axios.post('http://localhost:8000/api/filterComplaintsByStatus', { Status: statusFilter });
+        if (response.data && response.data.length > 0) {
+            setFilteredComplaints(response.data);
+            setActiveModal('filteredComplaints');
+        } else {
+            alert('No complaints found with the selected status.');
+        }
+    } catch (error) {
+        alert('An error occurred while filtering complaints.');
+        console.error(error);
+    }
+};
+
+
 
   const saveNewTag = async () => {
     if (!tagName.trim()) {
@@ -176,6 +197,7 @@ function HomePageAdmin() {
         <Button sx={styles.button} onClick={() => navigate('/AdminAddProduct')}>Add Product</Button>
         <Button sx={styles.button} onClick={() => navigate('/AdminProductModal')}>View All Products</Button>
         <Button sx={styles.button} onClick={() => navigate('/AdminTagsModal')}>View All tags</Button>
+        <Button sx={styles.button} onClick={() => navigate('/AdminComplaintsModal')}>View All Complaints</Button>
         <Button sx={styles.button} onClick={() => navigate('/AdminActivityModal')}>View All Activity Categories</Button>
         <Button sx={styles.button} onClick={() => navigate('/AdminDeleteAccount')}>Delete account</Button>
         <Button sx={styles.button} onClick={() => setActiveModal('viewAllItineraries')}>View All Itineraries</Button>
@@ -207,7 +229,7 @@ function HomePageAdmin() {
           onChange={(e) => setMaxPrice(e.target.value)}
         />
         <Button variant="contained" onClick={handleFilter} sx={{ backgroundColor: '#4CAF50', color: 'white' }}>
-          Filter
+          Filter Products
         </Button>
 
 
@@ -222,6 +244,25 @@ function HomePageAdmin() {
 
         <Button variant="contained" onClick={sortProductsDescending} sx={{ backgroundColor: '#4CAF50', color: 'white' }}>
          Sort Descneding
+        </Button>
+
+
+
+
+
+        <FormControl fullWidth variant="outlined" sx={{ minWidth: 120 }}>
+          <InputLabel>Status</InputLabel>
+          <Select
+            label="Status"
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+          >
+            <MenuItem value="resolved">Resolved</MenuItem>
+            <MenuItem value="pending">Pending</MenuItem>
+          </Select>
+        </FormControl>
+        <Button variant="contained" onClick={handleFilterComplaints} sx={{ backgroundColor: '#4CAF50', color: 'white' }}>
+          Filter Complaints
         </Button>
       </Box>
       
@@ -299,6 +340,16 @@ function HomePageAdmin() {
             <Button variant="contained" onClick={() => setActiveModal(null)} sx={styles.doneButton}>Close</Button>
           </Box>
         </Modal>
+      )}
+
+
+
+      {/* Filtered Complaints Modal */}
+      {activeModal === 'filteredComplaints' && (
+        <AdminComplaintsModal
+          complaints={filteredComplaints} // Pass filtered complaints to modal
+          onClose={() => setActiveModal(null)}
+        />
       )}
 
       {/* Error Modal */}

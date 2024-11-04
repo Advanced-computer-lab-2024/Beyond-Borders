@@ -40,8 +40,10 @@ import AdminAddAdmin from './files/Admin/AdminAddAdmin';
 import AdminAddGov from './files/Admin/AdminAddGov';
 import AdminAddProduct from './files/Admin/AdminAddProduct';
 import AdminActivityModal from './files/Admin/AdminActivityModal';
+import AdminComplaintsModal from './files/Admin/AdminComplaintsModal';
 
 import HomePageGuest from './files/HomePageGuest';
+
 
 
 
@@ -83,6 +85,7 @@ function App() {
           <Route path="/AdminAddAdmin" element={<AdminAddAdmin/>}/>
           <Route path="/AdminAddGov" element={<AdminAddGov/>}/>
           <Route path="/AdminAddProduct" element={<AdminAddProduct/>}/>
+          <Route path="/AdminComplaintsModal" element={<AdminComplaintsModal/>}/>
          
 
 
