@@ -145,6 +145,18 @@ const TouristSchema = new Schema({
         required: false
       }
     }
+  ],
+  BookedHotels: [
+    {
+      hotelID: {
+        type: String,
+        required: false
+      },
+      hotelDetails: {
+        type: Object,
+        required: false
+      }
+    }
   ]
 
 }, { timestamps: true }); // adds Created At & Updated At fields

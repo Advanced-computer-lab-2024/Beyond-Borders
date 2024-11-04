@@ -49,7 +49,8 @@ const createTourist = async (req, res) => {
               completedItineraries: [],
               Points: 0,
               BadgeLevelOfPoints: 1,
-              BookedFlights:[]
+              BookedFlights:[],
+              BookedHotels:[]
           });
 
           // Send the created user as a JSON response with a 201 Created status
@@ -3147,5 +3148,199 @@ const GetCopyLink = (req, res) => {
   }
 };
 
+let ids = []; // Global array to store hotel IDs 
 
-module.exports = {createTourist, getTourist, updateTourist, searchProductTourist, filterActivities, filterProductByPriceTourist, ActivityRating, sortProductsDescendingTourist, sortProductsAscendingTourist, ViewAllUpcomingActivities, ViewAllUpcomingMuseumEventsTourist, getMuseumsByTagTourist, getHistoricalPlacesByTagTourist, ViewAllUpcomingHistoricalPlacesEventsTourist,viewProductsTourist, sortActivitiesPriceAscendingTourist, sortActivitiesPriceDescendingTourist, sortActivitiesRatingAscendingTourist, sortActivitiesRatingDescendingTourist, loginTourist, ViewAllUpcomingItinerariesTourist, sortItinerariesPriceAscendingTourist, sortItinerariesPriceDescendingTourist, filterItinerariesTourist, ActivitiesSearchAll, ItinerarySearchAll, MuseumSearchAll, HistoricalPlacesSearchAll, ProductRating, createComplaint, getComplaintsByTouristUsername,ChooseActivitiesByCategoryTourist,bookActivity,bookItinerary,bookMuseum,bookHistoricalPlace, ratePurchasedProduct, addPurchasedProducts, reviewPurchasedProduct, addCompletedItinerary, rateTourGuide, commentOnTourGuide, rateCompletedItinerary, commentOnItinerary, addCompletedActivities, addCompletedMuseumEvents, addCompletedHPEvents, rateCompletedActivity, rateCompletedMuseum, rateCompletedHP, commentOnActivity, commentOnMuseum, commentOnHP,deleteBookedActivity,deleteBookedItinerary,deleteBookedMuseum,deleteBookedHP,payActivity,updateWallet,updatepoints,payItinerary,payMuseum,payHP,redeemPoints, convertEgp, fetchFlights,viewBookedItineraries, requestDeleteAccountTourist,convertCurr,getActivityDetails,getHistoricalPlaceDetails,getMuseumDetails,GetCopyLink, bookFlight};
+const fetchHotelsByCity = async (req, res) => {
+  const { city } = req.body;
+
+  if (!city) {
+    return res.status(400).json({ msg: "City is required." });
+  }
+
+  try {
+    const apiKey = 'coV6zP2rQpSuABna194UYUn6PlHJet5W'; 
+    const apiSecret = 'Ge69t12kvkB4uprY';
+    const tokenUrl = 'https://test.api.amadeus.com/v1/security/oauth2/token';
+    const apiUrl = 'https://test.api.amadeus.com/v1/reference-data/locations/hotels/by-city';
+
+    // Get access token
+    const tokenResponse = await axios.post(tokenUrl, new URLSearchParams({
+      grant_type: 'client_credentials',
+      client_id: apiKey,
+      client_secret: apiSecret,
+    }), {
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    });
+
+    const accessToken = tokenResponse.data.access_token;
+
+    // Fetch hotel offers
+    const hotelResponse = await axios.get(apiUrl, {
+      headers: { Authorization: `Bearer ${accessToken}` },
+      params: { cityCode: city },
+    });
+
+    const hotels = hotelResponse.data.data;
+
+    if (!hotels || hotels.length === 0) {
+      return res.status(404).json({ msg: "No hotels found for the given criteria." });
+    }
+
+    // Clear previous ids and push new hotel IDs into the global array
+    ids = []; // Clear previous hotel IDs
+    hotels.forEach(hotel => ids.push(String(hotel.hotelId)));  // Use push to add each ID
+    console.log('Hotel IDs after fetching:', ids);
+
+    res.status(200).json(ids);
+  } catch (error) {
+    console.error('Error fetching hotels:', error.response ? error.response.data : error.message);
+    res.status(500).json({ msg: "An error occurred while fetching hotels.", error: error.message });
+  }
+};
+
+
+
+// Helper function to split ids into smaller batches
+const hotelOffers = [];
+
+const fetchHotels = async (req, res) => {
+  const { adults, checkInDate, checkOutDate } = req.body;
+
+  // Validate input
+  if (!ids.length || !checkInDate || !checkOutDate) {
+    return res.status(400).json({ msg: "Hotel IDs, check-in date, and check-out date are required." });
+  }
+
+  try {
+    const apiKey = 'coV6zP2rQpSuABna194UYUn6PlHJet5W';
+    const apiSecret = 'Ge69t12kvkB4uprY';
+    const tokenUrl = 'https://test.api.amadeus.com/v1/security/oauth2/token';
+    const apiUrl = 'https://test.api.amadeus.com/v3/shopping/hotel-offers';
+
+    // Get access token
+    const tokenResponse = await axios.post(tokenUrl, new URLSearchParams({
+      grant_type: 'client_credentials',
+      client_id: apiKey,
+      client_secret: apiSecret,
+    }), {
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    });
+
+    const accessToken = tokenResponse.data.access_token;
+
+    // Limit the ids array to the first 50 elements and join them into a comma-separated string
+    const hotelIdsString = ids.slice(0, 50).join(',');
+
+    // Fetch offers for the batch of hotel IDs
+    const hotelResponse = await axios.get(apiUrl, {
+      headers: { Authorization: `Bearer ${accessToken}` },
+      params: {
+        hotelIds: hotelIdsString,
+        checkInDate: checkInDate,
+        checkOutDate: checkOutDate,
+        adults: adults,
+      },
+    });
+
+    const offers = hotelResponse.data.data;
+
+    console.log('Offers Response:', offers); // Log the full response for debugging
+
+    if (offers && offers.length > 0) {
+      offers.forEach((offer) => {
+        if (offer.offers && offer.offers.length > 0) {
+          const roomDetails = {
+            hotelNumber: hotelOffers.length + 1,
+            price: offer.offers[0].price.total,
+            checkInDate: checkInDate,
+            checkOutDate: checkOutDate,
+            adults: adults,
+            name: offer.hotel.name,
+            cityCode: offer.hotel.cityCode,
+          };
+
+          const existingHotel = hotelOffers.find(h => h.hotelID === offer.hotel.hotelId);
+          if (existingHotel) {
+            existingHotel.roomOffers.push(roomDetails);
+          } else {
+            hotelOffers.push({
+              hotelID: offer.hotel.hotelId,
+              hotelName: offer.hotel.name,
+              roomOffers: [roomDetails],
+            });
+          }
+        } else {
+          console.log(`No offers found for hotel: ${offer.hotel.name}`);
+        }
+      });
+    } else {
+      console.log('No offers found.');
+    }
+
+    if (hotelOffers.length === 0) {
+      return res.status(404).json({ msg: "No hotel offers found for the given criteria." });
+    }
+
+    console.log('Hotel offers:', hotelOffers[0]);
+    res.status(200).json(hotelOffers);
+  } catch (error) {
+    console.error('Error fetching hotels:', error.response ? error.response.data : error.message);
+    res.status(500).json({ msg: "An error occurred while fetching hotels.", error: error.message });
+  }
+};
+
+const bookHotel = async (req, res) => {
+  const { hotelNumber, touristUsername } = req.body;
+
+  // Validate input
+  if (!touristUsername || !hotelNumber) {
+      return res.status(400).json({ msg: "Tourist username and hotel number are required." });
+  }
+
+  try {
+      // Fetch the tourist document by username
+      const tourist = await TouristModel.findOne({ Username: touristUsername });
+      if (!tourist) {
+          return res.status(404).json({ msg: "Tourist not found." });
+      }
+
+      // Convert hotelNumber to index (assuming hotelNumber is 1-based)
+      const index = parseInt(hotelNumber, 10) - 1;
+
+      // Check if index is valid
+      if (index < 0 || index >= hotelOffers.length) {
+          return res.status(404).json({ msg: "Hotel not found." });
+      }
+
+      // Fetch hotel details from hotelOffers using the calculated index
+      const hotelDetails = hotelOffers[index];
+
+      // Create the booked hotel entry
+      const bookedHotel = {
+          hotelID: hotelDetails.hotelID, // Assuming hotelDetails contains hotelID
+          hotelDetails: hotelDetails,
+      };
+
+      // Add to bookedHotels array
+      tourist.BookedHotels = tourist.BookedHotels || []; // Ensure BookedHotels array exists
+      tourist.BookedHotels.push(bookedHotel);
+
+      // Save the tourist document
+      await tourist.save();
+
+      res.status(200).json({ msg: "Hotel booked successfully!", bookedHotel });
+  } catch (error) {
+      console.error('Error booking hotel:', error);
+      res.status(500).json({ msg: "An error occurred while booking the hotel.", error: error.message });
+  }
+};
+
+
+
+
+
+
+
+module.exports = {createTourist, getTourist, updateTourist, searchProductTourist, filterActivities, filterProductByPriceTourist, ActivityRating, sortProductsDescendingTourist, sortProductsAscendingTourist, ViewAllUpcomingActivities, ViewAllUpcomingMuseumEventsTourist, getMuseumsByTagTourist, getHistoricalPlacesByTagTourist, ViewAllUpcomingHistoricalPlacesEventsTourist,viewProductsTourist, sortActivitiesPriceAscendingTourist, sortActivitiesPriceDescendingTourist, sortActivitiesRatingAscendingTourist, sortActivitiesRatingDescendingTourist, loginTourist, ViewAllUpcomingItinerariesTourist, sortItinerariesPriceAscendingTourist, sortItinerariesPriceDescendingTourist, filterItinerariesTourist, ActivitiesSearchAll, ItinerarySearchAll, MuseumSearchAll, HistoricalPlacesSearchAll, ProductRating, createComplaint, getComplaintsByTouristUsername,ChooseActivitiesByCategoryTourist,bookActivity,bookItinerary,bookMuseum,bookHistoricalPlace, ratePurchasedProduct, addPurchasedProducts, reviewPurchasedProduct, addCompletedItinerary, rateTourGuide, commentOnTourGuide, rateCompletedItinerary, commentOnItinerary, addCompletedActivities, addCompletedMuseumEvents, addCompletedHPEvents, rateCompletedActivity, rateCompletedMuseum, rateCompletedHP, commentOnActivity, commentOnMuseum, commentOnHP,deleteBookedActivity,deleteBookedItinerary,deleteBookedMuseum,deleteBookedHP,payActivity,updateWallet,updatepoints,payItinerary,payMuseum,payHP,redeemPoints, convertEgp, fetchFlights,viewBookedItineraries, requestDeleteAccountTourist,convertCurr,getActivityDetails,getHistoricalPlaceDetails,getMuseumDetails,GetCopyLink, bookFlight
+  ,fetchHotelsByCity, fetchHotels, bookHotel
+};
