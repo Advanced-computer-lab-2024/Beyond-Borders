@@ -3,6 +3,7 @@ import { Box, Button, Typography, Modal, TextField } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import AdminProductModal from './AdminProductModal';
+import AdminItineraryModal from './AdminItineraryModal';
 
 function HomePageAdmin() {
   const [activeModal, setActiveModal] = useState(null);
@@ -177,7 +178,7 @@ function HomePageAdmin() {
         <Button sx={styles.button} onClick={() => navigate('/AdminTagsModal')}>View All tags</Button>
         <Button sx={styles.button} onClick={() => navigate('/AdminActivityModal')}>View All Activity Categories</Button>
         <Button sx={styles.button} onClick={() => navigate('/AdminDeleteAccount')}>Delete account</Button>
-        
+        <Button sx={styles.button} onClick={() => setActiveModal('viewAllItineraries')}>View All Itineraries</Button>
       </Box>
 
       {/* Search and Filter Section */}
@@ -258,7 +259,12 @@ function HomePageAdmin() {
           </Box>
         </Modal>
       )}
-
+            {activeModal === 'viewAllItineraries' && (
+        <AdminItineraryModal
+          activeModal="itineraries"
+          onClose={() => setActiveModal(null)}
+        />
+      )}
 
 
  {/* Admin Product Modal */}

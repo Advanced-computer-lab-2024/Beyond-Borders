@@ -666,8 +666,8 @@ const viewProducts = async (req, res) => {
 
 const viewAllActivitiesAdmin = async (req, res) => {
     try {
-        const products = await ActivityModel.find({}).sort({ createdAt: -1 });
-        res.status(200).json(products);
+        const activities = await ActivityModel.find({}).sort({ createdAt: -1 });
+        res.status(200).json(activities);
     } catch (error) {
         res.status(400).json({ error: error.message });
     }
@@ -675,8 +675,8 @@ const viewAllActivitiesAdmin = async (req, res) => {
 
 const viewAllItinerariesAdmin = async (req, res) => {
     try {
-        const products = await ItineraryrModel.find({}).sort({ createdAt: -1 });
-        res.status(200).json(products);
+        const itineraries = await ItineraryrModel.find({}).sort({ createdAt: -1 });
+        res.status(200).json(itineraries);
     } catch (error) {
         res.status(400).json({ error: error.message });
     }
