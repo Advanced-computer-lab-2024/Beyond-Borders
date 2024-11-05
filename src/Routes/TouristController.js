@@ -3479,7 +3479,7 @@ const addPreferences = async (req, res) => {
 
 const viewMyCompletedActivities = async (req, res) => {
   // Retrieve the Username from the request query
-  const { Username } = req.body;
+  const { Username } = req.query;
 
   try {
       // Find the tourist by Username
@@ -3507,7 +3507,7 @@ const viewMyCompletedActivities = async (req, res) => {
 
 const viewMyCompletedItineraries = async (req, res) => {
   // Retrieve the Username from the request body
-  const { Username } = req.body;
+  const { Username } = req.query;
 
   try {
       // Find the tourist by Username
@@ -3536,7 +3536,7 @@ const viewMyCompletedItineraries = async (req, res) => {
 
 const viewMyCompletedMuseums = async (req, res) => {
   // Retrieve the Username from the request body
-  const { Username } = req.body;
+  const { Username } = req.query;
 
   try {
       // Find the tourist by Username
@@ -3565,7 +3565,7 @@ const viewMyCompletedMuseums = async (req, res) => {
 
 const viewMyCompletedHistoricalPlaces = async (req, res) => {
   // Retrieve the Username from the request body
-  const { Username } = req.body;
+  const { Username } = req.query;
 
   try {
       // Find the tourist by Username
