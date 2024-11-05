@@ -826,20 +826,44 @@ const getComplaintDetails = async (req, res) => {
     }
 };
 
+// const filterComplaintsByStatus = async (req, res) => {
+//     const { Status } = req.body; // Get the status from the query parameters
+
+//     try {
+//         if (!Status) {
+//             return res.status(400).json({ error: "Status is required!" });
+//         }
+//         const complaints = await ComplaintsModel.find({ Status: Status });
+//         if (complaints.length === 0) {
+//             return res.status(404).json({ error: "No complaints found with this status!" });
+//         }
+//         res.status(200).json(complaints);
+//     } catch (error) {
+//         res.status(400).json({ error: error.message });
+//     }
+// };
+
 const filterComplaintsByStatus = async (req, res) => {
-    const { Status } = req.body; // Get the status from the query parameters
+    const { Status } = req.body; // Extract status from the request body
+    const query = {}; // Initialize an empty query object
 
     try {
-        if (!Status) {
+        // Check if Status is provided and add it to the query if so
+        if (Status) {
+            query.Status = Status;
+        } else {
             return res.status(400).json({ error: "Status is required!" });
         }
-        const complaints = await ComplaintsModel.find({ Status: Status });
+
+        // Fetch complaints based on the constructed query
+        const complaints = await ComplaintsModel.find(query);
         if (complaints.length === 0) {
             return res.status(404).json({ error: "No complaints found with this status!" });
         }
         res.status(200).json(complaints);
     } catch (error) {
-        res.status(400).json({ error: error.message });
+        console.error('Error fetching complaints:', error);
+        res.status(500).json({ error: "An error occurred while fetching complaints." });
     }
 };
 
