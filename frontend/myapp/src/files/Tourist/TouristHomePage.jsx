@@ -132,20 +132,41 @@ function TouristHomePage() {
     try {
       // First API call to fetch hotels by city
       const responseByCity = await axios.post('/fetchHotelsByCity', { city: searchKeywordHotel });
-      setHotels(responseByCity.data); // Set hotel IDs or full hotel details as per your preference
-      
-      // Second API call to fetch hotels with additional parameters
+      setHotels(responseByCity.data); // Assuming the response contains hotel IDs or full details
+
+      // Second API call to fetch hotels based on additional parameters (check-in, check-out, adults)
       const responseByDetails = await axios.post('/fetchHotels', {
         checkInDate,
         checkOutDate,
         adults,
-        ids: responseByCity.data.map(hotel => hotel.id) // Assuming you get hotel IDs from the first response
+        ids: responseByCity.data.map((hotel) => hotel.id) // Assuming hotel IDs are returned in the first response
       });
-      setHotelOffers(responseByDetails.data); // Set the hotel offers to state
 
-      setErrorMessage(''); // Clear any previous error message
+      setHotelOffers(responseByDetails.data); // Set the hotel offers to the state
+      setErrorMessage(''); // Clear any previous error messages
     } catch (error) {
       setErrorMessage(error.response?.data?.msg || 'Error fetching hotels');
+    }
+  };
+
+  const handleBookHotel = async (hotelNumber) => {
+    const touristUsername = localStorage.getItem('username'); // Retrieve the username from local storage
+    console.log(touristUsername);
+    // Ensure touristUsername is available
+    if (!touristUsername) {
+      alert('You must be logged in to book a hotel.');
+      return;
+    }
+  
+    try {
+      const response = await axios.post('/bookHotel', {
+        hotelNumber,
+        touristUsername,
+      });
+      alert(response.data.msg); // Show success message
+    } catch (error) {
+      console.error('Error booking hotel:', error);
+      alert(error.response?.data?.msg || 'An error occurred.');
     }
   };
 
@@ -335,8 +356,8 @@ function TouristHomePage() {
             value={adults}
             onChange={(e) => setAdults(e.target.value)}
           />
-          <Button variant="contained" onClick={handleHotelSearch}>
-            Search
+          <Button variant="contained" onClick={handleHotelSearch} sx={{ backgroundColor: '#4CAF50', color: 'white' }}>
+            Search Hotels
           </Button>
         </Box>
       )}
@@ -344,26 +365,50 @@ function TouristHomePage() {
      {/* Display Results */}
     {errorMessage && <Typography color="error">{errorMessage}</Typography>}
     
-    {hotelOffers.length > 0 && (
-      <Box>
-      <Typography variant="h6">Hotel Offers:</Typography>
-      {hotelOffers.map((hotel, index) => (
-        <Box key={index} sx={styles.resultItem}>
-          <Typography variant="subtitle1"><strong>{hotel.hotelName}</strong></Typography>
-          {hotel.roomOffers.map((room, roomIndex) => (
-            <Box key={roomIndex} sx={{ mt: 1 }}>
-              <Typography>Price: ${room.price}</Typography>
-              <Typography>Check-in: {room.checkInDate}</Typography>
-              <Typography>Check-out: {room.checkOutDate}</Typography>
-              <Typography>Adults: {room.adults}</Typography>
-              <Typography>City Code: {room.cityCode}</Typography>
+{/* Hotel Offers Modal */}
+{hotelOffers.length > 0 && (
+  <Modal open={true} onClose={() => setHotelOffers([])}>
+    <Box sx={styles.modalContent}>
+      <Typography variant="h6" component="h2">Hotel Offers</Typography>
+      
+      {/* Scrollable container for results */}
+      <Box sx={{ ...styles.resultsContainer, maxHeight: '60vh', overflowY: 'auto' }}>
+        {hotelOffers.map((hotel, index) => (
+          <Box key={index} sx={styles.resultItem}>
+            <Typography variant="h6">{hotel.hotelName}</Typography>
+            <Box>
+              {hotel.roomOffers.map((offer, offerIndex) => (
+                <Box key={offerIndex} sx={styles.roomOffer}>
+                  <Typography variant="subtitle1">Room Number: {offer.hotelNumber}</Typography>
+                  <Typography>Price: {offer.price}</Typography>
+                  <Typography>Check-in: {offer.checkInDate}</Typography>
+                  <Typography>Check-out: {offer.checkOutDate}</Typography>
+                  <Typography>Adults: {offer.adults}</Typography>
+                  <Typography>City: {offer.cityCode}</Typography>
+                  
+                  {/* Book Now button */}
+                  <Button
+                    variant="contained"
+                    onClick={() => handleBookHotel(offer.hotelNumber)} // Pass the hotelNumber to the function
+                    sx={styles.bookNowButton}
+                  >
+                    Book Now
+                  </Button>
+                </Box>
+              ))}
             </Box>
-          ))}
-        </Box>
-      ))}
+          </Box>
+        ))}
+      </Box>
+
+      {/* Close button */}
+      <Button variant="contained" onClick={() => setHotelOffers([])} sx={styles.doneButton}>Close</Button>
     </Box>
-    
-    )}
+  </Modal>
+)}
+
+
+
   </Box>
   );
 }
