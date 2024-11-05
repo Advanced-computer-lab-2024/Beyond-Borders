@@ -3116,33 +3116,57 @@ const getMuseumDetails = async (req, res) => {
   }
 };
 
+const getItineraryDetails = async (req, res) => {
+  const { itineraryName } = req.params; // Get itinerary name from the route parameter
+
+  try {
+    // Find the itinerary by name, excluding the RatingCount field
+    const itinerary = await ItineraryModel.findOne({ Title: itineraryName }).select('-RatingCount');
+    
+    // If no itinerary is found, return a 404 response
+    if (!itinerary) {
+      return res.status(404).json({ msg: 'Itinerary not found' });
+    }
+
+    // Respond with the itinerary details, excluding RatingCount
+    res.status(200).json(itinerary);
+  } catch (error) {
+    console.error('Error fetching itinerary details:', error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
 
 function copyToClipboard(entityType, entityName) {
   const baseUrl = 'http://localhost:8000';
  
-   // Construct the URL based on the entity type and name
-   let url;
-   if (entityType === 'activity') {
-     url = `${baseUrl}/api/activity/details/${encodeURIComponent(entityName)}`;
-   } else if (entityType === 'historicalPlace') {
-     url = `${baseUrl}/api/historicalPlace/details/${encodeURIComponent(entityName)}`;
-   } else if (entityType === 'museum') {
-     url = `${baseUrl}/api/museum/details/${encodeURIComponent(entityName)}`;
-   } else {
-     console.error('Invalid entity type');
-    
-   }
-   ////////////////CHECK COPY IN FRONTEND M3RAFSH LAW SHAGHALA
-   // navigator.clipboard.writeText(url)
-   //   .then(() => {
-   //     alert(`Link copied to clipboard: ${url}`);
-   //   })
-   //   .catch(err => {
-   //     console.error('Failed to copy link: ', err);
-   //   });
-   return url;
-   
- }
+  // Construct the URL based on the entity type and name
+  let url;
+  if (entityType === 'activity') {
+    url = `${baseUrl}/api/activity/details/${encodeURIComponent(entityName)}`;
+  } else if (entityType === 'historicalPlace') {
+    url = `${baseUrl}/api/historicalPlace/details/${encodeURIComponent(entityName)}`;
+  } else if (entityType === 'museum') {
+    url = `${baseUrl}/api/museum/details/${encodeURIComponent(entityName)}`;
+  } else if (entityType === 'itinerary') { // Added itinerary entity type
+    url = `${baseUrl}/api/itinerary/details/${encodeURIComponent(entityName)}`;
+  } else {
+    console.error('Invalid entity type');
+    return;
+  }
+
+  // Uncomment to enable clipboard copying functionality
+  // navigator.clipboard.writeText(url)
+  //   .then(() => {
+  //     alert(`Link copied to clipboard: ${url}`);
+  //   })
+  //   .catch(err => {
+  //     console.error('Failed to copy link: ', err);
+  //   });
+
+  return url;
+}
+
  
  
  async function sendEmailLink(email, url) {
@@ -3758,5 +3782,5 @@ const viewAllTransportation = async (req, res) => {
 
 
 module.exports = {createTourist, getTourist, updateTourist, searchProductTourist, filterActivities, filterProductByPriceTourist, ActivityRating, sortProductsDescendingTourist, sortProductsAscendingTourist, ViewAllUpcomingActivities, ViewAllUpcomingMuseumEventsTourist, getMuseumsByTagTourist, getHistoricalPlacesByTagTourist, ViewAllUpcomingHistoricalPlacesEventsTourist,viewProductsTourist, sortActivitiesPriceAscendingTourist, sortActivitiesPriceDescendingTourist, sortActivitiesRatingAscendingTourist, sortActivitiesRatingDescendingTourist, loginTourist, ViewAllUpcomingItinerariesTourist, sortItinerariesPriceAscendingTourist, sortItinerariesPriceDescendingTourist, filterItinerariesTourist, ActivitiesSearchAll, ItinerarySearchAll, MuseumSearchAll, HistoricalPlacesSearchAll, ProductRating, createComplaint, getComplaintsByTouristUsername,ChooseActivitiesByCategoryTourist,bookActivity,bookItinerary,bookMuseum,bookHistoricalPlace, ratePurchasedProduct, addPurchasedProducts, reviewPurchasedProduct, addCompletedItinerary, rateTourGuide, commentOnTourGuide, rateCompletedItinerary, commentOnItinerary, addCompletedActivities, addCompletedMuseumEvents, addCompletedHPEvents, rateCompletedActivity, rateCompletedMuseum, rateCompletedHP, commentOnActivity, commentOnMuseum, commentOnHP,deleteBookedActivity,deleteBookedItinerary,deleteBookedMuseum,deleteBookedHP,payActivity,updateWallet,updatepoints,payItinerary,payMuseum,payHP,redeemPoints, convertEgp, fetchFlights,viewBookedItineraries, requestDeleteAccountTourist,convertCurr,getActivityDetails,getHistoricalPlaceDetails,getMuseumDetails,GetCopyLink, bookFlight
-  ,fetchHotelsByCity, fetchHotels, bookHotel,bookTransportation,addPreferences, viewMyCompletedActivities, viewMyCompletedItineraries, viewMyCompletedMuseums, viewMyCompletedHistoricalPlaces,viewMyBookedActivities,viewMyBookedItineraries,viewMyBookedMuseums,viewMyBookedHistoricalPlaces,viewTourGuidesCompleted,viewAllTransportation
+  ,fetchHotelsByCity, fetchHotels, bookHotel,bookTransportation,addPreferences, viewMyCompletedActivities, viewMyCompletedItineraries, viewMyCompletedMuseums, viewMyCompletedHistoricalPlaces,viewMyBookedActivities,viewMyBookedItineraries,viewMyBookedMuseums,viewMyBookedHistoricalPlaces,viewTourGuidesCompleted,viewAllTransportation, getItineraryDetails
 };
