@@ -304,8 +304,8 @@ function HomePageAdmin() {
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
           >
-            <MenuItem value="resolved">Resolved</MenuItem>
-            <MenuItem value="pending">Pending</MenuItem>
+            <MenuItem value="Resolved">Resolved</MenuItem>
+            <MenuItem value="Pending">Pending</MenuItem>
           </Select>
         </FormControl>
         <Button variant="contained" onClick={handleFilterComplaints} sx={{ backgroundColor: '#4CAF50', color: 'white' }}>
