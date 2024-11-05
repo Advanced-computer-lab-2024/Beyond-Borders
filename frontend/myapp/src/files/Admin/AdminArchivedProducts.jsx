@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 
 
 
-function AdminProductModal({ filteredProducts, onClose }) {
+function AdminArchivedProducts({ filteredProducts, onClose }) {
   const [products, setProducts] = useState([]);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [activeModal, setActiveModal] = useState('products');
@@ -24,7 +24,7 @@ function AdminProductModal({ filteredProducts, onClose }) {
 
   const fetchProducts = async () => {
     try {
-      const response = await axios.get('/api/viewAllProductsSeller');
+      const response = await axios.get('/api/viewArchivedProductsAdmin');
       setProducts(response.data);
     } catch (error) {
       console.error('Error fetching products:', error);
@@ -51,18 +51,18 @@ function AdminProductModal({ filteredProducts, onClose }) {
     }
   };
 
-  const archiveProduct = async (productID) => {
+  const unarchiveProduct = async (productID) => {
     try {
-      const response = await axios.post('/api/archiveProduct', { ProductID: productID });
+      const response = await axios.post('/api/unarchiveProduct', { ProductID: productID });
       if (response.status === 200) {
-        alert('Product has been archived!');
+        alert('Product has been unarchived!');
         fetchProducts(); // Refresh product list after archiving
       } else {
-        alert('Failed to archive product.');
+        alert('Failed to unarchive product.');
       }
     } catch (error) {
-      console.error('Error archiving product:', error);
-      alert(`Failed to archive product: ${error.response?.data?.error || error.message}`);
+      console.error('Error unarchiving product:', error);
+      alert(`Failed to unarchive product: ${error.response?.data?.error || error.message}`);
     }
   };
 
@@ -104,10 +104,10 @@ function AdminProductModal({ filteredProducts, onClose }) {
 
                     <Button
                       variant="contained"
-                      onClick={() => archiveProduct(product._id)}
+                      onClick={() => unarchiveProduct(product._id)}
                       sx={styles.archiveButton}
                     >
-                      Archive
+                      UnArchive
                     </Button>
                   </Box>
                 ))
@@ -207,4 +207,4 @@ const styles = {
   },
 };
 
-export default AdminProductModal;
+export default AdminArchivedProducts;

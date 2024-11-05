@@ -13,6 +13,15 @@ function TouristHomePage() {
   const [minPrice, setMinPrice] = useState('');
   const [maxPrice, setMaxPrice] = useState('');
   const [filteredResults, setFilteredResults] = useState([]);
+  //fetchHotelsByCity search
+  const [searchKeywordHotel, setSearchKeywordHotel] = useState('');
+  const [showHotelSearch, setShowHotelSearch] = useState(false);
+  const [hotels, setHotels] = useState([]); // Initialize hotels state
+  //fetchHotels 
+  const [checkInDate, setCheckInDate] = useState('');
+  const [checkOutDate, setCheckOutDate] = useState('');
+  const [adults, setAdults] = useState('');
+  const [hotelOffers, setHotelOffers] = useState([])
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -89,6 +98,31 @@ function TouristHomePage() {
   }
   };
 
+  const handleHotelSearchToggle = () => {
+    setShowHotelSearch((prev) => !prev); // Toggle hotel search bar visibility
+  };
+
+  const handleHotelSearch = async () => {
+    try {
+      // First API call to fetch hotels by city
+      const responseByCity = await axios.post('/fetchHotelsByCity', { city: searchKeywordHotel });
+      setHotels(responseByCity.data); // Set hotel IDs or full hotel details as per your preference
+      
+      // Second API call to fetch hotels with additional parameters
+      const responseByDetails = await axios.post('/fetchHotels', {
+        checkInDate,
+        checkOutDate,
+        adults,
+        ids: responseByCity.data.map(hotel => hotel.id) // Assuming you get hotel IDs from the first response
+      });
+      setHotelOffers(responseByDetails.data); // Set the hotel offers to state
+
+      setErrorMessage(''); // Clear any previous error message
+    } catch (error) {
+      setErrorMessage(error.response?.data?.msg || 'Error fetching hotels');
+    }
+  };
+
   return (
     <Box sx={styles.container}>
       <Typography variant="h5" component="h1" sx={styles.title}>
@@ -101,6 +135,7 @@ function TouristHomePage() {
         <Button sx={styles.button} onClick={() => navigate('/touristMuseums')}>View All Museums</Button>
         <Button sx={styles.button} onClick={() => navigate('/touristItineraries')}>View All Itineraries</Button>
         <Button sx={styles.button} onClick={() => navigate('/touristHistorical')}>View All Historical Places</Button>
+        <Button sx={styles.button} onClick={handleHotelSearchToggle}>Hotels</Button>
         <Button sx={styles.profileButton} onClick={() => setActiveModal('profile')}>My Profile</Button>
       </Box>
 
@@ -189,7 +224,69 @@ function TouristHomePage() {
           </Box>
         </Modal>
       )}
+
+ {/* Hotel Search Bar */}
+ {showHotelSearch && (
+        <Box sx={{ display: 'flex', gap: 2, mt: 3, mb: 3 }}>
+          <TextField
+            label="City"
+            variant="outlined"
+            value={searchKeywordHotel}
+            onChange={(e) => setSearchKeywordHotel(e.target.value)}
+          />
+          <TextField
+            label="Check-in Date"
+            type="date"
+            variant="outlined"
+            value={checkInDate}
+            onChange={(e) => setCheckInDate(e.target.value)}
+            InputLabelProps={{ shrink: true }}
+          />
+          <TextField
+            label="Check-out Date"
+            type="date"
+            variant="outlined"
+            value={checkOutDate}
+            onChange={(e) => setCheckOutDate(e.target.value)}
+            InputLabelProps={{ shrink: true }}
+          />
+          <TextField
+            label="Adults"
+            type="number"
+            variant="outlined"
+            value={adults}
+            onChange={(e) => setAdults(e.target.value)}
+          />
+          <Button variant="contained" onClick={handleHotelSearch}>
+            Search
+          </Button>
+        </Box>
+      )}
+
+     {/* Display Results */}
+    {errorMessage && <Typography color="error">{errorMessage}</Typography>}
+    
+    {hotelOffers.length > 0 && (
+      <Box>
+      <Typography variant="h6">Hotel Offers:</Typography>
+      {hotelOffers.map((hotel, index) => (
+        <Box key={index} sx={styles.resultItem}>
+          <Typography variant="subtitle1"><strong>{hotel.hotelName}</strong></Typography>
+          {hotel.roomOffers.map((room, roomIndex) => (
+            <Box key={roomIndex} sx={{ mt: 1 }}>
+              <Typography>Price: ${room.price}</Typography>
+              <Typography>Check-in: {room.checkInDate}</Typography>
+              <Typography>Check-out: {room.checkOutDate}</Typography>
+              <Typography>Adults: {room.adults}</Typography>
+              <Typography>City Code: {room.cityCode}</Typography>
+            </Box>
+          ))}
+        </Box>
+      ))}
     </Box>
+    
+    )}
+  </Box>
   );
 }
 

@@ -3246,11 +3246,11 @@ const fetchHotelsByCity = async (req, res) => {
 
 
 // Helper function to split ids into smaller batches
-const hotelOffers = [];
+let hotelOffers = [];
 
 const fetchHotels = async (req, res) => {
   const { adults, checkInDate, checkOutDate } = req.body;
-
+  hotelOffers = [];
   // Validate input
   if (!ids.length || !checkInDate || !checkOutDate) {
     return res.status(400).json({ msg: "Hotel IDs, check-in date, and check-out date are required." });
@@ -3325,6 +3325,7 @@ const fetchHotels = async (req, res) => {
     if (hotelOffers.length === 0) {
       return res.status(404).json({ msg: "No hotel offers found for the given criteria." });
     }
+    
 
     console.log('Hotel offers:', hotelOffers[0]);
     res.status(200).json(hotelOffers);
