@@ -157,7 +157,15 @@ const TouristSchema = new Schema({
         required: false
       }
     }
-  ]
+  ],
+  BookedTransportation: [
+    {
+      TransportationName: {
+        type: String,
+        required: false 
+      }
+    }
+  ],
 
 }, { timestamps: true }); // adds Created At & Updated At fields
 
