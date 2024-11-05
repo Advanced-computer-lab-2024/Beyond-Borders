@@ -22,6 +22,7 @@ function TouristHomePage() {
   const [checkOutDate, setCheckOutDate] = useState('');
   const [adults, setAdults] = useState('');
   const [hotelOffers, setHotelOffers] = useState([])
+  
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -50,6 +51,31 @@ function TouristHomePage() {
       fetchProfile();
     }
   }, [activeModal]);
+  const updateProfile = async () => {
+    try {
+      // Prepare payload with editable fields
+      const payload = {
+        Username: profile.Username,
+        Email: profile.Email,
+        Password: profile.Password,
+        MobileNumber: profile.MobileNumber,
+        Nationality: profile.Nationality,
+        Occupation: profile.Occupation,
+      };
+      const response = await axios.put('/api/updateTourist', payload);
+      if (response.status === 200) {
+        alert('Profile updated successfully!');
+        setActiveModal(null); // Close the modal on success
+      } else {
+        setErrorMessage('Failed to update profile.');
+        setActiveModal('error');
+      }
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      setErrorMessage('An error occurred while updating your profile.');
+      setActiveModal('error');
+    }
+  };
 
   const handleSearch = async () => {
     try {
@@ -169,6 +195,10 @@ function TouristHomePage() {
         </Button>
       </Box>
 
+
+      
+
+      {/* Profile Modal */}
       {activeModal === 'profile' && (
         <Modal open={true} onClose={() => setActiveModal(null)}>
           <Box sx={styles.modalContent}>
@@ -178,12 +208,59 @@ function TouristHomePage() {
             ) : profile ? (
               <Box sx={styles.profileInfo}>
                 <Typography><strong>Username:</strong> {profile.Username}</Typography>
-                <Typography><strong>Email:</strong> {profile.Email}</Typography>
-                <Typography><strong>Mobile Number:</strong> {profile.MobileNumber}</Typography>
+                
+                <TextField
+                  label="Email"
+                  value={profile.Email}
+                  onChange={(e) => setProfile({ ...profile, Email: e.target.value })}
+                  fullWidth
+                  margin="normal"
+                />
+
+                <TextField
+                  label="Password"
+                  type="password"
+                  value={profile.Password}
+                  onChange={(e) => setProfile({ ...profile, Password: e.target.value })}
+                  fullWidth
+                  margin="normal"
+                />
+                
+                <TextField
+                  label="Mobile Number"
+                  value={profile.MobileNumber}
+                  onChange={(e) => setProfile({ ...profile, MobileNumber: e.target.value })}
+                  fullWidth
+                  margin="normal"
+                />
+                
                 <Typography><strong>Date of Birth:</strong> {profile.DoB}</Typography>
-                <Typography><strong>Nationality:</strong> {profile.Nationality}</Typography>
-                <Typography><strong>Occupation:</strong> {profile.Occupation}</Typography>
+                
+                <TextField
+                  label="Nationality"
+                  value={profile.Nationality}
+                  onChange={(e) => setProfile({ ...profile, Nationality: e.target.value })}
+                  fullWidth
+                  margin="normal"
+                />
+                
+                <TextField
+                  label="Occupation"
+                  value={profile.Occupation}
+                  onChange={(e) => setProfile({ ...profile, Occupation: e.target.value })}
+                  fullWidth
+                  margin="normal"
+                />
+                
                 <Typography><strong>Wallet Balance:</strong> ${profile.Wallet}</Typography>
+
+                <Button
+                  variant="contained"
+                  onClick={updateProfile}
+                  sx={{ marginTop: '20px', backgroundColor: '#4CAF50', color: 'white' }}
+                >
+                  Save Changes
+                </Button>
               </Box>
             ) : (
               <Typography>Loading...</Typography>
