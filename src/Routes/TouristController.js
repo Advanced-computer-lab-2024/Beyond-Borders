@@ -512,8 +512,9 @@ const createTourist = async (req, res) => {
     
         // Filter activities where the Date is greater than or equal to the current date
         const upcomingActivities = activities.filter(activity => {
-          return activity.Date >= currentDate  && activities.flagged === false; 
+          return activity.Date >= currentDate  && activity.flagged === false; 
         });
+        console.log(upcomingActivities);
     
         // Return the upcoming activities as a JSON response
         res.json(upcomingActivities);
