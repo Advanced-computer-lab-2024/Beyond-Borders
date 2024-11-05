@@ -45,7 +45,7 @@ import AdminArchivedProducts from './files/Admin/AdminArchivedProducts';
 import AdminActivitiesModal from './files/Admin/AdminActivitiesModal';
 
 
-
+import MuseumDetails from './files/Tourist/MuseumDetails';
 
 import HomePageGuest from './files/HomePageGuest';
 
@@ -93,6 +93,9 @@ function App() {
           <Route path="/AdminAddProduct" element={<AdminAddProduct/>}/>
           <Route path="/AdminComplaintsModal" element={<AdminComplaintsModal/>}/>
           <Route path="/AdminArchivedProducts" element={<AdminArchivedProducts/>}/>
+
+
+          <Route path="/museum/details/:museumName" element={<MuseumDetails />} />
          
           
 

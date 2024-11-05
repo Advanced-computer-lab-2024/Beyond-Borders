@@ -50,6 +50,34 @@ function TouristMuseumsModal() {
     setSelectedMuseum(null); // Reset selected museum to go back to list view
   };
 
+   // Function to handle sharing the museum link with a hardcoded email
+   const handleShare = async (museumName) => {
+    try {
+      const frontendLink = `http://localhost:3000/museum/details/${encodeURIComponent(museumName)}`;
+
+      // Optionally send this to backend to generate a message or use frontend link directly
+      const response = await axios.post('/getCopyLink', {
+        entityType: 'museum',
+        entityName: museumName,
+        email: 'farahabouelwafaa@gmail.com' // Hardcoded email
+      });
+      const { msg } = response.data;
+
+      // Copy the frontend link to the clipboard
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(frontendLink)
+          .then(() => alert(`Link copied to clipboard successfully!`))
+          .catch(err => alert(`Failed to copy link: ${err}`));
+      } else {
+        alert(`Here is the link to share: ${frontendLink}\n${msg}`);
+      }
+    } catch (error) {
+      console.error('Error sharing link:', error);
+      alert('An error occurred while generating the share link.');
+    }
+  };
+
+
   return (
     <Modal open={true} onClose={() => navigate('/touristHome')}>
       <Box sx={styles.modalContent}>
@@ -114,6 +142,13 @@ function TouristMuseumsModal() {
                 <Button variant="contained" sx={styles.detailsButton} onClick={() => handleViewDetails(museum)}>
                   View Details
                 </Button>
+                <Button
+                variant="outlined"
+                onClick={() => handleShare(museum.name)}
+                sx={styles.shareButton}
+              >
+                Share
+              </Button>
               </Box>
             ))}
           </Box>
