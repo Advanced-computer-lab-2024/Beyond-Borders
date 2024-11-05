@@ -3477,11 +3477,129 @@ const addPreferences = async (req, res) => {
   }
 };
 
+const viewMyCompletedActivities = async (req, res) => {
+  // Retrieve the Username from the request query
+  const { Username } = req.body;
+
+  try {
+      // Find the tourist by Username
+      const user = await TouristModel.findOne({ Username });
+
+      // If no user is found, send a 404 response
+      if (!user) {
+          return res.status(404).json({ msg: "Tourist not found" });
+      }
+
+      // Extract the activity names from completedActivities array
+      const activityNames = user.completedActivities.map(activity => activity.ActivityName);
+      console.log(activityNames);
+
+      // Find the details of each completed activity in the Activity model
+      const completedActivitiesDetails = await ActivityModel.find({ Name: { $in: activityNames } });
+      console.log(completedActivitiesDetails);
+      // Send the completed activities' details as a JSON response
+      res.status(200).json(completedActivitiesDetails);
+  } catch (error) {
+      // If an error occurs, send a 400 Bad Request status with the error message
+      res.status(400).json({ error: error.message });
+  }
+};
+
+const viewMyCompletedItineraries = async (req, res) => {
+  // Retrieve the Username from the request body
+  const { Username } = req.body;
+
+  try {
+      // Find the tourist by Username
+      const user = await TouristModel.findOne({ Username });
+
+      // If no user is found, send a 404 response
+      if (!user) {
+          return res.status(404).json({ msg: "Tourist not found" });
+      }
+
+      // Extract the itinerary names from completedItineraries array
+      const itineraryNames = user.completedItineraries.map(itinerary => itinerary.ItineraryName);
+      console.log(itineraryNames);
+
+      // Find the details of each completed itinerary in the Itinerary model
+      const completedItinerariesDetails = await ItineraryModel.find({ Title: { $in: itineraryNames } });
+      console.log(completedItinerariesDetails);
+
+      // Send the completed itineraries' details as a JSON response
+      res.status(200).json(completedItinerariesDetails);
+  } catch (error) {
+      // If an error occurs, send a 400 Bad Request status with the error message
+      res.status(400).json({ error: error.message });
+  }
+};
+
+const viewMyCompletedMuseums = async (req, res) => {
+  // Retrieve the Username from the request body
+  const { Username } = req.body;
+
+  try {
+      // Find the tourist by Username
+      const user = await TouristModel.findOne({ Username });
+
+      // If no user is found, send a 404 response
+      if (!user) {
+          return res.status(404).json({ msg: "Tourist not found" });
+      }
+
+      // Extract the museum names from completedMuseumEvents array
+      const museumNames = user.completedMuseumEvents.map(museum => museum.MuseumName);
+      console.log(museumNames);
+
+      // Find the details of each completed museum visit in the Museum model
+      const completedMuseumsDetails = await MuseumModel.find({ name: { $in: museumNames } });
+      console.log(completedMuseumsDetails);
+
+      // Send the completed museums' details as a JSON response
+      res.status(200).json(completedMuseumsDetails);
+  } catch (error) {
+      // If an error occurs, send a 400 Bad Request status with the error message
+      res.status(400).json({ error: error.message });
+  }
+};
+
+const viewMyCompletedHistoricalPlaces = async (req, res) => {
+  // Retrieve the Username from the request body
+  const { Username } = req.body;
+
+  try {
+      // Find the tourist by Username
+      const user = await TouristModel.findOne({ Username });
+
+      // If no user is found, send a 404 response
+      if (!user) {
+          return res.status(404).json({ msg: "Tourist not found" });
+      }
+
+      // Extract the historical place names from completedHistoricalPlaceEvent array
+      const historicalPlaceNames = user.completedHistoricalPlaceEvent.map(place => place.HistoricalPlaceName);
+      console.log(historicalPlaceNames);
+
+      // Find the details of each completed historical place visit in the HistoricalPlace model
+      const completedHistoricalPlacesDetails = await HistoricalPlacesModel.find({ name: { $in: historicalPlaceNames } });
+      console.log(completedHistoricalPlacesDetails);
+
+      // Send the completed historical places' details as a JSON response
+      res.status(200).json(completedHistoricalPlacesDetails);
+  } catch (error) {
+      // If an error occurs, send a 400 Bad Request status with the error message
+      res.status(400).json({ error: error.message });
+  }
+};
+
+
+
+
 
 
 
 
 
 module.exports = {createTourist, getTourist, updateTourist, searchProductTourist, filterActivities, filterProductByPriceTourist, ActivityRating, sortProductsDescendingTourist, sortProductsAscendingTourist, ViewAllUpcomingActivities, ViewAllUpcomingMuseumEventsTourist, getMuseumsByTagTourist, getHistoricalPlacesByTagTourist, ViewAllUpcomingHistoricalPlacesEventsTourist,viewProductsTourist, sortActivitiesPriceAscendingTourist, sortActivitiesPriceDescendingTourist, sortActivitiesRatingAscendingTourist, sortActivitiesRatingDescendingTourist, loginTourist, ViewAllUpcomingItinerariesTourist, sortItinerariesPriceAscendingTourist, sortItinerariesPriceDescendingTourist, filterItinerariesTourist, ActivitiesSearchAll, ItinerarySearchAll, MuseumSearchAll, HistoricalPlacesSearchAll, ProductRating, createComplaint, getComplaintsByTouristUsername,ChooseActivitiesByCategoryTourist,bookActivity,bookItinerary,bookMuseum,bookHistoricalPlace, ratePurchasedProduct, addPurchasedProducts, reviewPurchasedProduct, addCompletedItinerary, rateTourGuide, commentOnTourGuide, rateCompletedItinerary, commentOnItinerary, addCompletedActivities, addCompletedMuseumEvents, addCompletedHPEvents, rateCompletedActivity, rateCompletedMuseum, rateCompletedHP, commentOnActivity, commentOnMuseum, commentOnHP,deleteBookedActivity,deleteBookedItinerary,deleteBookedMuseum,deleteBookedHP,payActivity,updateWallet,updatepoints,payItinerary,payMuseum,payHP,redeemPoints, convertEgp, fetchFlights,viewBookedItineraries, requestDeleteAccountTourist,convertCurr,getActivityDetails,getHistoricalPlaceDetails,getMuseumDetails,GetCopyLink, bookFlight
-  ,fetchHotelsByCity, fetchHotels, bookHotel,bookTransportation,addPreferences
+  ,fetchHotelsByCity, fetchHotels, bookHotel,bookTransportation,addPreferences, viewMyCompletedActivities, viewMyCompletedItineraries, viewMyCompletedMuseums, viewMyCompletedHistoricalPlaces
 };
