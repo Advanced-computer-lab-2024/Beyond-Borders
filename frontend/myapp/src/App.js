@@ -50,7 +50,7 @@ import HistoricalDetails from './files/Tourist/HistoricalDetails';
 
 import HomePageGuest from './files/HomePageGuest';
 
-
+import TouristComplaintsModal from './files/Tourist/TouristComplaintsModal';
 
 
 
@@ -79,6 +79,8 @@ function App() {
           <Route path="/createMuseum" element={<CreateMuseum/>}/>
           <Route path="/CreateItinerary" element={<CreateItinerary/>}/>
           <Route path="/HomePageTourGuide" element={<HomePageTourGuide/>}/>
+
+          
 
 
 
@@ -113,6 +115,7 @@ function App() {
           <Route path="/loginAdmin" element={<LoginAdmin/>}/>
           <Route path="/loginTourismGovernor" element={<LoginTourismGovernor/>}/>
           <Route path="/touristHome" element={<TouristHomePage />} />
+          <Route path="/TouristComplaintsModal" element={<TouristComplaintsModal/>} />
           <Route path="/touristProducts" element={<TouristProductModal closeModal={() => {}} />} />
           <Route path="/touristActivities" element={<TouristActivitiesModal closeModal={() => {}} />} />
           <Route path="/touristMuseums" element={<TouristMuseumsModal closeModal={() => {}} />} />
