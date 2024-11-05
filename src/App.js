@@ -158,7 +158,7 @@ app.get("/getAllComplaints", getAllComplaints);
 app.put("/updateComplaintStatus", updateComplaintStatus);
 app.put("/replyToComplaint", replyToComplaint);
 app.get("/getComplaintDetails", getComplaintDetails);
-app.get("/filterComplaintsByStatus", filterComplaintsByStatus);
+app.post("/api/filterComplaintsByStatus", filterComplaintsByStatus);
 app.get("/sortComplaintsByRecent",sortComplaintsByRecent);
 app.get("/sortComplaintsByOldest",sortComplaintsByOldest);
 app.get("/api/getComplaintsByTouristUsername" , getComplaintsByTouristUsername);
