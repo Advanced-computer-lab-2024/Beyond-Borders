@@ -69,6 +69,8 @@ function AdminProductModal({ filteredProducts, onClose }) {
                     <Typography variant="body2"><strong>Price:</strong> ${product.Price}</Typography>
                     <Typography variant="body2"><strong>Description:</strong> {product.Description}</Typography>
                     <Typography variant="body2"><strong>Quantity:</strong> {product.Quantity}</Typography>
+                    <Typography variant="body2"><strong>Sales:</strong> {product.Sales}</Typography>
+                    <Typography variant="body2"><strong>Total Price of Sales:</strong> ${product.TotalPriceOfSales}</Typography>
                     <Typography variant="body2"><strong>Seller:</strong> {product.Seller}</Typography>
                     <Typography variant="body2"><strong>Rating:</strong> {JSON.stringify(product.Ratings)}</Typography>
                     <Typography variant="body2"><strong>Reviews:</strong> {JSON.stringify(product.Reviews)}</Typography>
