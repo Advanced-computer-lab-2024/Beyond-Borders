@@ -9,6 +9,8 @@ const HistoricalTagsModel = require('../Models/HistoricalTags.js');
 const ComplaintsModel = require('../Models/Complaints.js');
 const TourGuideModel = require('../Models/TourGuide.js');
 const DeleteRequestsModel = require('../Models/DeleteRequests.js');
+const TransportationAdvertiserModel = require('../Models/TransportationAdvertiser.js');
+const TransportationModel = require('../Models/Transportation.js');
 const axios = require('axios');
 const nodemailer = require('nodemailer'); 
 
@@ -51,7 +53,8 @@ const createTourist = async (req, res) => {
               Points: 0,
               BadgeLevelOfPoints: 1,
               BookedFlights:[],
-              BookedHotels:[]
+              BookedHotels:[],
+              BookedTransportation:[]
           });
 
           // Send the created user as a JSON response with a 201 Created status
@@ -3377,11 +3380,72 @@ const bookHotel = async (req, res) => {
 };
 
 
+const bookTransportation = async (req, res) => {
+  const { touristUsername, TranspName } = req.body;
+
+  try {
+    
+    const transportation = await TransportationModel.findOne({ serviceName: TranspName });
+    
+    if (!transportation) {
+      return res.status(404).json({ msg: 'transportation not found' });
+    }
+    
+    if (transportation.available===false) {
+      return res.status(404).json({ msg: 'Transportation not Available' });
+    }
+    
+    const tourist = await TouristModel.findOne({ Username: touristUsername });
+    
+    if (!tourist) {
+      return res.status(404).json({ msg: 'Tourist not found' });
+    }
+
+    //tourist's age
+    const today = new Date();
+    const birthDate = new Date(tourist.DoB);
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const monthDifference = today.getMonth() - birthDate.getMonth();
+    
+    if (monthDifference < 0 || (monthDifference === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+
+    
+    if (age < 18) {
+      return res.status(403).json({ msg: 'You must be 18 or older to book an activity.' });
+    }
+
+    
+    if (!tourist.BookedTransportation) {
+      tourist.BookedTransportation = [];
+    }
+    
+    transportation.capacity=transportation.capacity-1;
+    if(transportation.capacity===0){
+      transportation.available = false;
+    }
+    
+   
+    tourist.BookedTransportation.push({
+      TransportationName: transportation.serviceName 
+    });
+
+    await transportation.save();
+    await tourist.save();
+
+    
+    res.status(201).json({ msg: 'transportation booked successfully!', TranspName: transportation.serviceName, totalCost: transportation.price});
+  } catch (error) {
+    console.error('Error booking transp:', error);
+    res.status(500).json({ error: error.message });
+  }
+};
 
 
 
 
 
 module.exports = {createTourist, getTourist, updateTourist, searchProductTourist, filterActivities, filterProductByPriceTourist, ActivityRating, sortProductsDescendingTourist, sortProductsAscendingTourist, ViewAllUpcomingActivities, ViewAllUpcomingMuseumEventsTourist, getMuseumsByTagTourist, getHistoricalPlacesByTagTourist, ViewAllUpcomingHistoricalPlacesEventsTourist,viewProductsTourist, sortActivitiesPriceAscendingTourist, sortActivitiesPriceDescendingTourist, sortActivitiesRatingAscendingTourist, sortActivitiesRatingDescendingTourist, loginTourist, ViewAllUpcomingItinerariesTourist, sortItinerariesPriceAscendingTourist, sortItinerariesPriceDescendingTourist, filterItinerariesTourist, ActivitiesSearchAll, ItinerarySearchAll, MuseumSearchAll, HistoricalPlacesSearchAll, ProductRating, createComplaint, getComplaintsByTouristUsername,ChooseActivitiesByCategoryTourist,bookActivity,bookItinerary,bookMuseum,bookHistoricalPlace, ratePurchasedProduct, addPurchasedProducts, reviewPurchasedProduct, addCompletedItinerary, rateTourGuide, commentOnTourGuide, rateCompletedItinerary, commentOnItinerary, addCompletedActivities, addCompletedMuseumEvents, addCompletedHPEvents, rateCompletedActivity, rateCompletedMuseum, rateCompletedHP, commentOnActivity, commentOnMuseum, commentOnHP,deleteBookedActivity,deleteBookedItinerary,deleteBookedMuseum,deleteBookedHP,payActivity,updateWallet,updatepoints,payItinerary,payMuseum,payHP,redeemPoints, convertEgp, fetchFlights,viewBookedItineraries, requestDeleteAccountTourist,convertCurr,getActivityDetails,getHistoricalPlaceDetails,getMuseumDetails,GetCopyLink, bookFlight
-  ,fetchHotelsByCity, fetchHotels, bookHotel
+  ,fetchHotelsByCity, fetchHotels, bookHotel,bookTransportation
 };
