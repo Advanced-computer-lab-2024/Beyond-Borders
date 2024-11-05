@@ -255,6 +255,7 @@ function HomePageAdmin() {
         <Button sx={styles.button} onClick={() => navigate('/AdminActivityModal')}>View All Activity Categories</Button>
         <Button sx={styles.button} onClick={() => navigate('/AdminDeleteAccount')}>Delete account</Button>
         <Button sx={styles.button} onClick={() => setActiveModal('viewAllItineraries')}>View All Itineraries</Button>
+        <Button sx={styles.button} onClick={() => navigate('/AdminActivitiesModal')}>View All Activity </Button>
         <Button sx={styles.button} onClick={() => setActiveModal('changemypassword')}>Change My password</Button>
       </Box>
 

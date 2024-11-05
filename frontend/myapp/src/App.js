@@ -42,6 +42,10 @@ import AdminAddProduct from './files/Admin/AdminAddProduct';
 import AdminActivityModal from './files/Admin/AdminActivityModal';
 import AdminComplaintsModal from './files/Admin/AdminComplaintsModal';
 import AdminArchivedProducts from './files/Admin/AdminArchivedProducts';
+import AdminActivitiesModal from './files/Admin/AdminActivitiesModal';
+
+
+
 
 import HomePageGuest from './files/HomePageGuest';
 
@@ -82,12 +86,15 @@ function App() {
           <Route path="/AdminProductModal" element={<AdminProductModal/>}/>
           <Route path="/AdminTagsModal" element={<AdminTagsModal/>}/>
           <Route path="/AdminActivityModal" element={<AdminActivityModal/>}/>
+          <Route path="/AdminActivitiesModal" element={<AdminActivitiesModal/>}/>
           <Route path="/AdminDeleteAccount" element={<AdminDeleteAccount/>}/>
           <Route path="/AdminAddAdmin" element={<AdminAddAdmin/>}/>
           <Route path="/AdminAddGov" element={<AdminAddGov/>}/>
           <Route path="/AdminAddProduct" element={<AdminAddProduct/>}/>
           <Route path="/AdminComplaintsModal" element={<AdminComplaintsModal/>}/>
           <Route path="/AdminArchivedProducts" element={<AdminArchivedProducts/>}/>
+         
+          
 
          
 
