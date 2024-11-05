@@ -20,6 +20,33 @@ function TouristHistoricalPlacesModal() {
     fetchHistoricalPlaces();
   }, []);
 
+  // Function to handle sharing the historical place link with a hardcoded email
+  const handleShare = async (placeName) => {
+    try {
+      const frontendLink = `http://localhost:3000/historicalPlace/details/${encodeURIComponent(placeName)}`;
+
+      // Optionally send this to backend to generate a message or use frontend link directly
+      const response = await axios.post('/getCopyLink', {
+        entityType: 'historicalPlace', // Use "historicalPlace" entity type
+        entityName: placeName,
+        email: 'farahabouelwafaa@gmail.com' // Hardcoded email
+      });
+      const { msg } = response.data;
+
+      // Copy the frontend link to the clipboard
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(frontendLink)
+          .then(() => alert(`Link copied to clipboard successfully!`))
+          .catch(err => alert(`Failed to copy link: ${err}`));
+      } else {
+        alert(`Here is the link to share: ${frontendLink}\n${msg}`);
+      }
+    } catch (error) {
+      console.error('Error sharing link:', error);
+      alert('An error occurred while generating the share link.');
+    }
+  };
+
   return (
     <Modal open={true} onClose={() => navigate('/touristHome')}>
       <Box sx={styles.modalContent}>
@@ -32,6 +59,15 @@ function TouristHistoricalPlacesModal() {
               <Typography variant="body1"><strong>Name:</strong> {place.name}</Typography>
               <Typography variant="body2"><strong>Location:</strong> {place.location}</Typography>
               <Typography variant="body2"><strong>Opening Hours:</strong> {place.openingHours}</Typography>
+              
+              {/* Share Button */}
+              <Button
+                variant="outlined"
+                onClick={() => handleShare(place.name)}
+                sx={styles.shareButton}
+              >
+                Share
+              </Button>
             </Box>
           ))}
         </Box>
@@ -53,9 +89,15 @@ const styles = {
   },
   item: {
     p: 2, borderBottom: '1px solid #ddd',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 1,
   },
   doneButton: {
     mt: 2, backgroundColor: '#00c853', '&:hover': { backgroundColor: '#69f0ae' },
+  },
+  shareButton: {
+    mt: 1, backgroundColor: '#1976d2', color: 'white', '&:hover': { backgroundColor: '#63a4ff' },
   },
 };
 

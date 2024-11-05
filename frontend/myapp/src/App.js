@@ -46,6 +46,7 @@ import AdminActivitiesModal from './files/Admin/AdminActivitiesModal';
 
 
 import MuseumDetails from './files/Tourist/MuseumDetails';
+import HistoricalDetails from './files/Tourist/HistoricalDetails';
 
 import HomePageGuest from './files/HomePageGuest';
 
@@ -96,6 +97,7 @@ function App() {
 
 
           <Route path="/museum/details/:museumName" element={<MuseumDetails />} />
+          <Route path="/historicalPlace/details/:HPname" element={<HistoricalDetails/>} />
          
           
 
