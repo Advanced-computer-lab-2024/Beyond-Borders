@@ -15,6 +15,9 @@ function HomePageAdmin() {
   const [maxPrice, setMaxPrice] = useState('');
   const [filteredResults, setFilteredResults] = useState([]);
   const [tagName, setTagName] = useState(''); // New state for tag name
+  const [newPassword, setNewPassword] = useState('');
+  
+
   const [categoryName, setCategoryName] = useState('');
   const [statusFilter, setStatusFilter] = useState(''); // State for complaint status filter
   const [filteredComplaints, setFilteredComplaints] = useState([]);
@@ -207,7 +210,28 @@ function HomePageAdmin() {
     }
   };
 
-
+  const changePassword = async () => {
+    // Retrieve username from local storage
+    const username = localStorage.getItem('username');
+    if (!username) {
+      setErrorMessage('Username not found in local storage');
+      return;
+    }
+  
+    try {
+      // Use the full route path
+      const response = await axios.put('/updateAdminPassword', { Username: username, newPassword:newPassword });
+      if (response.status === 200) {
+        alert('Password updated successfully!');
+        setActiveModal(null); // Close the modal after a successful update
+      } else {
+        setErrorMessage('Failed to update password.');
+      }
+    } catch (error) {
+      console.error('Error updating password:', error);
+      setErrorMessage(error.response?.data?.error || 'Failed to update password.');
+    }
+  };
 
   
   
@@ -225,11 +249,13 @@ function HomePageAdmin() {
         <Button sx={styles.button} onClick={() => navigate('/AdminAddGov')}>Add Tourism governor</Button>
         <Button sx={styles.button} onClick={() => navigate('/AdminAddProduct')}>Add Product</Button>
         <Button sx={styles.button} onClick={() => navigate('/AdminProductModal')}>View All Products</Button>
+        <Button sx={styles.button} onClick={() => navigate('/AdminArchivedProducts')}>View All Archived Products</Button>
         <Button sx={styles.button} onClick={() => navigate('/AdminTagsModal')}>View All tags</Button>
         <Button sx={styles.button} onClick={() => navigate('/AdminComplaintsModal')}>View All Complaints</Button>
         <Button sx={styles.button} onClick={() => navigate('/AdminActivityModal')}>View All Activity Categories</Button>
         <Button sx={styles.button} onClick={() => navigate('/AdminDeleteAccount')}>Delete account</Button>
         <Button sx={styles.button} onClick={() => setActiveModal('viewAllItineraries')}>View All Itineraries</Button>
+        <Button sx={styles.button} onClick={() => setActiveModal('changemypassword')}>Change My password</Button>
       </Box>
 
       {/* Search and Filter Section */}
@@ -330,6 +356,37 @@ function HomePageAdmin() {
           </Box>
         </Modal>
       )}
+      {/* Change Password Modal */}
+      {activeModal === 'changemypassword' && (
+        <Modal open={true} onClose={() => setActiveModal(null)}>
+          <Box sx={styles.modalContent}>
+            <Typography variant="h6" component="h2">Change My Password</Typography>
+            <TextField
+              label="New Password"
+              type="password"
+              variant="outlined"
+              fullWidth
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+              sx={{ mb: 2 }}
+            />
+            {errorMessage && (
+              <Typography color="error" sx={{ mb: 2 }}>
+                {errorMessage}
+              </Typography>
+            )}
+            <Button variant="contained" onClick={changePassword} sx={styles.doneButton}>
+              Change My Password
+            </Button>
+          </Box>
+        </Modal>
+      )}
+
+
+
+
+
+
       {/* Create Category Modal */}
       {activeModal === 'createCategory' && (
         <Modal open={true} onClose={() => setActiveModal(null)}>
