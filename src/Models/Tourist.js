@@ -166,7 +166,9 @@ const TouristSchema = new Schema({
       }
     }
   ],
-
+  MyPreferences: [{type : String , required :true}],
+    
+  
 }, { timestamps: true }); // adds Created At & Updated At fields
 
 const Tourist = mongoose.model('Tourist', TouristSchema);
