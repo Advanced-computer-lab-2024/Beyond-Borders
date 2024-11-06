@@ -10,6 +10,9 @@ import { FormControlLabel, Checkbox } from '@mui/material';
 function TouristHomePage() {
   const [activeModal, setActiveModal] = useState(null);
   const [profile, setProfile] = useState(null);
+  const [tags, setTags] = useState([]); 
+  const [preferenceTags, setPreferenceTags] = useState([]);
+  const [selectedTags, setSelectedTags] = useState([]); 
   const [errorMessage, setErrorMessage] = useState('');
   const [searchKeyword, setSearchKeyword] = useState('');
   const [minPrice, setMinPrice] = useState('');
@@ -227,6 +230,55 @@ const [flightOffers, setFlightOffers] = useState([]); // Holds flight search res
       setErrorMessage(error.response?.data?.msg || 'Error fetching flights');
     }
   };
+
+  const viewPreferenceTags = async () => {
+    try {
+      const response = await axios.get('/viewPreferenceTags');
+      if (response.data && response.data.length > 0) {
+        setPreferenceTags(response.data);
+        setActiveModal('tags'); // Open tags modal when data is fetched
+      } else {
+        setErrorMessage('No preference tags found');
+        setActiveModal('error'); // Show error if no tags are found
+      }
+    } catch (error) {
+      console.error('Error fetching preference tags:', error);
+      setErrorMessage('An error occurred while fetching preference tags.');
+      setActiveModal('error');
+    }
+  };
+
+  const handleTagChange = (tagName) => {
+    // Toggle the tag in the selectedTags array
+    if (selectedTags.includes(tagName)) {
+      setSelectedTags(selectedTags.filter((tag) => tag !== tagName));
+    } else {
+      setSelectedTags([...selectedTags, tagName]);
+    }
+  };
+
+  const addPreferences = async () => {
+    const touristUsername = localStorage.getItem('username'); // Get username from localStorage
+
+    if (!touristUsername || selectedTags.length === 0) {
+      setErrorMessage('Please select at least one preference.');
+      return;
+    }
+    console.log(selectedTags);
+    try {
+      // Send the selected tags and username to the backend
+      const response = await axios.put('/addPreferences', {
+        touristUsername,
+        preferences: selectedTags,
+      });
+      // Handle success response (e.g., show confirmation or update profile state)
+      setErrorMessage('');
+      setActiveModal(null); // Close the modal
+      alert('Preferences added successfully!');
+    } catch (error) {
+      setErrorMessage('An error occurred while adding preferences.');
+    }
+  };
   return (
     <Box sx={styles.container}>
       <Typography variant="h5" component="h1" sx={styles.title}>
@@ -342,6 +394,15 @@ const [flightOffers, setFlightOffers] = useState([]); // Holds flight search res
                 >
                   Save Changes
                 </Button>
+                 {/* Button to view preference tags */}
+                 <Button
+                  variant="contained"
+                  onClick={viewPreferenceTags}
+                  sx={{ marginTop: '10px', backgroundColor: '#1976d2', color: 'white' }}
+                >
+                  View Preference Tags
+                </Button>
+
               </Box>
             ) : (
               <Typography>Loading...</Typography>
@@ -350,6 +411,48 @@ const [flightOffers, setFlightOffers] = useState([]); // Holds flight search res
           </Box>
         </Modal>
       )}
+      
+{/* Tags Modal */}
+{activeModal === 'tags' && (
+  <Modal open={true} onClose={() => setActiveModal(null)}>
+    <Box sx={styles.modalContent}>
+      <Typography variant="h6" component="h2">Preference Tags</Typography>
+      
+      {/* Handle rendering of preference tags with checkboxes */}
+      {preferenceTags.length > 0 ? (
+        <Box>
+          {preferenceTags.map((tag, index) => (
+            <FormControlLabel
+              key={index}
+              control={
+                <Checkbox
+                  checked={selectedTags.includes(tag.NameOfTags)}
+                  onChange={() => handleTagChange(tag.NameOfTags)} // Handle checkbox change
+                />
+              }
+              label={tag.NameOfTags}
+            />
+          ))}
+        </Box>
+      ) : (
+        <Typography>No tags found.</Typography>
+      )}
+
+      {/* Button to submit selected preferences */}
+      <Button 
+        variant="contained" 
+        onClick={addPreferences} 
+        sx={styles.doneButton}
+      >
+        Save Preferences
+      </Button>
+
+      <Button variant="contained" onClick={() => setActiveModal(null)} sx={styles.doneButton}>
+        Close
+      </Button>
+    </Box>
+  </Modal>
+)}
 
       {activeModal === 'searchResults' && (
         <Modal open={true} onClose={() => setActiveModal(null)}>
