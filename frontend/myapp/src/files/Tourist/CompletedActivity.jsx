@@ -6,6 +6,7 @@ import { useNavigate } from 'react-router-dom';
 function CompletedActivity() {
   const [completedActivities, setCompletedActivities] = useState([]);
   const [activityRatings, setActivityRatings] = useState({});
+  const [activityComments, setActivityComments] = useState({}); // New state for comments
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -49,6 +50,32 @@ function CompletedActivity() {
     } catch (error) {
       console.error('Error rating activity:', error);
       alert('An error occurred while submitting your rating.');
+    }
+  };
+
+
+  const handleCommentActivity = async (activityName) => {
+    const touristUsername = localStorage.getItem('username');
+    const comment = activityComments[activityName]?.trim();
+
+    if (!comment || comment.length === 0) {
+      alert("Comment cannot be empty.");
+      return;
+    }
+
+    try {
+      const response = await axios.put('/commentOnActivity', {
+        touristUsername,
+        activityName,
+        comment,
+      });
+      alert(response.data.msg);
+
+      // Clear the comment field after submission
+      setActivityComments(prevComments => ({ ...prevComments, [activityName]: '' }));
+    } catch (error) {
+      console.error('Error commenting on activity:', error);
+      alert('An error occurred while submitting your comment.');
     }
   };
 
@@ -104,6 +131,26 @@ function CompletedActivity() {
                     Submit Activity Rating
                   </Button>
                 </Box>
+                {/* Comment Input for Activity */}
+                <Box sx={{ mt: 2 }}>
+                  <TextField
+                    label="Comment on Activity"
+                    variant="outlined"
+                    size="small"
+                    multiline
+                    fullWidth
+                    value={activityComments[activity.Name] || ''}
+                    onChange={(e) => setActivityComments({ ...activityComments, [activity.Name]: e.target.value })}
+                    rows={3}
+                  />
+                  <Button
+                    variant="contained"
+                    onClick={() => handleCommentActivity(activity.Name)}
+                    sx={styles.commentButton}
+                  >
+                    Submit Comment
+                  </Button>
+                </Box>
               </Box>
             ))
           ) : (
@@ -155,6 +202,12 @@ const styles = {
     backgroundColor: '#1976d2',
     color: 'white',
     '&:hover': { backgroundColor: '#63a4ff' },
+  },
+  commentButton: {
+    backgroundColor: '#89CFF0', // Baby blue for comments
+    color: 'white',
+    marginTop: '0.5rem',
+    '&:hover': { backgroundColor: '#A7DFFF' }, // Lighter blue on hover
   },
 };
 

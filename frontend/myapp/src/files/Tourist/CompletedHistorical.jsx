@@ -7,6 +7,7 @@ import { useNavigate } from 'react-router-dom';
 function CompletedHistorical() {
   const [completedHistoricalPlaces, setCompletedHistoricalPlaces] = useState([]);
   const [historicalPlaceRatings, setHistoricalPlaceRatings] = useState({});
+  const [historicalPlaceComments, setHistoricalPlaceComments] = useState({}); // comments
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -53,6 +54,34 @@ function CompletedHistorical() {
     }
   };
 
+
+
+  const handleCommentHistoricalPlace = async (HPname) => {
+    const touristUsername = localStorage.getItem('username');
+    const comment = historicalPlaceComments[HPname]?.trim();
+
+    if (!comment || comment.length === 0) {
+      alert("Comment cannot be empty.");
+      return;
+    }
+
+    try {
+      const response = await axios.put('/commentOnHP', {
+        touristUsername,
+        HPname,
+        comment,
+      });
+      alert(response.data.msg);
+
+      // Clear the comment field after submission
+      setHistoricalPlaceComments(prevComments => ({ ...prevComments, [HPname]: '' }));
+    } catch (error) {
+      console.error('Error commenting on historical place:', error);
+      alert('An error occurred while submitting your comment.');
+    }
+  };
+
+
   return (
     <Modal open={true} onClose={() => navigate('/touristHome')}>
       <Box sx={styles.modalContent}>
@@ -93,6 +122,26 @@ function CompletedHistorical() {
                     sx={styles.rateButton}
                   >
                     Submit Rating
+                  </Button>
+                </Box>
+                {/* Comment Input for Historical Place */}
+                <Box sx={{ mt: 2 }}>
+                  <TextField
+                    label="Comment on Historical Place"
+                    variant="outlined"
+                    size="small"
+                    multiline
+                    fullWidth
+                    value={historicalPlaceComments[place.name] || ''}
+                    onChange={(e) => setHistoricalPlaceComments({ ...historicalPlaceComments, [place.name]: e.target.value })}
+                    rows={3}
+                  />
+                  <Button
+                    variant="contained"
+                    onClick={() => handleCommentHistoricalPlace(place.name)}
+                    sx={styles.commentButton}
+                  >
+                    Submit Comment
                   </Button>
                 </Box>
               </Box>
@@ -146,6 +195,12 @@ const styles = {
     backgroundColor: '#1976d2',
     color: 'white',
     '&:hover': { backgroundColor: '#63a4ff' },
+  },
+  commentButton: {
+    backgroundColor: '#89CFF0', // Baby blue for comments
+    color: 'white',
+    marginTop: '0.5rem',
+    '&:hover': { backgroundColor: '#A7DFFF' }, // Lighter blue on hover
   },
 };
 
