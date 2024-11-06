@@ -48,6 +48,7 @@ import AdminActivitiesModal from './files/Admin/AdminActivitiesModal';
 import MuseumDetails from './files/Tourist/MuseumDetails';
 import HistoricalDetails from './files/Tourist/HistoricalDetails';
 import ItineraryDetails from './files/Tourist/ItineraryDetails';
+import ActivityDetails from './files/Tourist/ActivityDetails';
 import HomePageGuest from './files/HomePageGuest';
 
 import TouristComplaintsModal from './files/Tourist/TouristComplaintsModal';
@@ -101,6 +102,7 @@ function App() {
           <Route path="/museum/details/:museumName" element={<MuseumDetails />} />
           <Route path="/historicalPlace/details/:HPname" element={<HistoricalDetails/>} />
           <Route path="/itinerary/details/:itineraryName" element={<ItineraryDetails/>}/>
+          <Route path="/activity/details/:activityName" element={<ActivityDetails/>}/>
          
           
 

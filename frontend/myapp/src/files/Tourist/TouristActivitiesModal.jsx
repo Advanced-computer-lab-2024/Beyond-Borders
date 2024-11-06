@@ -1,3 +1,4 @@
+// src/files/Tourist/TouristActivitiesModal.jsx
 import React, { useState, useEffect } from 'react';
 import { Box, Button, Typography, Modal, TextField } from '@mui/material';
 import axios from 'axios';
@@ -63,6 +64,33 @@ function TouristActivitiesModal() {
     setActivities(sortedActivities);
   };
 
+  // Function to handle sharing the activity link
+  const handleShare = async (activityName) => {
+    try {
+      const frontendLink = `http://localhost:3000/activity/details/${encodeURIComponent(activityName)}`;
+
+      // Send request to the backend to generate a link
+      const response = await axios.post('/getCopyLink', {
+        entityType: 'activity', // Use "activity" entity type
+        entityName: activityName,
+        email: 'farahabouelwafaa@gmail.com' // Hardcoded email
+      });
+      const { msg } = response.data;
+
+      // Copy the frontend link to the clipboard
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(frontendLink)
+          .then(() => alert(`Link copied to clipboard successfully!\n${msg}`))
+          .catch(err => alert(`Failed to copy link: ${err}`));
+      } else {
+        alert(`Here is the link to share: ${frontendLink}\n${msg}`);
+      }
+    } catch (error) {
+      console.error('Error sharing link:', error);
+      alert('An error occurred while generating the share link.');
+    }
+  };
+
   return (
     <Modal open={true} onClose={() => navigate('/touristHome')}>
       <Box sx={styles.modalContent}>
@@ -97,6 +125,15 @@ function TouristActivitiesModal() {
                 <Typography variant="body2"><strong>Date:</strong> {new Date(activity.Date).toLocaleDateString()}</Typography>
                 <Typography variant="body2"><strong>Price:</strong> ${activity.Price}</Typography>
                 <Typography variant="body2"><strong>Rating:</strong> {activity.Rating}</Typography>
+
+                {/* Share Button */}
+                <Button
+                  variant="outlined"
+                  onClick={() => handleShare(activity.Name)}
+                  sx={styles.shareButton}
+                >
+                  Share
+                </Button>
               </Box>
             ))
           ) : (
@@ -124,39 +161,6 @@ const styles = {
     maxHeight: '80vh',
     overflowY: 'auto',
   },
-  title: {
-    fontSize: '1.5rem',
-    fontWeight: 'bold',
-    marginBottom: '1rem',
-    textAlign: 'center',
-  },
-  formContainer: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '0.5rem',
-    marginBottom: '1rem',
-  },
-  inputField: {
-    width: '100%',
-    marginBottom: '0.5rem',
-  },
-  buttonContainer: {
-    display: 'flex',
-    flexWrap: 'wrap',
-    gap: '0.5rem',
-    justifyContent: 'center',
-    marginTop: '1rem',
-  },
-  filterButton: {
-    backgroundColor: '#4CAF50',
-    color: 'white',
-    padding: '0.5rem 1.5rem',
-    fontWeight: 'bold',
-    textTransform: 'none',
-    '&:hover': {
-      backgroundColor: '#45a049',
-    },
-  },
   listContainer: {
     maxHeight: '300px',
     overflowY: 'auto',
@@ -177,7 +181,12 @@ const styles = {
       backgroundColor: '#69f0ae',
     },
   },
+  shareButton: {
+    mt: 1,
+    backgroundColor: '#1976d2',
+    color: 'white',
+    '&:hover': { backgroundColor: '#63a4ff' },
+  },
 };
-
 
 export default TouristActivitiesModal;
