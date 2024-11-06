@@ -45,6 +45,8 @@ import AdminArchivedProducts from './files/Admin/AdminArchivedProducts';
 import AdminActivitiesModal from './files/Admin/AdminActivitiesModal';
 import CompletedItineraries from './files/Tourist/CompletedItineraries';
 import CompletedActivity from './files/Tourist/CompletedActivity';
+import CompletedMuseums from './files/Tourist/CompletedMuseums';
+import CompletedHistorical from './files/Tourist/CompletedHistorical';
 
 
 import MuseumDetails from './files/Tourist/MuseumDetails';
@@ -101,6 +103,8 @@ function App() {
           <Route path="/AdminArchivedProducts" element={<AdminArchivedProducts/>}/>
           <Route path="/CompletedItineraries" element={<CompletedItineraries/>}/>
           <Route path="/CompletedActivity" element={<CompletedActivity/>}/>
+          <Route path="/CompletedMuseums" element={<CompletedMuseums/>}/>
+          <Route path="/CompletedHistorical" element={<CompletedHistorical/>}/>
 
 
           <Route path="/museum/details/:museumName" element={<MuseumDetails />} />
