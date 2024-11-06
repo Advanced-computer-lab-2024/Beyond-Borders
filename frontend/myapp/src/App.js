@@ -43,6 +43,7 @@ import AdminActivityModal from './files/Admin/AdminActivityModal';
 import AdminComplaintsModal from './files/Admin/AdminComplaintsModal';
 import AdminArchivedProducts from './files/Admin/AdminArchivedProducts';
 import AdminActivitiesModal from './files/Admin/AdminActivitiesModal';
+import CompletedItineraries from './files/Tourist/CompletedItineraries';
 
 
 import MuseumDetails from './files/Tourist/MuseumDetails';
@@ -97,6 +98,7 @@ function App() {
           <Route path="/AdminAddProduct" element={<AdminAddProduct/>}/>
           <Route path="/AdminComplaintsModal" element={<AdminComplaintsModal/>}/>
           <Route path="/AdminArchivedProducts" element={<AdminArchivedProducts/>}/>
+          <Route path="/CompletedItineraries" element={<CompletedItineraries/>}/>
 
 
           <Route path="/museum/details/:museumName" element={<MuseumDetails />} />
