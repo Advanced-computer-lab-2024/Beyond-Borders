@@ -5,13 +5,14 @@ import { useNavigate } from 'react-router-dom';
 
 function CompletedItineraries() {
   const [completedItineraries, setCompletedItineraries] = useState([]);
-  const [itineraryRatings, setItineraryRatings] = useState({}); // Store ratings for each itinerary
+  const [itineraryRatings, setItineraryRatings] = useState({});
+  const [tourGuideRatings, setTourGuideRatings] = useState({});
   const navigate = useNavigate();
 
   useEffect(() => {
     const fetchCompletedItineraries = async () => {
       try {
-        const username = localStorage.getItem('username'); // Assuming username is stored in localStorage
+        const username = localStorage.getItem('username'); // Tourist username
         const response = await axios.get(`/api/viewMyCompletedItineraries`, { params: { Username: username } });
         setCompletedItineraries(response.data);
       } catch (error) {
@@ -35,11 +36,11 @@ function CompletedItineraries() {
       const response = await axios.put('/rateCompletedItinerary', {
         touristUsername,
         itineraryName,
-        rating: ratingValue
+        rating: ratingValue,
       });
       alert(response.data.msg);
 
-      // Directly use the backend-provided newAverageRating without frontend modification
+      // Update the itinerary list with the new average rating
       const updatedItineraries = completedItineraries.map(itinerary =>
         itinerary.Title === itineraryName
           ? { ...itinerary, Ratings: response.data.newAverageRating }
@@ -48,6 +49,35 @@ function CompletedItineraries() {
       setCompletedItineraries(updatedItineraries);
     } catch (error) {
       console.error('Error rating itinerary:', error);
+      alert('An error occurred while submitting your rating.');
+    }
+  };
+
+  // Function to handle tour guide rating submission
+  const handleRateTourGuide = async (itineraryName, authorUsername) => {
+    const touristUsername = localStorage.getItem('username');
+    const ratingValue = parseInt(tourGuideRatings[authorUsername], 10);
+
+    if (!ratingValue || ratingValue < 1 || ratingValue > 5) {
+      alert("Rating must be a number between 1 and 5.");
+      return;
+    }
+
+    try {
+      const response = await axios.put('/rateTourGuide', {
+        touristUsername,
+        itineraryName,
+        rating: ratingValue,
+      });
+      alert(response.data.msg);
+
+      // Update tour guide rating directly in state if needed
+      setTourGuideRatings((prevRatings) => ({
+        ...prevRatings,
+        [authorUsername]: response.data.newAverageRating,
+      }));
+    } catch (error) {
+      console.error('Error rating tour guide:', error);
       alert('An error occurred while submitting your rating.');
     }
   };
@@ -72,7 +102,7 @@ function CompletedItineraries() {
                 <Typography variant="body2"><strong>Language:</strong> {itinerary.Language}</Typography>
                 <Typography variant="body2"><strong>Tour Guide:</strong> {itinerary.AuthorUsername}</Typography>
                 <Typography variant="body2"><strong>Current Itinerary Rating:</strong> {itinerary.Ratings || 'Not rated yet'}</Typography>
-                
+
                 {/* Rating Input for Itinerary */}
                 <Box sx={{ mt: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
                   <TextField
@@ -90,6 +120,26 @@ function CompletedItineraries() {
                     sx={styles.rateButton}
                   >
                     Submit Itinerary Rating
+                  </Button>
+                </Box>
+
+                {/* Rating Input for Tour Guide */}
+                <Box sx={{ mt: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <TextField
+                    label="Rate this Tour Guide"
+                    type="number"
+                    variant="outlined"
+                    size="small"
+                    value={tourGuideRatings[itinerary.AuthorUsername] || ''}
+                    onChange={(e) => setTourGuideRatings({ ...tourGuideRatings, [itinerary.AuthorUsername]: e.target.value })}
+                    inputProps={{ min: 1, max: 5 }}
+                  />
+                  <Button
+                    variant="contained"
+                    onClick={() => handleRateTourGuide(itinerary.Title, itinerary.AuthorUsername)}
+                    sx={styles.rateButton}
+                  >
+                    Submit Tour Guide Rating
                   </Button>
                 </Box>
               </Box>
