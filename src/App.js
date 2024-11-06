@@ -21,7 +21,7 @@ const {readSellerProfile, updateSeller, editProductSeller, createNewProductSelle
 const {createNewHistoricalTag,createMuseumsAsTourismGoverner,getMuseumsByAuthorAsTourismGoverner
   ,createHistoricalPlaceAsTourismGoverner , getHistoricalPlaceByNameAsTourismGoverner , updateHistoricalPlaceAsTourismGoverner , deletePlaceAsTourismGoverner , getHistoricalByAuthorAsTourismGoverner, getMuseumByNameAsTourismGoverner, updateMuseumByNameAsTourismGoverner, deleteMuseumByNameAsTourismGoverner,
   loginGoverner, updateGovernorPassword} = require("./Routes/TourismGovernorController");
-const{ReadAdvertiserProfile , updateAdvertiser, createNewActivity, readActivity, updateActivity, deleteActivity, getActivitiesByAuthor, loginAdvertiser} = require("./Routes/AdvertiserController");
+const{ReadAdvertiserProfile , updateAdvertiser, createNewActivity, readActivity, updateActivity, deleteActivity, getActivitiesByAuthor, loginAdvertiser, updateAdvertiserPassword} = require("./Routes/AdvertiserController");
 const {filterActivitiesGuest, getMuseumsByTagGuest, ViewAllUpcomingActivitiesGuest, ViewAllUpcomingMuseumEventsGuest, getHistoricalPlacesByTagGuest, ViewAllUpcomingHistoricalPlacesEventsGuest, sortActivitiesPriceAscendingGuest, sortActivitiesPriceDescendingGuest, sortActivitiesRatingDescendingGuest, sortActivitiesRatingAscendingGuest, ViewAllUpcomingItinerariesGuest, sortItinerariesPriceDescendingGuest, sortItinerariesPriceAscendingGuest, filterItinerariesGuest,ChooseActivitiesByCategoryGuest} = require("./Routes/GuestController");
 
 //const {createNewTourismGoverner, createNewAdmin, createNewProduct, editProduct} = require("./Routes/AdminController");
@@ -153,6 +153,7 @@ app.post("/api/HistoricalPlacesSearchAll",HistoricalPlacesSearchAll);
 
 //SPRINT 2 YASSIN AND AMINA
 app.put("/updateAdminPassword", updateAdminPassword);
+app.put("/updateAdvertiserPassword", updateAdvertiserPassword);
 app.put("/updateGovernorPassword", updateGovernorPassword);
 app.post("/createComplaint", createComplaint); 
 app.get("/getAllComplaints", getAllComplaints);
