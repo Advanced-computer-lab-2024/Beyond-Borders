@@ -4,6 +4,8 @@ import React, { useState, useEffect } from 'react';
 import { Box, Button, Typography, Modal, TextField } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { FormControlLabel, Checkbox } from '@mui/material';
+
 
 function TouristHomePage() {
   const [activeModal, setActiveModal] = useState(null);
@@ -22,7 +24,16 @@ function TouristHomePage() {
   const [checkOutDate, setCheckOutDate] = useState('');
   const [adults, setAdults] = useState('');
   const [hotelOffers, setHotelOffers] = useState([])
-  
+
+  //flights
+const [origin, setOrigin] = useState('');
+const [destination, setDestination] = useState('');
+const [departureDate, setDepartureDate] = useState('');
+const [returnDate, setReturnDate] = useState('');
+const [direct, setDirect] = useState(false); // Checkbox for direct flights
+const [showFlightSearch, setShowFlightSearch] = useState(false); // Toggle for flight search form visibility
+const [flightOffers, setFlightOffers] = useState([]); // Holds flight search results
+
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -170,6 +181,52 @@ function TouristHomePage() {
     }
   };
 
+  const handleBookFlight = async (flightID) => {
+    const touristUsername = localStorage.getItem('username'); // Get touristUsername from local storage
+    console.log(touristUsername);
+    //const flightID = flightGroup[0].flightID; // Assuming the flightID is available in the first flight object in the group
+  
+    // Validate the data
+    if (!touristUsername || !flightID) {
+      alert("Username or Flight ID is missing.");
+      return;
+    }
+  
+    try {
+      // Send a POST request to your backend API to book the flight
+      const response = await axios.post('/bookFlight', {
+        touristUsername,
+        flightID
+      });
+  
+      // Handle successful response
+      if (response.status === 200) {
+        alert('Flight booked successfully!');
+      }
+    } catch (error) {
+      console.error('Error booking flight:', error);
+      alert('An error occurred while booking the flight.');
+    }
+  };
+
+  const handleFlightSearchToggle = () => setShowFlightSearch((prev) => !prev);
+  const handleFlightSearch = async () => {
+    try {
+      const response = await axios.post('/fetchFlights', {
+        origin,
+        destination,
+        departureDate,
+        returnDate,
+        adults,
+        direct,
+      });
+  
+      setFlightOffers(response.data); // Set the flight offers to the state
+      setErrorMessage(''); // Clear any previous error messages
+    } catch (error) {
+      setErrorMessage(error.response?.data?.msg || 'Error fetching flights');
+    }
+  };
   return (
     <Box sx={styles.container}>
       <Typography variant="h5" component="h1" sx={styles.title}>
@@ -184,6 +241,7 @@ function TouristHomePage() {
         <Button sx={styles.button} onClick={() => navigate('/TouristComplaintsModal')}>File a complaint</Button>
         <Button sx={styles.button} onClick={() => navigate('/touristHistorical')}>View All Historical Places</Button>
         <Button sx={styles.button} onClick={handleHotelSearchToggle}>Hotels</Button>
+        <Button sx={styles.button} onClick={handleFlightSearchToggle}>Flights</Button>
         <Button sx={styles.profileButton} onClick={() => setActiveModal('profile')}>My Profile</Button>
       </Box>
 
@@ -406,6 +464,115 @@ function TouristHomePage() {
     </Box>
   </Modal>
 )}
+
+{/* Flight Search Form */}
+{showFlightSearch && (
+      <Box sx={{ display: 'flex', gap: 2, mt: 3, mb: 3 }}>
+        <TextField
+          label="Origin"
+          variant="outlined"
+          value={origin}
+          onChange={(e) => setOrigin(e.target.value)}
+        />
+        <TextField
+          label="Destination"
+          variant="outlined"
+          value={destination}
+          onChange={(e) => setDestination(e.target.value)}
+        />
+        <TextField
+          label="Departure Date"
+          type="date"
+          variant="outlined"
+          value={departureDate}
+          onChange={(e) => setDepartureDate(e.target.value)}
+          InputLabelProps={{ shrink: true }}
+        />
+        <TextField
+          label="Return Date"
+          type="date"
+          variant="outlined"
+          value={returnDate}
+          onChange={(e) => setReturnDate(e.target.value)}
+          InputLabelProps={{ shrink: true }}
+        />
+        <TextField
+          label="Adults"
+          type="number"
+          variant="outlined"
+          value={adults}
+          onChange={(e) => setAdults(e.target.value)}
+        />
+        <FormControlLabel
+          control={
+            <Checkbox
+              checked={direct}
+              onChange={(e) => setDirect(e.target.checked)}
+            />
+          }
+          label="Direct Flights Only"
+        />
+        <Button variant="contained" onClick={handleFlightSearch} sx={{ backgroundColor: '#4CAF50', color: 'white' }}>
+          Search Flights
+        </Button>
+      </Box>
+    )}
+
+{/* Flight Offers Modal */}
+{flightOffers.length > 0 && (
+  <Modal open={true} onClose={() => setFlightOffers([])}>
+    <Box sx={styles.modalContent}>
+      <Typography variant="h6" component="h2">Flight Offers</Typography>
+      <Box sx={{ ...styles.resultsContainer, maxHeight: '60vh', overflowY: 'auto' }}>
+        {flightOffers.map((flightGroup, groupIndex) => (
+          <Box key={groupIndex} sx={{ mb: 3 }}>
+            <Typography variant="h6" sx={{ mb: 1 }}>Flight ID: {flightGroup[0].flightID}</Typography>
+            <Typography>Price: {flightGroup[0].price} {flightGroup[0].currency}</Typography>
+
+            {/* Outbound Flight */}
+            <Typography variant="subtitle1" sx={{ mt: 2, fontWeight: 'bold' }}>Outbound Flight</Typography>
+            {flightGroup[0].segments.map((segment, segmentIndex) => (
+              <Box key={segmentIndex} sx={{ mb: 1, pl: 2 }}>
+                <Typography>
+                  Departure: {segment.departure.iataCode} (Terminal {segment.departure.terminal || 'N/A'}) at {new Date(segment.departure.at).toLocaleString()}
+                </Typography>
+                <Typography>
+                  Arrival: {segment.arrival.iataCode} (Terminal {segment.arrival.terminal || 'N/A'}) at {new Date(segment.arrival.at).toLocaleString()}
+                </Typography>
+              </Box>
+            ))}
+
+            {/* Return Flight */}
+            <Typography variant="subtitle1" sx={{ mt: 2, fontWeight: 'bold' }}>Return Flight</Typography>
+            {flightGroup[1].segments.map((segment, segmentIndex) => (
+              <Box key={segmentIndex} sx={{ mb: 1, pl: 2 }}>
+                <Typography>
+                  Departure: {segment.departure.iataCode} (Terminal {segment.departure.terminal || 'N/A'}) at {new Date(segment.departure.at).toLocaleString()}
+                </Typography>
+                <Typography>
+                  Arrival: {segment.arrival.iataCode} (Terminal {segment.arrival.terminal || 'N/A'}) at {new Date(segment.arrival.at).toLocaleString()}
+                </Typography>
+              </Box>
+            ))}
+
+            {/* Book Now Button */}
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 2 }}>
+              <Button variant="contained" onClick={() => handleBookFlight(flightGroup[0].flightID)} sx={styles.bookButton}>Book Now</Button>
+            </Box>
+          </Box>
+        ))}
+      </Box>
+
+      {/* Close button */}
+      <Button variant="contained" onClick={() => setFlightOffers([])} sx={styles.doneButton}>Close</Button>
+    </Box>
+  </Modal>
+)}
+
+
+  
+
+
 
 
 
