@@ -238,6 +238,7 @@ const [flightOffers, setFlightOffers] = useState([]); // Holds flight search res
         <Button sx={styles.button} onClick={() => navigate('/touristActivities')}>View All Activities</Button>
         <Button sx={styles.button} onClick={() => navigate('/touristMuseums')}>View All Museums</Button>
         <Button sx={styles.button} onClick={() => navigate('/touristItineraries')}>View All Itineraries</Button>
+        <Button sx={styles.button} onClick={() => navigate('/CompletedItineraries')}>View All completed Itineraries</Button>
         <Button sx={styles.button} onClick={() => navigate('/TouristComplaintsModal')}>File a complaint</Button>
         <Button sx={styles.button} onClick={() => navigate('/touristHistorical')}>View All Historical Places</Button>
         <Button sx={styles.button} onClick={handleHotelSearchToggle}>Hotels</Button>
