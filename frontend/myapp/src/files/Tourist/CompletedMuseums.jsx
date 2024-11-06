@@ -7,6 +7,7 @@ import { useNavigate } from 'react-router-dom';
 function CompletedMuseums() {
   const [completedMuseums, setCompletedMuseums] = useState([]);
   const [museumRatings, setMuseumRatings] = useState({});
+  const [museumComments, setMuseumComments] = useState({}); // New state for comments
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -53,6 +54,32 @@ function CompletedMuseums() {
     }
   };
 
+
+  const handleCommentMuseum = async (museumName) => {
+    const touristUsername = localStorage.getItem('username');
+    const comment = museumComments[museumName]?.trim();
+
+    if (!comment || comment.length === 0) {
+      alert("Comment cannot be empty.");
+      return;
+    }
+
+    try {
+      const response = await axios.put('/commentOnMuseum', {
+        touristUsername,
+        museumName,
+        comment,
+      });
+      alert(response.data.msg);
+
+      // Clear the comment field after submission
+      setMuseumComments(prevComments => ({ ...prevComments, [museumName]: '' }));
+    } catch (error) {
+      console.error('Error commenting on museum:', error);
+      alert('An error occurred while submitting your comment.');
+    }
+  };
+
   return (
     <Modal open={true} onClose={() => navigate('/touristHome')}>
       <Box sx={styles.modalContent}>
@@ -93,6 +120,26 @@ function CompletedMuseums() {
                     sx={styles.rateButton}
                   >
                     Submit Rating
+                  </Button>
+                </Box>
+                {/* Comment Input for Museum */}
+                <Box sx={{ mt: 2 }}>
+                  <TextField
+                    label="Comment on Museum"
+                    variant="outlined"
+                    size="small"
+                    multiline
+                    fullWidth
+                    value={museumComments[museum.name] || ''}
+                    onChange={(e) => setMuseumComments({ ...museumComments, [museum.name]: e.target.value })}
+                    rows={3}
+                  />
+                  <Button
+                    variant="contained"
+                    onClick={() => handleCommentMuseum(museum.name)}
+                    sx={styles.commentButton}
+                  >
+                    Submit Comment
                   </Button>
                 </Box>
               </Box>
@@ -146,6 +193,12 @@ const styles = {
     backgroundColor: '#1976d2',
     color: 'white',
     '&:hover': { backgroundColor: '#63a4ff' },
+  },
+  commentButton: {
+    backgroundColor: '#89CFF0', // Baby blue for comments
+    color: 'white',
+    marginTop: '0.5rem',
+    '&:hover': { backgroundColor: '#A7DFFF' }, // Lighter blue on hover
   },
 };
 
