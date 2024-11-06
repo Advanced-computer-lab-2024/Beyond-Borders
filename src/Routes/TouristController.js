@@ -1197,7 +1197,11 @@ const bookMuseum = async (req, res) => {
     if (!museum) {
       return res.status(404).json({ msg: 'Museum not found' });
     }
-
+    
+    if (!museum.dateOfEvent || museum.dateOfEvent === null) {
+      return res.status(404).json({ msg: 'No events for this museum' });;
+      // You can add further logic based on the dateOfEvent if needed
+    } 
     const tourist = await TouristModel.findOne({ Username: touristUsername });
     
     if (!tourist) {
@@ -1253,7 +1257,11 @@ const bookHistoricalPlace = async (req, res) => {
     if (!historicalPlace) {
       return res.status(404).json({ msg: 'Historical Place not found' });
     }
-
+     
+    if (!historicalPlace.dateOfEvent || historicalPlace.dateOfEvent === null) {
+      return res.status(404).json({ msg: 'No events for this historical plae' });;
+      // You can add further logic based on the dateOfEvent if needed
+    } 
     const tourist = await TouristModel.findOne({ Username: touristUsername });
     
     if (!tourist) {
