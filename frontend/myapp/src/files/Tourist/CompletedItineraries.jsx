@@ -8,6 +8,7 @@ function CompletedItineraries() {
   const [itineraryRatings, setItineraryRatings] = useState({});
   const [tourGuideRatings, setTourGuideRatings] = useState({});
   const [comments, setComments] = useState({});
+  const [itineraryComments, setItineraryComments] = useState({}); // New state for itinerary comments
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -69,10 +70,12 @@ function CompletedItineraries() {
       });
       alert(response.data.msg);
 
-      setTourGuideRatings((prevRatings) => ({
-        ...prevRatings,
-        [authorUsername]: response.data.newAverageRating,
-      }));
+      const updatedItineraries = completedItineraries.map(itinerary =>
+        itinerary.AuthorUsername === authorUsername
+          ? { ...itinerary, TourGuideRating: response.data.newAverageRating }
+          : itinerary
+      );
+      setCompletedItineraries(updatedItineraries);
     } catch (error) {
       console.error('Error rating tour guide:', error);
       alert('An error occurred while submitting your rating.');
@@ -103,6 +106,30 @@ function CompletedItineraries() {
     }
   };
 
+  const handleCommentItinerary = async (itineraryName) => {
+    const touristUsername = localStorage.getItem('username');
+    const comment = itineraryComments[itineraryName]?.trim();
+
+    if (!comment || comment.length === 0) {
+      alert("Comment cannot be empty.");
+      return;
+    }
+
+    try {
+      const response = await axios.put('/commentOnItinerary', {
+        touristUsername,
+        itineraryName,
+        comment,
+      });
+      alert(response.data.msg);
+
+      setItineraryComments(prevComments => ({ ...prevComments, [itineraryName]: '' }));
+    } catch (error) {
+      console.error('Error commenting on itinerary:', error);
+      alert('An error occurred while submitting your comment.');
+    }
+  };
+
   return (
     <Modal open={true} onClose={() => navigate('/touristHome')}>
       <Box sx={styles.modalContent}>
@@ -123,6 +150,9 @@ function CompletedItineraries() {
                 <Typography variant="body2"><strong>Language:</strong> {itinerary.Language}</Typography>
                 <Typography variant="body2"><strong>Tour Guide:</strong> {itinerary.AuthorUsername}</Typography>
                 <Typography variant="body2"><strong>Current Itinerary Rating:</strong> {itinerary.Ratings || 'Not rated yet'}</Typography>
+                
+                {/* Display Tour Guide Rating */}
+                <Typography variant="body2" sx={{ mt: 1 }}><strong>Current Tour Guide Rating:</strong> {itinerary.TourGuideRating || 'Not rated yet'}</Typography>
 
                 {/* Itinerary Rating Input */}
                 <Box sx={{ mt: 2 }}>
@@ -134,6 +164,7 @@ function CompletedItineraries() {
                     value={itineraryRatings[itinerary.Title] || ''}
                     onChange={(e) => setItineraryRatings({ ...itineraryRatings, [itinerary.Title]: e.target.value })}
                     inputProps={{ min: 1, max: 5 }}
+                    sx={{ marginRight: '1rem', width: '80px' }}
                   />
                   <Button
                     variant="contained"
@@ -141,6 +172,27 @@ function CompletedItineraries() {
                     sx={styles.rateButton}
                   >
                     Submit Itinerary Rating
+                  </Button>
+                </Box>
+
+                {/* Itinerary Comment Input */}
+                <Box sx={{ mt: 2 }}>
+                  <TextField
+                    label="Comment on Itinerary"
+                    variant="outlined"
+                    size="small"
+                    multiline
+                    fullWidth
+                    value={itineraryComments[itinerary.Title] || ''}
+                    onChange={(e) => setItineraryComments({ ...itineraryComments, [itinerary.Title]: e.target.value })}
+                    rows={3}
+                  />
+                  <Button
+                    variant="contained"
+                    onClick={() => handleCommentItinerary(itinerary.Title)}
+                    sx={styles.commentButton}
+                  >
+                    Submit Comment for Itinerary
                   </Button>
                 </Box>
 
@@ -154,6 +206,7 @@ function CompletedItineraries() {
                     value={tourGuideRatings[itinerary.AuthorUsername] || ''}
                     onChange={(e) => setTourGuideRatings({ ...tourGuideRatings, [itinerary.AuthorUsername]: e.target.value })}
                     inputProps={{ min: 1, max: 5 }}
+                    sx={{ marginRight: '1rem', width: '80px' }}
                   />
                   <Button
                     variant="contained"
@@ -181,7 +234,7 @@ function CompletedItineraries() {
                     onClick={() => handleCommentTourGuide(itinerary.Title, itinerary.AuthorUsername)}
                     sx={styles.commentButton}
                   >
-                    Submit a Comment for the tourguide
+                    Submit Comment for Tour Guide
                   </Button>
                 </Box>
               </Box>
@@ -242,8 +295,6 @@ const styles = {
     marginTop: '0.5rem',
     '&:hover': { backgroundColor: '#A7DFFF' }, // Lighter baby blue on hover
   },
-
-
 };
 
 export default CompletedItineraries;
