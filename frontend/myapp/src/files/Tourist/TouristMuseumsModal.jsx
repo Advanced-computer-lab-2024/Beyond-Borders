@@ -10,6 +10,7 @@ function TouristMuseumsModal() {
   const [selectedMuseum, setSelectedMuseum] = useState(null); // For displaying a single museum in detail
   const [searchKeyword, setSearchKeyword] = useState('');
   const [tags, setTags] = useState('');
+  const [email, setEmail] = useState(''); // State for the email input
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -50,23 +51,23 @@ function TouristMuseumsModal() {
     setSelectedMuseum(null); // Reset selected museum to go back to list view
   };
 
-   // Function to handle sharing the museum link with a hardcoded email
-   const handleShare = async (museumName) => {
+  // Function to handle sharing the museum link with the entered email
+  const handleShare = async (museumName) => {
     try {
       const frontendLink = `http://localhost:3000/museum/details/${encodeURIComponent(museumName)}`;
 
-      // Optionally send this to backend to generate a message or use frontend link directly
+      // Send request to the backend to generate a link
       const response = await axios.post('/getCopyLink', {
         entityType: 'museum',
         entityName: museumName,
-        email: 'farahabouelwafaa@gmail.com' // Hardcoded email
+        email: email // Use the email from the text field
       });
       const { msg } = response.data;
 
       // Copy the frontend link to the clipboard
       if (navigator.clipboard) {
         navigator.clipboard.writeText(frontendLink)
-          .then(() => alert(`Link copied to clipboard successfully!`))
+          .then(() => alert(`Link copied to clipboard successfully!\n${msg}`))
           .catch(err => alert(`Failed to copy link: ${err}`));
       } else {
         alert(`Here is the link to share: ${frontendLink}\n${msg}`);
@@ -76,7 +77,6 @@ function TouristMuseumsModal() {
       alert('An error occurred while generating the share link.');
     }
   };
-
 
   return (
     <Modal open={true} onClose={() => navigate('/touristHome')}>
@@ -113,26 +113,24 @@ function TouristMuseumsModal() {
         </Box>
 
         {selectedMuseum ? (
-  <Box sx={styles.detailView}>
-    <Typography variant="h6">{selectedMuseum.name}</Typography>
-    <Typography><strong>Description:</strong> {selectedMuseum.description}</Typography>
-    <Typography><strong>Pictures:</strong> {selectedMuseum.pictures?.join(', ')}</Typography>
-    <Typography><strong>Location:</strong> {selectedMuseum.location}</Typography>
-    <Typography><strong>Opening Hours:</strong> {selectedMuseum.openingHours}</Typography>
-    <Typography><strong>Ticket Prices:</strong> 
-      Foreigner: {selectedMuseum.ticketPrices?.foreigner}, 
-      Native: {selectedMuseum.ticketPrices?.native}, 
-      Student: {selectedMuseum.ticketPrices?.student}
-    </Typography>
-    <Typography><strong>Author:</strong> {selectedMuseum.author}</Typography>
-    <Typography>
-      <strong>Historical Tags:</strong> {selectedMuseum.tags?.length > 0 ? selectedMuseum.tags.join(', ') : 'No tags available'}
-    </Typography>
-    <Typography><strong>Date of Event:</strong> {new Date(selectedMuseum.date).toLocaleDateString()}</Typography>
-    <Button variant="contained" onClick={handleCloseDetails} sx={styles.closeDetailsButton}>Back</Button>
-  </Box>
-
-          
+          <Box sx={styles.detailView}>
+            <Typography variant="h6">{selectedMuseum.name}</Typography>
+            <Typography><strong>Description:</strong> {selectedMuseum.description}</Typography>
+            <Typography><strong>Pictures:</strong> {selectedMuseum.pictures?.join(', ')}</Typography>
+            <Typography><strong>Location:</strong> {selectedMuseum.location}</Typography>
+            <Typography><strong>Opening Hours:</strong> {selectedMuseum.openingHours}</Typography>
+            <Typography><strong>Ticket Prices:</strong> 
+              Foreigner: {selectedMuseum.ticketPrices?.foreigner}, 
+              Native: {selectedMuseum.ticketPrices?.native}, 
+              Student: {selectedMuseum.ticketPrices?.student}
+            </Typography>
+            <Typography><strong>Author:</strong> {selectedMuseum.author}</Typography>
+            <Typography>
+              <strong>Historical Tags:</strong> {selectedMuseum.tags?.length > 0 ? selectedMuseum.tags.join(', ') : 'No tags available'}
+            </Typography>
+            <Typography><strong>Date of Event:</strong> {new Date(selectedMuseum.date).toLocaleDateString()}</Typography>
+            <Button variant="contained" onClick={handleCloseDetails} sx={styles.closeDetailsButton}>Back</Button>
+          </Box>
         ) : (
           // List View of Filtered Museums
           <Box sx={styles.listContainer}>
@@ -143,12 +141,23 @@ function TouristMuseumsModal() {
                   View Details
                 </Button>
                 <Button
-                variant="outlined"
-                onClick={() => handleShare(museum.name)}
-                sx={styles.shareButton}
-              >
-                Share
-              </Button>
+                  variant="outlined"
+                  onClick={() => handleShare(museum.name)}
+                  sx={styles.shareButton}
+                >
+                  Share
+                </Button>
+                
+                {/* Email Input for Sharing (placed below the Share button) */}
+                <TextField
+                  label="Email for Sharing"
+                  variant="outlined"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  fullWidth
+                  margin="normal"
+                  sx={{ mt: 2 }}
+                />
               </Box>
             ))}
           </Box>
@@ -203,8 +212,9 @@ const styles = {
   },
   item: {
     display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: 'column', // Make the item layout vertical
+    gap: 1,
+    alignItems: 'flex-start', // Align items to the start for a vertical layout
     p: 2,
     borderBottom: '1px solid #ddd',
   },
@@ -230,6 +240,12 @@ const styles = {
     backgroundColor: '#00c853',
     color: 'white',
     '&:hover': { backgroundColor: '#69f0ae' },
+  },
+  shareButton: {
+    mt: 1,
+    backgroundColor: '#1976d2',
+    color: 'white',
+    '&:hover': { backgroundColor: '#63a4ff' },
   },
 };
 

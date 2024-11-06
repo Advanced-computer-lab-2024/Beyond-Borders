@@ -44,6 +44,7 @@ import AdminComplaintsModal from './files/Admin/AdminComplaintsModal';
 import AdminArchivedProducts from './files/Admin/AdminArchivedProducts';
 import AdminActivitiesModal from './files/Admin/AdminActivitiesModal';
 import CompletedItineraries from './files/Tourist/CompletedItineraries';
+import CompletedActivity from './files/Tourist/CompletedActivity';
 
 
 import MuseumDetails from './files/Tourist/MuseumDetails';
@@ -99,6 +100,7 @@ function App() {
           <Route path="/AdminComplaintsModal" element={<AdminComplaintsModal/>}/>
           <Route path="/AdminArchivedProducts" element={<AdminArchivedProducts/>}/>
           <Route path="/CompletedItineraries" element={<CompletedItineraries/>}/>
+          <Route path="/CompletedActivity" element={<CompletedActivity/>}/>
 
 
           <Route path="/museum/details/:museumName" element={<MuseumDetails />} />

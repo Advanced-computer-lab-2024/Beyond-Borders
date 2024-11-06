@@ -1,11 +1,12 @@
 // src/files/Tourist/TouristHistoricalPlacesModal.jsx
 import React, { useState, useEffect } from 'react';
-import { Box, Button, Typography, Modal } from '@mui/material';
+import { Box, Button, Typography, Modal, TextField } from '@mui/material';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
 function TouristHistoricalPlacesModal() {
   const [historicalPlaces, setHistoricalPlaces] = useState([]);
+  const [email, setEmail] = useState(''); // State for the email input
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -20,23 +21,23 @@ function TouristHistoricalPlacesModal() {
     fetchHistoricalPlaces();
   }, []);
 
-  // Function to handle sharing the historical place link with a hardcoded email
+  // Function to handle sharing the historical place link with the entered email
   const handleShare = async (placeName) => {
     try {
       const frontendLink = `http://localhost:3000/historicalPlace/details/${encodeURIComponent(placeName)}`;
 
-      // Optionally send this to backend to generate a message or use frontend link directly
+      // Send request to the backend to generate a link with email input
       const response = await axios.post('/getCopyLink', {
-        entityType: 'historicalPlace', // Use "historicalPlace" entity type
+        entityType: 'historicalPlace',
         entityName: placeName,
-        email: 'farahabouelwafaa@gmail.com' // Hardcoded email
+        email: email // Use the email from the text field
       });
       const { msg } = response.data;
 
       // Copy the frontend link to the clipboard
       if (navigator.clipboard) {
         navigator.clipboard.writeText(frontendLink)
-          .then(() => alert(`Link copied to clipboard successfully!`))
+          .then(() => alert(`Link copied to clipboard successfully!\n${msg}`))
           .catch(err => alert(`Failed to copy link: ${err}`));
       } else {
         alert(`Here is the link to share: ${frontendLink}\n${msg}`);
@@ -53,6 +54,16 @@ function TouristHistoricalPlacesModal() {
         <Typography variant="h6" component="h2">
           Upcoming Historical Places Events
         </Typography>
+
+        {/* Email Input for Sharing */}
+        <TextField
+          label="Email for Sharing"
+          variant="outlined"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          sx={{ marginBottom: 2 }}
+        />
+
         <Box sx={styles.listContainer}>
           {historicalPlaces.map(place => (
             <Box key={place.id} sx={styles.item}>

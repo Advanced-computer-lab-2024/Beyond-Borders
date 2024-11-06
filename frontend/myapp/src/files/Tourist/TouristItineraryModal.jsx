@@ -1,11 +1,12 @@
 // src/files/Tourist/TouristItineraryModal.jsx
 import React, { useState, useEffect } from 'react';
-import { Box, Button, Typography, Modal } from '@mui/material';
+import { Box, Button, Typography, Modal, TextField } from '@mui/material';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
 function TouristItineraryModal() {
   const [itineraries, setItineraries] = useState([]);
+  const [email, setEmail] = useState(''); // State for the email input
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -20,16 +21,16 @@ function TouristItineraryModal() {
     fetchItineraries();
   }, []);
 
-  // Function to handle sharing the itinerary link with a hardcoded email
+  // Function to handle sharing the itinerary link with the entered email
   const handleShare = async (itineraryTitle) => {
     try {
       const frontendLink = `http://localhost:3000/itinerary/details/${encodeURIComponent(itineraryTitle)}`;
 
       // Send request to the backend to generate a link
       const response = await axios.post('/getCopyLink', {
-        entityType: 'itinerary', // Use "itinerary" entity type
+        entityType: 'itinerary',
         entityName: itineraryTitle,
-        email: 'farahabouelwafaa@gmail.com' // Hardcoded email
+        email: email // Use the email from the text field
       });
       const { msg } = response.data;
 
@@ -53,12 +54,23 @@ function TouristItineraryModal() {
         <Typography variant="h6" component="h2">
           Upcoming Itineraries
         </Typography>
+
+        {/* Email Input */}
+        
+
         <Box sx={styles.listContainer}>
           {itineraries.map(itinerary => (
             <Box key={itinerary.id} sx={styles.item}>
               <Typography variant="body1"><strong>Title:</strong> {itinerary.Title}</Typography>
               <Typography variant="body2"><strong>Price:</strong> ${itinerary.Price}</Typography>
               <Typography variant="body2"><strong>Language:</strong> {itinerary.Language}</Typography>
+              <TextField
+          label="Email for Sharing"
+          variant="outlined"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          sx={{ marginBottom: 2 }}
+        />
 
               {/* Share Button */}
               <Button

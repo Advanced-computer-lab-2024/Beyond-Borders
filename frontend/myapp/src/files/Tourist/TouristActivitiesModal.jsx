@@ -6,6 +6,7 @@ import { useNavigate } from 'react-router-dom';
 
 function TouristActivitiesModal() {
   const [activities, setActivities] = useState([]);
+  const [email, setEmail] = useState(''); // State for the email input
   const [searchKeyword, setSearchKeyword] = useState('');
   const [category, setCategory] = useState('');
   const [minPrice, setMinPrice] = useState('');
@@ -73,7 +74,7 @@ function TouristActivitiesModal() {
       const response = await axios.post('/getCopyLink', {
         entityType: 'activity', // Use "activity" entity type
         entityName: activityName,
-        email: 'farahabouelwafaa@gmail.com' // Hardcoded email
+        email: email // Use the email from the text field
       });
       const { msg } = response.data;
 
@@ -125,6 +126,15 @@ function TouristActivitiesModal() {
                 <Typography variant="body2"><strong>Date:</strong> {new Date(activity.Date).toLocaleDateString()}</Typography>
                 <Typography variant="body2"><strong>Price:</strong> ${activity.Price}</Typography>
                 <Typography variant="body2"><strong>Rating:</strong> {activity.Rating}</Typography>
+
+                {/* Email Input for Sharing */}
+                <TextField
+                  label="Email for Sharing"
+                  variant="outlined"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  sx={{ marginBottom: 2 }}
+                />
 
                 {/* Share Button */}
                 <Button

@@ -1034,7 +1034,7 @@ const createComplaint = async (req, res) => {
           Title: Title,
           Body: Body,
           Date: new Date(),
-          Status: 'pending',
+          Status: 'Pending',
           TouristUsername: TouristUsername
       });
 
