@@ -7,12 +7,13 @@ function CompletedItineraries() {
   const [completedItineraries, setCompletedItineraries] = useState([]);
   const [itineraryRatings, setItineraryRatings] = useState({});
   const [tourGuideRatings, setTourGuideRatings] = useState({});
+  const [comments, setComments] = useState({});
   const navigate = useNavigate();
 
   useEffect(() => {
     const fetchCompletedItineraries = async () => {
       try {
-        const username = localStorage.getItem('username'); // Tourist username
+        const username = localStorage.getItem('username');
         const response = await axios.get(`/api/viewMyCompletedItineraries`, { params: { Username: username } });
         setCompletedItineraries(response.data);
       } catch (error) {
@@ -22,7 +23,6 @@ function CompletedItineraries() {
     fetchCompletedItineraries();
   }, []);
 
-  // Function to handle itinerary rating submission
   const handleRateItinerary = async (itineraryName) => {
     const touristUsername = localStorage.getItem('username');
     const ratingValue = parseInt(itineraryRatings[itineraryName], 10);
@@ -40,7 +40,6 @@ function CompletedItineraries() {
       });
       alert(response.data.msg);
 
-      // Update the itinerary list with the new average rating
       const updatedItineraries = completedItineraries.map(itinerary =>
         itinerary.Title === itineraryName
           ? { ...itinerary, Ratings: response.data.newAverageRating }
@@ -53,7 +52,6 @@ function CompletedItineraries() {
     }
   };
 
-  // Function to handle tour guide rating submission
   const handleRateTourGuide = async (itineraryName, authorUsername) => {
     const touristUsername = localStorage.getItem('username');
     const ratingValue = parseInt(tourGuideRatings[authorUsername], 10);
@@ -71,7 +69,6 @@ function CompletedItineraries() {
       });
       alert(response.data.msg);
 
-      // Update tour guide rating directly in state if needed
       setTourGuideRatings((prevRatings) => ({
         ...prevRatings,
         [authorUsername]: response.data.newAverageRating,
@@ -79,6 +76,30 @@ function CompletedItineraries() {
     } catch (error) {
       console.error('Error rating tour guide:', error);
       alert('An error occurred while submitting your rating.');
+    }
+  };
+
+  const handleCommentTourGuide = async (itineraryName, authorUsername) => {
+    const touristUsername = localStorage.getItem('username');
+    const comment = comments[itineraryName]?.trim();
+
+    if (!comment || comment.length === 0) {
+      alert("Comment cannot be empty.");
+      return;
+    }
+
+    try {
+      const response = await axios.put('/commentOnTourGuide', {
+        touristUsername,
+        itineraryName,
+        comment,
+      });
+      alert(response.data.msg);
+
+      setComments(prevComments => ({ ...prevComments, [itineraryName]: '' }));
+    } catch (error) {
+      console.error('Error commenting on tour guide:', error);
+      alert('An error occurred while submitting your comment.');
     }
   };
 
@@ -103,8 +124,8 @@ function CompletedItineraries() {
                 <Typography variant="body2"><strong>Tour Guide:</strong> {itinerary.AuthorUsername}</Typography>
                 <Typography variant="body2"><strong>Current Itinerary Rating:</strong> {itinerary.Ratings || 'Not rated yet'}</Typography>
 
-                {/* Rating Input for Itinerary */}
-                <Box sx={{ mt: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
+                {/* Itinerary Rating Input */}
+                <Box sx={{ mt: 2 }}>
                   <TextField
                     label="Rate this Itinerary"
                     type="number"
@@ -123,8 +144,8 @@ function CompletedItineraries() {
                   </Button>
                 </Box>
 
-                {/* Rating Input for Tour Guide */}
-                <Box sx={{ mt: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
+                {/* Tour Guide Rating Input */}
+                <Box sx={{ mt: 2 }}>
                   <TextField
                     label="Rate this Tour Guide"
                     type="number"
@@ -140,6 +161,27 @@ function CompletedItineraries() {
                     sx={styles.rateButton}
                   >
                     Submit Tour Guide Rating
+                  </Button>
+                </Box>
+
+                {/* Comment Input for Tour Guide */}
+                <Box sx={{ mt: 2 }}>
+                  <TextField
+                    label="Comment on Tour Guide"
+                    variant="outlined"
+                    size="small"
+                    multiline
+                    fullWidth
+                    value={comments[itinerary.Title] || ''}
+                    onChange={(e) => setComments({ ...comments, [itinerary.Title]: e.target.value })}
+                    rows={3}
+                  />
+                  <Button
+                    variant="contained"
+                    onClick={() => handleCommentTourGuide(itinerary.Title, itinerary.AuthorUsername)}
+                    sx={styles.commentButton}
+                  >
+                    Submit a Comment for the tourguide
                   </Button>
                 </Box>
               </Box>
@@ -194,6 +236,14 @@ const styles = {
     color: 'white',
     '&:hover': { backgroundColor: '#63a4ff' },
   },
+  commentButton: {
+    backgroundColor: '#89CFF0', // Baby blue
+    color: 'white',
+    marginTop: '0.5rem',
+    '&:hover': { backgroundColor: '#A7DFFF' }, // Lighter baby blue on hover
+  },
+
+
 };
 
 export default CompletedItineraries;
