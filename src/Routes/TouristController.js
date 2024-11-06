@@ -11,6 +11,7 @@ const TourGuideModel = require('../Models/TourGuide.js');
 const DeleteRequestsModel = require('../Models/DeleteRequests.js');
 const TransportationAdvertiserModel = require('../Models/TransportationAdvertiser.js');
 const TransportationModel = require('../Models/Transportation.js');
+const TagsModel = require('../Models/Tags.js');
 const axios = require('axios');
 const nodemailer = require('nodemailer'); 
 
@@ -3788,7 +3789,25 @@ const viewAllTransportation = async (req, res) => {
   }
 };
 
+const viewPreferenceTags = async (req, res) => {
+  try {
+    // Fetch all tags from the database
+    const tags = await TagsModel.find(); 
+
+    // Check if there are any tags
+    if (tags.length === 0) {
+      return res.status(404).json({ msg: 'No preference tags found' });
+    }
+
+    // Respond with the list of tags
+    res.status(200).json(tags);
+  } catch (error) {
+    console.error('Error fetching preference tags:', error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
 
 module.exports = {createTourist, getTourist, updateTourist, searchProductTourist, filterActivities, filterProductByPriceTourist, ActivityRating, sortProductsDescendingTourist, sortProductsAscendingTourist, ViewAllUpcomingActivities, ViewAllUpcomingMuseumEventsTourist, getMuseumsByTagTourist, getHistoricalPlacesByTagTourist, ViewAllUpcomingHistoricalPlacesEventsTourist,viewProductsTourist, sortActivitiesPriceAscendingTourist, sortActivitiesPriceDescendingTourist, sortActivitiesRatingAscendingTourist, sortActivitiesRatingDescendingTourist, loginTourist, ViewAllUpcomingItinerariesTourist, sortItinerariesPriceAscendingTourist, sortItinerariesPriceDescendingTourist, filterItinerariesTourist, ActivitiesSearchAll, ItinerarySearchAll, MuseumSearchAll, HistoricalPlacesSearchAll, ProductRating, createComplaint, getComplaintsByTouristUsername,ChooseActivitiesByCategoryTourist,bookActivity,bookItinerary,bookMuseum,bookHistoricalPlace, ratePurchasedProduct, addPurchasedProducts, reviewPurchasedProduct, addCompletedItinerary, rateTourGuide, commentOnTourGuide, rateCompletedItinerary, commentOnItinerary, addCompletedActivities, addCompletedMuseumEvents, addCompletedHPEvents, rateCompletedActivity, rateCompletedMuseum, rateCompletedHP, commentOnActivity, commentOnMuseum, commentOnHP,deleteBookedActivity,deleteBookedItinerary,deleteBookedMuseum,deleteBookedHP,payActivity,updateWallet,updatepoints,payItinerary,payMuseum,payHP,redeemPoints, convertEgp, fetchFlights,viewBookedItineraries, requestDeleteAccountTourist,convertCurr,getActivityDetails,getHistoricalPlaceDetails,getMuseumDetails,GetCopyLink, bookFlight
-  ,fetchHotelsByCity, fetchHotels, bookHotel,bookTransportation,addPreferences, viewMyCompletedActivities, viewMyCompletedItineraries, viewMyCompletedMuseums, viewMyCompletedHistoricalPlaces,viewMyBookedActivities,viewMyBookedItineraries,viewMyBookedMuseums,viewMyBookedHistoricalPlaces,viewTourGuidesCompleted,viewAllTransportation, getItineraryDetails
+  ,fetchHotelsByCity, fetchHotels, bookHotel,bookTransportation,addPreferences, viewMyCompletedActivities, viewMyCompletedItineraries, viewMyCompletedMuseums, viewMyCompletedHistoricalPlaces,viewMyBookedActivities,viewMyBookedItineraries,viewMyBookedMuseums,viewMyBookedHistoricalPlaces,viewTourGuidesCompleted,viewAllTransportation, getItineraryDetails, viewPreferenceTags
 };
