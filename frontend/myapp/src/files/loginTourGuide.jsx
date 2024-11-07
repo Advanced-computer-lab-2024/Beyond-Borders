@@ -1,17 +1,16 @@
 import React, { useState } from 'react';
-import { Box, Button, TextField, Typography } from '@mui/material';
-import axios from 'axios'; // Import axios for making HTTP requests
+import { Box, Button, TextField, Typography, Modal } from '@mui/material';
+import axios from 'axios';
 
 const LoginTourGuide = () => {
-  // State to manage form inputs and response messages
   const [formData, setFormData] = useState({
     username: '',
     password: '',
   });
-
   const [responseMessage, setResponseMessage] = useState('');
+  const [showTermsModal, setShowTermsModal] = useState(false);
+  const [loginCount, setLoginCount] = useState(null);
 
-  // Handle input changes
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({
@@ -20,38 +19,43 @@ const LoginTourGuide = () => {
     });
   };
 
-  // Handle form submission
   const handleSubmit = async (e) => {
-    e.preventDefault(); // Prevent the default form submission
-    setResponseMessage(''); // Clear previous messages
+    e.preventDefault();
+    setResponseMessage('');
 
     try {
       const response = await axios.post('http://localhost:8000/loginTourGuide', formData);
-      const result = response.data; // Access the response data
+      const result = response.data;
 
       if (result.tourguide) {
-        // Save the username in local storage
+        setLoginCount(result.tourguide.LoginCount);
         localStorage.setItem('username', result.tourguide.Username);
-
-        // Display a welcome message or perform any action after successful login
         setResponseMessage(`Welcome, ${result.tourguide.Username}!`);
 
-        // Redirect after 2 seconds
-        setTimeout(() => {
-          window.location.href = `/HomePageTourGuide`; // Redirect to home page after login
-        }, 2000);
+        if (result.tourguide.LoginCount === 1) {
+          setShowTermsModal(true);
+        } else {
+          setTimeout(() => {
+            window.location.href = `/HomePageTourGuide`;
+          }, 2000);
+        }
       } else {
         setResponseMessage(`Error: ${result.error || 'Failed to log in.'}`);
       }
     } catch (error) {
-      // Handle Axios errors
       if (error.response && error.response.data) {
         setResponseMessage(`Error: ${error.response.data.error || 'An error occurred.'}`);
       } else {
         setResponseMessage('An error occurred. Please try again.');
       }
-      console.error('Error logging in:', error); // Log the error for debugging
     }
+  };
+
+  const handleAcceptTerms = () => {
+    setShowTermsModal(false);
+    setTimeout(() => {
+      window.location.href = '/HomePageTourGuide';
+    }, 2000);
   };
 
   return (
@@ -114,6 +118,35 @@ const LoginTourGuide = () => {
           {responseMessage}
         </Typography>
       )}
+
+      <Modal open={showTermsModal}>
+        <Box
+          sx={{
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            width: 400,
+            bgcolor: 'background.paper',
+            p: 4,
+            borderRadius: 2,
+            boxShadow: 24,
+          }}
+        >
+          <Typography variant="h6" gutterBottom>Terms and Conditions</Typography>
+          <Typography variant="body2" gutterBottom>
+            Please accept our terms and conditions to proceed to the homepage.
+          </Typography>
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={handleAcceptTerms}
+            sx={{ mt: 2 }}
+          >
+            Accept
+          </Button>
+        </Box>
+      </Modal>
     </Box>
   );
 };
