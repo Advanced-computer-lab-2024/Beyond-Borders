@@ -47,6 +47,7 @@ import CompletedItineraries from './files/Tourist/CompletedItineraries';
 import CompletedActivity from './files/Tourist/CompletedActivity';
 import CompletedMuseums from './files/Tourist/CompletedMuseums';
 import CompletedHistorical from './files/Tourist/CompletedHistorical';
+import PurchasedProducts from './files/Tourist/PurchasedProducts';
 
 
 import MuseumDetails from './files/Tourist/MuseumDetails';
@@ -105,6 +106,7 @@ function App() {
           <Route path="/CompletedActivity" element={<CompletedActivity/>}/>
           <Route path="/CompletedMuseums" element={<CompletedMuseums/>}/>
           <Route path="/CompletedHistorical" element={<CompletedHistorical/>}/>
+          <Route path="/PurchasedProducts" element={<PurchasedProducts/>}/>
 
 
           <Route path="/museum/details/:museumName" element={<MuseumDetails />} />
