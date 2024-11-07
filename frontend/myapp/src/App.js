@@ -58,6 +58,9 @@ import HomePageGuest from './files/HomePageGuest';
 import TouristComplaintsViewModal from './files/Tourist/TouristComplaintsViewModal'
 import TouristComplaintsModal from './files/Tourist/TouristComplaintsModal';
 import PaymentPage from './files/Tourist/PaymentPage';
+import RegisterTransportationAdvertiser from './files/RegisterTransportationAdvertiser';
+import LoginTransportationAdvertiser from './files/LoginTransportationAdvertiser';
+import HomePageTransportationAdvertiser from './files/HomePageTransportationAdvertiser';
 
 
 
@@ -73,6 +76,12 @@ function App() {
           <Route path="/addTourist" element={<RegisterTourist />} />
           <Route path="/addUnregisteredTourGuide" element={<RegisterTourGuide />} />
           <Route path="/addUnregisteredSeller" element={<RegisterSeller />} />
+          <Route path="/addTransportationAdvertiser" element={<RegisterTransportationAdvertiser />} />
+          <Route path="/loginTransportationAdvertiser" element={<LoginTransportationAdvertiser />} />
+          <Route path="/HomePageTransportationAdvertiser" element={<HomePageTransportationAdvertiser />} />
+
+
+
           <Route path="/loginTourist" element={<LoginTourist />} />
           <Route path="/loginAdvertiser" element={<LoginAdvertiser />} />
           <Route path="/loginTourGuide" element={<LoginTourGuide />} />

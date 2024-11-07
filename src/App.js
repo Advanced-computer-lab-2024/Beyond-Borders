@@ -12,7 +12,7 @@ const {createTourist,getTourist, updateTourist, searchProductTourist, filterActi
 const {createUnregisteredAdvertiser} = require("./Routes/UnregisteredAdvertiserController");
 
 const {createUnregisteredTranspAdvertiser} = require("./Routes/UnregisteredTranspAdvertiserController");
-const {ReadTransportationAdvertiserProfile,createNewTransportation} = require("./Routes/TransportationAdvertiserController");
+const {loginTransportationAdvertiser,ReadTransportationAdvertiserProfile,createNewTransportation} = require("./Routes/TransportationAdvertiserController");
 
 const {createUnregisteredTourGuide} = require("./Routes/UnregisteredTourGuideController");
 const {createUnregisteredSeller} = require("./Routes/UnregisteredSellerController");
@@ -244,6 +244,7 @@ app.get('/api/museum/details/:museumName', getMuseumDetails);
 app.post('/getCopyLink', GetCopyLink);
 app.get('/api/itinerary/details/:itineraryName', getItineraryDetails);
 app.post('/createUnregisteredTranspAdvertiser', createUnregisteredTranspAdvertiser);
+app.post('/loginTransportationAdvertiser', loginTransportationAdvertiser);
 app.post('/rejectTranspAdvertiser', rejectTranspAdvertiser);
 app.post('/acceptTranspAdvertiser', acceptTranspAdvertiser);
 app.post('/createNewTransportation', createNewTransportation);

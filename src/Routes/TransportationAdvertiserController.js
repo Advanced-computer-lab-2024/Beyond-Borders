@@ -1,6 +1,36 @@
 const TransportationAdvertiserModel = require('../Models/TransportationAdvertiser.js');
 const TransportationModel = require('../Models/Transportation.js');
 
+const loginTransportationAdvertiser = async (req, res) => {
+  try {
+    const { username, password } = req.body;
+
+    // Validate input
+    if (!username || !password) {
+      return res.status(400).json({ error: "Username and password are required." });
+    }
+
+    // Find the transportation advertiser by username
+    const transportationAdvertiser = await TransportationAdvertiserModel.findOne({ Username: username });
+    if (!transportationAdvertiser) {
+      return res.status(401).json({ error: "Invalid username." });
+    }
+
+    // Check if the password matches
+    if (transportationAdvertiser.Password !== password) {
+      return res.status(401).json({ error: "Invalid password." });
+    }
+
+    // Successful authentication
+    res.status(200).json({ message: "Login successful!", transportationAdvertiser });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+};
+
+
+
+
 const ReadTransportationAdvertiserProfile = async(req,res) =>{
     try{
      const{username} = req.body;
@@ -59,4 +89,4 @@ const ReadTransportationAdvertiserProfile = async(req,res) =>{
   };
   
 
-  module.exports = {ReadTransportationAdvertiserProfile , createNewTransportation};
+  module.exports = {ReadTransportationAdvertiserProfile , createNewTransportation,loginTransportationAdvertiser};

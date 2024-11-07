@@ -8,25 +8,25 @@ const Begin = () => {
     <Box
       className="container"
       sx={{
-        textAlign: 'center',    // Center align text
-        margin: '20px',        // Add margin
-        padding: '25px',       // Add padding
-        backgroundColor: '#fff', // Background color for the container
-        borderRadius: '8px',    // Rounded corners
-        boxShadow: '0 0 10px rgba(0, 0, 0, 0.3)', // Soft shadow
-        width: '500px',        // Set width of the box
-        height: 'auto',        // Set height to auto to fit content
-        marginLeft: 'auto',    // Center the box horizontally
-        marginRight: 'auto',    // Center the box horizontally
-        marginTop: '150px'     // Margin from top
+        textAlign: 'center',
+        margin: '20px',
+        padding: '25px',
+        backgroundColor: '#fff',
+        borderRadius: '8px',
+        boxShadow: '0 0 10px rgba(0, 0, 0, 0.3)',
+        width: '500px',
+        height: 'auto',
+        marginLeft: 'auto',
+        marginRight: 'auto',
+        marginTop: '150px'
       }}
     >
       <h2>Select Registration Type</h2>
       <Box
         sx={{
-          display: 'flex',         // Use flexbox for alignment
-          flexDirection: 'column',  // Stack buttons vertically
-          gap: '30px',             // Space between buttons
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '30px',
         }}
       >
         <Button variant="contained" sx={{ backgroundColor: '#00c853', color: 'white', borderRadius: '20px', '&:hover': { backgroundColor: '#69f0ae' } }}
@@ -44,9 +44,12 @@ const Begin = () => {
         onClick={() => window.location.href=`addUnregisteredAdvertiser`}>
           Register as Advertiser
         </Button>
+        <Button variant="contained" sx={{ backgroundColor: '#00c853', color: 'white', borderRadius: '20px', '&:hover': { backgroundColor: '#69f0ae' } }}
+        onClick={() => window.location.href=`addTransportationAdvertiser`}>
+          Register as Transportation Advertiser
+        </Button>
       </Box>
       <div>
-      {/* Space between buttons and links */}
       <p>
         <Link to="/login">Already have an account? Login here</Link>
       </p>
