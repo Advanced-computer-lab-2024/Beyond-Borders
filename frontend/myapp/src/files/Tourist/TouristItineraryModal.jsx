@@ -4,9 +4,10 @@ import { Box, Button, Typography, Modal, TextField } from '@mui/material';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
-function TouristItineraryModal() {
+function TouristItineraryModal({ currency }) {
   const [itineraries, setItineraries] = useState([]);
   const [email, setEmail] = useState('');
+  const [convertedPrices, setConvertedPrices] = useState({});
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -20,6 +21,38 @@ function TouristItineraryModal() {
     };
     fetchItineraries();
   }, []);
+
+
+  useEffect(() => {
+    // Convert prices whenever currency changes
+    const convertItineraryPrices = async () => {
+      const newConvertedPrices = {};
+      console.log(currency);
+      await Promise.all(
+        itineraries.map(async (itinerary) => {
+          try {
+            console.log(`Converting price for ${itinerary.Title}:`, {
+              priceEgp: itinerary.Price,
+              targetCurrency: currency
+            });
+            const response = await axios.post('/convertCurr', {
+              priceEgp: itinerary.Price,
+              targetCurrency: currency,
+            });
+            newConvertedPrices[itinerary.id] = response.data.convertedPrice;
+            console.log(response.data.convertedPrice);
+          } catch (error) {
+            console.error(`Error converting price for itinerary ${itinerary.Title}:`, error);
+          }
+        })
+      );
+      setConvertedPrices(newConvertedPrices);
+    };
+
+    if (currency !== 'EGP') {
+      convertItineraryPrices();
+    }
+  }, [currency, itineraries]);
 
   const handleShare = async (itineraryTitle) => {
     try {
@@ -86,7 +119,9 @@ function TouristItineraryModal() {
           {itineraries.map(itinerary => (
             <Box key={itinerary.id} sx={styles.item}>
               <Typography variant="body1"><strong>Title:</strong> {itinerary.Title}</Typography>
-              <Typography variant="body2"><strong>Price:</strong> ${itinerary.Price}</Typography>
+              <Typography variant="body2">
+                <strong>Price:</strong> {currency === 'EGP' ? `${itinerary.Price} EGP` : `${convertedPrices[itinerary.id] || 'Loading...'} ${currency}`}
+              </Typography>
               <Typography variant="body2"><strong>Language:</strong> {itinerary.Language}</Typography>
               
               <TextField

@@ -1,10 +1,12 @@
 // src/files/Tourist/TouristHomePage.jsx
 // src/files/Tourist/TouristHomePage.jsx
 import React, { useState, useEffect } from 'react';
-import { Box, Button, Typography, Modal, TextField } from '@mui/material';
+import { Box, Button, Typography, Modal, TextField,Select, MenuItem } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { FormControlLabel, Checkbox } from '@mui/material';
+import TouristItineraryModal from './TouristItineraryModal';
+
 
 
 function TouristHomePage() {
@@ -36,8 +38,16 @@ const [returnDate, setReturnDate] = useState('');
 const [direct, setDirect] = useState(false); // Checkbox for direct flights
 const [showFlightSearch, setShowFlightSearch] = useState(false); // Toggle for flight search form visibility
 const [flightOffers, setFlightOffers] = useState([]); // Holds flight search results
-
+const [currency, setCurrency] = useState('EGP');
+const [isModalOpen, setModalOpen] = useState(false);
+const [convertedPrices, setConvertedPrices] = useState({});
   const navigate = useNavigate();
+  
+  useEffect(() => {
+    if (hotelOffers.length) {
+        handleCurrencyChange();
+    }
+}, [currency]);
 
   useEffect(() => {
     if (activeModal === 'profile') {
@@ -274,7 +284,7 @@ const [flightOffers, setFlightOffers] = useState([]); // Holds flight search res
       // Handle success response (e.g., show confirmation or update profile state)
       setErrorMessage('');
       setActiveModal(null); // Close the modal
-      alert('Preferences added successfully!');
+      alert('PreferupdatedHotelOffersences added successfully!');
     } catch (error) {
       setErrorMessage('An error occurred while adding preferences.');
     }
@@ -294,6 +304,58 @@ const [flightOffers, setFlightOffers] = useState([]); // Holds flight search res
       window.alert('An error occurred while requesting account deletion.');
     }
   };
+
+ 
+  const openItineraryModal = () => {
+    setModalOpen(true);
+  };
+
+
+  const handleCurrencyChange = async (event) => {
+    const selectedCurrency = event ? event.target.value : currency;
+
+    // If there's an event, update the currency state
+    if (event) setCurrency(selectedCurrency);
+
+    // Ensure hotel offers exist before converting
+    if (!hotelOffers.length || !selectedCurrency) return;
+
+    // Object to hold the new converted prices
+    const newConvertedPrices = {};
+
+    // Loop through hotel offers to convert each price
+    await Promise.all(
+        hotelOffers.map(async (hotel) => {
+            await Promise.all(
+                hotel.roomOffers.map(async (offer) => {
+                    try {
+                        // Call backend API to convert price
+                        const response = await axios.post('/convertCurr', {
+                            priceEgp: offer.price,
+                            targetCurrency: selectedCurrency
+                        });
+
+                        // Store converted price in newConvertedPrices with a unique key
+                        newConvertedPrices[`${hotel.id}-${offer.hotelNumber}`] = response.data.convertedPrice;
+
+                        console.log(`Converted Price for ${hotel.id}-${offer.hotelNumber}: ${response.data.convertedPrice} ${selectedCurrency}`);
+                    } catch (error) {
+                        console.error(`Error converting price for offer ${offer.hotelNumber} in hotel ${hotel.id}:`, error);
+                    }
+                })
+            );
+        })
+    );
+
+    // Update the convertedPrices state with the new converted prices
+    setConvertedPrices(newConvertedPrices);
+};
+
+  
+  const handleSearchAndConvert = async () => {
+    await handleHotelSearch();   // Fetch hotels first
+    await handleCurrencyChange(); // Then convert currency based on fetched data
+};
   return (
     <Box sx={styles.container}>
       <Typography variant="h5" component="h1" sx={styles.title}>
@@ -304,7 +366,7 @@ const [flightOffers, setFlightOffers] = useState([]); // Holds flight search res
         <Button sx={styles.button} onClick={() => navigate('/touristProducts')}>View All Products</Button>
         <Button sx={styles.button} onClick={() => navigate('/touristActivities')}>View All Activities</Button>
         <Button sx={styles.button} onClick={() => navigate('/touristMuseums')}>View All Museums</Button>
-        <Button sx={styles.button} onClick={() => navigate('/touristItineraries')}>View All Itineraries</Button>
+        <Button sx={styles.button} variant="contained" onClick={openItineraryModal}>View All Itineraries</Button>
         <Button sx={styles.button} onClick={() => navigate('/CompletedItineraries')}>View All completed Itineraries</Button>
         <Button sx={styles.button} onClick={() => navigate('/CompletedActivity')}>View All completed Activities</Button>
         <Button sx={styles.button} onClick={() => navigate('/CompletedMuseums')}>View All completed Museums</Button>
@@ -316,6 +378,22 @@ const [flightOffers, setFlightOffers] = useState([]); // Holds flight search res
         <Button sx={styles.button} onClick={handleHotelSearchToggle}>Hotels</Button>
         <Button sx={styles.button} onClick={handleFlightSearchToggle}>Flights</Button>
         <Button sx={styles.profileButton} onClick={() => setActiveModal('profile')}>My Profile</Button>
+        {isModalOpen && <TouristItineraryModal currency={currency} />}
+        <Select
+                value={currency}
+               //onChange={handleCurrencyChange}
+                sx={{ minWidth: 100 }} // Adjust width as necessary
+                displayEmpty
+                variant="outlined"
+            >
+                <MenuItem value="EGP">EGP</MenuItem>
+                <MenuItem value="USD">USD</MenuItem>
+                <MenuItem value="EUR">EUR</MenuItem>
+                <MenuItem value="GBP">GBP</MenuItem>
+                <MenuItem value="JPY">JPY</MenuItem>
+                <MenuItem value="AUD">AUD</MenuItem>
+                {/* Add more currencies as needed */}
+            </Select>
       </Box>
 
       {/* Search and Filter Section */}
@@ -412,7 +490,10 @@ const [flightOffers, setFlightOffers] = useState([]); // Holds flight search res
                   margin="normal"
                 />
                 
+                
                 <Typography><strong>Wallet Balance:</strong> ${profile.Wallet}</Typography>
+                <Typography><strong>Points:</strong> {profile.Points}</Typography>
+                <Typography><strong>Badge Level:</strong> {profile.BadgeLevelOfPoints}</Typography>
 
                 <Button
                   variant="contained"
@@ -545,7 +626,7 @@ const [flightOffers, setFlightOffers] = useState([]); // Holds flight search res
             value={adults}
             onChange={(e) => setAdults(e.target.value)}
           />
-          <Button variant="contained" onClick={handleHotelSearch} sx={{ backgroundColor: '#4CAF50', color: 'white' }}>
+          <Button variant="contained" onClick={handleSearchAndConvert} sx={{ backgroundColor: '#4CAF50', color: 'white' }}>
             Search Hotels
           </Button>
         </Box>
@@ -554,22 +635,25 @@ const [flightOffers, setFlightOffers] = useState([]); // Holds flight search res
      {/* Display Results */}
     {errorMessage && <Typography color="error">{errorMessage}</Typography>}
     
-{/* Hotel Offers Modal */}
-{hotelOffers.length > 0 && (
+    {hotelOffers.length > 0 && (
   <Modal open={true} onClose={() => setHotelOffers([])}>
     <Box sx={styles.modalContent}>
       <Typography variant="h6" component="h2">Hotel Offers</Typography>
       
       {/* Scrollable container for results */}
       <Box sx={{ ...styles.resultsContainer, maxHeight: '60vh', overflowY: 'auto' }}>
-        {hotelOffers.map((hotel, index) => (
-          <Box key={index} sx={styles.resultItem}>
+        {hotelOffers.map((hotel) => (
+          <Box key={hotel.id} sx={styles.resultItem}>
             <Typography variant="h6">{hotel.hotelName}</Typography>
             <Box>
-              {hotel.roomOffers.map((offer, offerIndex) => (
-                <Box key={offerIndex} sx={styles.roomOffer}>
+              {hotel.roomOffers.map((offer) => (
+                <Box key={offer.hotelNumber} sx={styles.roomOffer}>
                   <Typography variant="subtitle1">Room Number: {offer.hotelNumber}</Typography>
-                  <Typography>Price: {offer.price}</Typography>
+                  <Typography>
+                    Price: {convertedPrices[`${hotel.id}-${offer.hotelNumber}`] 
+                      ? `${convertedPrices[`${hotel.id}-${offer.hotelNumber}`]} ${currency}`
+                      : `${offer.price} EGP`}
+                  </Typography>
                   <Typography>Check-in: {offer.checkInDate}</Typography>
                   <Typography>Check-out: {offer.checkOutDate}</Typography>
                   <Typography>Adults: {offer.adults}</Typography>
@@ -595,6 +679,7 @@ const [flightOffers, setFlightOffers] = useState([]); // Holds flight search res
     </Box>
   </Modal>
 )}
+
 
 {/* Flight Search Form */}
 {showFlightSearch && (
