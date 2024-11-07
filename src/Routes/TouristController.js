@@ -2653,7 +2653,7 @@ const payHP = async (req, res) => {
 };
 
 
-const redeemPoints = async (req, res) => {
+/*const redeemPoints = async (req, res) => {
   const { username } = req.body;
 
   try {
@@ -2685,7 +2685,45 @@ const redeemPoints = async (req, res) => {
     console.error('Error redeeming points:', error);
     res.status(500).json({ error: error.message });
   }
+};*/
+
+const redeemPoints = async (req, res) => {
+  const { username } = req.body;
+
+  try {
+    // Find the tourist by username
+    const tourist = await TouristModel.findOne({ Username: username });
+    if (!tourist) {
+      return res.status(404).json({ msg: 'Tourist not found' });
+    }
+
+    // Check if points are redeemable (must be at least 10000)
+    if (tourist.Points < 10000) {
+      return res.status(400).json({ msg: 'Not enough points to redeem. Minimum required is 10,000 points.' });
+    }
+
+    // Calculate the redeemable amount (100 EGP for each 10000 points)
+    const redeemableAmount = Math.floor(tourist.Points * 100) / 10000;
+
+    // Deduct redeemed points and update the wallet
+    tourist.Points = 0; // Remaining points after redemption
+    tourist.Wallet += redeemableAmount;
+
+    // Save the updated tourist information
+    await tourist.save();
+
+    // Respond with success and the updated wallet and points
+    res.status(200).json({ 
+      msg: 'Points redeemed successfully!', 
+      walletBalance: tourist.Wallet, 
+      remainingPoints: tourist.Points 
+    });
+  } catch (error) {
+    console.error('Error redeeming points:', error);
+    res.status(500).json({ error: error.message });
+  }
 };
+
 
 function convertEgp(priceEgp, currency) {
   const price = 0;
