@@ -513,7 +513,7 @@ const createTourist = async (req, res) => {
     
         // Filter activities where the Date is greater than or equal to the current date
         const upcomingActivities = activities.filter(activity => {
-          return activity.Date >= currentDate  && activity.flagged === false; 
+          return (activity.Date >= currentDate  && activity.flagged === false); 
         });
         console.log(upcomingActivities);
     
@@ -547,24 +547,42 @@ const createTourist = async (req, res) => {
       }
     };
 
+    // const ViewAllUpcomingItinerariesTourist = async (req, res) => {
+    //   try {
+    //     // Get today's date and set the time to midnight
+    //     const currentDate = new Date();
+    //     currentDate.setHours(0, 0, 0, 0); 
+    //     const itineraries = await ItineraryModel.find(); 
+    //     const upcomingItineraries = itineraries.filter(itinerary => {
+    //       return (itinerary.Date >= currentDate && itinerary.flagged === false);
+    //     });
+    
+    //     // Return the upcoming activities as a JSON response
+    //     res.json(upcomingItineraries);
+    //   } catch (error) {
+    //     console.error('Error fetching upcoming itinerary events:', error);
+    //     res.status(500).json({ message: 'Error fetching upcoming itinerary events' });
+    //   }
+    // };
+    
     const ViewAllUpcomingItinerariesTourist = async (req, res) => {
       try {
-        // Get today's date and set the time to midnight
         const currentDate = new Date();
-        currentDate.setHours(0, 0, 0, 0); 
-        const itineraries = await ItineraryModel.find(); 
-        const upcomingItineraries = itineraries.filter(itineraries => {
-          return itineraries.Date >= currentDate && itineraries.flagged === false;
+        currentDate.setHours(0, 0, 0, 0); // Set to 00:00:00.000
+    
+        // Fetch and filter itineraries directly in the query
+        const upcomingItineraries = await ItineraryModel.find({
+          Date: { $gte: currentDate },
+          flagged: false,
         });
     
-        // Return the upcoming activities as a JSON response
         res.json(upcomingItineraries);
       } catch (error) {
         console.error('Error fetching upcoming itinerary events:', error);
         res.status(500).json({ message: 'Error fetching upcoming itinerary events' });
       }
     };
-
+    
     const ViewAllUpcomingHistoricalPlacesEventsTourist = async (req, res) => {
       try {
         // Get today's date and set the time to midnight
