@@ -1,38 +1,40 @@
 // src/files/Tourist/TouristActivitiesModal.jsx
 import React, { useState, useEffect } from 'react';
-import { Box, Button, Typography, Modal, TextField } from '@mui/material';
+import { Box, Button, Typography, Modal, TextField, Snackbar } from '@mui/material';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
 function TouristActivitiesModal() {
   const [activities, setActivities] = useState([]);
-  const [email, setEmail] = useState(''); // State for the email input
+  const [email, setEmail] = useState('');
   const [searchKeyword, setSearchKeyword] = useState('');
   const [category, setCategory] = useState('');
   const [minPrice, setMinPrice] = useState('');
   const [maxPrice, setMaxPrice] = useState('');
   const [date, setDate] = useState('');
   const [rating, setRating] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
+  const [open, setOpen] = useState(false); 
   const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchActivities = async () => {
-      try {
-        const response = await axios.get('/api/ViewAllUpcomingActivities');
-        setActivities(response.data);
-      } catch (error) {
-        console.error('Error fetching activities:', error);
-      }
-    };
-    fetchActivities();
+    handleSearchActivities();
   }, []);
 
   const handleSearchActivities = async () => {
     try {
       const response = await axios.post('/api/ActivitiesSearchAll', { searchString: searchKeyword });
       setActivities(response.data);
+      if (response.data.length === 0) {
+        setErrorMessage('No Activities Found For This Filter');
+        setOpen(true);
+      } else {
+        setErrorMessage('');
+      }
     } catch (error) {
       console.error('Error searching activities:', error);
+      setErrorMessage('No Activities Found by this Name.');
+      setOpen(true);
     }
   };
 
@@ -46,9 +48,23 @@ function TouristActivitiesModal() {
         Rating: rating ? parseInt(rating) : undefined
       });
       setActivities(response.data);
+
+      if (response.data.length === 0) {
+        // No activities found for the filter
+        setErrorMessage('No Activities Found For This Filter');
+        setOpen(true);
+      } else {
+        setErrorMessage('');
+      }
     } catch (error) {
       console.error('Error filtering activities:', error);
+      setErrorMessage('No Activities Found for this Filter.');
+      setOpen(true);
     }
+  };
+
+  const handleClose = () => {
+    setOpen(false);
   };
 
   const sortActivitiesByPrice = (order) => {
@@ -65,20 +81,16 @@ function TouristActivitiesModal() {
     setActivities(sortedActivities);
   };
 
-  // Function to handle sharing the activity link
   const handleShare = async (activityName) => {
     try {
       const frontendLink = `http://localhost:3000/activity/details/${encodeURIComponent(activityName)}`;
-
-      // Send request to the backend to generate a link
       const response = await axios.post('/getCopyLink', {
-        entityType: 'activity', // Use "activity" entity type
+        entityType: 'activity',
         entityName: activityName,
-        email: email // Use the email from the text field
+        email: email
       });
       const { msg } = response.data;
 
-      // Copy the frontend link to the clipboard
       if (navigator.clipboard) {
         navigator.clipboard.writeText(frontendLink)
           .then(() => alert(`Link copied to clipboard successfully!\n${msg}`))
@@ -146,12 +158,19 @@ function TouristActivitiesModal() {
                 </Button>
               </Box>
             ))
-          ) : (
-            <Typography>No activities found.</Typography>
-          )}
+          ) : null}
         </Box>
 
         <Button variant="contained" sx={styles.doneButton} onClick={() => navigate('/touristHome')}>Done</Button>
+
+        {/* Snackbar for error message */}
+        <Snackbar
+          open={open}
+          autoHideDuration={3000}
+          onClose={handleClose}
+          message={errorMessage}
+          anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+        />
       </Box>
     </Modal>
   );
