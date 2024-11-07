@@ -131,6 +131,21 @@ const HomePageTourGuide = () => {
         }
     };
 
+    const deactivateItinerary = async (title) => {
+        try {
+          const response = await axios.post('/api/deactivateItinerary', { title: title });
+          if (response.status === 200) {
+            alert('Itinerary has been deactivated!');
+            loadMyActivities(); // Refresh product list after archiving
+          } else {
+            alert('Failed to deactivate itinerary.');
+          }
+        } catch (error) {
+          console.error('Error deactivating itinerary:', error);
+          alert(`Failed to deactivate itinerary: ${error.response?.data?.error || error.message}`);
+        }
+      };
+
     return (
         <Box 
             sx={{ 
@@ -235,6 +250,13 @@ const HomePageTourGuide = () => {
                                 }}
                             >
                                 <Typography variant="h6" sx={{ display: 'inline' }}>{activity.Title}</Typography>
+                                <Button 
+                                    onClick={() => deactivateItinerary(activity.Title)} 
+                                    sx={{ ml: 1, color: '#00c853' }}
+                                >
+                                    Deactivate
+                                </Button>
+                                
                                 <Button 
                                     onClick={() => deleteActivity(activity.Title)} 
                                     sx={{ ml: 1, color: '#00c853' }}
