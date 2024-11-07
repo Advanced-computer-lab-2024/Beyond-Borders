@@ -24,23 +24,20 @@ function AdminActivitiesModal() {
   };
 
   // Method to flag the selected activity if not already flagged
-  const flagActivity = async () => {
-    if (!selectedActivity) return;
+  const flagActivity = async (name) => {
+    // if (!selectedActivity) return;
 
-    if (selectedActivity.flagged) {
-      alert("This activity is already flagged.");
-      return;
-    }
+    // if (selectedActivity.flagged) {
+    //   alert("This activity is already flagged.");
+    //   return;
+    // }
 
     try {
       // Send 'title' to match backend
-      const response = await axios.post('/api/flagActivity', { title: selectedActivity.Name });
+      const response = await axios.post('/api/flagActivity', { title: name });
       if (response.status === 200) {
         alert(response.data.message);
-        setActivities(activities.map(activity =>
-          activity.Name === selectedActivity.Name ? { ...activity, flagged: true } : activity
-        ));
-        setSelectedActivity(null); // Clear selected activity after flagging
+        fetchActivities();
       }
     } catch (error) {
       console.error('Error flagging activity:', error);
@@ -78,8 +75,8 @@ function AdminActivitiesModal() {
                   <Button
                     variant="contained"
                     onClick={() => {
-                      setSelectedActivity(activity); // Set the activity to flag
-                      flagActivity(); // Call the flag function
+                      //setSelectedActivity(activity); // Set the activity to flag
+                      flagActivity(activity.Name); // Call the flag function
                     }}
                     sx={styles.flagButton}
                     disabled={activity.flagged} // Disable if already flagged

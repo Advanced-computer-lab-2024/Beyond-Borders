@@ -8,35 +8,51 @@ function AdminItineraryModal({ onClose, activeModal }) {
   const [selectedItinerary, setSelectedItinerary] = useState(null); // Track selected itinerary for flagging
   const navigate = useNavigate();
 
+  // Function to fetch itineraries
+  const fetchItineraries = async () => {
+    try {
+      const response = await axios.get('/api/viewAllItinerariesAdmin');
+      setItineraries(response.data);
+    } catch (error) {
+      console.error('Error fetching itineraries:', error);
+    }
+  };
+
   useEffect(() => {
-    const fetchItineraries = async () => {
-      try {
-        const response = await axios.get('/api/viewAllItinerariesAdmin');
-        setItineraries(response.data);
-      } catch (error) {
-        console.error('Error fetching itineraries:', error);
-      }
-    };
-    fetchItineraries();
+    fetchItineraries(); // Initial fetch when component mounts
   }, []);
 
   // Method to flag the selected itinerary if not already flagged
-  const flagItinerary = async () => {
-    if (!selectedItinerary) return;
+  // const flagItinerary = async (titlee) => {
+  //   if (!selectedItinerary) return;
 
-    if (selectedItinerary.flagged) {
-      alert("This itinerary is already flagged.");
-      return;
-    }
+  //   if (selectedItinerary.flagged) {
+  //     alert("This itinerary is already flagged.");
+  //     return;
+  //   }
 
+  //   try {
+  //     const response = await axios.post('/api/flagItinerary', { title: titlee });
+  //     if (response.status === 200) {
+  //       alert(response.data.message);
+  //       setItineraries(itineraries.map(it =>
+  //         it.Title === selectedItinerary.Title ? { ...it, flagged: true } : it
+  //       ));
+  //       setSelectedItinerary(null); // Clear selected itinerary after flagging
+  //     }
+  //   } catch (error) {
+  //     console.error('Error flagging itinerary:', error);
+  //     alert('An error occurred while flagging the itinerary.');
+  //   }
+  // };
+
+  // Method to flag the selected itinerary if not already flagged
+  const flagItinerary = async (titlee) => {
     try {
-      const response = await axios.post('/api/flagItinerary', { title: selectedItinerary.Title });
+      const response = await axios.post('/api/flagItinerary', { title: titlee });
       if (response.status === 200) {
         alert(response.data.message);
-        setItineraries(itineraries.map(it =>
-          it.Title === selectedItinerary.Title ? { ...it, flagged: true } : it
-        ));
-        setSelectedItinerary(null); // Clear selected itinerary after flagging
+        fetchItineraries(); // Refresh the itinerary list after flagging
       }
     } catch (error) {
       console.error('Error flagging itinerary:', error);
@@ -84,8 +100,8 @@ function AdminItineraryModal({ onClose, activeModal }) {
                 <Button
                   variant="contained"
                   onClick={() => {
-                    setSelectedItinerary(itinerary); // Set the itinerary to flag
-                    flagItinerary(); // Call the flag function
+                    //setSelectedItinerary(itinerary); // Set the itinerary to flag
+                    flagItinerary(itinerary.Title); // Call the flag function
                   }}
                   sx={styles.flagButton}
                   disabled={itinerary.flagged} // Disable if already flagged

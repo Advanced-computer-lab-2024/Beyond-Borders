@@ -397,4 +397,26 @@ const activateItinerary = async (req, res) => {
   }
 };
 
-module.exports = {ReadTourGuideProfile , UpdateTourGuideEmail , UpdateTourGuidePassword, UpdateTourGuideMobileNum , UpdateTourGuideYearsofExperience ,UpdateTourGuidePreviousWork ,createItineraryAsTourGuide,readItineraryAsTourGuide,updateItineraryAsTourGuide,deleteItineraryAsTourGuide, updateTourGuideProfile,loginTourGuide,getItenrarysByTourGuide, deactivateItinerary,activateItinerary};
+const viewMyDeactivatedItinerariesTourGuide = async (req, res) => {
+  try {
+    // Assuming you get the author's username from query parameters
+    const { TourGuide } = req.query; 
+    
+    // Validate that AuthorUsername is provided
+    if (!TourGuide) {
+      return res.status(400).json({ error: "TourGuide username is required." });
+    }
+
+    const itineraries = await DeactivatedItinerary.find({ AuthorUsername: TourGuide });
+
+    if (!itineraries.length) {
+      return res.status(404).json({ error: "You have not created any itineraries." });
+    }
+
+    res.status(200).json(itineraries);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+module.exports = {ReadTourGuideProfile , UpdateTourGuideEmail , UpdateTourGuidePassword, UpdateTourGuideMobileNum , UpdateTourGuideYearsofExperience ,UpdateTourGuidePreviousWork ,createItineraryAsTourGuide,readItineraryAsTourGuide,updateItineraryAsTourGuide,deleteItineraryAsTourGuide, updateTourGuideProfile,loginTourGuide,getItenrarysByTourGuide, deactivateItinerary,activateItinerary, viewMyDeactivatedItinerariesTourGuide};

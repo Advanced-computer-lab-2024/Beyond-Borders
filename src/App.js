@@ -21,11 +21,11 @@ const {readSellerProfile, updateSeller, editProductSeller, createNewProductSelle
 const {createNewHistoricalTag,createMuseumsAsTourismGoverner,getMuseumsByAuthorAsTourismGoverner
   ,createHistoricalPlaceAsTourismGoverner , getHistoricalPlaceByNameAsTourismGoverner , updateHistoricalPlaceAsTourismGoverner , deletePlaceAsTourismGoverner , getHistoricalByAuthorAsTourismGoverner, getMuseumByNameAsTourismGoverner, updateMuseumByNameAsTourismGoverner, deleteMuseumByNameAsTourismGoverner,
   loginGoverner, updateGovernorPassword} = require("./Routes/TourismGovernorController");
-const{ReadAdvertiserProfile , updateAdvertiser, createNewActivity, readActivity, updateActivity, deleteActivity, getActivitiesByAuthor, loginAdvertiser} = require("./Routes/AdvertiserController");
+const{ReadAdvertiserProfile , updateAdvertiser, createNewActivity, readActivity, updateActivity, deleteActivity, getActivitiesByAuthor, loginAdvertiser, updateAdvertiserPassword} = require("./Routes/AdvertiserController");
 const {filterActivitiesGuest, getMuseumsByTagGuest, ViewAllUpcomingActivitiesGuest, ViewAllUpcomingMuseumEventsGuest, getHistoricalPlacesByTagGuest, ViewAllUpcomingHistoricalPlacesEventsGuest, sortActivitiesPriceAscendingGuest, sortActivitiesPriceDescendingGuest, sortActivitiesRatingDescendingGuest, sortActivitiesRatingAscendingGuest, ViewAllUpcomingItinerariesGuest, sortItinerariesPriceDescendingGuest, sortItinerariesPriceAscendingGuest, filterItinerariesGuest,ChooseActivitiesByCategoryGuest} = require("./Routes/GuestController");
 
 //const {createNewTourismGoverner, createNewAdmin, createNewProduct, editProduct} = require("./Routes/AdminController");
-const{ReadTourGuideProfile , UpdateTourGuideEmail , UpdateTourGuidePassword, UpdateTourGuideMobileNum , UpdateTourGuideYearsofExperience ,UpdateTourGuidePreviousWork, createItineraryAsTourGuide, readItineraryAsTourGuide, updateItineraryAsTourGuide, deleteItineraryAsTourGuide, updateTourGuideProfile,loginTourGuide,getItenrarysByTourGuide, deactivateItinerary,activateItinerary} = require("./Routes/TourGuideController")
+const{ReadTourGuideProfile , UpdateTourGuideEmail , UpdateTourGuidePassword, UpdateTourGuideMobileNum , UpdateTourGuideYearsofExperience ,UpdateTourGuidePreviousWork, createItineraryAsTourGuide, readItineraryAsTourGuide, updateItineraryAsTourGuide, deleteItineraryAsTourGuide, updateTourGuideProfile,loginTourGuide,getItenrarysByTourGuide, deactivateItinerary,activateItinerary, viewMyDeactivatedItinerariesTourGuide} = require("./Routes/TourGuideController")
 //importing a set of functions
 const MongoURI = process.env.MONGO_URI ;
 
@@ -153,6 +153,7 @@ app.post("/api/HistoricalPlacesSearchAll",HistoricalPlacesSearchAll);
 
 //SPRINT 2 YASSIN AND AMINA
 app.put("/updateAdminPassword", updateAdminPassword);
+app.put("/updateAdvertiserPassword", updateAdvertiserPassword);
 app.put("/updateGovernorPassword", updateGovernorPassword);
 app.post("/createComplaint", createComplaint); 
 app.get("/getAllComplaints", getAllComplaints);
@@ -174,7 +175,7 @@ app.get("/api/viewBookedItineraries" , viewBookedItineraries);
 app.post("/api/activateItinerary" , activateItinerary);
 app.post("/api/requestDeleteAccountTourist" , requestDeleteAccountTourist);
 app.post("/api/requestDeleteAccountSeller" , requestDeleteAccountSeller);
-
+app.get("/api/viewMyDeactivatedItinerariesTourGuide" , viewMyDeactivatedItinerariesTourGuide);
 
 //SPRINT 2 MALAK AND JANA
 app.get("/ChooseActivitiesByCategoryTourist",ChooseActivitiesByCategoryTourist);
