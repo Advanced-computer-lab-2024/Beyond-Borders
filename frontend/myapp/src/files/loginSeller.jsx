@@ -52,6 +52,22 @@ const LoginSeller = () => {
     }, 2000);
   };
 
+  const handleRejectTerms = async () => {
+    setShowTermsModal(false);
+
+    try {
+      // Decrement login count on reject
+      await axios.put('http://localhost:8000/decrementLoginCount', { username: formData.username });
+    } catch (error) {
+      console.error('Error decrementing login count:', error);
+    }
+
+    // Redirect to login page
+    setTimeout(() => {
+      window.location.href = '/loginSeller';
+    }, 1000);
+  };
+
   return (
     <Box
       className="container"
@@ -135,9 +151,17 @@ const LoginSeller = () => {
             variant="contained"
             color="primary"
             onClick={handleAcceptTerms}
-            sx={{ mt: 2 }}
+            sx={{ mt: 2, mr: 2 }}
           >
             Accept
+          </Button>
+          <Button
+            variant="contained"
+            color="secondary"
+            onClick={handleRejectTerms}
+            sx={{ mt: 2 }}
+          >
+            Reject
           </Button>
         </Box>
       </Modal>
