@@ -18,7 +18,15 @@ function TouristActivitiesModal() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    handleSearchActivities();
+    const fetchActivities = async () => {
+      try {
+        const response = await axios.get('/api/ViewAllUpcomingActivities');
+        setActivities(response.data);
+      } catch (error) {
+        console.error('Error fetching activities:', error);
+      }
+    };
+    fetchActivities();
   }, []);
 
   const handleSearchActivities = async () => {
