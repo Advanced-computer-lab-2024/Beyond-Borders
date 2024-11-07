@@ -1,10 +1,18 @@
+// src/files/Tourist/TourismGovernorDashboard.jsx
 import React, { useState } from 'react';
+import { Box, Button, Modal, TextField, Typography } from '@mui/material';
+import axios from 'axios';
 
 const TourismGovernorDashboard = () => {
   const [tagName, setTagName] = useState('');
   const [showTagForm, setShowTagForm] = useState(false);
   const [responseMessage, setResponseMessage] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
+
+  // New states for password update
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [newPassword, setNewPassword] = useState('');
+  const [passwordUpdateMessage, setPasswordUpdateMessage] = useState('');
 
   // Toggle the Add Tag form visibility
   const toggleTagForm = () => {
@@ -13,11 +21,17 @@ const TourismGovernorDashboard = () => {
     setErrorMessage('');
   };
 
+  // Toggle the Update Password modal visibility
+  const togglePasswordModal = () => {
+    setShowPasswordModal(!showPasswordModal);
+    setPasswordUpdateMessage('');
+    setErrorMessage('');
+  };
+
   // Handle form submission for adding a new tag
   const handleTagFormSubmit = async (event) => {
     event.preventDefault();
 
-    // Clear previous messages
     setResponseMessage('');
     setErrorMessage('');
 
@@ -48,6 +62,35 @@ const TourismGovernorDashboard = () => {
     }
   };
 
+  // Handle form submission for updating the password
+  const handlePasswordFormSubmit = async (event) => {
+    event.preventDefault();
+  
+    setPasswordUpdateMessage('');
+    setErrorMessage('');
+  
+    const username = localStorage.getItem('username'); // Assuming username is stored in localStorage
+    const formData = { Username: username, newPassword };
+  
+    try {
+      const response = await axios.put('/updateGovernorPassword', formData);
+  
+      if (response.status === 200) {
+        setPasswordUpdateMessage('Password updated successfully!');
+        setErrorMessage('');
+        setNewPassword(''); // Reset the password field
+        window.alert('Password updated successfully!'); // Show alert
+        togglePasswordModal(); // Close the modal
+      } else {
+        setErrorMessage(`Error: ${response.data.error}`);
+        setPasswordUpdateMessage('');
+      }
+    } catch (error) {
+      setErrorMessage('An error occurred while updating the password.');
+      setPasswordUpdateMessage('');
+    }
+  };
+  
   return (
     <div style={styles.container}>
       <h2 style={styles.heading}>Tourism Governor Dashboard</h2>
@@ -65,6 +108,9 @@ const TourismGovernorDashboard = () => {
       </button>
       <button style={styles.button} onClick={toggleTagForm}>
         Add New Historical Tag
+      </button>
+      <button style={styles.button} onClick={togglePasswordModal}>
+        Change Password
       </button>
 
       {showTagForm && (
@@ -99,6 +145,43 @@ const TourismGovernorDashboard = () => {
           </form>
         </div>
       )}
+
+      {/* Password Update Modal */}
+      <Modal open={showPasswordModal} onClose={togglePasswordModal}>
+        <Box sx={styles.modalContent}>
+          <Typography variant="h6" component="h2">
+            Update Password
+          </Typography>
+          <form onSubmit={handlePasswordFormSubmit}>
+            <div style={styles.formGroup}>
+              <label htmlFor="newPassword">New Password:</label>
+              <TextField
+                type="password"
+                id="newPassword"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                placeholder="New Password"
+                required
+                fullWidth
+                sx={{ mt: 2 }}
+              />
+            </div>
+            <Button type="submit" variant="contained" color="primary" fullWidth sx={{ mt: 2 }}>
+              Update Password
+            </Button>
+            {passwordUpdateMessage && (
+              <div style={{ ...styles.message, color: 'green' }}>
+                {passwordUpdateMessage}
+              </div>
+            )}
+            {errorMessage && (
+              <div style={{ ...styles.message, color: 'red' }}>
+                {errorMessage}
+              </div>
+            )}
+          </form>
+        </Box>
+      </Modal>
     </div>
   );
 };
@@ -154,6 +237,17 @@ const styles = {
   message: {
     marginTop: '20px',
     textAlign: 'center',
+  },
+  modalContent: {
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    transform: 'translate(-50%, -50%)',
+    width: 400,
+    bgcolor: 'background.paper',
+    p: 4,
+    borderRadius: 2,
+    boxShadow: 24,
   },
 };
 
