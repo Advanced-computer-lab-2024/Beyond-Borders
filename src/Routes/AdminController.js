@@ -20,6 +20,7 @@ const NewAcceptedTransportationAdvertiserModel = require('../Models/Transportati
 const ItineraryrModel = require('../Models/Itinerary.js');
 const ComplaintsModel = require('../Models/Complaints.js');
 const ArchivedProductsModel = require('../Models/ArchivedProducts.js');
+const DeleteRequestsModel = require('../Models/DeleteRequests.js');
 
 
 
@@ -1043,8 +1044,15 @@ const flagItinerary = async (req, res) => {
     }
   };
   
-  
+  const readAllDeleteRequests = async (req, res) => {
+    try {
+        const requests = await DeleteRequestsModel.find(); //Fetch all categories
+        res.status(200).json(requests);
+    } catch (error) {
+        res.status(400).json({ error: error.message }); 
+    }
+ };
 
 module.exports = {createNewAdmin, createNewTourismGoverner, createNewProduct, editProduct, acceptSeller, rejectSeller, createNewCategory, readAllActivityCategories, updateCategory, deleteActivityCategory, deleteAccount, searchProductAdmin, createNewTag, readAllTags, updateTag, deleteTag, 
     acceptTourGuide, rejectTourGuide, acceptAdvertiser, rejectAdvertiser, filterProductByPriceAdmin, sortProductsDescendingAdmin, sortProductsAscendingAdmin,viewProducts, loginAdmin, viewAllProductsAdmin, updateAdminPassword, getAllComplaints, updateComplaintStatus, replyToComplaint, getComplaintDetails, 
-    filterComplaintsByStatus, sortComplaintsByRecent, sortComplaintsByOldest, archiveProduct, unarchiveProduct, flagItinerary, flagActivity, viewArchivedProductsAdmin , viewAllActivitiesAdmin ,viewAllItinerariesAdmin,acceptTranspAdvertiser,rejectTranspAdvertiser};
+    filterComplaintsByStatus, sortComplaintsByRecent, sortComplaintsByOldest, archiveProduct, unarchiveProduct, flagItinerary, flagActivity, viewArchivedProductsAdmin , viewAllActivitiesAdmin ,viewAllItinerariesAdmin,acceptTranspAdvertiser,rejectTranspAdvertiser, readAllDeleteRequests};
