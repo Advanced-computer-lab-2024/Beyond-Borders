@@ -5,9 +5,11 @@ import axios from 'axios';
 
 const HomePageTourGuide = () => {
     const [isItinerariesModalOpen, setIsItinerariesModalOpen] = useState(false);
+    const [isDeactivatedItinerariesModalOpen, setIsDeacivatedItinerariesModalOpen] = useState(false);
     const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
     const [itineraries, setItineraries] = useState([]);
+    const [deactivatedItineraries, setDeactivatedItineraries] = useState([]);
     const [profileData, setProfileData] = useState({
         username: '',
         email: '',
@@ -37,6 +39,25 @@ const HomePageTourGuide = () => {
             setIsItinerariesModalOpen(true); // Open the itineraries modal
         } catch (error) {
             console.error('Error fetching activities:', error);
+            alert('An error occurred while loading itineraries');
+        }
+    };
+
+    const loadMyDeactivatedItineraries = async () => {
+        const username = localStorage.getItem('username');
+        if (!username) {
+            alert('You need to log in first.');
+            return;
+        }
+
+        try {
+            const response = await axios.get(`/api/viewMyDeactivatedItinerariesTourGuide`, {
+                params: { TourGuide: username }
+            });
+            setDeactivatedItineraries(response.data); // Set the itineraries in state
+            setIsDeacivatedItinerariesModalOpen(true); // Open the itineraries modal
+        } catch (error) {
+            console.error('Error fetching itineraries:', error);
             alert('An error occurred while loading itineraries');
         }
     };
@@ -136,13 +157,30 @@ const HomePageTourGuide = () => {
           const response = await axios.post('/api/deactivateItinerary', { title: title });
           if (response.status === 200) {
             alert('Itinerary has been deactivated!');
-            loadMyActivities(); // Refresh product list after archiving
+            loadMyDeactivatedItineraries(); // Refresh product list after archiving
+            setIsItinerariesModalOpen(false);
           } else {
             alert('Failed to deactivate itinerary.');
           }
         } catch (error) {
           console.error('Error deactivating itinerary:', error);
           alert(`Failed to deactivate itinerary: ${error.response?.data?.error || error.message}`);
+        }
+      };
+
+      const activateItinerary = async (title) => {
+        try {
+          const response = await axios.post('/api/activateItinerary', { title: title });
+          if (response.status === 200) {
+            alert('Itinerary has been activated!');
+            loadMyActivities(); // Refresh product list after archiving
+            setIsDeacivatedItinerariesModalOpen(false);
+          } else {
+            alert('Failed to activate itinerary.');
+          }
+        } catch (error) {
+          console.error('Error activating itinerary:', error);
+          alert(`Failed to activate itinerary: ${error.response?.data?.error || error.message}`);
         }
       };
 
@@ -196,6 +234,25 @@ const HomePageTourGuide = () => {
                             My Itineraries
                         </Button>
                     </Box>
+
+                    <Box component="li">
+                        <Button
+                            variant="outlined"
+                            color="inherit"
+                            onClick={loadMyDeactivatedItineraries}
+                            sx={{
+                                borderColor: 'white',  
+                                color: 'white',        
+                                borderRadius: '20px',  
+                                '&:hover': { 
+                                    backgroundColor: '#69f0ae'  
+                                }
+                            }}
+                        >
+                            My Deactivated Itineraries
+                        </Button>
+                    </Box>
+
                     <Box component="li">
                         <Button
                             variant="outlined"
@@ -255,6 +312,81 @@ const HomePageTourGuide = () => {
                                     sx={{ ml: 1, color: '#00c853' }}
                                 >
                                     Deactivate
+                                </Button>
+                                
+                                <Button 
+                                    onClick={() => deleteActivity(activity.Title)} 
+                                    sx={{ ml: 1, color: '#00c853' }}
+                                >
+                                    Delete
+                                </Button>
+
+                                <Button 
+                                    onClick={() => {
+                                        const AuthorUsername = localStorage.getItem('username');
+                                        if (!AuthorUsername) {
+                                            alert('Author username not found. Please log in again.');
+                                            return;
+                                        }
+                                        window.location.href = `/editItinerary?title=${encodeURIComponent(activity.Title)}&author=${encodeURIComponent(AuthorUsername)}`;
+                                    }}
+                                    sx={{ ml: 1, color: '#00c853' }}
+                                >
+                                    Update
+                                </Button>
+
+                                <Button onClick={() => toggleDetails(index)} sx={{ ml: 1, color: '#00c853' }}>View Details</Button>
+
+                                {activity.showDetails && (
+                                    <Box sx={{ mt: 2 }}>
+                                        <Typography variant="body2"><strong>Activities:</strong> {activity.Activities}</Typography>
+                                        <Typography variant="body2"><strong>Locations:</strong> {activity.Locations}</Typography>
+                                        <Typography variant="body2"><strong>Timeline:</strong> {activity.Timeline}</Typography>
+                                        <Typography variant="body2"><strong>Language:</strong> {activity.Language}</Typography>
+                                        <Typography variant="body2"><strong>Price:</strong> ${activity.Price}</Typography>
+                                        <Typography variant="body2"><strong>Date:</strong> {new Date(activity.Date).toLocaleDateString()}</Typography>
+                                        <Typography variant="body2"><strong>Accessible:</strong> {activity.accessibility ? 'Yes' : 'No'}</Typography>
+                                        <Typography variant="body2"><strong>Pickup Location:</strong> {activity.pickupLocation}</Typography>
+                                        <Typography variant="body2"><strong>Dropoff Location:</strong> {activity.dropoffLocation}</Typography>
+                                        <Typography variant="body2"><strong>Booked:</strong> {activity.isBooked ? 'Yes' : 'No'}</Typography>
+                                        <Typography variant="body2"><strong>Tags:</strong> {activity.Tags.join(', ')}</Typography>
+                                        <Typography variant="body2"><strong>Author:</strong> {activity.AuthorUsername}</Typography>
+                                    </Box>
+                                )}
+                            </Box>
+                        ))
+                    ) : (
+                        <Typography variant="body1">No Itineraries found.</Typography>
+                    )}
+                </Box>
+            </Modal>
+
+            <Modal open={isDeactivatedItinerariesModalOpen} onClose={() => setIsDeacivatedItinerariesModalOpen(false)}>
+                <Box sx={{
+                    position: 'absolute', top: '50%', left: '50%',
+                    transform: 'translate(-50%, -50%)', width: '80%', maxWidth: '800px',
+                    bgcolor: 'background.paper', p: 4, borderRadius: 1,
+                    boxShadow: 24, maxHeight: '80vh', overflowY: 'auto'
+                }}>
+                    <Typography variant="h6" component="h2">My Deactivated Itineraries</Typography>
+                    {deactivatedItineraries.length > 0 ? (
+                        deactivatedItineraries.map((activity, index) => (
+                            <Box
+                                key={activity.Title}
+                                sx={{
+                                    mb: 3,
+                                    padding: '20px',
+                                    backgroundColor: '#ffffff',
+                                    borderRadius: '10px',
+                                    boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                                }}
+                            >
+                                <Typography variant="h6" sx={{ display: 'inline' }}>{activity.Title}</Typography>
+                                <Button 
+                                    onClick={() => activateItinerary(activity.Title)} 
+                                    sx={{ ml: 1, color: '#00c853' }}
+                                >
+                                    Activate
                                 </Button>
                                 
                                 <Button 
