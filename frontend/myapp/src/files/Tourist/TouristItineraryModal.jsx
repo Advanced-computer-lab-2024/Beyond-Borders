@@ -6,7 +6,7 @@ import { useNavigate } from 'react-router-dom';
 
 function TouristItineraryModal() {
   const [itineraries, setItineraries] = useState([]);
-  const [email, setEmail] = useState(''); // State for the email input
+  const [email, setEmail] = useState('');
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -21,20 +21,16 @@ function TouristItineraryModal() {
     fetchItineraries();
   }, []);
 
-  // Function to handle sharing the itinerary link with the entered email
   const handleShare = async (itineraryTitle) => {
     try {
       const frontendLink = `http://localhost:3000/itinerary/details/${encodeURIComponent(itineraryTitle)}`;
-
-      // Send request to the backend to generate a link
       const response = await axios.post('/getCopyLink', {
         entityType: 'itinerary',
         entityName: itineraryTitle,
-        email: email // Use the email from the text field
+        email: email
       });
       const { msg } = response.data;
 
-      // Copy the frontend link to the clipboard
       if (navigator.clipboard) {
         navigator.clipboard.writeText(frontendLink)
           .then(() => alert(`Link copied to clipboard successfully!\n${msg}`))
@@ -48,6 +44,37 @@ function TouristItineraryModal() {
     }
   };
 
+  const handleBookItinerary = async (itinerary) => {
+    const touristUsername = localStorage.getItem('username');
+    if (!touristUsername) {
+      alert("Please log in to book an itinerary.");
+      return;
+    }
+
+    try {
+      const response = await axios.put('/bookItinerary', {
+        touristUsername,
+        itineraryName: itinerary.Title
+      });
+
+      if (response.status === 201) {
+        alert(`Itinerary booked successfully! Total Cost: $${response.data.totalCost}`);
+        navigate('/PaymentPage', {
+          state: {
+            type: 'itinerary', // Specify type as itinerary
+            name: itinerary.Title,
+            totalCost: response.data.totalCost
+          }
+        });
+      } else {
+        alert(response.data.msg || 'Failed to book itinerary.');
+      }
+    } catch (error) {
+      console.error('Error booking itinerary:', error);
+      alert('An error occurred while booking the itinerary.');
+    }
+  };
+
   return (
     <Modal open={true} onClose={() => navigate('/touristHome')}>
       <Box sx={styles.modalContent}>
@@ -55,24 +82,21 @@ function TouristItineraryModal() {
           Upcoming Itineraries
         </Typography>
 
-        {/* Email Input */}
-        
-
         <Box sx={styles.listContainer}>
           {itineraries.map(itinerary => (
             <Box key={itinerary.id} sx={styles.item}>
               <Typography variant="body1"><strong>Title:</strong> {itinerary.Title}</Typography>
               <Typography variant="body2"><strong>Price:</strong> ${itinerary.Price}</Typography>
               <Typography variant="body2"><strong>Language:</strong> {itinerary.Language}</Typography>
+              
               <TextField
-          label="Email for Sharing"
-          variant="outlined"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          sx={{ marginBottom: 2 }}
-        />
+                label="Email for Sharing"
+                variant="outlined"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                sx={{ marginBottom: 2 }}
+              />
 
-              {/* Share Button */}
               <Button
                 variant="outlined"
                 onClick={() => handleShare(itinerary.Title)}
@@ -80,9 +104,18 @@ function TouristItineraryModal() {
               >
                 Share
               </Button>
+
+              <Button
+                variant="contained"
+                onClick={() => handleBookItinerary(itinerary)}
+                sx={styles.bookButton}
+              >
+                Book
+              </Button>
             </Box>
           ))}
         </Box>
+
         <Button variant="contained" sx={styles.doneButton} onClick={() => navigate('/touristHome')}>
           Done
         </Button>
@@ -126,6 +159,12 @@ const styles = {
     backgroundColor: '#1976d2',
     color: 'white',
     '&:hover': { backgroundColor: '#63a4ff' },
+  },
+  bookButton: {
+    mt: 1,
+    backgroundColor: '#4CAF50',
+    color: 'white',
+    '&:hover': { backgroundColor: '#388E3C' },
   },
 };
 

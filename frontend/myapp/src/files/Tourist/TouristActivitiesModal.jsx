@@ -14,7 +14,7 @@ function TouristActivitiesModal() {
   const [date, setDate] = useState('');
   const [rating, setRating] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
-  const [open, setOpen] = useState(false); 
+  const [open, setOpen] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -58,7 +58,6 @@ function TouristActivitiesModal() {
       setActivities(response.data);
 
       if (response.data.length === 0) {
-        // No activities found for the filter
         setErrorMessage('No Activities Found For This Filter');
         setOpen(true);
       } else {
@@ -112,6 +111,39 @@ function TouristActivitiesModal() {
     }
   };
 
+  const handleBookActivity = async (activity) => {
+    const touristUsername = localStorage.getItem('username');
+    if (!touristUsername || !activity) {
+      alert("Please log in and select an activity to book.");
+      return;
+    }
+  
+    try {
+      const response = await axios.put('/bookActivity', {
+        touristUsername,
+        activityName: activity.Name
+      });
+  
+      if (response.status === 201) {
+        alert(`Activity booked successfully! Total Cost: $${response.data.totalCost}`);
+        navigate('/PaymentPage', {
+          state: {
+            type: 'activity', 
+            name: activity.Name,
+            totalCost: response.data.totalCost
+          }
+        });
+      } else {
+        alert(response.data.msg || 'Failed to book activity.');
+      }
+    } catch (error) {
+      console.error('Error booking activity:', error);
+      alert('An error occurred while booking the activity.');
+    }
+  };
+  
+
+
   return (
     <Modal open={true} onClose={() => navigate('/touristHome')}>
       <Box sx={styles.modalContent}>
@@ -156,14 +188,25 @@ function TouristActivitiesModal() {
                   sx={{ marginBottom: 2 }}
                 />
 
-                {/* Share Button */}
-                <Button
-                  variant="outlined"
-                  onClick={() => handleShare(activity.Name)}
-                  sx={styles.shareButton}
-                >
-                  Share
-                </Button>
+                {/* Share and Book Buttons */}
+                <Box sx={{ display: 'flex', gap: 2 }}>
+                  <Button
+                    variant="outlined"
+                    onClick={() => handleShare(activity.Name)}
+                    sx={styles.shareButton}
+                  >
+                    Share
+                  </Button>
+                  <Button
+                    variant="contained"
+                    onClick={() => {
+                      handleBookActivity(activity); 
+                    }}
+                    sx={styles.bookButton}
+                  >
+                    Book
+                  </Button>
+                </Box>
               </Box>
             ))
           ) : null}
@@ -223,6 +266,12 @@ const styles = {
     backgroundColor: '#1976d2',
     color: 'white',
     '&:hover': { backgroundColor: '#63a4ff' },
+  },
+  bookButton: {
+    mt: 1,
+    backgroundColor: '#4CAF50',
+    color: 'white',
+    '&:hover': { backgroundColor: '#69f0ae' },
   },
 };
 
