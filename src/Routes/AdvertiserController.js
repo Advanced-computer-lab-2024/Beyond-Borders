@@ -199,7 +199,7 @@ const { default: mongoose } = require('mongoose');
     const deleteActivity = async (req, res) => {
       // Destructure fields from the request body
       const { AdvertiserName, Name} = req.body;
-  
+      
       try {
           // Check if the activity exists with the provided name and advertiser name
           const existingActivity = await ActivityModel.findOne({ Name: Name, AdvertiserName: AdvertiserName });

@@ -10,7 +10,10 @@ const HomePageAdvertiser = () => {
   const [showProfile, setShowProfile] = useState(false);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [showUpdateForm, setShowUpdateForm] = useState(false);
-const [updateActivityData, setUpdateActivityData] = useState(null);
+  const [updateActivityData, setUpdateActivityData] = useState(null);
+  const [showActivities, setShowActivities] = useState(false);
+  const [selectedActivity, setSelectedActivity] = useState(null);
+
 
   const [newActivity, setNewActivity] = useState({
     AdvertiserName: 'yourAdvertiserName', // Replace with actual advertiser name
@@ -28,18 +31,18 @@ const [updateActivityData, setUpdateActivityData] = useState(null);
   const loadMyActivities = async () => {
     setLoading(true);
     const username = localStorage.getItem('username'); 
-
     if (!username) {
       alert('You need to log in first.');
       setLoading(false);
       setIsLoggedIn(false);
       return;
     }
-
+  
     try {
       const response = await axios.get(`/api/readAllActivities?AuthorUsername=${encodeURIComponent(username)}`);
       if (response.status === 200) {
         setActivities(response.data);
+        setShowActivities(true); // Show activities only when button is clicked
         setIsLoggedIn(true);
       } else {
         setError('Failed to load activities');
@@ -51,6 +54,7 @@ const [updateActivityData, setUpdateActivityData] = useState(null);
       setLoading(false);
     }
   };
+  
 
   const loadProfile = async () => {
     setLoading(true);
@@ -143,9 +147,40 @@ const [updateActivityData, setUpdateActivityData] = useState(null);
     }
   };
 
-  useEffect(() => {
-    loadMyActivities();
-  }, []);
+  const viewDetails = (activity) => {
+    setSelectedActivity(activity);
+  };
+  
+
+  const deleteActivity = async (activity) => {
+    setLoading(true);
+    const username = localStorage.getItem('username'); // Get the advertiser name
+  
+    try {
+      console.log("Attempting to delete activity:", { AdvertiserName: username, Name: activity.Name });
+      
+      const response = await axios.post('/api/deleteActivity', {
+        AdvertiserName: username,
+        Name: activity.Name
+      });
+  
+      if (response.status === 200) {
+        alert("Activity deleted successfully!");
+        setActivities(activities.filter(a => a.Name !== activity.Name)); // Update state to remove the deleted activity
+      } else {
+        setError("Failed to delete activity");
+      }
+    } catch (err) {
+      setError(`Error deleting activity: ${err.response?.data?.error || err.message}`);
+      console.error("Error deleting activity:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  
+  
+
 
   return (
     <div style={styles.container}>
@@ -177,16 +212,34 @@ const [updateActivityData, setUpdateActivityData] = useState(null);
                 {activities.map((activity, index) => (
                   <div key={index} style={styles.activityItem}>
                     <h3>{activity.Name}</h3>
-                    <p>Date: {new Date(activity.Date).toLocaleDateString()}</p>
-                    <p>Time: {activity.Time}</p>
-                    <p>Price: ${activity.Price}</p>
-                    <p>Location: {activity.Location.address || 'N/A'}</p>
-
                     <button style={styles.button} onClick={() => openUpdateForm(activity)}>Update</button>
+
+                    <button style={styles.button} onClick={() => viewDetails(activity)}>View Details</button>
+
+                    <button style={styles.button} onClick={() => deleteActivity(activity)}>Delete</button> 
+
+
                   </div>
                 ))}
               </div>
             )}
+          </div>
+        )}
+
+         {/* Show selected activity details when "View Details" is clicked */}
+         {selectedActivity && (
+          <div style={styles.formModal}>
+            <h2>Activity Details</h2>
+            <p><strong>Name:</strong> {selectedActivity.Name}</p>
+            <p><strong>Date:</strong> {new Date(selectedActivity.Date).toLocaleDateString()}</p>
+            <p><strong>Time:</strong> {selectedActivity.Time}</p>
+            <p><strong>Price:</strong> ${selectedActivity.Price}</p>
+            <p><strong>Location:</strong> {selectedActivity.Location.address || 'N/A'}</p>
+            <p><strong>Category:</strong> {selectedActivity.Category}</p>
+            <p><strong>Tags:</strong> {selectedActivity.Tags.join(', ')}</p>
+            <p><strong>Special Discount:</strong> {selectedActivity.SpecialDiscount}</p>
+            <p><strong>Booking Status:</strong> {selectedActivity.BookingOpen ? 'Open' : 'Closed'}</p>
+            <button style={styles.button} onClick={() => setSelectedActivity(null)}>Close</button>
           </div>
         )}
 
