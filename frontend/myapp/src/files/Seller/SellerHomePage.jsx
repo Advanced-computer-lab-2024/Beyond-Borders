@@ -95,6 +95,27 @@ function SellerHomePage() {
     }
   };
 
+  const fetchMyArchivedProducts = async () => {
+    const username = localStorage.getItem('username');
+    console.log("Username from localStorage:", username); // Debugging output to check if username is retrieved
+  
+    if (!username) {
+      alert('Please log in to view your products.');
+      return;
+    }
+  
+    try {
+      const response = await axios.get('/api/viewMyArchivedProductsSeller', { params: { Seller: username } });
+      console.log("API Response:", response.data); // Debugging output to check the API response
+      setMyProducts(response.data || []);
+      setActiveModal('myArchivedProducts');
+    } catch (error) {
+      console.error("Error fetching products:", error.response || error.message); // Detailed error logging
+      setErrorMessage('An error occurred while loading your products.');
+      setActiveModal('error');
+    }
+  };
+
   const handleSearch = async () => {
     if (!searchKeyword.trim()) {
       alert('Please enter a product name to search.');
@@ -195,6 +216,28 @@ function SellerHomePage() {
       alert('Failed to update product.');
     }
   };
+
+  const archiveProduct = async (productID) => {
+    try {
+      await axios.post('/api/archiveProduct',{ ProductID: productID });
+      alert('Product archived successfully!');
+      fetchMyArchivedProducts();
+      setActiveModal(null);
+    } catch (error) {
+      alert('Failed to archive product.');
+    }
+  };
+
+  const unarchiveProduct = async (productID) => {
+    try {
+      await axios.post('/api/unarchiveProduct',{ ProductID: productID });
+      alert('Product unarchived successfully!');
+      fetchMyProducts();
+      setActiveModal(null);
+    } catch (error) {
+      alert('Failed to unarchive product.');
+    }
+  };
   
   const sortProductsDescending = async () => {
     try {
@@ -256,6 +299,7 @@ function SellerHomePage() {
       <Box sx={styles.buttonContainer}>
         <Button sx={styles.button} onClick={fetchProducts}>View All Products</Button>
         <Button sx={styles.button} onClick={fetchMyProducts}>View My Products</Button>
+        <Button sx={styles.button} onClick={fetchMyArchivedProducts}>View My Archived Products</Button>
         <Button sx={styles.button} onClick={sortProductsDescending}>Sort by Rating Descending</Button>
         <Button sx={styles.button} onClick={sortProductsAscending}>Sort by Rating Ascending</Button>
         <Button sx={styles.button} onClick={() => setActiveModal('addProduct')}>Add New Product</Button>
@@ -515,6 +559,77 @@ function SellerHomePage() {
                 sx={{ mt: 1, backgroundColor: '#4CAF50', color: 'white' }}
               >
                 Edit
+              </Button>
+
+              <Button
+                variant="contained"
+                onClick={() => {
+                  archiveProduct(product._id);
+                }}
+                sx={{ mt: 1, backgroundColor: '#4CAF50', color: 'white' }}
+              >
+                Archive
+              </Button>
+            </Box>
+          ))}
+        </Box>
+      ) : (
+        <Typography>No products found.</Typography>
+      )}
+      <Button variant="contained" onClick={() => setActiveModal(null)} sx={styles.doneButton}>Done</Button>
+    </Box>
+  </Modal>
+)}
+
+{activeModal === 'myArchivedProducts' && (
+  <Modal open={true} onClose={() => setActiveModal(null)}>
+    <Box sx={styles.modalContent}>
+      <Typography variant="h6" component="h2">My Products</Typography>
+      {myProducts.length > 0 ? (
+        <Box sx={styles.resultsContainer}>
+          {myProducts.map((product, index) => (
+            <Box key={product._id || index} sx={styles.resultItem}>
+              <img src={product.Picture} alt={product.Name} style={{ width: '50px', height: '50px', marginBottom: '10px' }} />
+              <Typography><strong>Name:</strong> {product.Name}</Typography>
+              <Typography><strong>Price:</strong> ${product.Price}</Typography>
+              <Typography><strong>Description:</strong> {product.Description}</Typography>
+              <Typography><strong>Quantity:</strong> {product.Quantity}</Typography>
+              <Typography><strong>Sales:</strong> {product.Sales}</Typography>
+              <Typography><strong>Total Price of Sales:</strong> ${product.TotalPriceOfSales}</Typography>
+              <Typography><strong>Seller:</strong> {product.Seller}</Typography>
+              <Typography><strong>Rating:</strong> {product.Ratings}</Typography>
+              <Typography><strong>Reviews:</strong></Typography>
+
+              {Array.isArray(product.Reviews) && product.Reviews.length > 0 ? (
+                product.Reviews.map((review, idx) => (
+                  <Box key={idx} sx={{ mt: 1, mb: 1, padding: '5px', borderBottom: '1px solid #ccc' }}>
+                    <Typography><strong>Username:</strong> {review.touristUsername}</Typography>
+                    <Typography><strong>Review:</strong> {review.Review}</Typography>
+                  </Box>
+                ))
+              ) : (
+                <Typography>No reviews available</Typography>
+              )}
+
+              <Button
+                variant="contained"
+                onClick={() => {
+                  setSelectedProduct(product);
+                  setActiveModal('editProduct');
+                }}
+                sx={{ mt: 1, backgroundColor: '#4CAF50', color: 'white' }}
+              >
+                Edit
+              </Button>
+
+              <Button
+                variant="contained"
+                onClick={() => {
+                  unarchiveProduct(product._id);
+                }}
+                sx={{ mt: 1, backgroundColor: '#4CAF50', color: 'white' }}
+              >
+                Unarchive
               </Button>
             </Box>
           ))}
