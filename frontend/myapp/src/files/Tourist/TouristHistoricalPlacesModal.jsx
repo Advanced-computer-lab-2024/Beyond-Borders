@@ -6,7 +6,7 @@ import { useNavigate } from 'react-router-dom';
 
 function TouristHistoricalPlacesModal() {
   const [historicalPlaces, setHistoricalPlaces] = useState([]);
-  const [email, setEmail] = useState(''); // State for the email input
+  const [email, setEmail] = useState('');
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -21,20 +21,16 @@ function TouristHistoricalPlacesModal() {
     fetchHistoricalPlaces();
   }, []);
 
-  // Function to handle sharing the historical place link with the entered email
   const handleShare = async (placeName) => {
     try {
       const frontendLink = `http://localhost:3000/historicalPlace/details/${encodeURIComponent(placeName)}`;
-
-      // Send request to the backend to generate a link with email input
       const response = await axios.post('/getCopyLink', {
         entityType: 'historicalPlace',
         entityName: placeName,
-        email: email // Use the email from the text field
+        email: email
       });
       const { msg } = response.data;
 
-      // Copy the frontend link to the clipboard
       if (navigator.clipboard) {
         navigator.clipboard.writeText(frontendLink)
           .then(() => alert(`Link copied to clipboard successfully!\n${msg}`))
@@ -48,6 +44,37 @@ function TouristHistoricalPlacesModal() {
     }
   };
 
+  const handleBookPlace = async (place) => {
+    const touristUsername = localStorage.getItem('username');
+    if (!touristUsername || !place) {
+      alert("Please log in and select a historical place event to book.");
+      return;
+    }
+
+    try {
+      const response = await axios.put('/bookHistoricalPlace', {
+        touristUsername,
+        historicalPlaceName: place.name
+      });
+
+      if (response.status === 201) {
+        alert(`Historical place event booked successfully! Total Cost: $${response.data.ticketPrice}`);
+        navigate('/PaymentPage', {
+          state: {
+            type: 'historicalPlace',
+            name: place.name,
+            totalCost: response.data.ticketPrice
+          }
+        });
+      } else {
+        alert(response.data.msg || 'Failed to book historical place event.');
+      }
+    } catch (error) {
+      console.error('Error booking historical place event:', error);
+      alert('An error occurred while booking the historical place event.');
+    }
+  };
+
   return (
     <Modal open={true} onClose={() => navigate('/touristHome')}>
       <Box sx={styles.modalContent}>
@@ -55,7 +82,6 @@ function TouristHistoricalPlacesModal() {
           Upcoming Historical Places Events
         </Typography>
 
-        {/* Email Input for Sharing */}
         <TextField
           label="Email for Sharing"
           variant="outlined"
@@ -71,13 +97,20 @@ function TouristHistoricalPlacesModal() {
               <Typography variant="body2"><strong>Location:</strong> {place.location}</Typography>
               <Typography variant="body2"><strong>Opening Hours:</strong> {place.openingHours}</Typography>
               
-              {/* Share Button */}
               <Button
                 variant="outlined"
                 onClick={() => handleShare(place.name)}
                 sx={styles.shareButton}
               >
                 Share
+              </Button>
+
+              <Button
+                variant="contained"
+                onClick={() => handleBookPlace(place)}
+                sx={styles.bookButton}
+              >
+                Book
               </Button>
             </Box>
           ))}
@@ -109,6 +142,9 @@ const styles = {
   },
   shareButton: {
     mt: 1, backgroundColor: '#1976d2', color: 'white', '&:hover': { backgroundColor: '#63a4ff' },
+  },
+  bookButton: {
+    mt: 1, backgroundColor: '#4CAF50', color: 'white', '&:hover': { backgroundColor: '#388E3C' },
   },
 };
 

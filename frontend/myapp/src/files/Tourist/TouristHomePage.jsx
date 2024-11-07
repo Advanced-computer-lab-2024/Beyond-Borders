@@ -312,6 +312,7 @@ const [flightOffers, setFlightOffers] = useState([]); // Holds flight search res
         <Button sx={styles.button} onClick={() => navigate('/PurchasedProducts')}>View All Purchased Products</Button>
         <Button sx={styles.button} onClick={() => navigate('/TouristComplaintsModal')}>File a complaint</Button>
         <Button sx={styles.button} onClick={() => navigate('/touristHistorical')}>View All Historical Places</Button>
+        <Button sx={styles.button} onClick={() => navigate('/TouristComplaintsViewModal')}>View my complaints</Button>
         <Button sx={styles.button} onClick={handleHotelSearchToggle}>Hotels</Button>
         <Button sx={styles.button} onClick={handleFlightSearchToggle}>Flights</Button>
         <Button sx={styles.profileButton} onClick={() => setActiveModal('profile')}>My Profile</Button>

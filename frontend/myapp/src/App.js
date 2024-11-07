@@ -55,10 +55,9 @@ import HistoricalDetails from './files/Tourist/HistoricalDetails';
 import ItineraryDetails from './files/Tourist/ItineraryDetails';
 import ActivityDetails from './files/Tourist/ActivityDetails';
 import HomePageGuest from './files/HomePageGuest';
-
+import TouristComplaintsViewModal from './files/Tourist/TouristComplaintsViewModal'
 import TouristComplaintsModal from './files/Tourist/TouristComplaintsModal';
-
-
+import PaymentPage from './files/Tourist/PaymentPage';
 
 
 
@@ -107,6 +106,7 @@ function App() {
           <Route path="/CompletedMuseums" element={<CompletedMuseums/>}/>
           <Route path="/CompletedHistorical" element={<CompletedHistorical/>}/>
           <Route path="/PurchasedProducts" element={<PurchasedProducts/>}/>
+          <Route path="/TouristComplaintsViewModal" element={<TouristComplaintsViewModal />}/>
 
 
           <Route path="/museum/details/:museumName" element={<MuseumDetails />} />
@@ -139,7 +139,7 @@ function App() {
 
           <Route path="/EditHistoricalPlace" element={<EditHistoricalPlace/>} />
           <Route path="/HomePageSeller" element={<SellerHomePage/>} />
-          
+          <Route path="/PaymentPage" element={<PaymentPage />} />
 
           <Route path="/homeGuest" element={<HomePageGuest />} />
 

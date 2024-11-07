@@ -77,7 +77,41 @@ function TouristMuseumsModal() {
       alert('An error occurred while generating the share link.');
     }
   };
-
+  const handleBookMuseum = async (museum) => {
+    const touristUsername = localStorage.getItem('username');
+    console.log(touristUsername);
+    console.log(museum); 
+  
+    if (!touristUsername || !museum) {
+      alert("Please log in and select a museum event to book.");
+      return;
+    }
+  
+    try {
+      const response = await axios.put('/bookMuseum', {
+        touristUsername,
+        museumName: museum.name 
+      });
+  
+      if (response.status === 201) {
+        alert(`Museum event booked successfully! Total Cost: $${response.data.ticketPrice}`);
+        navigate('/PaymentPage', {
+          state: {
+            type: 'museum', 
+            name: museum.name,
+            totalCost: response.data.ticketPrice
+          }
+        });
+      } else {
+        alert(response.data.msg || 'Failed to book museum event.');
+      }
+    } catch (error) {
+      console.error('Error booking museum event:', error);
+      alert('An error occurred while booking the museum event.');
+    }
+  };
+  
+  
   return (
     <Modal open={true} onClose={() => navigate('/touristHome')}>
       <Box sx={styles.modalContent}>
@@ -158,11 +192,18 @@ function TouristMuseumsModal() {
                   margin="normal"
                   sx={{ mt: 2 }}
                 />
+                <Button
+                  variant="contained"
+                  onClick={() => handleBookMuseum(museum)}
+                  sx={styles.bookButton}
+                >
+                  Book
+                </Button>
               </Box>
             ))}
           </Box>
         )}
-
+        
         {!selectedMuseum && (
           <Button variant="contained" sx={styles.doneButton} onClick={() => navigate('/touristHome')}>
             Done
