@@ -279,6 +279,21 @@ const [flightOffers, setFlightOffers] = useState([]); // Holds flight search res
       setErrorMessage('An error occurred while adding preferences.');
     }
   };
+
+
+  const requestDeleteAccount = async () => {
+    try {
+      const Username = localStorage.getItem('username');
+      const response = await axios.post('/api/requestDeleteAccountTourist', { Username });
+      
+      if (response.status === 200) {
+        window.alert('Account deletion request submitted successfully. An admin will review it.');
+      }
+    } catch (error) {
+      console.error('Error requesting account deletion:', error);
+      window.alert('An error occurred while requesting account deletion.');
+    }
+  };
   return (
     <Box sx={styles.container}>
       <Typography variant="h5" component="h1" sx={styles.title}>
@@ -330,6 +345,13 @@ const [flightOffers, setFlightOffers] = useState([]); // Holds flight search res
         <Button variant="contained" onClick={handleFilter} sx={{ backgroundColor: '#4CAF50', color: 'white' }}>
           Filter
         </Button>
+        <Button
+          sx={{ ...styles.button, backgroundColor: '#FF0000', color: 'white' }}
+          onClick={requestDeleteAccount}
+        >
+          Request Account Deletion
+        </Button>
+
       </Box>
 
 
