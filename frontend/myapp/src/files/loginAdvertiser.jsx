@@ -22,7 +22,7 @@ const LoginAdvertiser = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setResponseMessage('');
-    
+
     try {
       const response = await axios.post('http://localhost:8000/loginAdvertiser', formData);
       const result = response.data;
@@ -44,7 +44,7 @@ const LoginAdvertiser = () => {
       }
     } catch (error) {
       console.error('Error logging in:', error.response ? error.response.data : error.message);
-      
+
       if (error.response && error.response.data) {
         setResponseMessage(`Error: ${error.response.data.error || 'An error occurred.'}`);
       } else {
@@ -58,6 +58,21 @@ const LoginAdvertiser = () => {
     setTimeout(() => {
       window.location.href = '/homePageAdvertiser';
     }, 2000);
+  };
+
+  const handleRejectTerms = async () => {
+    try {
+      // Call API to decrement LoginCount
+      await axios.put('http://localhost:8000/decrementLoginCountAdvertiser', {
+        username: formData.username,
+      });
+      setShowTermsModal(false);
+      setLoginCount(loginCount - 1);
+      window.location.href = '/loginAdvertiser'; // Redirect to login page
+    } catch (error) {
+      console.error('Error decrementing login count:', error);
+      setResponseMessage('Failed to decrement login count. Please try again.');
+    }
   };
 
   return (
@@ -146,6 +161,14 @@ const LoginAdvertiser = () => {
             sx={{ mt: 2 }}
           >
             Accept
+          </Button>
+          <Button
+            variant="outlined"
+            color="secondary"
+            onClick={handleRejectTerms}
+            sx={{ mt: 1 }}
+          >
+            Reject
           </Button>
         </Box>
       </Modal>

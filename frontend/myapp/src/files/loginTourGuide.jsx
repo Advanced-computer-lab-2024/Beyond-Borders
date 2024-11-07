@@ -36,7 +36,7 @@ const LoginTourGuide = () => {
           setShowTermsModal(true);
         } else {
           setTimeout(() => {
-            window.location.href = `/HomePageTourGuide`;
+            window.location.href = '/HomePageTourGuide';
           }, 2000);
         }
       } else {
@@ -56,6 +56,21 @@ const LoginTourGuide = () => {
     setTimeout(() => {
       window.location.href = '/HomePageTourGuide';
     }, 2000);
+  };
+
+  const handleRejectTerms = async () => {
+    try {
+      // Call API to decrement LoginCount
+      await axios.put('http://localhost:8000/decrementLoginCountTourGuide', {
+        username: formData.username,
+      });
+      setShowTermsModal(false);
+      setLoginCount(loginCount - 1);
+      window.location.href = '/loginTourGuide'; // Redirect to login page
+    } catch (error) {
+      console.error('Error decrementing login count:', error);
+      setResponseMessage('Failed to decrement login count. Please try again.');
+    }
   };
 
   return (
@@ -144,6 +159,14 @@ const LoginTourGuide = () => {
             sx={{ mt: 2 }}
           >
             Accept
+          </Button>
+          <Button
+            variant="outlined"
+            color="secondary"
+            onClick={handleRejectTerms}
+            sx={{ mt: 1 }}
+          >
+            Reject
           </Button>
         </Box>
       </Modal>

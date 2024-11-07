@@ -419,4 +419,26 @@ const viewMyDeactivatedItinerariesTourGuide = async (req, res) => {
   }
 };
 
-module.exports = {ReadTourGuideProfile , UpdateTourGuideEmail , UpdateTourGuidePassword, UpdateTourGuideMobileNum , UpdateTourGuideYearsofExperience ,UpdateTourGuidePreviousWork ,createItineraryAsTourGuide,readItineraryAsTourGuide,updateItineraryAsTourGuide,deleteItineraryAsTourGuide, updateTourGuideProfile,loginTourGuide,getItenrarysByTourGuide, deactivateItinerary,activateItinerary, viewMyDeactivatedItinerariesTourGuide};
+const decrementLoginCountTourGuide = async (req, res) => {
+  try {
+    const { username } = req.body;
+
+    // Find the seller by username and decrement the LoginCount by 1
+    const updatedSeller = await TourGuideModel.findOneAndUpdate(
+      { Username: username },
+      { $inc: { LoginCount: -1 } }, // Decrement LoginCount by 1
+      { new: true } // Return the updated document
+    );
+
+    // Check if the seller was found and updated
+    if (!updatedSeller) {
+      return res.status(404).json({ error: "Tour guide not found" });
+    }
+
+    res.status(200).json({ msg: "Login count decremented", updatedSeller });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+module.exports = {ReadTourGuideProfile , UpdateTourGuideEmail , UpdateTourGuidePassword, UpdateTourGuideMobileNum , UpdateTourGuideYearsofExperience ,UpdateTourGuidePreviousWork ,createItineraryAsTourGuide,readItineraryAsTourGuide,updateItineraryAsTourGuide,deleteItineraryAsTourGuide, updateTourGuideProfile,loginTourGuide,getItenrarysByTourGuide, deactivateItinerary,activateItinerary, viewMyDeactivatedItinerariesTourGuide, decrementLoginCountTourGuide};

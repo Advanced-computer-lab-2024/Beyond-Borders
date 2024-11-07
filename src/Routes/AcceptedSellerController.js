@@ -343,4 +343,27 @@ const requestDeleteAccountSeller = async (req, res) => {
   }
 };
 
-module.exports = {readSellerProfile, updateSeller, editProductSeller, createNewProductSeller, searchProductSeller, filterProductByPriceSeller, sortProductsAscendingSeller, sortProductsDescendingSeller,viewProductsSeller,viewAllProductsSeller,loginSeller,getProductsBySeller, viewMyArchivedProductsSeller, requestDeleteAccountSeller};
+const decrementLoginCount = async (req, res) => {
+  try {
+    const { username } = req.body;
+
+    // Find the seller by username and decrement the LoginCount by 1
+    const updatedSeller = await AcceptedSellerModel.findOneAndUpdate(
+      { Username: username },
+      { $inc: { LoginCount: -1 } }, // Decrement LoginCount by 1
+      { new: true } // Return the updated document
+    );
+
+    // Check if the seller was found and updated
+    if (!updatedSeller) {
+      return res.status(404).json({ error: "Seller not found" });
+    }
+
+    res.status(200).json({ msg: "Login count decremented", updatedSeller });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+
+module.exports = {readSellerProfile, updateSeller, editProductSeller, createNewProductSeller, searchProductSeller, filterProductByPriceSeller, sortProductsAscendingSeller, sortProductsDescendingSeller,viewProductsSeller,viewAllProductsSeller,loginSeller,getProductsBySeller, viewMyArchivedProductsSeller, requestDeleteAccountSeller, decrementLoginCount};
