@@ -9,6 +9,9 @@ const HomePageAdvertiser = () => {
   const [profile, setProfile] = useState({});
   const [showProfile, setShowProfile] = useState(false);
   const [showCreateForm, setShowCreateForm] = useState(false);
+  const [showUpdateForm, setShowUpdateForm] = useState(false);
+const [updateActivityData, setUpdateActivityData] = useState(null);
+
   const [newActivity, setNewActivity] = useState({
     AdvertiserName: 'yourAdvertiserName', // Replace with actual advertiser name
     Name: '',
@@ -76,6 +79,12 @@ const HomePageAdvertiser = () => {
     }
   };
 
+  const openUpdateForm = (activity) => {
+    setUpdateActivityData(activity);
+    setShowUpdateForm(true);
+  };
+  
+
   const saveProfile = async () => {
     setLoading(true);
     try {
@@ -93,6 +102,26 @@ const HomePageAdvertiser = () => {
       setLoading(false);
     }
   };
+
+  const updateActivity = async () => {
+    setLoading(true);
+    try {
+      const response = await axios.put('/api/updateActivity', updateActivityData);
+      if (response.status === 200) {
+        alert('Activity updated successfully!');
+        setShowUpdateForm(false);
+        loadMyActivities(); // Reload activities after updating
+      } else {
+        setError('Failed to update activity');
+      }
+    } catch (err) {
+      setError(`Error updating activity: ${err.response?.data?.error || err.message}`);
+      console.error('Error updating activity:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+  
 
   const createNewActivity = async () => {
     setLoading(true);
@@ -127,6 +156,9 @@ const HomePageAdvertiser = () => {
             <li><a href="#" style={styles.navLink} onClick={loadMyActivities}>My Activities</a></li>
             <li><a href="#" style={styles.navLink} onClick={loadProfile}>My Profile</a></li>
             <li><button style={styles.button} onClick={() => { setShowCreateForm(true); setShowProfile(false); }}>Create New Activity</button></li>
+           
+
+            
           </ul>
         </nav>
       </div>
@@ -149,6 +181,8 @@ const HomePageAdvertiser = () => {
                     <p>Time: {activity.Time}</p>
                     <p>Price: ${activity.Price}</p>
                     <p>Location: {activity.Location.address || 'N/A'}</p>
+
+                    <button style={styles.button} onClick={() => openUpdateForm(activity)}>Update</button>
                   </div>
                 ))}
               </div>
@@ -208,6 +242,27 @@ const HomePageAdvertiser = () => {
             </form>
           </div>
         )}
+
+{showUpdateForm && updateActivityData && (
+  <div style={styles.formModal}>
+    <h2>Update Activity</h2>
+    <form>
+      <div style={styles.formRow}><label>Name: </label><input type="text" value={updateActivityData.Name} onChange={(e) => setUpdateActivityData({ ...updateActivityData, Name: e.target.value })} readOnly /></div>
+      <div style={styles.formRow}><label>Date: </label><input type="date" value={updateActivityData.Date} onChange={(e) => setUpdateActivityData({ ...updateActivityData, Date: e.target.value })} /></div>
+      <div style={styles.formRow}><label>Time: </label><input type="time" value={updateActivityData.Time} onChange={(e) => setUpdateActivityData({ ...updateActivityData, Time: e.target.value })} /></div>
+      <div style={styles.formRow}><label>Price: </label><input type="number" value={updateActivityData.Price} onChange={(e) => setUpdateActivityData({ ...updateActivityData, Price: e.target.value })} /></div>
+      <div style={styles.formRow}><label>Special Discount: </label><input type="number" value={updateActivityData.SpecialDiscount} onChange={(e) => setUpdateActivityData({ ...updateActivityData, SpecialDiscount: e.target.value })} /></div>
+      <div style={styles.formRow}><label>Booking Status: </label><input type="checkbox" checked={updateActivityData.BookingOpen} onChange={(e) => setUpdateActivityData({ ...updateActivityData, BookingOpen: e.target.checked })} /></div>
+      <div style={styles.formRow}><label>Location: </label><input type="text" placeholder="Address" value={updateActivityData.Location.address || ''} onChange={(e) => setUpdateActivityData({ ...updateActivityData, Location: { ...updateActivityData.Location, address: e.target.value } })} /></div>
+      <div style={styles.formRow}><label>Longitude: </label><input type="number" value={updateActivityData.Location.longitude || ''} onChange={(e) => setUpdateActivityData({ ...updateActivityData, Location: { ...updateActivityData.Location, longitude: e.target.value } })} /></div>
+      <div style={styles.formRow}><label>Latitude: </label><input type="number" value={updateActivityData.Location.latitude || ''} onChange={(e) => setUpdateActivityData({ ...updateActivityData, Location: { ...updateActivityData.Location, latitude: e.target.value } })} /></div>
+      <div style={styles.formRow}><label>Category: </label><input type="text" value={updateActivityData.Category} onChange={(e) => setUpdateActivityData({ ...updateActivityData, Category: e.target.value })} /></div>
+      <div style={styles.formRow}><label>Tags: </label><input type="text" value={updateActivityData.Tags.join(', ')} onChange={(e) => setUpdateActivityData({ ...updateActivityData, Tags: e.target.value.split(', ') })} /></div>
+      <button type="button" style={styles.button} onClick={updateActivity}>Save Changes</button>
+    </form>
+  </div>
+)}
+
       </div>
     </div>
   );
