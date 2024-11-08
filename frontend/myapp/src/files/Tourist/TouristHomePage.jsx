@@ -379,6 +379,37 @@ const [convertedPrices, setConvertedPrices] = useState({});
     await handleHotelSearch();   // Fetch hotels first
     await handleCurrencyChange(); // Then convert currency based on fetched data
 };
+
+const handleRedeemPoints = async () => {
+  try {
+    const response = await fetch('/redeemPoints', {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ username: profile.Username }), // assuming `profile.Username` is the current user's username
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
+      // Update the profile's wallet and points with the returned data
+      setProfile((prevProfile) => ({
+        ...prevProfile,
+        Wallet: data.walletBalance,
+        Points: data.remainingPoints,
+      }));
+
+      alert(data.msg); // show a success message
+    } else {
+      // Show an error message if something goes wrong
+      alert(data.msg || 'Error redeeming points');
+    }
+  } catch (error) {
+    console.error('Redeem Points Error:', error);
+    alert('An error occurred while redeeming points.');
+  }
+};
   return (
     <Box sx={styles.container}>
       <Typography variant="h5" component="h1" sx={styles.title}>
@@ -547,6 +578,13 @@ const [convertedPrices, setConvertedPrices] = useState({});
                 
                 <Typography><strong>Wallet Balance:</strong> ${profile.Wallet}</Typography>
                 <Typography><strong>Points:</strong> {profile.Points}</Typography>
+                <Button
+                  variant="contained"
+                  onClick={handleRedeemPoints}
+                  sx={{ marginLeft: '10px', backgroundColor: '#FFA500', color: 'white' }}
+                >
+                  Redeem Points
+                </Button>
                 <Typography><strong>Badge Level:</strong> {profile.BadgeLevelOfPoints}</Typography>
 
                 <Button
