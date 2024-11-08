@@ -3,10 +3,12 @@ import React, { useState, useEffect } from 'react';
 import { Box, Button, Typography, Modal } from '@mui/material';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import PropTypes from 'prop-types';
 
-function TouristBookedActivitiesModal() {
+function TouristBookedActivitiesModal({ currency, onClose }) {
   const [bookedActivities, setBookedActivities] = useState([]);
   const [errorMessage, setErrorMessage] = useState('');
+  const [convertedPrices, setConvertedPrices] = useState({});
   const navigate = useNavigate();
 
   // useEffect(() => {
@@ -48,6 +50,33 @@ function TouristBookedActivitiesModal() {
     fetchBookedActivities();
   }, []);
 
+
+  useEffect(() => {
+    const convertActivityPrices = async () => {
+      const newConvertedPrices = {};
+
+      await Promise.all(
+        bookedActivities.map(async (activity) => {
+          try {
+            const response = await axios.post('/convertCurr', {
+              priceEgp: activity.Price || 0,
+              targetCurrency: currency,
+            });
+            newConvertedPrices[activity._id] = response.data.convertedPrice;
+          } catch (error) {
+            console.error(`Error converting price for ${activity.Name}:`, error);
+          }
+        })
+      );
+
+      setConvertedPrices(newConvertedPrices);
+    };
+
+    if (currency !== 'EGP') {
+      convertActivityPrices();
+    }
+  }, [currency, bookedActivities]);
+
   const handleCancelBooking = async (activityName) => {
     const username = localStorage.getItem('username');
     if (!username) {
@@ -72,7 +101,7 @@ function TouristBookedActivitiesModal() {
   };
 
   return (
-    <Modal open={true} onClose={() => navigate('/touristHome')}>
+    <Modal open={true} onClose={onClose}>
       <Box sx={styles.modalContent}>
         <Typography variant="h6" component="h2">
           My Booked Activities
@@ -86,7 +115,9 @@ function TouristBookedActivitiesModal() {
                 <Box key={activity._id} sx={styles.item}>
                   <Typography variant="body1"><strong>Name:</strong> {activity.Name?.toString() || "N/A"}</Typography>
                   <Typography variant="body2"><strong>Date:</strong> {activity.Date ? new Date(activity.Date).toLocaleDateString() : "N/A"}</Typography>
-                  <Typography variant="body2"><strong>Price:</strong> ${activity.Price?.toString() || "N/A"}</Typography>
+                  <Typography variant="body2">
+                    <strong>Price:</strong> {currency === 'EGP' ? `${activity.Price || 0} EGP` : `${convertedPrices[activity._id] || 'Loading...'} ${currency}`}
+                  </Typography>
                   <Typography variant="body2"><strong>Location:</strong> {activity.Location?.address ? (<>{activity.Location.address}<br />Coordinates: [{activity.Location.coordinates[1]}, {activity.Location.coordinates[0]}]</>) : (`Coordinates: [${activity.Location?.coordinates[1]}, ${activity.Location?.coordinates[0]}]`)}</Typography>
                   
                   {/* Cancel Booking Button */}
@@ -105,13 +136,20 @@ function TouristBookedActivitiesModal() {
             )}
           </Box>
         )}
-        <Button variant="contained" sx={styles.doneButton} onClick={() => navigate('/touristHome')}>
+        <Button variant="contained" sx={styles.doneButton} onClick={onClose}>
           Done
         </Button>
       </Box>
     </Modal>
   );
 }  
+
+
+
+TouristBookedActivitiesModal.propTypes = {
+  currency: PropTypes.string.isRequired,
+  onClose: PropTypes.func.isRequired,
+};
 
 const styles = {
   modalContent: {

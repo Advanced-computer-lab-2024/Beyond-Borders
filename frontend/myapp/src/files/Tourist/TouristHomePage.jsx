@@ -581,8 +581,14 @@ const handleBooking = async () => {
         
 
         <Button sx={styles.button} onClick={() => navigate('/TouristComplaintsViewModal')}>View my complaints</Button>
-        <Button sx={styles.button} onClick={() => navigate('/TouristBookedActivitiesModal')}>View my booked activities</Button>
         
+        <Button sx={styles.button} variant="contained" onClick={openBookedActivityModal}>
+          View My Booked Activities
+        </Button>
+
+        {isBookedActivityModalOpen && (
+          <TouristBookedActivitiesModal currency={currency} onClose={closeBookedActivityModal} />
+        )}
         
         
         <Button sx={styles.button} variant="contained" onClick={openBookedMuseumModal}>
