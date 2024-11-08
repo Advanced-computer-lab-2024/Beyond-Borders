@@ -2,18 +2,20 @@ import React, { useState, useEffect } from 'react';
 import { Box, Button, Typography, Modal, TextField } from '@mui/material';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import PropTypes from 'prop-types';
 
-function CompletedActivity() {
+function CompletedActivity({ currency,onClose  }) {
   const [completedActivities, setCompletedActivities] = useState([]);
   const [activityRatings, setActivityRatings] = useState({});
-  const [activityComments, setActivityComments] = useState({}); // New state for comments
+  const [activityComments, setActivityComments] = useState({});
   const [isCommentEnabled, setIsCommentEnabled] = useState({});
+  const [convertedPrices, setConvertedPrices] = useState({});
   const navigate = useNavigate();
 
   useEffect(() => {
     const fetchCompletedActivities = async () => {
       try {
-        const username = localStorage.getItem('username'); // Assuming username is stored in localStorage
+        const username = localStorage.getItem('username');
         const response = await axios.get(`/api/viewMyCompletedActivities`, { params: { Username: username } });
         setCompletedActivities(response.data);
       } catch (error) {
@@ -23,7 +25,31 @@ function CompletedActivity() {
     fetchCompletedActivities();
   }, []);
 
-  // Function to handle activity rating submission
+  // Convert activity prices whenever the currency changes
+  useEffect(() => {
+    const convertActivityPrices = async () => {
+      const newConvertedPrices = {};
+      await Promise.all(
+        completedActivities.map(async (activity) => {
+          try {
+            const response = await axios.post('/convertCurr', {
+              priceEgp: activity.Price,
+              targetCurrency: currency,
+            });
+            newConvertedPrices[activity._id] = response.data.convertedPrice;
+          } catch (error) {
+            console.error(`Error converting price for activity ${activity.Name}:`, error);
+          }
+        })
+      );
+      setConvertedPrices(newConvertedPrices);
+    };
+
+    if (currency !== 'EGP') {
+      convertActivityPrices();
+    }
+  }, [currency, completedActivities]);
+
   const handleRateActivity = async (activityName) => {
     const touristUsername = localStorage.getItem('username');
     const ratingValue = parseInt(activityRatings[activityName], 10);
@@ -41,7 +67,6 @@ function CompletedActivity() {
       });
       alert(response.data.msg);
 
-      // Update the activity list with the new average rating from the response
       const updatedActivities = completedActivities.map(activity =>
         activity.Name === activityName
           ? { ...activity, Rating: response.data.newAverageRating }
@@ -54,7 +79,6 @@ function CompletedActivity() {
       alert('An error occurred while submitting your rating.');
     }
   };
-
 
   const handleCommentActivity = async (activityName) => {
     const touristUsername = localStorage.getItem('username');
@@ -73,7 +97,6 @@ function CompletedActivity() {
       });
       alert(response.data.msg);
 
-      // Clear the comment field after submission
       setActivityComments(prevComments => ({ ...prevComments, [activityName]: '' }));
     } catch (error) {
       console.error('Error commenting on activity:', error);
@@ -82,13 +105,12 @@ function CompletedActivity() {
   };
 
   return (
-    <Modal open={true} onClose={() => navigate('/touristHome')}>
+    <Modal open={true} onClose={onClose}>
       <Box sx={styles.modalContent}>
         <Typography variant="h6" component="h2">
           My Completed Activities
         </Typography>
 
-        {/* Completed Activities Listing */}
         <Box sx={styles.listContainer}>
           {completedActivities.length > 0 ? (
             completedActivities.map(activity => (
@@ -98,23 +120,21 @@ function CompletedActivity() {
                 <Typography variant="body2"><strong>Time:</strong> {activity.Time}</Typography>
                 <Typography variant="body2"><strong>Advertiser Name:</strong> {activity.AdvertiserName}</Typography>
                 <Typography variant="body2"><strong>Special Discount:</strong> {activity.SpecialDiscount}</Typography>
-                <Typography variant="body2"><strong>Price:</strong> ${activity.Price}</Typography>
+                <Typography variant="body2">
+                  <strong>Price:</strong> {currency === 'EGP' ? `${activity.Price} EGP` : `${convertedPrices[activity._id] || 'Loading...'} ${currency}`}
+                </Typography>
                 <Typography variant="body2"><strong>Category:</strong> {activity.Category}</Typography>
                 <Typography variant="body2"><strong>Current Activity Rating:</strong> {activity.Rating || 'Not rated yet'}</Typography>
                 <Typography variant="body2"><strong>Booking Open:</strong> {activity.BookingOpen ? 'Yes' : 'No'}</Typography>
                 <Typography variant="body2"><strong>Is Booked:</strong> {activity.isBooked ? 'Yes' : 'No'}</Typography>
-                
-                {/* Display Location with Address if available */}
+
                 <Typography variant="body2"><strong>Location:</strong> {activity.Location?.address || 'No address available'}</Typography>
-                
-                {/* Optionally show coordinates if needed */}
                 {activity.Location?.coordinates && (
                   <Typography variant="body2">
                     <strong>Coordinates:</strong> {activity.Location.coordinates.join(', ')}
                   </Typography>
                 )}
                 
-                {/* Rating Input for Activity */}
                 <Box sx={{ mt: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
                   <TextField
                     label="Rate this Activity"
@@ -133,7 +153,7 @@ function CompletedActivity() {
                     Submit Activity Rating
                   </Button>
                 </Box>
-                {/* Comment Input for Activity */}
+
                 <Box sx={{ mt: 2 }}>
                   <TextField
                     label="Comment on Activity"
@@ -141,7 +161,7 @@ function CompletedActivity() {
                     size="small"
                     multiline
                     fullWidth
-                    disabled={!isCommentEnabled[activity.Name]} // Disable until rating is submitted
+                    disabled={!isCommentEnabled[activity.Name]}
                     value={activityComments[activity.Name] || ''}
                     onChange={(e) => setActivityComments({ ...activityComments, [activity.Name]: e.target.value })}
                     rows={3}
@@ -150,7 +170,7 @@ function CompletedActivity() {
                     variant="contained"
                     onClick={() => handleCommentActivity(activity.Name)}
                     sx={styles.commentButton}
-                    disabled={!isCommentEnabled[activity.Name]} // Disable button until rating is submitted
+                    disabled={!isCommentEnabled[activity.Name]}
                   >
                     Submit Comment
                   </Button>
@@ -162,12 +182,17 @@ function CompletedActivity() {
           )}
         </Box>
 
-
-        <Button variant="contained" sx={styles.doneButton} onClick={() => navigate('/touristHome')}>Done</Button>
+        <Button variant="contained" sx={styles.doneButton} onClick={onClose}>
+          Done
+        </Button>
       </Box>
     </Modal>
   );
 }
+
+CompletedActivity.propTypes = {
+  currency: PropTypes.string.isRequired,
+};
 
 const styles = {
   modalContent: {
@@ -209,10 +234,10 @@ const styles = {
     '&:hover': { backgroundColor: '#63a4ff' },
   },
   commentButton: {
-    backgroundColor: '#89CFF0', // Baby blue for comments
+    backgroundColor: '#89CFF0',
     color: 'white',
     marginTop: '0.5rem',
-    '&:hover': { backgroundColor: '#A7DFFF' }, // Lighter blue on hover
+    '&:hover': { backgroundColor: '#A7DFFF' },
   },
 };
 

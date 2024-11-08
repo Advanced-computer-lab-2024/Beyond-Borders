@@ -1,20 +1,21 @@
-// src/files/Tourist/CompletedHistorical.jsx
 import React, { useState, useEffect } from 'react';
 import { Box, Button, Typography, Modal, TextField } from '@mui/material';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import PropTypes from 'prop-types';
 
-function CompletedHistorical() {
+function CompletedHistorical({ currency,onClose}) {
   const [completedHistoricalPlaces, setCompletedHistoricalPlaces] = useState([]);
   const [historicalPlaceRatings, setHistoricalPlaceRatings] = useState({});
   const [historicalPlaceComments, setHistoricalPlaceComments] = useState({});
-  const [isCommentEnabled, setIsCommentEnabled] = useState({}); // State to track if comment is enabled
+  const [isCommentEnabled, setIsCommentEnabled] = useState({});
+  const [convertedPrices, setConvertedPrices] = useState({});
   const navigate = useNavigate();
 
   useEffect(() => {
     const fetchCompletedHistoricalPlaces = async () => {
       try {
-        const username = localStorage.getItem('username'); // Assuming username is stored in localStorage
+        const username = localStorage.getItem('username');
         const response = await axios.get(`/api/viewMyCompletedHistoricalPlaces`, { params: { Username: username } });
         setCompletedHistoricalPlaces(response.data);
       } catch (error) {
@@ -24,7 +25,50 @@ function CompletedHistorical() {
     fetchCompletedHistoricalPlaces();
   }, []);
 
-  // Function to handle historical place rating submission
+// Fetch converted prices when currency changes
+useEffect(() => {
+  const convertHistoricalPlacePrices = async () => {
+    const newConvertedPrices = {};
+
+    await Promise.all(
+      completedHistoricalPlaces.map(async (place) => {
+        try {
+          const [foreignerResponse, nativeResponse, studentResponse] = await Promise.all([
+            axios.post('/convertCurr', {
+              priceEgp: place.ticketPrices?.foreigner || 0,
+              targetCurrency: currency,
+            }),
+            axios.post('/convertCurr', {
+              priceEgp: place.ticketPrices?.native || 0,
+              targetCurrency: currency,
+            }),
+            axios.post('/convertCurr', {
+              priceEgp: place.ticketPrices?.student || 0,
+              targetCurrency: currency,
+            }),
+          ]);
+
+          newConvertedPrices[place._id] = {
+            foreigner: foreignerResponse.data.convertedPrice,
+            native: nativeResponse.data.convertedPrice,
+            student: studentResponse.data.convertedPrice,
+          };
+        } catch (error) {
+          console.error(`Error converting prices for ${place.name}:`, error);
+        }
+      })
+    );
+
+    setConvertedPrices(newConvertedPrices);
+  };
+
+  if (currency !== 'EGP') {
+    convertHistoricalPlacePrices();
+  }
+}, [currency, completedHistoricalPlaces]);
+
+
+  // Function to handle rating submission
   const handleRateHistoricalPlace = async (HPname) => {
     const touristUsername = localStorage.getItem('username');
     const ratingValue = parseInt(historicalPlaceRatings[HPname], 10);
@@ -42,15 +86,12 @@ function CompletedHistorical() {
       });
       alert(response.data.msg);
 
-      // Update the historical place list with the new average rating from the response
       const updatedHistoricalPlaces = completedHistoricalPlaces.map(place =>
         place.name === HPname
           ? { ...place, Ratings: response.data.newAverageRating }
           : place
       );
       setCompletedHistoricalPlaces(updatedHistoricalPlaces);
-
-      // Enable commenting for this place
       setIsCommentEnabled((prev) => ({ ...prev, [HPname]: true }));
     } catch (error) {
       console.error('Error rating historical place:', error);
@@ -58,7 +99,6 @@ function CompletedHistorical() {
     }
   };
 
-  // Function to handle historical place comment submission
   const handleCommentHistoricalPlace = async (HPname) => {
     const touristUsername = localStorage.getItem('username');
     const comment = historicalPlaceComments[HPname]?.trim();
@@ -76,7 +116,6 @@ function CompletedHistorical() {
       });
       alert(response.data.msg);
 
-      // Clear the comment field after submission
       setHistoricalPlaceComments((prevComments) => ({ ...prevComments, [HPname]: '' }));
     } catch (error) {
       console.error('Error commenting on historical place:', error);
@@ -85,13 +124,12 @@ function CompletedHistorical() {
   };
 
   return (
-    <Modal open={true} onClose={() => navigate('/touristHome')}>
+    <Modal open={true} onClose={onClose}>
       <Box sx={styles.modalContent}>
         <Typography variant="h6" component="h2">
           My Completed Historical Places
         </Typography>
 
-        {/* Completed Historical Places Listing */}
         <Box sx={styles.listContainer}>
           {completedHistoricalPlaces.length > 0 ? (
             completedHistoricalPlaces.map((place) => (
@@ -100,14 +138,15 @@ function CompletedHistorical() {
                 <Typography variant="body2"><strong>Location:</strong> {place.location}</Typography>
                 <Typography variant="body2"><strong>Opening Hours:</strong> {place.openingHours}</Typography>
                 <Typography variant="body2"><strong>Author:</strong> {place.author}</Typography>
-                <Typography variant="body2"><strong>Ticket Prices:</strong> 
-                  Foreigner: {place.ticketPrices?.foreigner}, 
-                  Native: {place.ticketPrices?.native}, 
-                  Student: {place.ticketPrices?.student}
-                </Typography>
+                <Typography variant="body2">
+              <strong>Ticket Prices:</strong> 
+              Foreigner: {currency === 'EGP' ? `${place.ticketPrices?.foreigner || 0} EGP` : `${convertedPrices[place._id]?.foreigner || 'Loading...'} ${currency}`}, 
+              Native: {currency === 'EGP' ? `${place.ticketPrices?.native || 0} EGP` : `${convertedPrices[place._id]?.native || 'Loading...'} ${currency}`}, 
+              Student: {currency === 'EGP' ? `${place.ticketPrices?.student || 0} EGP` : `${convertedPrices[place._id]?.student || 'Loading...'} ${currency}`}
+            </Typography>
+
                 <Typography variant="body2"><strong>Current Rating:</strong> {place.Ratings || 'Not rated yet'}</Typography>
-                
-                {/* Rating Input for Historical Place */}
+
                 <Box sx={{ mt: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
                   <TextField
                     label="Rate this Historical Place"
@@ -127,7 +166,6 @@ function CompletedHistorical() {
                   </Button>
                 </Box>
 
-                {/* Comment Input for Historical Place */}
                 <Box sx={{ mt: 2 }}>
                   <TextField
                     label="Comment on Historical Place"
@@ -135,7 +173,7 @@ function CompletedHistorical() {
                     size="small"
                     multiline
                     fullWidth
-                    disabled={!isCommentEnabled[place.name]} // Disable until rating is submitted
+                    disabled={!isCommentEnabled[place.name]}
                     value={historicalPlaceComments[place.name] || ''}
                     onChange={(e) => setHistoricalPlaceComments({ ...historicalPlaceComments, [place.name]: e.target.value })}
                     rows={3}
@@ -144,7 +182,7 @@ function CompletedHistorical() {
                     variant="contained"
                     onClick={() => handleCommentHistoricalPlace(place.name)}
                     sx={styles.commentButton}
-                    disabled={!isCommentEnabled[place.name]} // Disable button until rating is submitted
+                    disabled={!isCommentEnabled[place.name]}
                   >
                     Submit Comment
                   </Button>
@@ -156,11 +194,18 @@ function CompletedHistorical() {
           )}
         </Box>
 
-        <Button variant="contained" sx={styles.doneButton} onClick={() => navigate('/touristHome')}>Done</Button>
+        
+        <Button variant="contained" sx={styles.doneButton} onClick={onClose}>
+          Done
+        </Button>
       </Box>
     </Modal>
   );
 }
+
+CompletedHistorical.propTypes = {
+  currency: PropTypes.string.isRequired,
+};
 
 const styles = {
   modalContent: {
