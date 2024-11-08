@@ -2303,13 +2303,42 @@ const deleteBookedItinerary = async (req, res) => {
     // Remove the activity from the array
     tourist.BookedItineraries.splice(index, 1);
 
+     // Refund the activity price to the wallet
+     const ticketPrice = itinerary.Price;
+     tourist.Wallet += ticketPrice;
+ 
+     // Deduct points based on BadgeLevelOfPoints
+     if (tourist.BadgeLevelOfPoints === 1) {
+       tourist.Points -= 0.5 * ticketPrice;
+     } else if (tourist.BadgeLevelOfPoints === 2) {
+       tourist.Points -= ticketPrice;
+     } else if (tourist.BadgeLevelOfPoints === 3) {
+       tourist.Points -= 1.5 * ticketPrice;
+     }
+ 
+     // Ensure points don't go below zero
+     tourist.Points = Math.max(0, tourist.Points);
+ 
+     // Adjust BadgeLevelOfPoints if necessary
+     if (tourist.BadgeLevelOfPoints === 3 && tourist.Points < 500000) {
+       tourist.BadgeLevelOfPoints = 2;
+     } else if (tourist.BadgeLevelOfPoints === 2 && tourist.Points < 100000) {
+       tourist.BadgeLevelOfPoints = 1;
+     }
+
     // Save the updated tourist document
     await tourist.save();
 
     // Respond with success
-    res.status(200).json({ msg: 'itinerary canceled successfully.' });
+    res.status(200).json({ 
+      msg: 'Activity canceled successfully.',
+      refundedAmount: ticketPrice,
+      updatedWallet: tourist.Wallet,
+      updatedPoints: tourist.Points,
+      updatedBadgeLevel: tourist.BadgeLevelOfPoints 
+    });
   } catch (error) {
-    console.error('Error itinerary activity:', error);
+    console.error('Error deleting itinerary:', error);
     res.status(500).json({ error: error.message });
   }
 };
@@ -2353,6 +2382,35 @@ const deleteBookedMuseum= async (req, res) => {
 
     // Remove the activity from the array
     tourist.BookedMuseums.splice(index, 1);
+
+    let ticketPrice;
+    if (tourist.Occupation.toLowerCase() === 'student') {
+      ticketPrice = museum.ticketPrices.student;
+    } else if (tourist.Nationality.toLowerCase() === 'egyptian') {
+      ticketPrice = museum.ticketPrices.native;
+    } else {
+      ticketPrice = museum.ticketPrices.foreigner;
+    }
+    tourist.Wallet += ticketPrice;
+ 
+     // Deduct points based on BadgeLevelOfPoints
+     if (tourist.BadgeLevelOfPoints === 1) {
+       tourist.Points -= 0.5 * ticketPrice;
+     } else if (tourist.BadgeLevelOfPoints === 2) {
+       tourist.Points -= ticketPrice;
+     } else if (tourist.BadgeLevelOfPoints === 3) {
+       tourist.Points -= 1.5 * ticketPrice;
+     }
+ 
+     // Ensure points don't go below zero
+     tourist.Points = Math.max(0, tourist.Points);
+ 
+     // Adjust BadgeLevelOfPoints if necessary
+     if (tourist.BadgeLevelOfPoints === 3 && tourist.Points < 500000) {
+       tourist.BadgeLevelOfPoints = 2;
+     } else if (tourist.BadgeLevelOfPoints === 2 && tourist.Points < 100000) {
+       tourist.BadgeLevelOfPoints = 1;
+     }
 
     // Save the updated tourist document
     await tourist.save();
@@ -2402,6 +2460,35 @@ const deleteBookedHP= async (req, res) => {
 
     // Remove the activity from the array
     tourist.BookedHistPlaces.splice(index, 1);
+
+    let ticketPrice;
+    if (tourist.Occupation.toLowerCase() === 'student') {
+      ticketPrice = hp.ticketPrices.student;
+    } else if (tourist.Nationality.toLowerCase() === 'egyptian') {
+      ticketPrice = hp.ticketPrices.native;
+    } else {
+      ticketPrice = hp.ticketPrices.foreigner;
+    }
+    tourist.Wallet += ticketPrice;
+ 
+     // Deduct points based on BadgeLevelOfPoints
+     if (tourist.BadgeLevelOfPoints === 1) {
+       tourist.Points -= 0.5 * ticketPrice;
+     } else if (tourist.BadgeLevelOfPoints === 2) {
+       tourist.Points -= ticketPrice;
+     } else if (tourist.BadgeLevelOfPoints === 3) {
+       tourist.Points -= 1.5 * ticketPrice;
+     }
+ 
+     // Ensure points don't go below zero
+     tourist.Points = Math.max(0, tourist.Points);
+ 
+     // Adjust BadgeLevelOfPoints if necessary
+     if (tourist.BadgeLevelOfPoints === 3 && tourist.Points < 500000) {
+       tourist.BadgeLevelOfPoints = 2;
+     } else if (tourist.BadgeLevelOfPoints === 2 && tourist.Points < 100000) {
+       tourist.BadgeLevelOfPoints = 1;
+     }
 
     // Save the updated tourist document
     await tourist.save();
