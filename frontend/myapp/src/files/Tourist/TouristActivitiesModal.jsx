@@ -207,8 +207,18 @@ function TouristActivitiesModal({ currency, onClose  }) {
               <Box key={activity.id} sx={styles.item}>
                 <Typography variant="body1"><strong>Name:</strong> {activity.Name}</Typography>
                 <Typography variant="body2"><strong>Date:</strong> {new Date(activity.Date).toLocaleDateString()}</Typography>
+                <Typography variant="body2"><strong>Time:</strong> {activity.Time}</Typography>
+                
+                <Typography variant="body2"><strong>Location:</strong> {activity.Location.address || 'N/A'} </Typography>
+
                 <Typography variant="body2"><strong>Price:</strong> {currency === 'EGP' ? `${activity.Price} EGP` : `${convertedPrices[activity.id] || 'Loading...'} ${currency}`}</Typography>
+
                 <Typography variant="body2"><strong>Rating:</strong> {activity.Rating}</Typography>
+                <Typography variant="body2"><strong>Category:</strong> {activity.Category}</Typography>
+                <Typography variant="body2"><strong>Tags:</strong> {activity.Tags}</Typography>
+                <Typography variant="body2"><strong>Special Discount:</strong> {activity.SpecialDiscount}</Typography>
+                <Typography variant="body2"><strong>Booking Status:</strong> {activity.BookingOpen ? 'True' : 'False'}</Typography>
+
 
                 {/* Email Input for Sharing */}
                 <TextField

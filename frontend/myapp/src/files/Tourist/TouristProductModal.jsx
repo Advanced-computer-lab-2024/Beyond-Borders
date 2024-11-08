@@ -63,6 +63,10 @@ function TouristProductModal({ currency, onClose }) {
                 <strong>Price:</strong> {currency === 'EGP' ? `${product.Price || 0} EGP` : `${convertedPrices[product.id] || 'Loading...'} ${currency}`}
               </Typography>
               <Typography variant="body2"><strong>Description:</strong> {product.Description}</Typography>
+              
+              <Typography variant="body2"><strong>Quantity:</strong> {product.Quantity}</Typography>
+              <Typography variant="body2"><strong>Seller:</strong> {product.Seller}</Typography>
+              <Typography variant="body2"><strong>Ratings:</strong> {product.Ratings}</Typography>  
             </Box>
           ))}
         </Box>
