@@ -4,7 +4,7 @@ import { Box, Button, Typography, Modal, TextField, Snackbar } from '@mui/materi
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
-function TouristActivitiesModal() {
+function TouristActivitiesModal({ currency, onClose  }) {
   const [activities, setActivities] = useState([]);
   const [email, setEmail] = useState('');
   const [searchKeyword, setSearchKeyword] = useState('');
@@ -15,9 +15,13 @@ function TouristActivitiesModal() {
   const [rating, setRating] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const [open, setOpen] = useState(false);
+  const [convertedPrices, setConvertedPrices] = useState({});
   const navigate = useNavigate();
 
   useEffect(() => {
+    
+    
+
     const fetchActivities = async () => {
       try {
         const response = await axios.get('/api/ViewAllUpcomingActivities');
@@ -28,6 +32,12 @@ function TouristActivitiesModal() {
     };
     fetchActivities();
   }, []);
+  
+  useEffect(() => {
+    if (currency !== 'EGP') {
+      convertActivityPrices();
+    }
+  }, [currency, activities]);
 
   const handleSearchActivities = async () => {
     try {
@@ -87,6 +97,9 @@ function TouristActivitiesModal() {
     });
     setActivities(sortedActivities);
   };
+  
+  
+
 
   const handleShare = async (activityName) => {
     try {
@@ -142,7 +155,25 @@ function TouristActivitiesModal() {
     }
   };
   
-
+ 
+  const convertActivityPrices = async () => {
+    const newConvertedPrices = {};
+    await Promise.all(
+      activities.map(async (activity) => {
+        try {
+          const response = await axios.post('/convertCurr', {
+            priceEgp: activity.Price,
+            targetCurrency: currency,
+          });
+          newConvertedPrices[activity.id] = response.data.convertedPrice;
+        } catch (error) {
+          console.error(`Error converting price for activity ${activity.Name}:`, error);
+        }
+      })
+    );
+    setConvertedPrices(newConvertedPrices);
+  };
+  
 
   return (
     <Modal open={true} onClose={() => navigate('/touristHome')}>
@@ -176,7 +207,7 @@ function TouristActivitiesModal() {
               <Box key={activity.id} sx={styles.item}>
                 <Typography variant="body1"><strong>Name:</strong> {activity.Name}</Typography>
                 <Typography variant="body2"><strong>Date:</strong> {new Date(activity.Date).toLocaleDateString()}</Typography>
-                <Typography variant="body2"><strong>Price:</strong> ${activity.Price}</Typography>
+                <Typography variant="body2"><strong>Price:</strong> {currency === 'EGP' ? `${activity.Price} EGP` : `${convertedPrices[activity.id] || 'Loading...'} ${currency}`}</Typography>
                 <Typography variant="body2"><strong>Rating:</strong> {activity.Rating}</Typography>
 
                 {/* Email Input for Sharing */}

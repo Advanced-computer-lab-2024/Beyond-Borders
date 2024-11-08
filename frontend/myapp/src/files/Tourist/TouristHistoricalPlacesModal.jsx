@@ -4,9 +4,10 @@ import { Box, Button, Typography, Modal, TextField } from '@mui/material';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
-function TouristHistoricalPlacesModal() {
+function TouristHistoricalPlacesModal({ currency, onClose }) {
   const [historicalPlaces, setHistoricalPlaces] = useState([]);
   const [email, setEmail] = useState('');
+  const [convertedPrices, setConvertedPrices] = useState({});
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -20,6 +21,12 @@ function TouristHistoricalPlacesModal() {
     };
     fetchHistoricalPlaces();
   }, []);
+  
+  useEffect(() => {
+    if (currency !== 'EGP') {
+      convertHistoricalPlacePrices();
+    }
+  }, [currency, historicalPlaces]);
 
   const handleShare = async (placeName) => {
     try {
@@ -74,6 +81,42 @@ function TouristHistoricalPlacesModal() {
       alert('An error occurred while booking the historical place event.');
     }
   };
+  
+  const convertHistoricalPlacePrices = async () => {
+    const newConvertedPrices = {};
+
+    await Promise.all(
+      historicalPlaces.map(async (place) => {
+        try {
+          const [foreignerResponse, nativeResponse, studentResponse] = await Promise.all([
+            axios.post('/convertCurr', {
+              priceEgp: place.ticketPrices?.foreigner || 0,
+              targetCurrency: currency,
+            }),
+            axios.post('/convertCurr', {
+              priceEgp: place.ticketPrices?.native || 0,
+              targetCurrency: currency,
+            }),
+            axios.post('/convertCurr', {
+              priceEgp: place.ticketPrices?.student || 0,
+              targetCurrency: currency,
+            }),
+          ]);
+
+          newConvertedPrices[place._id] = {
+            foreigner: foreignerResponse.data.convertedPrice,
+            native: nativeResponse.data.convertedPrice,
+            student: studentResponse.data.convertedPrice,
+          };
+        } catch (error) {
+          console.error(`Error converting prices for ${place.name}:`, error);
+        }
+      })
+    );
+
+    setConvertedPrices(newConvertedPrices);
+  };
+
 
   return (
     <Modal open={true} onClose={() => navigate('/touristHome')}>
@@ -96,6 +139,12 @@ function TouristHistoricalPlacesModal() {
               <Typography variant="body1"><strong>Name:</strong> {place.name}</Typography>
               <Typography variant="body2"><strong>Location:</strong> {place.location}</Typography>
               <Typography variant="body2"><strong>Opening Hours:</strong> {place.openingHours}</Typography>
+              <Typography variant="body2">
+              <strong>Ticket Prices:</strong> 
+              Foreigner: {currency === 'EGP' ? `${place.ticketPrices?.foreigner || 0} EGP` : `${convertedPrices[place._id]?.foreigner || 'Loading...'} ${currency}`}, 
+              Native: {currency === 'EGP' ? `${place.ticketPrices?.native || 0} EGP` : `${convertedPrices[place._id]?.native || 'Loading...'} ${currency}`}, 
+              Student: {currency === 'EGP' ? `${place.ticketPrices?.student || 0} EGP` : `${convertedPrices[place._id]?.student || 'Loading...'} ${currency}`}
+            </Typography>
               
               <Button
                 variant="outlined"

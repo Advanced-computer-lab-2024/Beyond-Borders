@@ -4,13 +4,14 @@ import { Box, Button, Typography, TextField, Modal } from '@mui/material';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
-function TouristMuseumsModal() {
+function TouristMuseumsModal({ currency, onClose }) {
   const [museums, setMuseums] = useState([]); // Store fetched museum data here
   const [filteredMuseums, setFilteredMuseums] = useState([]);
   const [selectedMuseum, setSelectedMuseum] = useState(null); // For displaying a single museum in detail
   const [searchKeyword, setSearchKeyword] = useState('');
   const [tags, setTags] = useState('');
   const [email, setEmail] = useState(''); // State for the email input
+  const [convertedPrices, setConvertedPrices] = useState({});
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -26,6 +27,13 @@ function TouristMuseumsModal() {
     };
     fetchMuseums();
   }, []);
+  
+  useEffect(() => {
+    if (currency !== 'EGP') {
+      convertMuseumPrices();
+    }
+  }, [currency, museums]);
+
 
   const handleSearch = () => {
     const keyword = searchKeyword.toLowerCase();
@@ -111,7 +119,40 @@ function TouristMuseumsModal() {
     }
   };
   
-  
+  const convertMuseumPrices = async () => {
+    const newConvertedPrices = {};
+
+    await Promise.all(
+      museums.map(async (museum) => {
+        try {
+          const [foreignerResponse, nativeResponse, studentResponse] = await Promise.all([
+            axios.post('/convertCurr', {
+              priceEgp: museum.ticketPrices?.foreigner || 0,
+              targetCurrency: currency,
+            }),
+            axios.post('/convertCurr', {
+              priceEgp: museum.ticketPrices?.native || 0,
+              targetCurrency: currency,
+            }),
+            axios.post('/convertCurr', {
+              priceEgp: museum.ticketPrices?.student || 0,
+              targetCurrency: currency,
+            }),
+          ]);
+
+          newConvertedPrices[museum._id] = {
+            foreigner: foreignerResponse.data.convertedPrice,
+            native: nativeResponse.data.convertedPrice,
+            student: studentResponse.data.convertedPrice,
+          };
+        } catch (error) {
+          console.error(`Error converting prices for ${museum.name}:`, error);
+        }
+      })
+    );
+
+    setConvertedPrices(newConvertedPrices);
+  };
   return (
     <Modal open={true} onClose={() => navigate('/touristHome')}>
       <Box sx={styles.modalContent}>
@@ -153,11 +194,12 @@ function TouristMuseumsModal() {
             <Typography><strong>Pictures:</strong> {selectedMuseum.pictures?.join(', ')}</Typography>
             <Typography><strong>Location:</strong> {selectedMuseum.location}</Typography>
             <Typography><strong>Opening Hours:</strong> {selectedMuseum.openingHours}</Typography>
-            <Typography><strong>Ticket Prices:</strong> 
-              Foreigner: {selectedMuseum.ticketPrices?.foreigner}, 
-              Native: {selectedMuseum.ticketPrices?.native}, 
-              Student: {selectedMuseum.ticketPrices?.student}
-            </Typography>
+            <Typography variant="body2">
+                  <strong>Ticket Prices:</strong> 
+                  Foreigner: {currency === 'EGP' ? `${selectedMuseum.ticketPrices?.foreigner || 0} EGP` : `${convertedPrices[selectedMuseum._id]?.foreigner || 'Loading...'} ${currency}`}, 
+                  Native: {currency === 'EGP' ? `${selectedMuseum.ticketPrices?.native || 0} EGP` : `${convertedPrices[selectedMuseum._id]?.native || 'Loading...'} ${currency}`}, 
+                  Student: {currency === 'EGP' ? `${selectedMuseum.ticketPrices?.student || 0} EGP` : `${convertedPrices[selectedMuseum._id]?.student || 'Loading...'} ${currency}`}
+                </Typography>
             <Typography><strong>Author:</strong> {selectedMuseum.author}</Typography>
             <Typography>
               <strong>Historical Tags:</strong> {selectedMuseum.tags?.length > 0 ? selectedMuseum.tags.join(', ') : 'No tags available'}
