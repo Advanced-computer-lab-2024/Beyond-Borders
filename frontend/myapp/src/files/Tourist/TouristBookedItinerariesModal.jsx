@@ -2,10 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { Box, Button, Typography, Modal } from '@mui/material';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import PropTypes from 'prop-types';
 
-function TouristBookedItinerariesModal() {
+function TouristBookedItinerariesModal({ currency, onClose }) {
   const [bookedItineraries, setBookedItineraries] = useState([]);
   const [errorMessage, setErrorMessage] = useState('');
+  const [convertedPrices, setConvertedPrices] = useState({});
+  
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -25,6 +28,33 @@ function TouristBookedItinerariesModal() {
     fetchBookedItineraries();
   }, []);
 
+  // Fetch converted prices when currency changes
+  useEffect(() => {
+    const convertItineraryPrices = async () => {
+      const newConvertedPrices = {};
+
+      await Promise.all(
+        bookedItineraries.map(async (itinerary) => {
+          try {
+            const response = await axios.post('/convertCurr', {
+              priceEgp: itinerary.Price || 0,
+              targetCurrency: currency,
+            });
+            newConvertedPrices[itinerary._id] = response.data.convertedPrice;
+          } catch (error) {
+            console.error(`Error converting price for ${itinerary.Title}:`, error);
+          }
+        })
+      );
+
+      setConvertedPrices(newConvertedPrices);
+    };
+
+    if (currency !== 'EGP') {
+      convertItineraryPrices();
+    }
+  }, [currency, bookedItineraries]);
+
   const handleCancelItinerary = async (itineraryTitle) => {
     const touristUsername = localStorage.getItem('username');
     try {
@@ -39,7 +69,7 @@ function TouristBookedItinerariesModal() {
   };
 
   return (
-    <Modal open={true} onClose={() => navigate('/touristHome')}>
+    <Modal open={true} onClose={onClose}>
       <Box sx={styles.modalContent}>
         <Typography variant="h6" component="h2">
           My Booked Itineraries
@@ -53,7 +83,9 @@ function TouristBookedItinerariesModal() {
                 <Box key={itinerary._id} sx={styles.item}>
                   <Typography variant="body1"><strong>Title:</strong> {itinerary.Title}</Typography>
                   <Typography variant="body2"><strong>Date:</strong> {itinerary.Date ? new Date(itinerary.Date).toLocaleDateString() : 'N/A'}</Typography>
-                  <Typography variant="body2"><strong>Price:</strong> ${itinerary.Price}</Typography>
+                  <Typography variant="body2">
+                    <strong>Price:</strong> {currency === 'EGP' ? `${itinerary.Price || 0} EGP` : `${convertedPrices[itinerary._id] || 'Loading...'} ${currency}`}
+                  </Typography>
                   <Typography variant="body2"><strong>Language:</strong> {itinerary.Language}</Typography>
                   <Typography variant="body2"><strong>Accessibility:</strong> {itinerary.accessibility ? 'Yes' : 'No'}</Typography>
                   <Typography variant="body2"><strong>Pickup Location:</strong> {itinerary.pickupLocation}</Typography>
@@ -88,13 +120,17 @@ function TouristBookedItinerariesModal() {
             )}
           </Box>
         )}
-        <Button variant="contained" sx={styles.doneButton} onClick={() => navigate('/touristHome')}>
+       <Button variant="contained" sx={styles.doneButton} onClick={onClose}>
           Done
         </Button>
       </Box>
     </Modal>
   );
 }
+TouristBookedItinerariesModal.propTypes = {
+  currency: PropTypes.string.isRequired,
+  onClose: PropTypes.func.isRequired,
+};
 
 const styles = {
   modalContent: {

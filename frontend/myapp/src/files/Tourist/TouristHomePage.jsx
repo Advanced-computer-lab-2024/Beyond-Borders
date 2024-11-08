@@ -15,6 +15,8 @@ import TouristProductModal from './TouristProductModal';
 import TouristActivitiesModal from './TouristActivitiesModal';
 import TouristHistoricalPlacesModal from './TouristHistoricalPlacesModal';
 import TouristMuseumsModal from './TouristMuseumsModal';
+import TouristBookedHistoricalPlacesModal from './TouristBookedHistoricalPlacesModal';
+import TouristBookedItinerariesModal from './TouristBookedItinerariesModal';
 
 
 
@@ -60,6 +62,9 @@ const [isCompletedMuseumsModalOpen, setIsCompletedMuseumsModalOpen] = useState(f
 const [isCompletedItineraryModalOpen, setIsCompletedItineraryModalOpen] = useState(false);
 const [isPurchasedProductModalOpen, setIsPurchasedProductModalOpen] = useState(false);
 const [isProductModalOpen, setIsProductModalOpen] = useState(false);
+const [isBookedHistoricalModalOpen, setIsBookedHistoricalModalOpen] = useState(false);
+const [isBookedItineraryModalOpen, setIsBookedItineraryModalOpen] = useState(false);
+
 const [convertedPrices, setConvertedPrices] = useState({});
 //Book transportation 
 const [touristUsername, setTouristUsername] = useState('');
@@ -377,6 +382,12 @@ const [totalCost, setTotalCost] = useState(null);
   const openMuseumsModal = () => setMuseumsModalOpen(true);
   const closeMuseumsModal = () => setMuseumsModalOpen(false);
 
+  const openBookedHPModal = () => setIsBookedHistoricalModalOpen(true);
+  const closeBookedHPModal = () => setIsBookedHistoricalModalOpen(false);
+
+
+  const openBookedItineraryModal = () => setIsBookedItineraryModalOpen(true);
+  const closeBookedItineraryModal = () => setIsBookedItineraryModalOpen(false);
 
 
   const handleCurrencyChange = async (event) => {
@@ -564,8 +575,22 @@ const handleBooking = async () => {
         <Button sx={styles.button} onClick={() => navigate('/TouristComplaintsViewModal')}>View my complaints</Button>
         <Button sx={styles.button} onClick={() => navigate('/TouristBookedActivitiesModal')}>View My Booked Activities</Button>
         <Button sx={styles.button} onClick={() => navigate('/TouristBookedMuseumsModal')}>View My Booked Museums</Button>
-        <Button sx={styles.button} onClick={() => navigate('/touristBookedItineraries')}>View My Booked Itineraries</Button>
-        <Button sx={styles.button} onClick={() => navigate('/touristBookedHistoricalPlaces')}>View My Booked Historical Places</Button>
+        
+        <Button sx={styles.button} variant="contained" onClick={openBookedItineraryModal}>
+          View My Booked Itineraries
+        </Button>
+
+        {isBookedItineraryModalOpen && (
+          <TouristBookedItinerariesModal currency={currency} onClose={closeBookedItineraryModal} />
+        )}
+        
+        <Button sx={styles.button} variant="contained" onClick={openBookedHPModal}>
+          View My Booked Historical Places 
+        </Button>
+
+        {isBookedHistoricalModalOpen && (
+          <TouristBookedHistoricalPlacesModal currency={currency} onClose={closeBookedHPModal} />
+        )}
         <Button sx={styles.button} onClick={handleHotelSearchToggle}>Hotels</Button>
         <Button sx={styles.button} onClick={handleFlightSearchToggle}>Flights</Button>
         <Button sx={styles.profileButton} onClick={() => setActiveModal('profile')}>My Profile</Button>
