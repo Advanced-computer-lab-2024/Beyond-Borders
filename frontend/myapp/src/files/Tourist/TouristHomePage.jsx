@@ -8,6 +8,10 @@ import { FormControlLabel, Checkbox } from '@mui/material';
 import TouristItineraryModal from './TouristItineraryModal';
 import CompletedActivity from './CompletedActivity';
 import CompletedHistorical from './CompletedHistorical';
+import CompletedMuseums from './CompletedMuseums';
+import CompletedItineraries from './CompletedItineraries';
+import PurchasedProducts from './PurchasedProducts';
+import TouristProductModal from './TouristProductModal';
 
 
 
@@ -45,7 +49,10 @@ const [isModalOpen, setModalOpen] = useState(false);
 const [isItineraryModalOpen, setItineraryModalOpen] = useState(false);
 const [isCompletedActivityModalOpen, setIsCompletedActivityModalOpen] = useState(false);
 const [isCompletedHistoricalModalOpen, setIsCompletedHistoricalModalOpen] = useState(false);
-
+const [isCompletedMuseumsModalOpen, setIsCompletedMuseumsModalOpen] = useState(false);
+const [isCompletedItineraryModalOpen, setIsCompletedItineraryModalOpen] = useState(false);
+const [isPurchasedProductModalOpen, setIsPurchasedProductModalOpen] = useState(false);
+const [isProductModalOpen, setIsProductModalOpen] = useState(false);
 const [convertedPrices, setConvertedPrices] = useState({});
   const navigate = useNavigate();
   
@@ -326,6 +333,21 @@ const [convertedPrices, setConvertedPrices] = useState({});
   const openCompletedHistoricalModal = () => setIsCompletedHistoricalModalOpen(true);
   const closeCompletedHistoricalModal = () => setIsCompletedHistoricalModalOpen(false);
 
+  const openCompletedMuseumsModal = () => setIsCompletedMuseumsModalOpen(true);
+  const closeCompletedMuseumsModal = () => setIsCompletedMuseumsModalOpen(false);
+
+  const openCompletedItineraryModal = () => setIsCompletedItineraryModalOpen(true);
+  const closeCompletedItineraryModal = () => setIsCompletedItineraryModalOpen(false);
+
+
+
+  const openPurchasedProductModal = () => setIsPurchasedProductModalOpen(true);
+  const closePurchasedProductModal = () => setIsPurchasedProductModalOpen(false);
+
+  const openProductModal = () => setIsProductModalOpen(true);
+  const closeProductModal = () => setIsProductModalOpen(false);
+
+
 
   const handleCurrencyChange = async (event) => {
     const selectedCurrency = event ? event.target.value : currency;
@@ -372,6 +394,37 @@ const [convertedPrices, setConvertedPrices] = useState({});
     await handleHotelSearch();   // Fetch hotels first
     await handleCurrencyChange(); // Then convert currency based on fetched data
 };
+
+const handleRedeemPoints = async () => {
+  try {
+    const response = await fetch('/redeemPoints', {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ username: profile.Username }), // assuming `profile.Username` is the current user's username
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
+      // Update the profile's wallet and points with the returned data
+      setProfile((prevProfile) => ({
+        ...prevProfile,
+        Wallet: data.walletBalance,
+        Points: data.remainingPoints,
+      }));
+
+      alert(data.msg); // show a success message
+    } else {
+      // Show an error message if something goes wrong
+      alert(data.msg || 'Error redeeming points');
+    }
+  } catch (error) {
+    console.error('Redeem Points Error:', error);
+    alert('An error occurred while redeeming points.');
+  }
+};
   return (
     <Box sx={styles.container}>
       <Typography variant="h5" component="h1" sx={styles.title}>
@@ -379,7 +432,14 @@ const [convertedPrices, setConvertedPrices] = useState({});
       </Typography>
 
       <Box sx={styles.buttonContainer}>
-        <Button sx={styles.button} onClick={() => navigate('/touristProducts')}>View All Products</Button>
+      <Button sx={styles.button} variant="contained" onClick={openProductModal}>
+          View All Products
+        </Button>
+      
+        {isProductModalOpen && (
+          <TouristProductModal currency={currency} onClose={closeProductModal} />
+        )}
+        
         <Button sx={styles.button} onClick={() => navigate('/touristActivities')}>View All Activities</Button>
         <Button sx={styles.button} onClick={() => navigate('/touristMuseums')}>View All Museums</Button>
         <Button sx={styles.button} variant="contained" onClick={openItineraryModal}>
@@ -389,14 +449,28 @@ const [convertedPrices, setConvertedPrices] = useState({});
         {isItineraryModalOpen && (
           <TouristItineraryModal currency={currency} onClose={closeItineraryModal} />
         )}
-        <Button sx={styles.button} onClick={() => navigate('/CompletedItineraries')}>View All completed Itineraries</Button>
+        
+        <Button sx={styles.button} variant="contained" onClick={openCompletedItineraryModal}>
+        View All Completed Itineraries
+      </Button>
+      {isCompletedItineraryModalOpen && (
+        <CompletedItineraries currency={currency} onClose={closeCompletedItineraryModal} />
+      )}
         <Button sx={styles.button} variant="contained" onClick={openCompletedActivityModal}>
         View All Completed Activities
       </Button>
       {isCompletedActivityModalOpen && (
         <CompletedActivity currency={currency} onClose={closeCompletedActivityModal} />
       )}
-        <Button sx={styles.button} onClick={() => navigate('/CompletedMuseums')}>View All completed Museums</Button>
+        
+        <Button sx={styles.button} variant="contained" onClick={openCompletedMuseumsModal}>
+          View All Completed Museums
+        </Button>
+
+        {isCompletedMuseumsModalOpen && (
+          <CompletedMuseums currency={currency} onClose={closeCompletedMuseumsModal} />
+        )}
+
         <Button sx={styles.button} variant="contained" onClick={openCompletedHistoricalModal}>
           View All Completed Historical Places
         </Button>
@@ -404,7 +478,14 @@ const [convertedPrices, setConvertedPrices] = useState({});
         {isCompletedHistoricalModalOpen && (
           <CompletedHistorical currency={currency} onClose={closeCompletedHistoricalModal} />
         )}
-        <Button sx={styles.button} onClick={() => navigate('/PurchasedProducts')}>View All Purchased Products</Button>
+        <Button sx={styles.button} variant="contained" onClick={openPurchasedProductModal}>
+          View All Purchased Products
+        </Button>
+
+        {isPurchasedProductModalOpen && (
+          <PurchasedProducts currency={currency} onClose={closePurchasedProductModal} />
+        )}
+       
         <Button sx={styles.button} onClick={() => navigate('/TouristComplaintsModal')}>File a complaint</Button>
         <Button sx={styles.button} onClick={() => navigate('/touristHistorical')}>View All Historical Places</Button>
         <Button sx={styles.button} onClick={() => navigate('/TouristComplaintsViewModal')}>View my complaints</Button>
@@ -526,6 +607,13 @@ const [convertedPrices, setConvertedPrices] = useState({});
                 
                 <Typography><strong>Wallet Balance:</strong> ${profile.Wallet}</Typography>
                 <Typography><strong>Points:</strong> {profile.Points}</Typography>
+                <Button
+                  variant="contained"
+                  onClick={handleRedeemPoints}
+                  sx={{ marginLeft: '10px', backgroundColor: '#FFA500', color: 'white' }}
+                >
+                  Redeem Points
+                </Button>
                 <Typography><strong>Badge Level:</strong> {profile.BadgeLevelOfPoints}</Typography>
 
                 <Button

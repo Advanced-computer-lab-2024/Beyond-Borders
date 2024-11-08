@@ -3,9 +3,11 @@ import React, { useState, useEffect } from 'react';
 import { Box, Button, Typography, Modal } from '@mui/material';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import PropTypes from 'prop-types';
 
-function TouristProductModal() {
+function TouristProductModal({ currency, onClose }) {
   const [products, setProducts] = useState([]);
+  const [convertedPrices, setConvertedPrices] = useState({});
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -20,8 +22,35 @@ function TouristProductModal() {
     fetchProducts();
   }, []);
 
+  // Fetch converted prices when currency changes
+  useEffect(() => {
+    const convertProductPrices = async () => {
+      const newConvertedPrices = {};
+
+      await Promise.all(
+        products.map(async (product) => {
+          try {
+            const response = await axios.post('/convertCurr', {
+              priceEgp: product.Price || 0,
+              targetCurrency: currency,
+            });
+            newConvertedPrices[product.id] = response.data.convertedPrice;
+          } catch (error) {
+            console.error(`Error converting price for ${product.Name}:`, error);
+          }
+        })
+      );
+
+      setConvertedPrices(newConvertedPrices);
+    };
+
+    if (currency !== 'EGP') {
+      convertProductPrices();
+    }
+  }, [currency, products]);
+
   return (
-    <Modal open={true} onClose={() => navigate('/touristHome')}>
+    <Modal open={true} onClose={onClose}>
       <Box sx={styles.modalContent}>
         <Typography variant="h6" component="h2">
           All Products
@@ -30,12 +59,14 @@ function TouristProductModal() {
           {products.map(product => (
             <Box key={product.id} sx={styles.item}>
               <Typography variant="body1"><strong>Name:</strong> {product.Name}</Typography>
-              <Typography variant="body2"><strong>Price:</strong> ${product.Price}</Typography>
+              <Typography variant="body2">
+                <strong>Price:</strong> {currency === 'EGP' ? `${product.Price || 0} EGP` : `${convertedPrices[product.id] || 'Loading...'} ${currency}`}
+              </Typography>
               <Typography variant="body2"><strong>Description:</strong> {product.Description}</Typography>
             </Box>
           ))}
         </Box>
-        <Button variant="contained" sx={styles.doneButton} onClick={() => navigate('/touristHome')}>
+        <Button variant="contained" sx={styles.doneButton} onClick={onClose}>
           Done
         </Button>
       </Box>
@@ -43,6 +74,10 @@ function TouristProductModal() {
   );
 }
 
+TouristProductModal.propTypes = {
+  currency: PropTypes.string.isRequired,
+  onClose: PropTypes.func.isRequired,
+};
 const styles = {
   modalContent: {
     position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)',

@@ -2,14 +2,16 @@ import React, { useState, useEffect } from 'react';
 import { Box, Button, Typography, Modal, TextField } from '@mui/material';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import PropTypes from 'prop-types';
 
-function CompletedItineraries() {
+function CompletedItineraries({ currency, onClose }) {
   const [completedItineraries, setCompletedItineraries] = useState([]);
   const [itineraryRatings, setItineraryRatings] = useState({});
   const [tourGuideRatings, setTourGuideRatings] = useState({});
   const [comments, setComments] = useState({});
   const [itineraryComments, setItineraryComments] = useState({}); // New state for itinerary comments
   const [isCommentEnabled, setIsCommentEnabled] = useState({}); // Track if comment is enabled
+  const [convertedPrices, setConvertedPrices] = useState({});
  
   const navigate = useNavigate();
 
@@ -25,6 +27,34 @@ function CompletedItineraries() {
     };
     fetchCompletedItineraries();
   }, []);
+
+  // Convert itinerary prices when currency changes
+  useEffect(() => {
+    const convertItineraryPrices = async () => {
+      const newConvertedPrices = {};
+
+      await Promise.all(
+        completedItineraries.map(async (itinerary) => {
+          try {
+            const response = await axios.post('/convertCurr', {
+              priceEgp: itinerary.Price || 0,
+              targetCurrency: currency,
+            });
+            newConvertedPrices[itinerary._id] = response.data.convertedPrice;
+          } catch (error) {
+            console.error(`Error converting price for ${itinerary.Title}:`, error);
+          }
+        })
+      );
+
+      setConvertedPrices(newConvertedPrices);
+    };
+
+    if (currency !== 'EGP') {
+      convertItineraryPrices();
+    }
+  }, [currency, completedItineraries]);
+
 
   const handleRateItinerary = async (itineraryName) => {
     const touristUsername = localStorage.getItem('username');
@@ -136,7 +166,7 @@ function CompletedItineraries() {
   };
 
   return (
-    <Modal open={true} onClose={() => navigate('/touristHome')}>
+    <Modal open={true} onClose={onClose}>
       <Box sx={styles.modalContent}>
         <Typography variant="h6" component="h2">
           My Completed Itineraries
@@ -151,7 +181,9 @@ function CompletedItineraries() {
                 <Typography variant="body2"><strong>Description:</strong> {itinerary.Description}</Typography>
                 <Typography variant="body2"><strong>Date:</strong> {new Date(itinerary.Date).toLocaleDateString()}</Typography>
                 <Typography variant="body2"><strong>Location:</strong> {itinerary.Location}</Typography>
-                <Typography variant="body2"><strong>Price:</strong> ${itinerary.Price}</Typography>
+                <Typography variant="body2">
+                  <strong>Price:</strong> {currency === 'EGP' ? `${itinerary.Price || 0} EGP` : `${convertedPrices[itinerary._id] || 'Loading...'} ${currency}`}
+                </Typography>
                 <Typography variant="body2"><strong>Language:</strong> {itinerary.Language}</Typography>
                 <Typography variant="body2"><strong>Tour Guide:</strong> {itinerary.AuthorUsername}</Typography>
                 <Typography variant="body2"><strong>Current Itinerary Rating:</strong> {itinerary.Ratings || 'Not rated yet'}</Typography>
@@ -253,11 +285,17 @@ function CompletedItineraries() {
           )}
         </Box>
 
-        <Button variant="contained" sx={styles.doneButton} onClick={() => navigate('/touristHome')}>Done</Button>
+        <Button variant="contained" sx={styles.doneButton} onClick={onClose}>Done</Button>
       </Box>
     </Modal>
   );
 }
+
+
+CompletedItineraries.propTypes = {
+  currency: PropTypes.string.isRequired,
+  onClose: PropTypes.func.isRequired,
+};
 
 const styles = {
   modalContent: {
