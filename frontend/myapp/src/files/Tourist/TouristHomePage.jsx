@@ -8,6 +8,8 @@ import { FormControlLabel, Checkbox } from '@mui/material';
 import TouristItineraryModal from './TouristItineraryModal';
 import CompletedActivity from './CompletedActivity';
 import CompletedHistorical from './CompletedHistorical';
+import CompletedMuseums from './CompletedMuseums';
+import CompletedItineraries from './CompletedItineraries';
 
 
 
@@ -45,7 +47,8 @@ const [isModalOpen, setModalOpen] = useState(false);
 const [isItineraryModalOpen, setItineraryModalOpen] = useState(false);
 const [isCompletedActivityModalOpen, setIsCompletedActivityModalOpen] = useState(false);
 const [isCompletedHistoricalModalOpen, setIsCompletedHistoricalModalOpen] = useState(false);
-
+const [isCompletedMuseumsModalOpen, setIsCompletedMuseumsModalOpen] = useState(false);
+const [isCompletedItineraryModalOpen, setIsCompletedItineraryModalOpen] = useState(false);
 const [convertedPrices, setConvertedPrices] = useState({});
   const navigate = useNavigate();
   
@@ -326,7 +329,11 @@ const [convertedPrices, setConvertedPrices] = useState({});
   const openCompletedHistoricalModal = () => setIsCompletedHistoricalModalOpen(true);
   const closeCompletedHistoricalModal = () => setIsCompletedHistoricalModalOpen(false);
 
+  const openCompletedMuseumsModal = () => setIsCompletedMuseumsModalOpen(true);
+  const closeCompletedMuseumsModal = () => setIsCompletedMuseumsModalOpen(false);
 
+  const openCompletedItineraryModal = () => setIsCompletedItineraryModalOpen(true);
+  const closeCompletedItineraryModal = () => setIsCompletedItineraryModalOpen(false);
   const handleCurrencyChange = async (event) => {
     const selectedCurrency = event ? event.target.value : currency;
 
@@ -389,14 +396,28 @@ const [convertedPrices, setConvertedPrices] = useState({});
         {isItineraryModalOpen && (
           <TouristItineraryModal currency={currency} onClose={closeItineraryModal} />
         )}
-        <Button sx={styles.button} onClick={() => navigate('/CompletedItineraries')}>View All completed Itineraries</Button>
+        
+        <Button sx={styles.button} variant="contained" onClick={openCompletedItineraryModal}>
+        View All Completed Itineraries
+      </Button>
+      {isCompletedItineraryModalOpen && (
+        <CompletedItineraries currency={currency} onClose={closeCompletedItineraryModal} />
+      )}
         <Button sx={styles.button} variant="contained" onClick={openCompletedActivityModal}>
         View All Completed Activities
       </Button>
       {isCompletedActivityModalOpen && (
         <CompletedActivity currency={currency} onClose={closeCompletedActivityModal} />
       )}
-        <Button sx={styles.button} onClick={() => navigate('/CompletedMuseums')}>View All completed Museums</Button>
+        
+        <Button sx={styles.button} variant="contained" onClick={openCompletedMuseumsModal}>
+          View All Completed Museums
+        </Button>
+
+        {isCompletedMuseumsModalOpen && (
+          <CompletedMuseums currency={currency} onClose={closeCompletedMuseumsModal} />
+        )}
+
         <Button sx={styles.button} variant="contained" onClick={openCompletedHistoricalModal}>
           View All Completed Historical Places
         </Button>

@@ -3,18 +3,20 @@ import React, { useState, useEffect } from 'react';
 import { Box, Button, Typography, Modal, TextField } from '@mui/material';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import PropTypes from 'prop-types';
 
-function CompletedMuseums() {
+function CompletedMuseums({ currency, onClose }) {
   const [completedMuseums, setCompletedMuseums] = useState([]);
   const [museumRatings, setMuseumRatings] = useState({});
   const [museumComments, setMuseumComments] = useState({}); // New state for comments
   const [isCommentEnabled, setIsCommentEnabled] = useState({});
+  const [convertedPrices, setConvertedPrices] = useState({});
   const navigate = useNavigate();
 
   useEffect(() => {
     const fetchCompletedMuseums = async () => {
       try {
-        const username = localStorage.getItem('username'); // Assuming username is stored in localStorage
+        const username = localStorage.getItem('username');
         const response = await axios.get(`/api/viewMyCompletedMuseums`, { params: { Username: username } });
         setCompletedMuseums(response.data);
       } catch (error) {
@@ -23,6 +25,48 @@ function CompletedMuseums() {
     };
     fetchCompletedMuseums();
   }, []);
+
+  // Fetch converted prices when currency changes
+  useEffect(() => {
+    const convertMuseumPrices = async () => {
+      const newConvertedPrices = {};
+
+      await Promise.all(
+        completedMuseums.map(async (museum) => {
+          try {
+            const [foreignerResponse, nativeResponse, studentResponse] = await Promise.all([
+              axios.post('/convertCurr', {
+                priceEgp: museum.ticketPrices?.foreigner || 0,
+                targetCurrency: currency,
+              }),
+              axios.post('/convertCurr', {
+                priceEgp: museum.ticketPrices?.native || 0,
+                targetCurrency: currency,
+              }),
+              axios.post('/convertCurr', {
+                priceEgp: museum.ticketPrices?.student || 0,
+                targetCurrency: currency,
+              }),
+            ]);
+
+            newConvertedPrices[museum._id] = {
+              foreigner: foreignerResponse.data.convertedPrice,
+              native: nativeResponse.data.convertedPrice,
+              student: studentResponse.data.convertedPrice,
+            };
+          } catch (error) {
+            console.error(`Error converting prices for ${museum.name}:`, error);
+          }
+        })
+      );
+
+      setConvertedPrices(newConvertedPrices);
+    };
+
+    if (currency !== 'EGP') {
+      convertMuseumPrices();
+    }
+  }, [currency, completedMuseums]);
 
   // Function to handle museum rating submission
   const handleRateMuseum = async (museumName) => {
@@ -83,7 +127,7 @@ function CompletedMuseums() {
   };
 
   return (
-    <Modal open={true} onClose={() => navigate('/touristHome')}>
+    <Modal open={true} onClose={onClose}>
       <Box sx={styles.modalContent}>
         <Typography variant="h6" component="h2">
           My Completed Museum Events
@@ -98,10 +142,11 @@ function CompletedMuseums() {
                 <Typography variant="body2"><strong>Location:</strong> {museum.location}</Typography>
                 <Typography variant="body2"><strong>Opening Hours:</strong> {museum.openingHours}</Typography>
                 <Typography variant="body2"><strong>Author:</strong> {museum.author}</Typography>
-                <Typography variant="body2"><strong>Ticket Prices:</strong> 
-                  Foreigner: {museum.ticketPrices?.foreigner}, 
-                  Native: {museum.ticketPrices?.native}, 
-                  Student: {museum.ticketPrices?.student}
+                <Typography variant="body2">
+                  <strong>Ticket Prices:</strong> 
+                  Foreigner: {currency === 'EGP' ? `${museum.ticketPrices?.foreigner || 0} EGP` : `${convertedPrices[museum._id]?.foreigner || 'Loading...'} ${currency}`}, 
+                  Native: {currency === 'EGP' ? `${museum.ticketPrices?.native || 0} EGP` : `${convertedPrices[museum._id]?.native || 'Loading...'} ${currency}`}, 
+                  Student: {currency === 'EGP' ? `${museum.ticketPrices?.student || 0} EGP` : `${convertedPrices[museum._id]?.student || 'Loading...'} ${currency}`}
                 </Typography>
                 <Typography variant="body2"><strong>Current Rating:</strong> {museum.Ratings || 'Not rated yet'}</Typography>
                 
@@ -152,11 +197,19 @@ function CompletedMuseums() {
             <Typography>No completed museums found.</Typography>
           )}
         </Box>
-        <Button variant="contained" sx={styles.doneButton} onClick={() => navigate('/touristHome')}>Done</Button>
+        <Button variant="contained" sx={styles.doneButton} onClick={onClose}>
+          Done
+        </Button>
       </Box>
     </Modal>
   );
 }
+
+
+CompletedMuseums.propTypes = {
+  currency: PropTypes.string.isRequired,
+  onClose: PropTypes.func.isRequired,
+};
 
 const styles = {
   modalContent: {
