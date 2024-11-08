@@ -513,14 +513,13 @@ const deleteTag = async (req, res) => {
     }
 };
 
-const deactivateItinerary = async (req, res) => {
-    try {
-        const { title } = req.body; // Get the title from the request body
+const deactivateItinerary = async ({ body }) => {
+    const { title } = body; // Get the title from the request body
 
-        // Find the itinerary by title
+    try {
         const itinerary = await ItineraryrModel.findOne({ Title: title });
         if (!itinerary) {
-            return res.status(404).json({ error: "Itinerary not found!" });
+            return { status: 404, message: "Itinerary not found!" };
         }
 
         // Create a new deactivated itinerary document from the found itinerary
@@ -549,23 +548,22 @@ const deactivateItinerary = async (req, res) => {
         // Delete the original itinerary
         await ItineraryrModel.deleteOne({ Title: title });
 
-        // Respond with success message
-        res.status(200).json({ msg: "Itinerary has been deactivated!" });
+        // Return status and message
+        return { status: 200, message: "Itinerary has been deactivated!" };
     } catch (error) {
-        // Handle any errors that occur during the process
-        res.status(500).json({ error: error.message });
+        return { status: 500, message: error.message };
     }
 };
 
-const deactivateActivity = async (req, res) => {
-    try {
-        const { name } = req.body;  // Get the name (or any unique identifier) from the request body
 
-        // Find the activity by name
+const deactivateActivity = async ({ body }) => {
+    const { name } = body;  // Get the name (or any unique identifier) from the request body
+
+    try {
         const activity = await ActivityModel.findOne({ Name: name });
         
         if (!activity) {
-            return res.status(404).json({ error: "Activity not found!" });
+            return { status: 404, message: "Activity not found!" };
         }
 
         // Create a new deactivated activity document from the found activity
@@ -593,76 +591,92 @@ const deactivateActivity = async (req, res) => {
         // Delete the original activity from the active collection
         await ActivityModel.deleteOne({ Name: name });
 
-        // Respond with a success message
-        res.status(200).json({ msg: "Activity has been deactivated!" });
+        // Return status and message
+        return { status: 200, message: "Activity has been deactivated!" };
     } catch (error) {
-        // Handle any errors that occur during the process
-        res.status(500).json({ error: error.message });
+        return { status: 500, message: error.message };
     }
 };
 
 
 const deleteAccount = async (req, res) => {
-   const {username} = req.body;
+    const { username } = req.body;
 
-   try {
-       // Find the unregistered seller by ID
-       const existingUser = await AllUsernamesModel.findOne({Username: username});
-      
-       if (existingUser) {
-           // Delete username from AllUsernames Model
-           await AllUsernamesModel.findOneAndDelete({Username: username});
-           await DeleteRequestsModel.findOneAndDelete({Username: username});
-           
-           const existingTourist = await AllTouristModel.findOne({Username: username});
-           const existingTourGuide = await NewAcceptedTourGuideModel.findOne({Username: username});
-           const existingSeller = await NewAcceptedSellerModel.findOne({Username: username});
-           const existingAdvertiser = await NewAcceptedAdvertiserModel.findOne({Username: username});
-         
-           if (existingTourist) {
-               await AllTouristModel.findOneAndDelete({Username: username});
-               
+    let responseSent = false;
 
-           }
-           
-           else if(existingSeller){
-               await NewProduct.deleteMany({ Seller: username });
-               await NewAcceptedSellerModel.findOneAndDelete({Username: username});
-               
-           }
-           
-            else if(existingTourGuide){
-                
+    try {
+        // Find the unregistered seller by ID
+        const existingUser = await AllUsernamesModel.findOne({ Username: username });
+
+        if (existingUser) {
+            // Delete username from AllUsernames Model
+            await AllUsernamesModel.findOneAndDelete({ Username: username });
+            await DeleteRequestsModel.findOneAndDelete({ Username: username });
+
+            const existingTourist = await AllTouristModel.findOne({ Username: username });
+            const existingTourGuide = await NewAcceptedTourGuideModel.findOne({ Username: username });
+            const existingSeller = await NewAcceptedSellerModel.findOne({ Username: username });
+            const existingAdvertiser = await NewAcceptedAdvertiserModel.findOne({ Username: username });
+
+            if (existingTourist) {
+                await AllTouristModel.findOneAndDelete({ Username: username });
+            } 
+            else if (existingSeller) {
+                await NewProduct.deleteMany({ Seller: username });
+                await NewAcceptedSellerModel.findOneAndDelete({ Username: username });
+            } 
+            else if (existingTourGuide) {
                 const itineraries = await ItineraryrModel.find({ AuthorUsername: username });
-                for (let Itinerary of itineraries) {
-                    // Deactivate the itinerary
-                    await deactivateItinerary({ body: { title: Itinerary.Title } }, res);
+                for (let itinerary of itineraries) {
+                    // Deactivate the itinerary and handle the result
+                    const result = await deactivateItinerary({ body: { title: itinerary.Title } });
+                    if (!responseSent) {
+                        res.status(result.status).json({ msg: result.message });
+                        responseSent = true;
+                    }
                 }
                 await NewAcceptedTourGuideModel.findOneAndDelete({ Username: username });
-           }
-           else if(existingAdvertiser){
-            const activities = await ActivityModel.find({ AdvertiserName: username });
-            for (let activity of activities) {
-                // Deactivate the activity
-                await deactivateActivity({ body: { name: activity.Name } }, res);
+            } 
+            else if (existingAdvertiser) {
+                const activities = await ActivityModel.find({ AdvertiserName: username });
+                for (let activity of activities) {
+                    // Deactivate the activity and handle the result
+                    const result = await deactivateActivity({ body: { name: activity.Name } });
+                    if (!responseSent) {
+                        res.status(result.status).json({ msg: result.message });
+                        responseSent = true;
+                    }
+                }
+                await NewAcceptedAdvertiserModel.findOneAndDelete({ Username: username });
+            } 
+            else {
+                if (!responseSent) {
+                    res.status(404).json({ error: "Account with this username does not exist." });
+                    responseSent = true;
+                }
             }
-            await NewAcceptedAdvertiserModel.findOneAndDelete({ Username: username });
-           }
-           //Redudant else
-           else{
-               res.status(404).json({ error: "Account with this username doest not exist." });
-           }
-         
-           // Respond with success message
-           res.status(200).json({ msg: "Account has been deleted!" });
-       } else {
-           res.status(404).json({ error: "Account with this username doest not exist." });
-       }
-   } catch (error) {
-       // Handle any errors that occur during the process
-       res.status(400).json({ error: error.message });
-   }
+
+            // Respond with success message only once
+            if (!responseSent) {
+                res.status(200).json({ msg: "Account has been deleted!" });
+                responseSent = true;
+            }
+        } else {
+            if (!responseSent) {
+                res.status(404).json({ error: "Account with this username does not exist." });
+                responseSent = true;
+            }
+        }
+    } catch (error) {
+        // Handle any errors that occur during the process
+        if (!responseSent) {
+            res.status(400).json({ error: error.message });
+            responseSent = true;
+        }
+    }
 };
+
+
 
 
 
