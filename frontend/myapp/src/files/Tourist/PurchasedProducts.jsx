@@ -1,4 +1,3 @@
-// src/files/Tourist/PurchasedProducts.jsx
 import React, { useState, useEffect } from 'react';
 import { Box, Button, Typography, Modal, TextField } from '@mui/material';
 import axios from 'axios';
@@ -8,10 +7,10 @@ import PropTypes from 'prop-types';
 function PurchasedProducts({ currency, onClose }) {
   const [purchasedProducts, setPurchasedProducts] = useState([]);
   const [productRatings, setProductRatings] = useState({});
-  const [productReviews, setProductReviews] = useState({}); 
+  const [productReviews, setProductReviews] = useState({});
+  const [isReviewEnabled, setIsReviewEnabled] = useState({});
   const [convertedPrices, setConvertedPrices] = useState({});
   const navigate = useNavigate();
-
 
   useEffect(() => {
     const fetchPurchasedProducts = async () => {
@@ -26,7 +25,6 @@ function PurchasedProducts({ currency, onClose }) {
     fetchPurchasedProducts();
   }, []);
 
-  // Convert product prices when currency changes
   useEffect(() => {
     const convertProductPrices = async () => {
       const newConvertedPrices = {};
@@ -53,7 +51,6 @@ function PurchasedProducts({ currency, onClose }) {
     }
   }, [currency, purchasedProducts]);
 
-  // Function to handle product rating submission
   const handleRateProduct = async (productName) => {
     const touristUsername = localStorage.getItem('username');
     const ratingValue = parseInt(productRatings[productName], 10);
@@ -71,13 +68,15 @@ function PurchasedProducts({ currency, onClose }) {
       });
       alert(response.data.msg);
 
-      // Update the product list with the new average rating from the response
       const updatedProducts = purchasedProducts.map(product =>
         product.Name === productName
           ? { ...product, Ratings: response.data.newAverageRating }
           : product
       );
       setPurchasedProducts(updatedProducts);
+
+      // Enable review for the rated product
+      setIsReviewEnabled((prev) => ({ ...prev, [productName]: true }));
     } catch (error) {
       console.error('Error rating product:', error);
       alert('An error occurred while submitting your rating.');
@@ -108,6 +107,7 @@ function PurchasedProducts({ currency, onClose }) {
       alert('An error occurred while submitting your review.');
     }
   };
+
   return (
     <Modal open={true} onClose={onClose}>
       <Box sx={styles.modalContent}>
@@ -115,7 +115,6 @@ function PurchasedProducts({ currency, onClose }) {
           My Purchased Products
         </Typography>
 
-        {/* Purchased Products Listing */}
         <Box sx={styles.listContainer}>
           {purchasedProducts.length > 0 ? (
             purchasedProducts.map(product => (
@@ -155,6 +154,7 @@ function PurchasedProducts({ currency, onClose }) {
                     size="small"
                     multiline
                     fullWidth
+                    disabled={!isReviewEnabled[product.Name]} // Disable until rating is submitted
                     value={productReviews[product.Name] || ''}
                     onChange={(e) => setProductReviews({ ...productReviews, [product.Name]: e.target.value })}
                     rows={3}
@@ -163,6 +163,7 @@ function PurchasedProducts({ currency, onClose }) {
                     variant="contained"
                     onClick={() => handleReviewProduct(product.Name)}
                     sx={styles.reviewButton}
+                    disabled={!isReviewEnabled[product.Name]} // Disable button until rating is submitted
                   >
                     Submit Review
                   </Button>
@@ -179,10 +180,12 @@ function PurchasedProducts({ currency, onClose }) {
     </Modal>
   );
 }
+
 PurchasedProducts.propTypes = {
   currency: PropTypes.string.isRequired,
   onClose: PropTypes.func.isRequired,
 };
+
 const styles = {
   modalContent: {
     position: 'absolute',
@@ -223,10 +226,10 @@ const styles = {
     '&:hover': { backgroundColor: '#63a4ff' },
   },
   reviewButton: {
-    backgroundColor: '#89CFF0', // Baby blue for reviews
+    backgroundColor: '#89CFF0',
     color: 'white',
     marginTop: '0.5rem',
-    '&:hover': { backgroundColor: '#A7DFFF' }, // Lighter blue on hover
+    '&:hover': { backgroundColor: '#A7DFFF' },
   },
 };
 
