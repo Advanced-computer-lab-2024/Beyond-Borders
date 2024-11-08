@@ -17,7 +17,7 @@ const nodemailer = require('nodemailer');
 
 const DeactivatedItinerariesModel = require('../Models/DeactivatedItineraries.js');
 const AdvertiserModel = require('../Models/Advertiser.js');
-const AdvertiserModel = require('../Models/Advertiser.js');
+
 const DeactivatedActivitiesModel = require('../Models/DeactivatedActivities.js');
 const { default: mongoose } = require('mongoose');
 
