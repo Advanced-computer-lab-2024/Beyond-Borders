@@ -525,6 +525,10 @@ const handleBooking = async () => {
         <Button sx={styles.button} onClick={() => navigate('/TouristComplaintsModal')}>File a complaint</Button>
         <Button sx={styles.button} onClick={() => navigate('/touristHistorical')}>View All Historical Places</Button>
         <Button sx={styles.button} onClick={() => navigate('/TouristComplaintsViewModal')}>View my complaints</Button>
+        <Button sx={styles.button} onClick={() => navigate('/TouristBookedActivitiesModal')}>View My Booked Activities</Button>
+        <Button sx={styles.button} onClick={() => navigate('/TouristBookedMuseumsModal')}>View My Booked Museums</Button>
+        <Button sx={styles.button} onClick={() => navigate('/touristBookedItineraries')}>View My Booked Itineraries</Button>
+        <Button sx={styles.button} onClick={() => navigate('/touristBookedHistoricalPlaces')}>View My Booked Historical Places</Button>
         <Button sx={styles.button} onClick={handleHotelSearchToggle}>Hotels</Button>
         <Button sx={styles.button} onClick={handleFlightSearchToggle}>Flights</Button>
         <Button sx={styles.profileButton} onClick={() => setActiveModal('profile')}>My Profile</Button>

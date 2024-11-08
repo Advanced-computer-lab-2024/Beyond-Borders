@@ -61,9 +61,10 @@ import PaymentPage from './files/Tourist/PaymentPage';
 import RegisterTransportationAdvertiser from './files/RegisterTransportationAdvertiser';
 import LoginTransportationAdvertiser from './files/LoginTransportationAdvertiser';
 import HomePageTransportationAdvertiser from './files/HomePageTransportationAdvertiser';
-
-
-
+import TouristBookedActivitiesModal from './files/Tourist/TouristBookedActivitiesModal';
+import TouristBookedMuseumsModal from './files/Tourist/TouristBookedMuseumsModal';
+import TouristBookedItinerariesModal from './files/Tourist/TouristBookedItinerariesModal';
+import TouristBookedHistoricalPlacesModal from './files/Tourist/TouristBookedHistoricalPlacesModal';
 
 
 
@@ -116,8 +117,10 @@ function App() {
           <Route path="/CompletedHistorical" element={<CompletedHistorical/>}/>
           <Route path="/PurchasedProducts" element={<PurchasedProducts/>}/>
           <Route path="/TouristComplaintsViewModal" element={<TouristComplaintsViewModal />}/>
-
-
+          <Route path="/TouristBookedActivitiesModal" element={<TouristBookedActivitiesModal />} />
+          <Route path="/TouristBookedMuseumsModal" element={<TouristBookedMuseumsModal />} />
+          <Route path="/touristBookedItineraries" element={<TouristBookedItinerariesModal />} />
+          <Route path="/touristBookedHistoricalPlaces" element={<TouristBookedHistoricalPlacesModal />} />
           <Route path="/museum/details/:museumName" element={<MuseumDetails />} />
           <Route path="/historicalPlace/details/:HPname" element={<HistoricalDetails/>} />
           <Route path="/itinerary/details/:itineraryName" element={<ItineraryDetails/>}/>
