@@ -9,25 +9,42 @@ function TouristBookedActivitiesModal() {
   const [errorMessage, setErrorMessage] = useState('');
   const navigate = useNavigate();
 
+  // useEffect(() => {
+  //   const fetchBookedActivities = async () => {
+  //     const username = localStorage.getItem('username'); // Retrieve the username from local storage
+  //     if (!username) {
+  //       setErrorMessage('Please log in to view your booked activities.');
+  //       return;
+  //     }
+
+  //     try {
+  //       const response = await axios.get('/api/viewBookedActivities', {
+  //         params: { touristUsername: username }
+  //       });
+  //       setBookedActivities(response.data);
+  //     } catch (error) {
+  //       console.error('Error fetching booked activities:', error);
+  //       setErrorMessage('Failed to load booked activities.');
+  //     }
+  //   };
+
+  //   fetchBookedActivities();
+  // }, []);
+
   useEffect(() => {
     const fetchBookedActivities = async () => {
-      const username = localStorage.getItem('username'); // Retrieve the username from local storage
-      if (!username) {
-        setErrorMessage('Please log in to view your booked activities.');
-        return;
-      }
-
       try {
-        const response = await axios.get('/api/viewMyBookedActivities', {
-          params: { Username: username }
-        });
-        setBookedActivities(response.data);
+        const touristUsername = localStorage.getItem('username');
+        const response = await axios.get(`/api/viewBookedActivities`, { params: { touristUsername } });
+        if (response.data.bookedActivities) {
+          setBookedActivities(response.data.bookedActivities);
+        } else {
+          setErrorMessage(response.data.msg || 'No booked activites found.');
+        }
       } catch (error) {
-        console.error('Error fetching booked activities:', error);
-        setErrorMessage('Failed to load booked activities.');
+        setErrorMessage(error.response?.data?.msg || 'Error fetching booked activites.');
       }
     };
-
     fetchBookedActivities();
   }, []);
 
