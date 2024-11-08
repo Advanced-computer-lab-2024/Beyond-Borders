@@ -83,6 +83,27 @@ const HomePageAdvertiser = () => {
     }
   };
 
+  const RequestDeleteAccount = async () => {
+    try {
+      const username = localStorage.getItem('username');
+      console.log('Username:', username);
+      
+      const response = await axios.post('/api/requestDeleteAccountAdvertiser', { Username: username });
+
+      if (response.status === 200) {
+        alert('Account deletion request submitted successfully!');
+        setLoading(null);
+      } else {
+        setError('Failed to submit account deletion request.');
+        setLoading('error');
+      }
+    } catch (error) {
+      console.error('Error requesting account deletion:', error);
+      setError('An error occurred while requesting the deletion of your account.');
+      setLoading('error');
+    }
+  };
+
   const openUpdateForm = (activity) => {
     setUpdateActivityData(activity);
     setShowUpdateForm(true);
@@ -178,10 +199,6 @@ const HomePageAdvertiser = () => {
     }
   };
   
-  
-  
-
-
   return (
     <div style={styles.container}>
       <div style={styles.header}>
@@ -191,12 +208,12 @@ const HomePageAdvertiser = () => {
             <li><a href="#" style={styles.navLink} onClick={loadMyActivities}>My Activities</a></li>
             <li><a href="#" style={styles.navLink} onClick={loadProfile}>My Profile</a></li>
             <li><button style={styles.button} onClick={() => { setShowCreateForm(true); setShowProfile(false); }}>Create New Activity</button></li>
-           
-
             
+            <li><button style={{...styles.button,backgroundColor: 'red',color: 'white','&:hover': { backgroundColor: '#ff6666' },}} onClick={RequestDeleteAccount}> Request Account Deletion</button></li>
           </ul>
         </nav>
       </div>
+   
 
       <div style={styles.mainContent}>
         {loading && <p>Loading...</p>}

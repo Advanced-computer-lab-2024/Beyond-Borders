@@ -2139,7 +2139,7 @@ const commentOnHP = async (req, res) => {
 
 
 
-const deleteBookedActivity = async (req, res) => {
+/*const deleteBookedActivity = async (req, res) => {
   const { touristUsername, activityName } = req.body;
 
   try {
@@ -2186,6 +2186,83 @@ const deleteBookedActivity = async (req, res) => {
     console.error('Error deleting activity:', error);
     res.status(500).json({ error: error.message });
   }
+};*/
+const deleteBookedActivity = async (req, res) => {
+  const { touristUsername, activityName } = req.body;
+
+  try {
+    // Find the activity by name
+    const activity = await ActivityModel.findOne({ Name: activityName });
+    if (!activity) {
+      return res.status(404).json({ msg: 'Activity not found' });
+    }
+
+    // Find the tourist by username
+    const tourist = await TouristModel.findOne({ Username: touristUsername });
+    if (!tourist) {
+      return res.status(404).json({ msg: 'Tourist not found' });
+    }
+
+    // Calculate the time difference
+    const today = new Date();
+    const eventDate = new Date(activity.Date);
+    const timeDifference = eventDate - today;
+    const daysBeforeEvent = timeDifference / (1000 * 60 * 60 * 24);
+
+    // Check if cancellation is allowed (more than 2 days before the event)
+    if (daysBeforeEvent < 2) {
+      return res.status(403).json({ msg: 'Cannot cancel activity less than 2 days before the event.' });
+    }
+
+    // Find the activity in the BookedActivities array and remove it
+    const index = tourist.BookedActivities.findIndex(
+      (activity) => activity.activityName === activityName
+    );
+    if (index === -1) {
+      return res.status(404).json({ msg: 'Activity not found in booked activities.' });
+    }
+
+    // Remove the activity from the array
+    tourist.BookedActivities.splice(index, 1);
+
+    // Refund the activity price to the wallet
+    const ticketPrice = activity.Price;
+    tourist.Wallet += ticketPrice;
+
+    // Deduct points based on BadgeLevelOfPoints
+    if (tourist.BadgeLevelOfPoints === 1) {
+      tourist.Points -= 0.5 * ticketPrice;
+    } else if (tourist.BadgeLevelOfPoints === 2) {
+      tourist.Points -= ticketPrice;
+    } else if (tourist.BadgeLevelOfPoints === 3) {
+      tourist.Points -= 1.5 * ticketPrice;
+    }
+
+    // Ensure points don't go below zero
+    tourist.Points = Math.max(0, tourist.Points);
+
+    // Adjust BadgeLevelOfPoints if necessary
+    if (tourist.BadgeLevelOfPoints === 3 && tourist.Points < 500000) {
+      tourist.BadgeLevelOfPoints = 2;
+    } else if (tourist.BadgeLevelOfPoints === 2 && tourist.Points < 100000) {
+      tourist.BadgeLevelOfPoints = 1;
+    }
+
+    // Save the updated tourist document
+    await tourist.save();
+
+    // Respond with success
+    res.status(200).json({ 
+      msg: 'Activity canceled successfully.',
+      refundedAmount: ticketPrice,
+      updatedWallet: tourist.Wallet,
+      updatedPoints: tourist.Points,
+      updatedBadgeLevel: tourist.BadgeLevelOfPoints 
+    });
+  } catch (error) {
+    console.error('Error deleting activity:', error);
+    res.status(500).json({ error: error.message });
+  }
 };
 
 const deleteBookedItinerary = async (req, res) => {
@@ -2226,13 +2303,42 @@ const deleteBookedItinerary = async (req, res) => {
     // Remove the activity from the array
     tourist.BookedItineraries.splice(index, 1);
 
+     // Refund the activity price to the wallet
+     const ticketPrice = itinerary.Price;
+     tourist.Wallet += ticketPrice;
+ 
+     // Deduct points based on BadgeLevelOfPoints
+     if (tourist.BadgeLevelOfPoints === 1) {
+       tourist.Points -= 0.5 * ticketPrice;
+     } else if (tourist.BadgeLevelOfPoints === 2) {
+       tourist.Points -= ticketPrice;
+     } else if (tourist.BadgeLevelOfPoints === 3) {
+       tourist.Points -= 1.5 * ticketPrice;
+     }
+ 
+     // Ensure points don't go below zero
+     tourist.Points = Math.max(0, tourist.Points);
+ 
+     // Adjust BadgeLevelOfPoints if necessary
+     if (tourist.BadgeLevelOfPoints === 3 && tourist.Points < 500000) {
+       tourist.BadgeLevelOfPoints = 2;
+     } else if (tourist.BadgeLevelOfPoints === 2 && tourist.Points < 100000) {
+       tourist.BadgeLevelOfPoints = 1;
+     }
+
     // Save the updated tourist document
     await tourist.save();
 
     // Respond with success
-    res.status(200).json({ msg: 'itinerary canceled successfully.' });
+    res.status(200).json({ 
+      msg: 'Activity canceled successfully.',
+      refundedAmount: ticketPrice,
+      updatedWallet: tourist.Wallet,
+      updatedPoints: tourist.Points,
+      updatedBadgeLevel: tourist.BadgeLevelOfPoints 
+    });
   } catch (error) {
-    console.error('Error itinerary activity:', error);
+    console.error('Error deleting itinerary:', error);
     res.status(500).json({ error: error.message });
   }
 };
@@ -2276,6 +2382,35 @@ const deleteBookedMuseum= async (req, res) => {
 
     // Remove the activity from the array
     tourist.BookedMuseums.splice(index, 1);
+
+    let ticketPrice;
+    if (tourist.Occupation.toLowerCase() === 'student') {
+      ticketPrice = museum.ticketPrices.student;
+    } else if (tourist.Nationality.toLowerCase() === 'egyptian') {
+      ticketPrice = museum.ticketPrices.native;
+    } else {
+      ticketPrice = museum.ticketPrices.foreigner;
+    }
+    tourist.Wallet += ticketPrice;
+ 
+     // Deduct points based on BadgeLevelOfPoints
+     if (tourist.BadgeLevelOfPoints === 1) {
+       tourist.Points -= 0.5 * ticketPrice;
+     } else if (tourist.BadgeLevelOfPoints === 2) {
+       tourist.Points -= ticketPrice;
+     } else if (tourist.BadgeLevelOfPoints === 3) {
+       tourist.Points -= 1.5 * ticketPrice;
+     }
+ 
+     // Ensure points don't go below zero
+     tourist.Points = Math.max(0, tourist.Points);
+ 
+     // Adjust BadgeLevelOfPoints if necessary
+     if (tourist.BadgeLevelOfPoints === 3 && tourist.Points < 500000) {
+       tourist.BadgeLevelOfPoints = 2;
+     } else if (tourist.BadgeLevelOfPoints === 2 && tourist.Points < 100000) {
+       tourist.BadgeLevelOfPoints = 1;
+     }
 
     // Save the updated tourist document
     await tourist.save();
@@ -2325,6 +2460,35 @@ const deleteBookedHP= async (req, res) => {
 
     // Remove the activity from the array
     tourist.BookedHistPlaces.splice(index, 1);
+
+    let ticketPrice;
+    if (tourist.Occupation.toLowerCase() === 'student') {
+      ticketPrice = hp.ticketPrices.student;
+    } else if (tourist.Nationality.toLowerCase() === 'egyptian') {
+      ticketPrice = hp.ticketPrices.native;
+    } else {
+      ticketPrice = hp.ticketPrices.foreigner;
+    }
+    tourist.Wallet += ticketPrice;
+ 
+     // Deduct points based on BadgeLevelOfPoints
+     if (tourist.BadgeLevelOfPoints === 1) {
+       tourist.Points -= 0.5 * ticketPrice;
+     } else if (tourist.BadgeLevelOfPoints === 2) {
+       tourist.Points -= ticketPrice;
+     } else if (tourist.BadgeLevelOfPoints === 3) {
+       tourist.Points -= 1.5 * ticketPrice;
+     }
+ 
+     // Ensure points don't go below zero
+     tourist.Points = Math.max(0, tourist.Points);
+ 
+     // Adjust BadgeLevelOfPoints if necessary
+     if (tourist.BadgeLevelOfPoints === 3 && tourist.Points < 500000) {
+       tourist.BadgeLevelOfPoints = 2;
+     } else if (tourist.BadgeLevelOfPoints === 2 && tourist.Points < 100000) {
+       tourist.BadgeLevelOfPoints = 1;
+     }
 
     // Save the updated tourist document
     await tourist.save();
@@ -2412,7 +2576,7 @@ const updateWallet = async (req, res) => {
     }
 
     // Update the wallet balance
-    tourist.Wallet = (tourist.Wallet || 0) + amount;
+    tourist.Wallet =  amount;
 
     // Save the updated tourist document
     await tourist.save();
