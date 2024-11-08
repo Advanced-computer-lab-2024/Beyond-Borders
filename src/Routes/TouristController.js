@@ -3234,11 +3234,11 @@ const viewBookedItineraries = async (req, res) => {
 };
 
 const viewBookedActivities = async (req, res) => {
-  const { advertiserUsername } = req.query; // Get the advertiser's username from the query parameters
+  const { touristUsername } = req.query; // Get the advertiser's username from the query parameters
 
   try {
       // Find the advertiser by their username
-      const advertiser = await AdvertiserModel.findOne({ Username: advertiserUsername });
+      const advertiser = await TouristModel.findOne({ Username: touristUsername });
       
       if (!advertiser) {
           return res.status(404).json({ msg: 'Advertiser not found' });
@@ -3250,7 +3250,7 @@ const viewBookedActivities = async (req, res) => {
       }
 
       // Extract the activity names from the advertiser's booked activities
-      const bookedActivityNames = advertiser.BookedActivities.map(activity => activity.ActivityName);
+      const bookedActivityNames = advertiser.BookedActivities.map(activity => activity.activityName);
 
       // Find the activities in the Activity model (for active activities)
       const activeActivities = await ActivityModel.find({ Name: { $in: bookedActivityNames } });
