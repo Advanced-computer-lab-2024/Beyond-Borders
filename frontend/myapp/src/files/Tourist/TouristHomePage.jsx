@@ -54,6 +54,20 @@ const [isCompletedItineraryModalOpen, setIsCompletedItineraryModalOpen] = useSta
 const [isPurchasedProductModalOpen, setIsPurchasedProductModalOpen] = useState(false);
 const [isProductModalOpen, setIsProductModalOpen] = useState(false);
 const [convertedPrices, setConvertedPrices] = useState({});
+//Book transportation 
+const [touristUsername, setTouristUsername] = useState('');
+const [TranspName, setTranspName] = useState('');
+const [responseMessage, setResponseMessage] = useState('');
+const [totalCost, setTotalCost] = useState(null);
+
+ // Load the tourist's name from local storage
+ useEffect(() => {
+  const storedUsername = localStorage.getItem('username');
+  if (storedUsername) {
+    setTouristUsername(storedUsername);
+  }
+}, []);
+
   const navigate = useNavigate();
   
   useEffect(() => {
@@ -423,6 +437,28 @@ const handleRedeemPoints = async () => {
   } catch (error) {
     console.error('Redeem Points Error:', error);
     alert('An error occurred while redeeming points.');
+  }
+  
+};
+// Function to book transportation
+const handleBooking = async () => {
+  try {
+    const response = await axios.put('/bookTransportation', {
+      touristUsername,
+      TranspName,
+    });
+
+    const data = response.data;
+
+    if (response.status === 200) {
+      setResponseMessage(data.msg);
+      setTotalCost(data.totalCost);
+    } else {
+      setResponseMessage(data.msg || 'An error occurred');
+    }
+  } catch (error) {
+    setResponseMessage('Failed to book transportation');
+    console.error('Error:', error);
   }
 };
   return (
@@ -905,6 +941,34 @@ const handleRedeemPoints = async () => {
     </Box>
   </Modal>
 )}
+ <Box sx={styles.container}>
+    <Typography variant="h5" component="h1" sx={styles.title}>
+      Beyond Borders
+    </Typography>
+
+    {/* Display loaded tourist username */}
+    <Box sx={{ display: 'flex', gap: 2, mt: 3, mb: 3 }}>
+      <TextField
+        label="Tourist Username"
+        variant="outlined"
+        value={touristUsername}
+        disabled // Display-only, as it is loaded from local storage
+      />
+      <TextField
+        label="Transportation Name"
+        variant="outlined"
+        value={TranspName}
+        onChange={(e) => setTranspName(e.target.value)}
+      />
+      <Button variant="contained" onClick={handleBooking} sx={{ backgroundColor: '#4CAF50', color: 'white' }}>
+        Book Transportation
+      </Button>
+    </Box>
+
+    {/* Display response message and total cost */}
+    {responseMessage && <Typography>{responseMessage}</Typography>}
+    {totalCost !== null && <Typography>Total Cost: ${totalCost}</Typography>}
+  </Box>
 
 
   
