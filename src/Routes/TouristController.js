@@ -14,7 +14,7 @@ const TransportationModel = require('../Models/Transportation.js');
 const TagsModel = require('../Models/Tags.js');
 const axios = require('axios');
 const nodemailer = require('nodemailer'); 
-
+const ItineraryModel = require('../Models/Itinerary.js');
 const DeactivatedItinerariesModel = require('../Models/DeactivatedItineraries.js');
 const AdvertiserModel = require('../Models/Advertiser.js');
 
