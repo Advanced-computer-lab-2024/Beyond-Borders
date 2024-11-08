@@ -10,6 +10,8 @@ import CompletedActivity from './CompletedActivity';
 import CompletedHistorical from './CompletedHistorical';
 import CompletedMuseums from './CompletedMuseums';
 import CompletedItineraries from './CompletedItineraries';
+import PurchasedProducts from './PurchasedProducts';
+import TouristProductModal from './TouristProductModal';
 
 
 
@@ -49,6 +51,8 @@ const [isCompletedActivityModalOpen, setIsCompletedActivityModalOpen] = useState
 const [isCompletedHistoricalModalOpen, setIsCompletedHistoricalModalOpen] = useState(false);
 const [isCompletedMuseumsModalOpen, setIsCompletedMuseumsModalOpen] = useState(false);
 const [isCompletedItineraryModalOpen, setIsCompletedItineraryModalOpen] = useState(false);
+const [isPurchasedProductModalOpen, setIsPurchasedProductModalOpen] = useState(false);
+const [isProductModalOpen, setIsProductModalOpen] = useState(false);
 const [convertedPrices, setConvertedPrices] = useState({});
   const navigate = useNavigate();
   
@@ -334,6 +338,17 @@ const [convertedPrices, setConvertedPrices] = useState({});
 
   const openCompletedItineraryModal = () => setIsCompletedItineraryModalOpen(true);
   const closeCompletedItineraryModal = () => setIsCompletedItineraryModalOpen(false);
+
+
+
+  const openPurchasedProductModal = () => setIsPurchasedProductModalOpen(true);
+  const closePurchasedProductModal = () => setIsPurchasedProductModalOpen(false);
+
+  const openProductModal = () => setIsProductModalOpen(true);
+  const closeProductModal = () => setIsProductModalOpen(false);
+
+
+
   const handleCurrencyChange = async (event) => {
     const selectedCurrency = event ? event.target.value : currency;
 
@@ -417,7 +432,14 @@ const handleRedeemPoints = async () => {
       </Typography>
 
       <Box sx={styles.buttonContainer}>
-        <Button sx={styles.button} onClick={() => navigate('/touristProducts')}>View All Products</Button>
+      <Button sx={styles.button} variant="contained" onClick={openProductModal}>
+          View All Products
+        </Button>
+      
+        {isProductModalOpen && (
+          <TouristProductModal currency={currency} onClose={closeProductModal} />
+        )}
+        
         <Button sx={styles.button} onClick={() => navigate('/touristActivities')}>View All Activities</Button>
         <Button sx={styles.button} onClick={() => navigate('/touristMuseums')}>View All Museums</Button>
         <Button sx={styles.button} variant="contained" onClick={openItineraryModal}>
@@ -456,7 +478,14 @@ const handleRedeemPoints = async () => {
         {isCompletedHistoricalModalOpen && (
           <CompletedHistorical currency={currency} onClose={closeCompletedHistoricalModal} />
         )}
-        <Button sx={styles.button} onClick={() => navigate('/PurchasedProducts')}>View All Purchased Products</Button>
+        <Button sx={styles.button} variant="contained" onClick={openPurchasedProductModal}>
+          View All Purchased Products
+        </Button>
+
+        {isPurchasedProductModalOpen && (
+          <PurchasedProducts currency={currency} onClose={closePurchasedProductModal} />
+        )}
+       
         <Button sx={styles.button} onClick={() => navigate('/TouristComplaintsModal')}>File a complaint</Button>
         <Button sx={styles.button} onClick={() => navigate('/touristHistorical')}>View All Historical Places</Button>
         <Button sx={styles.button} onClick={() => navigate('/TouristComplaintsViewModal')}>View my complaints</Button>

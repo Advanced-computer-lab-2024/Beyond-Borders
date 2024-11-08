@@ -3,17 +3,20 @@ import React, { useState, useEffect } from 'react';
 import { Box, Button, Typography, Modal, TextField } from '@mui/material';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import PropTypes from 'prop-types';
 
-function PurchasedProducts() {
+function PurchasedProducts({ currency, onClose }) {
   const [purchasedProducts, setPurchasedProducts] = useState([]);
   const [productRatings, setProductRatings] = useState({});
   const [productReviews, setProductReviews] = useState({}); 
+  const [convertedPrices, setConvertedPrices] = useState({});
   const navigate = useNavigate();
+
 
   useEffect(() => {
     const fetchPurchasedProducts = async () => {
       try {
-        const username = localStorage.getItem('username'); // Assuming username is stored in localStorage
+        const username = localStorage.getItem('username');
         const response = await axios.get(`/api/viewPurchasedProducts`, { params: { Username: username } });
         setPurchasedProducts(response.data);
       } catch (error) {
@@ -22,6 +25,33 @@ function PurchasedProducts() {
     };
     fetchPurchasedProducts();
   }, []);
+
+  // Convert product prices when currency changes
+  useEffect(() => {
+    const convertProductPrices = async () => {
+      const newConvertedPrices = {};
+
+      await Promise.all(
+        purchasedProducts.map(async (product) => {
+          try {
+            const response = await axios.post('/convertCurr', {
+              priceEgp: product.Price || 0,
+              targetCurrency: currency,
+            });
+            newConvertedPrices[product._id] = response.data.convertedPrice;
+          } catch (error) {
+            console.error(`Error converting price for ${product.Name}:`, error);
+          }
+        })
+      );
+
+      setConvertedPrices(newConvertedPrices);
+    };
+
+    if (currency !== 'EGP') {
+      convertProductPrices();
+    }
+  }, [currency, purchasedProducts]);
 
   // Function to handle product rating submission
   const handleRateProduct = async (productName) => {
@@ -79,7 +109,7 @@ function PurchasedProducts() {
     }
   };
   return (
-    <Modal open={true} onClose={() => navigate('/touristHome')}>
+    <Modal open={true} onClose={onClose}>
       <Box sx={styles.modalContent}>
         <Typography variant="h6" component="h2">
           My Purchased Products
@@ -92,7 +122,9 @@ function PurchasedProducts() {
               <Box key={product._id} sx={styles.item}>
                 <Typography variant="body1"><strong>Name:</strong> {product.Name}</Typography>
                 <Typography variant="body2"><strong>Category:</strong> {product.Category}</Typography>
-                <Typography variant="body2"><strong>Price:</strong> ${product.Price}</Typography>
+                <Typography variant="body2">
+                  <strong>Price:</strong> {currency === 'EGP' ? `${product.Price || 0} EGP` : `${convertedPrices[product._id] || 'Loading...'} ${currency}`}
+                </Typography>
                 <Typography variant="body2"><strong>Current Rating:</strong> {product.Ratings || 'Not rated yet'}</Typography>
 
                 {/* Rating Input for Product */}
@@ -142,12 +174,15 @@ function PurchasedProducts() {
           )}
         </Box>
 
-        <Button variant="contained" sx={styles.doneButton} onClick={() => navigate('/touristHome')}>Done</Button>
+        <Button variant="contained" sx={styles.doneButton} onClick={onClose}>Done</Button>
       </Box>
     </Modal>
   );
 }
-
+PurchasedProducts.propTypes = {
+  currency: PropTypes.string.isRequired,
+  onClose: PropTypes.func.isRequired,
+};
 const styles = {
   modalContent: {
     position: 'absolute',
