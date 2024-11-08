@@ -3241,7 +3241,7 @@ const viewBookedActivities = async (req, res) => {
       const advertiser = await TouristModel.findOne({ Username: touristUsername });
       
       if (!advertiser) {
-          return res.status(404).json({ msg: 'Advertiser not found' });
+          return res.status(404).json({ msg: 'Tourist not found' });
       }
 
       // Check if the advertiser has any booked activities
