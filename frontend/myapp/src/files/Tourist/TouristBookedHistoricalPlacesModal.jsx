@@ -2,10 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { Box, Button, Typography, Modal } from '@mui/material';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import PropTypes from 'prop-types';
 
-function TouristBookedHistoricalPlacesModal() {
+function TouristBookedHistoricalPlacesModal({ currency, onClose }) {
   const [bookedHistoricalPlaces, setBookedHistoricalPlaces] = useState([]);
   const [errorMessage, setErrorMessage] = useState('');
+  const [convertedPrices, setConvertedPrices] = useState({});
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -25,6 +27,47 @@ function TouristBookedHistoricalPlacesModal() {
     fetchBookedHistoricalPlaces();
   }, []);
 
+  useEffect(() => {
+    const convertTicketPrices = async () => {
+      const newConvertedPrices = {};
+
+      await Promise.all(
+        bookedHistoricalPlaces.map(async (place) => {
+          try {
+            const [foreignerResponse, nativeResponse, studentResponse] = await Promise.all([
+              axios.post('/convertCurr', {
+                priceEgp: place.ticketPrices?.foreigner || 0,
+                targetCurrency: currency,
+              }),
+              axios.post('/convertCurr', {
+                priceEgp: place.ticketPrices?.native || 0,
+                targetCurrency: currency,
+              }),
+              axios.post('/convertCurr', {
+                priceEgp: place.ticketPrices?.student || 0,
+                targetCurrency: currency,
+              }),
+            ]);
+
+            newConvertedPrices[place._id] = {
+              foreigner: foreignerResponse.data.convertedPrice,
+              native: nativeResponse.data.convertedPrice,
+              student: studentResponse.data.convertedPrice,
+            };
+          } catch (error) {
+            console.error(`Error converting prices for ${place.name}:`, error);
+          }
+        })
+      );
+
+      setConvertedPrices(newConvertedPrices);
+    };
+
+    if (currency !== 'EGP') {
+      convertTicketPrices();
+    }
+  }, [currency, bookedHistoricalPlaces]);
+
   const handleCancelBooking = async (placeName) => {
     const touristUsername = localStorage.getItem('username');
     try {
@@ -37,7 +80,7 @@ function TouristBookedHistoricalPlacesModal() {
   };
 
   return (
-    <Modal open={true} onClose={() => navigate('/touristHome')}>
+    <Modal open={true} onClose={onClose}>
       <Box sx={styles.modalContent}>
         <Typography variant="h6" component="h2">
           My Booked Historical Places
@@ -54,10 +97,15 @@ function TouristBookedHistoricalPlacesModal() {
                   <Typography variant="body2"><strong>Location:</strong> {place.location}</Typography>
 
                   {/* Display Ticket Prices */}
-                  <Typography variant="body2"><strong>Ticket Prices:</strong></Typography>
-                  <Typography variant="body2">Foreigner: ${place.ticketPrices.foreigner}</Typography>
-                  <Typography variant="body2">Native: ${place.ticketPrices.native}</Typography>
-                  <Typography variant="body2">Student: ${place.ticketPrices.student}</Typography>
+                  <Typography variant="body2">
+                    Foreigner: {currency === 'EGP' ? `${place.ticketPrices?.foreigner} EGP` : `${convertedPrices[place._id]?.foreigner || 'Loading...'} ${currency}`}
+                  </Typography>
+                  <Typography variant="body2">
+                    Native: {currency === 'EGP' ? `${place.ticketPrices?.native} EGP` : `${convertedPrices[place._id]?.native || 'Loading...'} ${currency}`}
+                  </Typography>
+                  <Typography variant="body2">
+                    Student: {currency === 'EGP' ? `${place.ticketPrices?.student} EGP` : `${convertedPrices[place._id]?.student || 'Loading...'} ${currency}`}
+                  </Typography>
 
                   {/* Display Comments */}
                   <Typography variant="body2"><strong>Comments:</strong></Typography>
@@ -86,13 +134,18 @@ function TouristBookedHistoricalPlacesModal() {
             )}
           </Box>
         )}
-        <Button variant="contained" sx={styles.doneButton} onClick={() => navigate('/touristHome')}>
+          <Button variant="contained" sx={styles.doneButton} onClick={onClose}>
           Done
         </Button>
       </Box>
     </Modal>
   );
 }
+TouristBookedHistoricalPlacesModal.propTypes = {
+  currency: PropTypes.string.isRequired,
+  onClose: PropTypes.func.isRequired,
+};
+
 
 const styles = {
   modalContent: {

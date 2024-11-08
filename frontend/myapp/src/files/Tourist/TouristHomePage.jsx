@@ -12,6 +12,11 @@ import CompletedMuseums from './CompletedMuseums';
 import CompletedItineraries from './CompletedItineraries';
 import PurchasedProducts from './PurchasedProducts';
 import TouristProductModal from './TouristProductModal';
+import TouristActivitiesModal from './TouristActivitiesModal';
+import TouristHistoricalPlacesModal from './TouristHistoricalPlacesModal';
+import TouristMuseumsModal from './TouristMuseumsModal';
+import TouristBookedHistoricalPlacesModal from './TouristBookedHistoricalPlacesModal';
+import TouristBookedItinerariesModal from './TouristBookedItinerariesModal';
 
 
 
@@ -47,12 +52,19 @@ const [flightOffers, setFlightOffers] = useState([]); // Holds flight search res
 const [currency, setCurrency] = useState('EGP');
 const [isModalOpen, setModalOpen] = useState(false);
 const [isItineraryModalOpen, setItineraryModalOpen] = useState(false);
+const [isActivitiesModalOpen, setIsActivitiesModalOpen] = useState(false);
+const [isHistoricalModalOpen, setHistoricalModalOpen] = useState(false);
+const [isMuseumsModalOpen, setMuseumsModalOpen] = useState(false);
+
 const [isCompletedActivityModalOpen, setIsCompletedActivityModalOpen] = useState(false);
 const [isCompletedHistoricalModalOpen, setIsCompletedHistoricalModalOpen] = useState(false);
 const [isCompletedMuseumsModalOpen, setIsCompletedMuseumsModalOpen] = useState(false);
 const [isCompletedItineraryModalOpen, setIsCompletedItineraryModalOpen] = useState(false);
 const [isPurchasedProductModalOpen, setIsPurchasedProductModalOpen] = useState(false);
 const [isProductModalOpen, setIsProductModalOpen] = useState(false);
+const [isBookedHistoricalModalOpen, setIsBookedHistoricalModalOpen] = useState(false);
+const [isBookedItineraryModalOpen, setIsBookedItineraryModalOpen] = useState(false);
+
 const [convertedPrices, setConvertedPrices] = useState({});
 //Book transportation 
 const [touristUsername, setTouristUsername] = useState('');
@@ -360,7 +372,22 @@ const [totalCost, setTotalCost] = useState(null);
 
   const openProductModal = () => setIsProductModalOpen(true);
   const closeProductModal = () => setIsProductModalOpen(false);
+  
+  const openActivitiesModal = () => setIsActivitiesModalOpen(true);
+  const closeActivitiesModal = () => setIsActivitiesModalOpen(false);
 
+  const openHistoricalModal = () => setHistoricalModalOpen(true);
+  const closeHistoricalModal = () => setHistoricalModalOpen(false);
+
+  const openMuseumsModal = () => setMuseumsModalOpen(true);
+  const closeMuseumsModal = () => setMuseumsModalOpen(false);
+
+  const openBookedHPModal = () => setIsBookedHistoricalModalOpen(true);
+  const closeBookedHPModal = () => setIsBookedHistoricalModalOpen(false);
+
+
+  const openBookedItineraryModal = () => setIsBookedItineraryModalOpen(true);
+  const closeBookedItineraryModal = () => setIsBookedItineraryModalOpen(false);
 
 
   const handleCurrencyChange = async (event) => {
@@ -476,8 +503,28 @@ const handleBooking = async () => {
           <TouristProductModal currency={currency} onClose={closeProductModal} />
         )}
         
-        <Button sx={styles.button} onClick={() => navigate('/touristActivities')}>View All Activities</Button>
-        <Button sx={styles.button} onClick={() => navigate('/touristMuseums')}>View All Museums</Button>
+        
+
+        <Button sx={styles.button} onClick={openActivitiesModal}>
+          View All Activities
+        </Button>
+        {isActivitiesModalOpen && (
+          <TouristActivitiesModal currency={currency} onClose={closeActivitiesModal} />
+        )}
+
+        <Button sx={styles.button} onClick={openMuseumsModal}>
+          View All Museums
+        </Button>
+        {isMuseumsModalOpen && (
+          <TouristMuseumsModal currency={currency} onClose={closeMuseumsModal} />
+        )}
+        <Button sx={styles.button} onClick={openHistoricalModal}>
+          View All Historical Places
+        </Button>
+        {isHistoricalModalOpen && (
+          <TouristHistoricalPlacesModal currency={currency} onClose={closeHistoricalModal} />
+        )}
+
         <Button sx={styles.button} variant="contained" onClick={openItineraryModal}>
           View All Itineraries
         </Button>
@@ -523,12 +570,27 @@ const handleBooking = async () => {
         )}
        
         <Button sx={styles.button} onClick={() => navigate('/TouristComplaintsModal')}>File a complaint</Button>
-        <Button sx={styles.button} onClick={() => navigate('/touristHistorical')}>View All Historical Places</Button>
+        
+
         <Button sx={styles.button} onClick={() => navigate('/TouristComplaintsViewModal')}>View my complaints</Button>
         <Button sx={styles.button} onClick={() => navigate('/TouristBookedActivitiesModal')}>View My Booked Activities</Button>
         <Button sx={styles.button} onClick={() => navigate('/TouristBookedMuseumsModal')}>View My Booked Museums</Button>
-        <Button sx={styles.button} onClick={() => navigate('/touristBookedItineraries')}>View My Booked Itineraries</Button>
-        <Button sx={styles.button} onClick={() => navigate('/touristBookedHistoricalPlaces')}>View My Booked Historical Places</Button>
+        
+        <Button sx={styles.button} variant="contained" onClick={openBookedItineraryModal}>
+          View My Booked Itineraries
+        </Button>
+
+        {isBookedItineraryModalOpen && (
+          <TouristBookedItinerariesModal currency={currency} onClose={closeBookedItineraryModal} />
+        )}
+        
+        <Button sx={styles.button} variant="contained" onClick={openBookedHPModal}>
+          View My Booked Historical Places 
+        </Button>
+
+        {isBookedHistoricalModalOpen && (
+          <TouristBookedHistoricalPlacesModal currency={currency} onClose={closeBookedHPModal} />
+        )}
         <Button sx={styles.button} onClick={handleHotelSearchToggle}>Hotels</Button>
         <Button sx={styles.button} onClick={handleFlightSearchToggle}>Flights</Button>
         <Button sx={styles.profileButton} onClick={() => setActiveModal('profile')}>My Profile</Button>
