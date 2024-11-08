@@ -2,6 +2,7 @@
 const TourGuideModel = require('../Models/TourGuide.js');
 const Itinerary = require('../Models/Itinerary.js'); // Adjust the path as necessary
 const DeactivatedItinerary = require('../Models/DeactivatedItineraries.js'); // Adjust the path as necessary
+const DeleteRequestsModel = require('../Models/DeleteRequests.js');
 const { default: mongoose } = require('mongoose');
 
 // const createTourGuide = async(req,res) => {
@@ -441,4 +442,14 @@ const decrementLoginCountTourGuide = async (req, res) => {
   }
 };
 
-module.exports = {ReadTourGuideProfile , UpdateTourGuideEmail , UpdateTourGuidePassword, UpdateTourGuideMobileNum , UpdateTourGuideYearsofExperience ,UpdateTourGuidePreviousWork ,createItineraryAsTourGuide,readItineraryAsTourGuide,updateItineraryAsTourGuide,deleteItineraryAsTourGuide, updateTourGuideProfile,loginTourGuide,getItenrarysByTourGuide, deactivateItinerary,activateItinerary, viewMyDeactivatedItinerariesTourGuide, decrementLoginCountTourGuide};
+const requestDeleteAccountTourGuide = async (req, res) => {
+  try {
+      const { Username } = req.body;  
+      await DeleteRequestsModel.create({Username : Username,Type: "Tour Guide"});
+      res.status(200).json({ msg: "You have reqeuested to delete your account, an admin will view your request!" });
+  } catch (error) {
+      res.status(500).json({ error: error.message });
+  }
+};
+
+module.exports = {ReadTourGuideProfile , UpdateTourGuideEmail , UpdateTourGuidePassword, UpdateTourGuideMobileNum , UpdateTourGuideYearsofExperience ,UpdateTourGuidePreviousWork ,createItineraryAsTourGuide,readItineraryAsTourGuide,updateItineraryAsTourGuide,deleteItineraryAsTourGuide, updateTourGuideProfile,loginTourGuide,getItenrarysByTourGuide, deactivateItinerary,activateItinerary, viewMyDeactivatedItinerariesTourGuide, decrementLoginCountTourGuide,requestDeleteAccountTourGuide};

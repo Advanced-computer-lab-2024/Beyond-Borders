@@ -2,7 +2,7 @@ const AdvertiserModel = require('../Models/Advertiser.js');
 const ActivityModel = require('../Models/Activity.js');
 const TagsModel = require('../Models/Tags.js');
 const NewActivityCategoryModel = require('../Models/ActivityCategory.js');
-
+const DeleteRequestsModel = require('../Models/DeleteRequests.js');
 
 const { default: mongoose } = require('mongoose');
 
@@ -328,6 +328,16 @@ const decrementLoginCountAdvertiser = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
+const requestDeleteAccountAdvertiser = async (req, res) => {
+  try {
+      const { Username } = req.body;  
+      await DeleteRequestsModel.create({Username : Username,Type: "Advertiser"});
+      res.status(200).json({ msg: "You have reqeuested to delete your account, an admin will view your request!" });
+  } catch (error) {
+      res.status(500).json({ error: error.message });
+  }
+};
   
 
-      module.exports = {ReadAdvertiserProfile , updateAdvertiser, createNewActivity, readActivity, updateActivity, deleteActivity, getActivitiesByAuthor, loginAdvertiser, updateAdvertiserPassword, decrementLoginCountAdvertiser};
+      module.exports = {ReadAdvertiserProfile , updateAdvertiser, createNewActivity, readActivity, updateActivity, deleteActivity, getActivitiesByAuthor, loginAdvertiser, updateAdvertiserPassword, decrementLoginCountAdvertiser,requestDeleteAccountAdvertiser};

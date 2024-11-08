@@ -101,6 +101,27 @@ const HomePageTourGuide = () => {
         }
     };
 
+    const RequestDeleteAccount = async () => {
+        try {
+          const username = localStorage.getItem('username');
+          console.log('Username:', username);
+          
+          const response = await axios.post('/api/requestDeleteAccountTourGuide', { Username: username });
+    
+          if (response.status === 200) {
+            alert('Account deletion request submitted successfully!');
+            
+          } else {
+            alert('Failed to submit account deletion request.');
+            
+          }
+        } catch (error) {
+          console.error('Error requesting account deletion:', error);
+          alert('An error occurred while requesting the deletion of your account.');
+          
+        }
+      };
+
     // Save profile data to the backend
     const saveProfile = async () => {
         const { username, password, email, mobileNum, yearsOfExperience, previousWork } = profileData;
@@ -186,103 +207,122 @@ const HomePageTourGuide = () => {
 
     return (
         <Box 
+    sx={{ 
+        backgroundColor: '#00c853', 
+        color: 'white', 
+        padding: '15px', 
+        display: 'flex', 
+        alignItems: 'center', 
+        justifyContent: 'space-between' 
+    }}
+>
+    <Typography variant="h5" component="h1" sx={{ margin: 0 }}>
+        Beyond Borders
+    </Typography>
+
+    <Box
+        component="nav"
+        sx={{
+            display: 'flex', 
+            justifyContent: 'flex-end', 
+        }}
+    >
+        <Box 
+            component="ul" 
             sx={{ 
-                backgroundColor: '#00c853', 
-                color: 'white', 
-                padding: '15px', 
+                listStyle: 'none', 
                 display: 'flex', 
-                alignItems: 'center', 
-                justifyContent: 'space-between' 
+                gap: '25px', 
+                margin: 0, 
+                padding: 0, 
+                justifyContent: 'flex-end'
             }}
         >
-            <Typography variant="h5" component="h1" sx={{ margin: 0 }}>
-                Beyond Borders
-            </Typography>
-
-            <Box
-                component="nav"
-                sx={{
-                    display: 'flex', 
-                    justifyContent: 'flex-end', 
-                }}
-            >
-                <Box 
-                    component="ul" 
-                    sx={{ 
-                        listStyle: 'none', 
-                        display: 'flex', 
-                        gap: '25px', 
-                        margin: 0, 
-                        padding: 0, 
-                        justifyContent: 'flex-end'
+            <Box component="li">
+                <Button
+                    variant="outlined"
+                    color="inherit"
+                    onClick={loadMyActivities}
+                    sx={{
+                        borderColor: 'white',  
+                        color: 'white',        
+                        borderRadius: '20px',  
+                        '&:hover': { 
+                            backgroundColor: '#69f0ae'  
+                        }
                     }}
                 >
-                    <Box component="li">
-                        <Button
-                            variant="outlined"
-                            color="inherit"
-                            onClick={loadMyActivities}
-                            sx={{
-                                borderColor: 'white',  
-                                color: 'white',        
-                                borderRadius: '20px',  
-                                '&:hover': { 
-                                    backgroundColor: '#69f0ae'  
-                                }
-                            }}
-                        >
-                            My Itineraries
-                        </Button>
-                    </Box>
-
-                    <Box component="li">
-                        <Button
-                            variant="outlined"
-                            color="inherit"
-                            onClick={loadMyDeactivatedItineraries}
-                            sx={{
-                                borderColor: 'white',  
-                                color: 'white',        
-                                borderRadius: '20px',  
-                                '&:hover': { 
-                                    backgroundColor: '#69f0ae'  
-                                }
-                            }}
-                        >
-                            My Deactivated Itineraries
-                        </Button>
-                    </Box>
-
-                    <Box component="li">
-                        <Button
-                            variant="outlined"
-                            color="inherit"
-                            onClick={() => window.location.href = `/CreateItinerary`}
-                            sx={{
-                                borderColor: 'white',   
-                                color: 'white',         
-                                borderRadius: '20px',   
-                                '&:hover': { 
-                                    backgroundColor: '#69f0ae'  
-                                }
-                            }}
-                        >
-                            Create New Itinerary
-                        </Button>
-                    </Box>
-                </Box>
+                    My Itineraries
+                </Button>
             </Box>
 
-            <Button 
-                variant="contained" 
-                sx={{ 
-                    backgroundColor: '#00c853',   
-                    color: 'white',
-                    borderRadius: '20px',
-                    '&:hover': { backgroundColor: '#69f0ae' }
-                }}
-                onClick={readMyProfile}
-            >
+            <Box component="li">
+                <Button
+                    variant="outlined"
+                    color="inherit"
+                    onClick={loadMyDeactivatedItineraries}
+                    sx={{
+                        borderColor: 'white',  
+                        color: 'white',        
+                        borderRadius: '20px',  
+                        '&:hover': { 
+                            backgroundColor: '#69f0ae'  
+                        }
+                    }}
+                >
+                    My Deactivated Itineraries
+                </Button>
+            </Box>
+
+            <Box component="li">
+                <Button
+                    variant="outlined"
+                    color="inherit"
+                    onClick={() => window.location.href = `/CreateItinerary`}
+                    sx={{
+                        borderColor: 'white',   
+                        color: 'white',         
+                        borderRadius: '20px',   
+                        '&:hover': { 
+                            backgroundColor: '#69f0ae'  
+                        }
+                    }}
+                >
+                    Create New Itinerary
+                </Button>
+            </Box>
+
+            {/* Add the Request Account Deletion button here */}
+            <Box component="li">
+                <Button
+                    variant="outlined"
+                    color="inherit"
+                    onClick={RequestDeleteAccount} // Call the function to request account deletion
+                    sx={{
+                        borderColor: 'white',   
+                        color: 'white',         
+                        borderRadius: '20px',   
+                        '&:hover': { 
+                            backgroundColor: '#69f0ae'  
+                        }
+                    }}
+                >
+                    Request Account Deletion
+                </Button>
+            </Box>
+        </Box>
+    </Box>
+
+    <Button 
+        variant="contained" 
+        sx={{ 
+            backgroundColor: '#00c853',   
+            color: 'white',
+            borderRadius: '20px',
+            '&:hover': { backgroundColor: '#69f0ae' }
+        }}
+        onClick={readMyProfile}
+    >
                 My Profile
             </Button>
 

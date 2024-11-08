@@ -1053,6 +1053,22 @@ const flagItinerary = async (req, res) => {
     }
  };
 
+ const rejectRequestDeleteAccout = async (req, res) => {
+    try {
+        const { Username } = req.body;
+        const deletedRequest = await DeleteRequestsModel.findOneAndDelete({ Username: Username });
+        if (!deletedRequest) {
+            return res.status(404).json({ msg: "No account deletion request found for this username." });
+        }
+
+        res.status(200).json({ msg: "The account deletion request has been rejected successfully." });
+    } catch (error) {
+        console.error('Error rejecting account deletion request:', error);
+        res.status(500).json({ error: error.message });
+    }
+};
+
+
 module.exports = {createNewAdmin, createNewTourismGoverner, createNewProduct, editProduct, acceptSeller, rejectSeller, createNewCategory, readAllActivityCategories, updateCategory, deleteActivityCategory, deleteAccount, searchProductAdmin, createNewTag, readAllTags, updateTag, deleteTag, 
     acceptTourGuide, rejectTourGuide, acceptAdvertiser, rejectAdvertiser, filterProductByPriceAdmin, sortProductsDescendingAdmin, sortProductsAscendingAdmin,viewProducts, loginAdmin, viewAllProductsAdmin, updateAdminPassword, getAllComplaints, updateComplaintStatus, replyToComplaint, getComplaintDetails, 
-    filterComplaintsByStatus, sortComplaintsByRecent, sortComplaintsByOldest, archiveProduct, unarchiveProduct, flagItinerary, flagActivity, viewArchivedProductsAdmin , viewAllActivitiesAdmin ,viewAllItinerariesAdmin,acceptTranspAdvertiser,rejectTranspAdvertiser, readAllDeleteRequests};
+    filterComplaintsByStatus, sortComplaintsByRecent, sortComplaintsByOldest, archiveProduct, unarchiveProduct, flagItinerary, flagActivity, viewArchivedProductsAdmin , viewAllActivitiesAdmin ,viewAllItinerariesAdmin,acceptTranspAdvertiser,rejectTranspAdvertiser, readAllDeleteRequests,rejectRequestDeleteAccout};
