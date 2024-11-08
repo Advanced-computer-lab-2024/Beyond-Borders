@@ -18,7 +18,7 @@ function TouristBookedActivitiesModal() {
       }
 
       try {
-        const response = await axios.get('/api/viewMyBookedActivities', {
+        const response = await axios.get('/api/viewBookedActivities', {
           params: { Username: username }
         });
         setBookedActivities(response.data);
