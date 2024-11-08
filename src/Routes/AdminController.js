@@ -21,11 +21,8 @@ const ItineraryrModel = require('../Models/Itinerary.js');
 const ComplaintsModel = require('../Models/Complaints.js');
 const ArchivedProductsModel = require('../Models/ArchivedProducts.js');
 const DeleteRequestsModel = require('../Models/DeleteRequests.js');
-
-
-
-
-
+const DeactivatedItineraries = require('../Models/DeactivatedItineraries.js');
+const DeactivatedActivitiesModel = require('../Models/DeactivatedActivities.js');
 const { default: mongoose } = require('mongoose');
 
 const createNewAdmin = async(req,res) => {
@@ -516,6 +513,94 @@ const deleteTag = async (req, res) => {
     }
 };
 
+const deactivateItinerary = async (req, res) => {
+    try {
+        const { title } = req.body; // Get the title from the request body
+
+        // Find the itinerary by title
+        const itinerary = await ItineraryrModel.findOne({ Title: title });
+        if (!itinerary) {
+            return res.status(404).json({ error: "Itinerary not found!" });
+        }
+
+        // Create a new deactivated itinerary document from the found itinerary
+        const deactivatedItinerary = new DeactivatedItineraries({
+            Title: itinerary.Title,
+            Activities: itinerary.Activities,
+            Locations: itinerary.Locations,
+            Timeline: itinerary.Timeline,
+            Language: itinerary.Language,
+            Price: itinerary.Price,
+            Date: itinerary.Date,
+            accessibility: itinerary.accessibility,
+            pickupLocation: itinerary.pickupLocation,
+            dropoffLocation: itinerary.dropoffLocation,
+            isBooked: itinerary.isBooked,
+            Tags: itinerary.Tags,
+            AuthorUsername: itinerary.AuthorUsername,
+            Comments: itinerary.Comments,
+            Ratings: itinerary.Ratings,
+            RatingCount: itinerary.RatingCount
+        });
+
+        // Save the new deactivated itinerary
+        await deactivatedItinerary.save();
+
+        // Delete the original itinerary
+        await ItineraryrModel.deleteOne({ Title: title });
+
+        // Respond with success message
+        res.status(200).json({ msg: "Itinerary has been deactivated!" });
+    } catch (error) {
+        // Handle any errors that occur during the process
+        res.status(500).json({ error: error.message });
+    }
+};
+
+const deactivateActivity = async (req, res) => {
+    try {
+        const { name } = req.body;  // Get the name (or any unique identifier) from the request body
+
+        // Find the activity by name
+        const activity = await ActivityModel.findOne({ Name: name });
+        
+        if (!activity) {
+            return res.status(404).json({ error: "Activity not found!" });
+        }
+
+        // Create a new deactivated activity document from the found activity
+        const deactivatedActivity = new DeactivatedActivitiesModel({
+            AdvertiserName: activity.AdvertiserName,
+            Name: activity.Name,
+            Date: activity.Date,
+            Time: activity.Time,
+            SpecialDiscount: activity.SpecialDiscount,
+            BookingOpen: activity.BookingOpen,
+            isBooked: activity.isBooked,
+            Price: activity.Price,
+            Rating: activity.Rating,
+            Location: activity.Location,
+            Category: activity.Category,
+            Tags: activity.Tags,
+            Comments: activity.Comments,
+            RatingCount: activity.RatingCount,
+            flagged: activity.flagged
+        });
+
+        // Save the new deactivated activity
+        await deactivatedActivity.save();
+
+        // Delete the original activity from the active collection
+        await ActivityModel.deleteOne({ Name: name });
+
+        // Respond with a success message
+        res.status(200).json({ msg: "Activity has been deactivated!" });
+    } catch (error) {
+        // Handle any errors that occur during the process
+        res.status(500).json({ error: error.message });
+    }
+};
+
 
 const deleteAccount = async (req, res) => {
    const {username} = req.body;
@@ -523,33 +608,45 @@ const deleteAccount = async (req, res) => {
    try {
        // Find the unregistered seller by ID
        const existingUser = await AllUsernamesModel.findOne({Username: username});
-       
+      
        if (existingUser) {
            // Delete username from AllUsernames Model
            await AllUsernamesModel.findOneAndDelete({Username: username});
+           await DeleteRequestsModel.findOneAndDelete({Username: username});
+           
            const existingTourist = await AllTouristModel.findOne({Username: username});
            const existingTourGuide = await NewAcceptedTourGuideModel.findOne({Username: username});
-           const existingAdmin = await NewAdminModel.findOne({Username: username});
            const existingSeller = await NewAcceptedSellerModel.findOne({Username: username});
            const existingAdvertiser = await NewAcceptedAdvertiserModel.findOne({Username: username});
-           const existingTourismGovernor = await NewTourismGoverner.findOne({Username: username});
+         
            if (existingTourist) {
                await AllTouristModel.findOneAndDelete({Username: username});
+               
+
            }
-           else if(existingAdmin){
-               await NewAdminModel.findOneAndDelete({Username: username});
-           }
+           
            else if(existingSeller){
+               await NewProduct.deleteMany({ Seller: username });
                await NewAcceptedSellerModel.findOneAndDelete({Username: username});
+               
            }
-           else if(existingTourismGovernor){
-               await NewTourismGoverner.findOneAndDelete({Username: username});
-           } 
+           
             else if(existingTourGuide){
-                await NewAcceptedTourGuideModel.findOneAndDelete({Username: username});
+                
+                const itineraries = await ItineraryrModel.find({ AuthorUsername: username });
+                for (let Itinerary of itineraries) {
+                    // Deactivate the itinerary
+                    await deactivateItinerary({ body: { title: Itinerary.Title } }, res);
+                }
+                await NewAcceptedTourGuideModel.findOneAndDelete({ Username: username });
            }
            else if(existingAdvertiser){
-            await NewAcceptedAdvertiserModel.findOneAndDelete({Username: username});
+            const activities = await ActivityModel.find({ AdvertiserName: username });
+            for (let activity of activities) {
+                // Deactivate the activity
+                await deactivateActivity({ body: { name: activity.Name } }, res);
+            }
+            await NewAcceptedAdvertiserModel.findOneAndDelete({ Username: username });
            }
            //Redudant else
            else{
@@ -559,13 +656,16 @@ const deleteAccount = async (req, res) => {
            // Respond with success message
            res.status(200).json({ msg: "Account has been deleted!" });
        } else {
-           res.status(404).json({ error: "LALALALALALA Account with this username doest not exist." });
+           res.status(404).json({ error: "Account with this username doest not exist." });
        }
    } catch (error) {
        // Handle any errors that occur during the process
        res.status(400).json({ error: error.message });
    }
 };
+
+
+
 
 const searchProductAdmin = async (req, res) => {
    const {ProductName} = req.body;

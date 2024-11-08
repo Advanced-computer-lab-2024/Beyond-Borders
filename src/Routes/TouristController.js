@@ -16,8 +16,9 @@ const axios = require('axios');
 const nodemailer = require('nodemailer'); 
 
 const DeactivatedItinerariesModel = require('../Models/DeactivatedItineraries.js');
-
-const ItineraryModel = require('../Models/Itinerary.js');
+const AdvertiserModel = require('../Models/Advertiser.js');
+const AdvertiserModel = require('../Models/Advertiser.js');
+const DeactivatedActivitiesModel = require('../Models/DeactivatedActivities.js');
 const { default: mongoose } = require('mongoose');
 
 const createTourist = async (req, res) => {
@@ -3068,6 +3069,46 @@ const viewBookedItineraries = async (req, res) => {
   }
 };
 
+const viewBookedActivities = async (req, res) => {
+  const { advertiserUsername } = req.query; // Get the advertiser's username from the query parameters
+
+  try {
+      // Find the advertiser by their username
+      const advertiser = await AdvertiserModel.findOne({ Username: advertiserUsername });
+      
+      if (!advertiser) {
+          return res.status(404).json({ msg: 'Advertiser not found' });
+      }
+
+      // Check if the advertiser has any booked activities
+      if (!advertiser.BookedActivities || advertiser.BookedActivities.length === 0) {
+          return res.status(200).json({ msg: 'No activities booked yet.' });
+      }
+
+      // Extract the activity names from the advertiser's booked activities
+      const bookedActivityNames = advertiser.BookedActivities.map(activity => activity.ActivityName);
+
+      // Find the activities in the Activity model (for active activities)
+      const activeActivities = await ActivityModel.find({ Name: { $in: bookedActivityNames } });
+
+      // Find the activities in the DeactivatedActivitiesModel (for deactivated activities)
+      const deactivatedActivities = await DeactivatedActivitiesModel.find({ Name: { $in: bookedActivityNames } });
+
+      // Combine both active and deactivated activities
+      const allBookedActivities = [...activeActivities, ...deactivatedActivities];
+
+      // Respond with the detailed list of all booked activities
+      res.status(200).json({
+          msg: 'Booked activities retrieved successfully',
+          bookedActivities: allBookedActivities
+      });
+  } catch (error) {
+      console.error('Error retrieving booked activities:', error);
+      res.status(500).json({ error: error.message });
+  }
+};
+
+
 const requestDeleteAccountTourist = async (req, res) => {
   try {
       const { Username } = req.body;  
@@ -3894,5 +3935,5 @@ const viewPurchasedProducts = async (req, res) => {
 
 
 module.exports = {createTourist, getTourist, updateTourist, searchProductTourist, filterActivities, filterProductByPriceTourist, ActivityRating, sortProductsDescendingTourist, sortProductsAscendingTourist, ViewAllUpcomingActivities, ViewAllUpcomingMuseumEventsTourist, getMuseumsByTagTourist, getHistoricalPlacesByTagTourist, ViewAllUpcomingHistoricalPlacesEventsTourist,viewProductsTourist, sortActivitiesPriceAscendingTourist, sortActivitiesPriceDescendingTourist, sortActivitiesRatingAscendingTourist, sortActivitiesRatingDescendingTourist, loginTourist, ViewAllUpcomingItinerariesTourist, sortItinerariesPriceAscendingTourist, sortItinerariesPriceDescendingTourist, filterItinerariesTourist, ActivitiesSearchAll, ItinerarySearchAll, MuseumSearchAll, HistoricalPlacesSearchAll, ProductRating, createComplaint, getComplaintsByTouristUsername,ChooseActivitiesByCategoryTourist,bookActivity,bookItinerary,bookMuseum,bookHistoricalPlace, ratePurchasedProduct, addPurchasedProducts, reviewPurchasedProduct, addCompletedItinerary, rateTourGuide, commentOnTourGuide, rateCompletedItinerary, commentOnItinerary, addCompletedActivities, addCompletedMuseumEvents, addCompletedHPEvents, rateCompletedActivity, rateCompletedMuseum, rateCompletedHP, commentOnActivity, commentOnMuseum, commentOnHP,deleteBookedActivity,deleteBookedItinerary,deleteBookedMuseum,deleteBookedHP,payActivity,updateWallet,updatepoints,payItinerary,payMuseum,payHP,redeemPoints, convertEgp, fetchFlights,viewBookedItineraries, requestDeleteAccountTourist,convertCurr,getActivityDetails,getHistoricalPlaceDetails,getMuseumDetails,GetCopyLink, bookFlight
-  ,fetchHotelsByCity, fetchHotels, bookHotel,bookTransportation,addPreferences, viewMyCompletedActivities, viewMyCompletedItineraries, viewMyCompletedMuseums, viewMyCompletedHistoricalPlaces,viewMyBookedActivities,viewMyBookedItineraries,viewMyBookedMuseums,viewMyBookedHistoricalPlaces,viewTourGuidesCompleted,viewAllTransportation, getItineraryDetails, viewPreferenceTags,viewPurchasedProducts
+  ,fetchHotelsByCity, fetchHotels, bookHotel,bookTransportation,addPreferences, viewMyCompletedActivities, viewMyCompletedItineraries, viewMyCompletedMuseums, viewMyCompletedHistoricalPlaces,viewMyBookedActivities,viewMyBookedItineraries,viewMyBookedMuseums,viewMyBookedHistoricalPlaces,viewTourGuidesCompleted,viewAllTransportation, getItineraryDetails, viewPreferenceTags,viewPurchasedProducts,viewBookedActivities
 };
