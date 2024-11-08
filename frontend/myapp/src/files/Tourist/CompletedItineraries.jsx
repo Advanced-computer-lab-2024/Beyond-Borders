@@ -9,6 +9,8 @@ function CompletedItineraries() {
   const [tourGuideRatings, setTourGuideRatings] = useState({});
   const [comments, setComments] = useState({});
   const [itineraryComments, setItineraryComments] = useState({}); // New state for itinerary comments
+  const [isCommentEnabled, setIsCommentEnabled] = useState({}); // Track if comment is enabled
+ 
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -47,6 +49,7 @@ function CompletedItineraries() {
           : itinerary
       );
       setCompletedItineraries(updatedItineraries);
+      setIsCommentEnabled((prev) => ({ ...prev, [itineraryName]: true }));
     } catch (error) {
       console.error('Error rating itinerary:', error);
       alert('An error occurred while submitting your rating.');
@@ -76,6 +79,8 @@ function CompletedItineraries() {
           : itinerary
       );
       setCompletedItineraries(updatedItineraries);
+      setIsCommentEnabled((prev) => ({ ...prev, [`${itineraryName}-${authorUsername}`]: true }));
+
     } catch (error) {
       console.error('Error rating tour guide:', error);
       alert('An error occurred while submitting your rating.');
@@ -175,14 +180,15 @@ function CompletedItineraries() {
                   </Button>
                 </Box>
 
-                {/* Itinerary Comment Input */}
-                <Box sx={{ mt: 2 }}>
+               {/* Itinerary Comment Input */}
+               <Box sx={{ mt: 2 }}>
                   <TextField
                     label="Comment on Itinerary"
                     variant="outlined"
                     size="small"
                     multiline
                     fullWidth
+                    disabled={!isCommentEnabled[itinerary.Title]} // Disable until rating is submitted
                     value={itineraryComments[itinerary.Title] || ''}
                     onChange={(e) => setItineraryComments({ ...itineraryComments, [itinerary.Title]: e.target.value })}
                     rows={3}
@@ -191,6 +197,7 @@ function CompletedItineraries() {
                     variant="contained"
                     onClick={() => handleCommentItinerary(itinerary.Title)}
                     sx={styles.commentButton}
+                    disabled={!isCommentEnabled[itinerary.Title]} // Disable button until rating is submitted
                   >
                     Submit Comment for Itinerary
                   </Button>
@@ -217,14 +224,15 @@ function CompletedItineraries() {
                   </Button>
                 </Box>
 
-                {/* Comment Input for Tour Guide */}
-                <Box sx={{ mt: 2 }}>
+                 {/* Comment Input for Tour Guide */}
+                 <Box sx={{ mt: 2 }}>
                   <TextField
                     label="Comment on Tour Guide"
                     variant="outlined"
                     size="small"
                     multiline
                     fullWidth
+                    disabled={!isCommentEnabled[`${itinerary.Title}-${itinerary.AuthorUsername}`]} // Disable until rating is submitted
                     value={comments[itinerary.Title] || ''}
                     onChange={(e) => setComments({ ...comments, [itinerary.Title]: e.target.value })}
                     rows={3}
@@ -233,6 +241,7 @@ function CompletedItineraries() {
                     variant="contained"
                     onClick={() => handleCommentTourGuide(itinerary.Title, itinerary.AuthorUsername)}
                     sx={styles.commentButton}
+                    disabled={!isCommentEnabled[`${itinerary.Title}-${itinerary.AuthorUsername}`]} // Disable button until rating is submitted
                   >
                     Submit Comment for Tour Guide
                   </Button>

@@ -7,6 +7,7 @@ function CompletedActivity() {
   const [completedActivities, setCompletedActivities] = useState([]);
   const [activityRatings, setActivityRatings] = useState({});
   const [activityComments, setActivityComments] = useState({}); // New state for comments
+  const [isCommentEnabled, setIsCommentEnabled] = useState({});
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -47,6 +48,7 @@ function CompletedActivity() {
           : activity
       );
       setCompletedActivities(updatedActivities);
+      setIsCommentEnabled((prev) => ({ ...prev, [activityName]: true }));
     } catch (error) {
       console.error('Error rating activity:', error);
       alert('An error occurred while submitting your rating.');
@@ -139,6 +141,7 @@ function CompletedActivity() {
                     size="small"
                     multiline
                     fullWidth
+                    disabled={!isCommentEnabled[activity.Name]} // Disable until rating is submitted
                     value={activityComments[activity.Name] || ''}
                     onChange={(e) => setActivityComments({ ...activityComments, [activity.Name]: e.target.value })}
                     rows={3}
@@ -147,6 +150,7 @@ function CompletedActivity() {
                     variant="contained"
                     onClick={() => handleCommentActivity(activity.Name)}
                     sx={styles.commentButton}
+                    disabled={!isCommentEnabled[activity.Name]} // Disable button until rating is submitted
                   >
                     Submit Comment
                   </Button>
@@ -157,6 +161,7 @@ function CompletedActivity() {
             <Typography>No completed activities found.</Typography>
           )}
         </Box>
+
 
         <Button variant="contained" sx={styles.doneButton} onClick={() => navigate('/touristHome')}>Done</Button>
       </Box>

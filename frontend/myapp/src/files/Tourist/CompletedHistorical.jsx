@@ -7,7 +7,8 @@ import { useNavigate } from 'react-router-dom';
 function CompletedHistorical() {
   const [completedHistoricalPlaces, setCompletedHistoricalPlaces] = useState([]);
   const [historicalPlaceRatings, setHistoricalPlaceRatings] = useState({});
-  const [historicalPlaceComments, setHistoricalPlaceComments] = useState({}); // comments
+  const [historicalPlaceComments, setHistoricalPlaceComments] = useState({});
+  const [isCommentEnabled, setIsCommentEnabled] = useState({}); // State to track if comment is enabled
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -48,14 +49,16 @@ function CompletedHistorical() {
           : place
       );
       setCompletedHistoricalPlaces(updatedHistoricalPlaces);
+
+      // Enable commenting for this place
+      setIsCommentEnabled((prev) => ({ ...prev, [HPname]: true }));
     } catch (error) {
       console.error('Error rating historical place:', error);
       alert('An error occurred while submitting your rating.');
     }
   };
 
-
-
+  // Function to handle historical place comment submission
   const handleCommentHistoricalPlace = async (HPname) => {
     const touristUsername = localStorage.getItem('username');
     const comment = historicalPlaceComments[HPname]?.trim();
@@ -74,13 +77,12 @@ function CompletedHistorical() {
       alert(response.data.msg);
 
       // Clear the comment field after submission
-      setHistoricalPlaceComments(prevComments => ({ ...prevComments, [HPname]: '' }));
+      setHistoricalPlaceComments((prevComments) => ({ ...prevComments, [HPname]: '' }));
     } catch (error) {
       console.error('Error commenting on historical place:', error);
       alert('An error occurred while submitting your comment.');
     }
   };
-
 
   return (
     <Modal open={true} onClose={() => navigate('/touristHome')}>
@@ -92,7 +94,7 @@ function CompletedHistorical() {
         {/* Completed Historical Places Listing */}
         <Box sx={styles.listContainer}>
           {completedHistoricalPlaces.length > 0 ? (
-            completedHistoricalPlaces.map(place => (
+            completedHistoricalPlaces.map((place) => (
               <Box key={place._id} sx={styles.item}>
                 <Typography variant="body1"><strong>Name:</strong> {place.name}</Typography>
                 <Typography variant="body2"><strong>Location:</strong> {place.location}</Typography>
@@ -124,6 +126,7 @@ function CompletedHistorical() {
                     Submit Rating
                   </Button>
                 </Box>
+
                 {/* Comment Input for Historical Place */}
                 <Box sx={{ mt: 2 }}>
                   <TextField
@@ -132,6 +135,7 @@ function CompletedHistorical() {
                     size="small"
                     multiline
                     fullWidth
+                    disabled={!isCommentEnabled[place.name]} // Disable until rating is submitted
                     value={historicalPlaceComments[place.name] || ''}
                     onChange={(e) => setHistoricalPlaceComments({ ...historicalPlaceComments, [place.name]: e.target.value })}
                     rows={3}
@@ -140,6 +144,7 @@ function CompletedHistorical() {
                     variant="contained"
                     onClick={() => handleCommentHistoricalPlace(place.name)}
                     sx={styles.commentButton}
+                    disabled={!isCommentEnabled[place.name]} // Disable button until rating is submitted
                   >
                     Submit Comment
                   </Button>

@@ -8,6 +8,7 @@ function CompletedMuseums() {
   const [completedMuseums, setCompletedMuseums] = useState([]);
   const [museumRatings, setMuseumRatings] = useState({});
   const [museumComments, setMuseumComments] = useState({}); // New state for comments
+  const [isCommentEnabled, setIsCommentEnabled] = useState({});
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -48,6 +49,7 @@ function CompletedMuseums() {
           : museum
       );
       setCompletedMuseums(updatedMuseums);
+      setIsCommentEnabled((prev) => ({ ...prev, [museumName]: true }));
     } catch (error) {
       console.error('Error rating museum:', error);
       alert('An error occurred while submitting your rating.');
@@ -130,6 +132,7 @@ function CompletedMuseums() {
                     size="small"
                     multiline
                     fullWidth
+                    disabled={!isCommentEnabled[museum.name]} // Disable until rating is submitted
                     value={museumComments[museum.name] || ''}
                     onChange={(e) => setMuseumComments({ ...museumComments, [museum.name]: e.target.value })}
                     rows={3}
@@ -138,6 +141,7 @@ function CompletedMuseums() {
                     variant="contained"
                     onClick={() => handleCommentMuseum(museum.name)}
                     sx={styles.commentButton}
+                    disabled={!isCommentEnabled[museum.name]} // Disable button until rating is submitted
                   >
                     Submit Comment
                   </Button>
@@ -148,7 +152,6 @@ function CompletedMuseums() {
             <Typography>No completed museums found.</Typography>
           )}
         </Box>
-
         <Button variant="contained" sx={styles.doneButton} onClick={() => navigate('/touristHome')}>Done</Button>
       </Box>
     </Modal>

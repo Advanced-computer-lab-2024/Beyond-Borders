@@ -40,6 +40,7 @@ const [showFlightSearch, setShowFlightSearch] = useState(false); // Toggle for f
 const [flightOffers, setFlightOffers] = useState([]); // Holds flight search results
 const [currency, setCurrency] = useState('EGP');
 const [isModalOpen, setModalOpen] = useState(false);
+const [isItineraryModalOpen, setItineraryModalOpen] = useState(false);
 const [convertedPrices, setConvertedPrices] = useState({});
   const navigate = useNavigate();
   
@@ -305,9 +306,13 @@ const [convertedPrices, setConvertedPrices] = useState({});
     }
   };
 
- 
   const openItineraryModal = () => {
-    setModalOpen(true);
+    setItineraryModalOpen(true);
+  };
+
+  // Function to close the itinerary modal
+  const closeItineraryModal = () => {
+    setItineraryModalOpen(false);
   };
 
 
@@ -366,7 +371,13 @@ const [convertedPrices, setConvertedPrices] = useState({});
         <Button sx={styles.button} onClick={() => navigate('/touristProducts')}>View All Products</Button>
         <Button sx={styles.button} onClick={() => navigate('/touristActivities')}>View All Activities</Button>
         <Button sx={styles.button} onClick={() => navigate('/touristMuseums')}>View All Museums</Button>
-        <Button sx={styles.button} variant="contained" onClick={openItineraryModal}>View All Itineraries</Button>
+        <Button sx={styles.button} variant="contained" onClick={openItineraryModal}>
+          View All Itineraries
+        </Button>
+      
+        {isItineraryModalOpen && (
+          <TouristItineraryModal currency={currency} onClose={closeItineraryModal} />
+        )}
         <Button sx={styles.button} onClick={() => navigate('/CompletedItineraries')}>View All completed Itineraries</Button>
         <Button sx={styles.button} onClick={() => navigate('/CompletedActivity')}>View All completed Activities</Button>
         <Button sx={styles.button} onClick={() => navigate('/CompletedMuseums')}>View All completed Museums</Button>
@@ -381,7 +392,7 @@ const [convertedPrices, setConvertedPrices] = useState({});
         {isModalOpen && <TouristItineraryModal currency={currency} />}
         <Select
                 value={currency}
-               //onChange={handleCurrencyChange}
+               onChange={handleCurrencyChange}
                 sx={{ minWidth: 100 }} // Adjust width as necessary
                 displayEmpty
                 variant="outlined"

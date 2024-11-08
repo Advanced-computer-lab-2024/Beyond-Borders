@@ -3,8 +3,9 @@ import React, { useState, useEffect } from 'react';
 import { Box, Button, Typography, Modal, TextField } from '@mui/material';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import PropTypes from 'prop-types';
 
-function TouristItineraryModal({ currency }) {
+function TouristItineraryModal({ currency, onClose  }) {
   const [itineraries, setItineraries] = useState([]);
   const [email, setEmail] = useState('');
   const [convertedPrices, setConvertedPrices] = useState({});
@@ -109,7 +110,7 @@ function TouristItineraryModal({ currency }) {
   };
 
   return (
-    <Modal open={true} onClose={() => navigate('/touristHome')}>
+    <Modal open={true} onClose={onClose}>
       <Box sx={styles.modalContent}>
         <Typography variant="h6" component="h2">
           Upcoming Itineraries
@@ -151,13 +152,18 @@ function TouristItineraryModal({ currency }) {
           ))}
         </Box>
 
-        <Button variant="contained" sx={styles.doneButton} onClick={() => navigate('/touristHome')}>
+        <Button variant="contained" sx={styles.doneButton} onClick={onClose}>
           Done
         </Button>
       </Box>
     </Modal>
   );
 }
+
+TouristItineraryModal.propTypes = {
+  currency: PropTypes.string.isRequired,
+  onClose: PropTypes.func.isRequired,
+};
 
 const styles = {
   modalContent: {
