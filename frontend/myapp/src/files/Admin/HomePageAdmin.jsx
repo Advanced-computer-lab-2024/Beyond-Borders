@@ -5,6 +5,7 @@ import axios from 'axios';
 import AdminProductModal from './AdminProductModal';
 import AdminItineraryModal from './AdminItineraryModal';
 import AdminComplaintsModal from './AdminComplaintsModal';
+import AdminDeleteRequestsModal from './AdminDeleteRequestsModal';
 
 function HomePageAdmin() {
   const [activeModal, setActiveModal] = useState(null);
@@ -257,6 +258,10 @@ function HomePageAdmin() {
         <Button sx={styles.button} onClick={() => setActiveModal('viewAllItineraries')}>View All Itineraries</Button>
         <Button sx={styles.button} onClick={() => navigate('/AdminActivitiesModal')}>View All Activity </Button>
         <Button sx={styles.button} onClick={() => setActiveModal('changemypassword')}>Change My password</Button>
+        <Button sx={styles.button} onClick={() => setActiveModal('viewAllDeleteRequests')}>
+  View All Delete Requests
+</Button>
+
       </Box>
 
       {/* Search and Filter Section */}
@@ -382,6 +387,10 @@ function HomePageAdmin() {
           </Box>
         </Modal>
       )}
+      {activeModal === 'viewAllDeleteRequests' && (
+  <AdminDeleteRequestsModal onClose={() => setActiveModal(null)} />
+)}
+
 
 
 
