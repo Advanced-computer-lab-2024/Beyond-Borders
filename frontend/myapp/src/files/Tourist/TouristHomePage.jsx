@@ -594,6 +594,11 @@ const handleRedeemPoints = async () => {
         <Button sx={styles.button} onClick={openTransportationModal}>
         View All Transportation
     </Button>
+
+        <Button sx={styles.button} onClick={() => navigate('/touristBookedTransportation')}>
+         View My Booked Transportation
+        </Button>
+
     {isTransportationModalOpen && (
     <TouristTransportationModal currency={currency} onClose={closeTransportationModal} />
 )}
