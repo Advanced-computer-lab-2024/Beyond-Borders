@@ -65,6 +65,7 @@ import TouristBookedActivitiesModal from './files/Tourist/TouristBookedActivitie
 import TouristBookedMuseumsModal from './files/Tourist/TouristBookedMuseumsModal';
 import TouristBookedItinerariesModal from './files/Tourist/TouristBookedItinerariesModal';
 import TouristBookedHistoricalPlacesModal from './files/Tourist/TouristBookedHistoricalPlacesModal';
+import TouristTransportationModal from './files/Tourist/TouristTransportationModal';
 
 
 
@@ -125,7 +126,8 @@ function App() {
           <Route path="/historicalPlace/details/:HPname" element={<HistoricalDetails/>} />
           <Route path="/itinerary/details/:itineraryName" element={<ItineraryDetails/>}/>
           <Route path="/activity/details/:activityName" element={<ActivityDetails/>}/>
-         
+          <Route path="/touristTransportation" element={<TouristTransportationModal />} />
+
           
 
          

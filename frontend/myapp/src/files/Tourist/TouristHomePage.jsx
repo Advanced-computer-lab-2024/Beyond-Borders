@@ -19,7 +19,7 @@ import TouristBookedHistoricalPlacesModal from './TouristBookedHistoricalPlacesM
 import TouristBookedItinerariesModal from './TouristBookedItinerariesModal';
 import TouristBookedActivitiesModal from './TouristBookedActivitiesModal';
 import TouristBookedMuseumsModal from './TouristBookedMuseumsModal';
-
+import TouristTransportationModal from './TouristTransportationModal';
 
 
 function TouristHomePage() {
@@ -70,18 +70,14 @@ const [isBookedActivityModalOpen, setIsBookedActivityModalOpen] = useState(false
 const [isBookedMuseumModalOpen, setIsBookedMuseumModalOpen] = useState(false);
 const [convertedPrices, setConvertedPrices] = useState({});
 //Book transportation 
-const [touristUsername, setTouristUsername] = useState('');
-const [TranspName, setTranspName] = useState('');
-const [responseMessage, setResponseMessage] = useState('');
-const [totalCost, setTotalCost] = useState(null);
+// const [touristUsername, setTouristUsername] = useState('');
+// const [TranspName, setTranspName] = useState('');
+// const [responseMessage, setResponseMessage] = useState('');
+// const [totalCost, setTotalCost] = useState(null);
+const [isTransportationModalOpen, setIsTransportationModalOpen] = useState(false);
 
  // Load the tourist's name from local storage
- useEffect(() => {
-  const storedUsername = localStorage.getItem('username');
-  if (storedUsername) {
-    setTouristUsername(storedUsername);
-  }
-}, []);
+ 
 
   const navigate = useNavigate();
   
@@ -397,6 +393,10 @@ const [totalCost, setTotalCost] = useState(null);
 
   const openBookedMuseumModal = () => setIsBookedMuseumModalOpen(true);
   const closeBookedMuseumModal = () => setIsBookedMuseumModalOpen(false);
+  const openTransportationModal = () => setIsTransportationModalOpen(true);
+
+// Function to close the modal
+const closeTransportationModal = () => setIsTransportationModalOpen(false);
 
   const handleCurrencyChange = async (event) => {
     const selectedCurrency = event ? event.target.value : currency;
@@ -476,26 +476,7 @@ const handleRedeemPoints = async () => {
   
 };
 // Function to book transportation
-const handleBooking = async () => {
-  try {
-    const response = await axios.put('/bookTransportation', {
-      touristUsername,
-      TranspName,
-    });
 
-    const data = response.data;
-
-    if (response.status === 200) {
-      setResponseMessage(data.msg);
-      setTotalCost(data.totalCost);
-    } else {
-      setResponseMessage(data.msg || 'An error occurred');
-    }
-  } catch (error) {
-    setResponseMessage('Failed to book transportation');
-    console.error('Error:', error);
-  }
-};
   return (
     <Box sx={styles.container}>
       <Typography variant="h5" component="h1" sx={styles.title}>
@@ -610,6 +591,12 @@ const handleBooking = async () => {
         <Button sx={styles.button} variant="contained" onClick={openBookedHPModal}>
           View My Booked Historical Places 
         </Button>
+        <Button sx={styles.button} onClick={openTransportationModal}>
+        View All Transportation
+    </Button>
+    {isTransportationModalOpen && (
+    <TouristTransportationModal currency={currency} onClose={closeTransportationModal} />
+)}
 
         {isBookedHistoricalModalOpen && (
           <TouristBookedHistoricalPlacesModal currency={currency} onClose={closeBookedHPModal} />
@@ -1030,34 +1017,7 @@ const handleBooking = async () => {
     </Box>
   </Modal>
 )}
- <Box sx={styles.container}>
-    <Typography variant="h5" component="h1" sx={styles.title}>
-      Beyond Borders
-    </Typography>
 
-    {/* Display loaded tourist username */}
-    <Box sx={{ display: 'flex', gap: 2, mt: 3, mb: 3 }}>
-      <TextField
-        label="Tourist Username"
-        variant="outlined"
-        value={touristUsername}
-        disabled // Display-only, as it is loaded from local storage
-      />
-      <TextField
-        label="Transportation Name"
-        variant="outlined"
-        value={TranspName}
-        onChange={(e) => setTranspName(e.target.value)}
-      />
-      <Button variant="contained" onClick={handleBooking} sx={{ backgroundColor: '#4CAF50', color: 'white' }}>
-        Book Transportation
-      </Button>
-    </Box>
-
-    {/* Display response message and total cost */}
-    {responseMessage && <Typography>{responseMessage}</Typography>}
-    {totalCost !== null && <Typography>Total Cost: ${totalCost}</Typography>}
-  </Box>
 
 
   
