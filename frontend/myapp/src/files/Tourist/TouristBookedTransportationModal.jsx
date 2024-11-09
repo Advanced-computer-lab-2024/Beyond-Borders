@@ -3,9 +3,10 @@ import { Box, Button, Typography, Modal } from '@mui/material';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
-function TouristBookedTransportationModal() {
+function TouristBookedTransportationModal({ currency, onClose }) {
   const [bookedTransportation, setBookedTransportation] = useState([]);
   const [errorMessage, setErrorMessage] = useState('');
+  const [convertedPrices, setConvertedPrices] = useState({});
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -28,6 +29,34 @@ function TouristBookedTransportationModal() {
 
     fetchBookedTransportation();
   }, []);
+  useEffect(() => {
+    if (currency !== 'EGP') {
+        convertTransportationPrices();
+    }
+}, [currency, bookedTransportation]);
+
+
+const convertTransportationPrices = async () => {
+  const newConvertedPrices = {};
+
+  await Promise.all(
+    bookedTransportation.map(async (transportation) => {
+          try {
+              const response = await axios.post('/convertCurr', {
+                  priceEgp: transportation.price || 0,
+                  targetCurrency: currency,
+              });
+
+              newConvertedPrices[transportation._id] = response.data.convertedPrice;
+          } catch (error) {
+              console.error(`Error converting price for ${transportation.serviceName}:`, error);
+          }
+      })
+  );
+
+  setConvertedPrices(newConvertedPrices);
+};
+
 
   return (
     <Modal open={true} onClose={() => navigate('/touristHome')}>
@@ -45,7 +74,9 @@ function TouristBookedTransportationModal() {
                   <Typography variant="body1"><strong>Service Name:</strong> {transport.serviceName || "N/A"}</Typography>
                   <Typography variant="body2"><strong>Advertiser Name:</strong> {transport.advertiserName || "N/A"}</Typography>
                   <Typography variant="body2"><strong>Service Type:</strong> {transport.serviceType || "N/A"}</Typography>
-                  <Typography variant="body2"><strong>Price:</strong> ${transport.price || "N/A"}</Typography>
+                  <Typography variant="body2">
+                                <strong>Price:</strong> {currency === 'EGP' ? `${transport.price || 0} EGP` : `${convertedPrices[transport._id] || 'Loading...'} ${currency}`}
+                            </Typography>
                   <Typography variant="body2"><strong>Capacity:</strong> {transport.capacity || "N/A"}</Typography>
                   <Typography variant="body2"><strong>Available:</strong> {transport.available ? 'Yes' : 'No'}</Typography>
                   <Typography variant="body2"><strong>Route:</strong> {transport.routeDetails?.startLocation} to {transport.routeDetails?.endLocation}</Typography>

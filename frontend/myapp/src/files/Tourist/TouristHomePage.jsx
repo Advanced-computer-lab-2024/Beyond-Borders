@@ -20,6 +20,7 @@ import TouristBookedItinerariesModal from './TouristBookedItinerariesModal';
 import TouristBookedActivitiesModal from './TouristBookedActivitiesModal';
 import TouristBookedMuseumsModal from './TouristBookedMuseumsModal';
 import TouristTransportationModal from './TouristTransportationModal';
+import TouristBookedTransportationModal from './TouristBookedTransportationModal';
 
 
 function TouristHomePage() {
@@ -75,7 +76,7 @@ const [convertedPrices, setConvertedPrices] = useState({});
 // const [responseMessage, setResponseMessage] = useState('');
 // const [totalCost, setTotalCost] = useState(null);
 const [isTransportationModalOpen, setIsTransportationModalOpen] = useState(false);
-
+const [isBookedransportationModalOpen, setIsBookedTransportationModalOpen] = useState(false);
  // Load the tourist's name from local storage
  
 
@@ -393,10 +394,13 @@ const [isTransportationModalOpen, setIsTransportationModalOpen] = useState(false
 
   const openBookedMuseumModal = () => setIsBookedMuseumModalOpen(true);
   const closeBookedMuseumModal = () => setIsBookedMuseumModalOpen(false);
-  const openTransportationModal = () => setIsTransportationModalOpen(true);
 
-// Function to close the modal
-const closeTransportationModal = () => setIsTransportationModalOpen(false);
+  const openTransportationModal = () => setIsTransportationModalOpen(true); 
+  const closeTransportationModal = () => setIsTransportationModalOpen(false);
+
+  const openBookedTransportationModal = () => setIsBookedTransportationModalOpen(true); 
+  const closeBookedTransportationModal = () => setIsBookedTransportationModalOpen(false);
+  
 
   const handleCurrencyChange = async (event) => {
     const selectedCurrency = event ? event.target.value : currency;
@@ -602,7 +606,12 @@ const handleRedeemPoints = async () => {
     {isTransportationModalOpen && (
     <TouristTransportationModal currency={currency} onClose={closeTransportationModal} />
 )}
-
+          <Button sx={styles.button} variant="contained" onClick={openBookedTransportationModal}>
+          View Booked Transportation
+          </Button>
+          {isBookedransportationModalOpen && (
+         <TouristBookedTransportationModal currency={currency} onClose={closeBookedTransportationModal}/>
+           )}
         {isBookedHistoricalModalOpen && (
           <TouristBookedHistoricalPlacesModal currency={currency} onClose={closeBookedHPModal} />
         )}
