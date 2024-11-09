@@ -66,6 +66,7 @@ import TouristBookedMuseumsModal from './files/Tourist/TouristBookedMuseumsModal
 import TouristBookedItinerariesModal from './files/Tourist/TouristBookedItinerariesModal';
 import TouristBookedHistoricalPlacesModal from './files/Tourist/TouristBookedHistoricalPlacesModal';
 import TouristTransportationModal from './files/Tourist/TouristTransportationModal';
+import AdminDeleteRequestsModal from './files/Admin/AdminDeleteRequestsModal';
 
 
 
@@ -112,6 +113,8 @@ function App() {
           <Route path="/AdminAddProduct" element={<AdminAddProduct/>}/>
           <Route path="/AdminComplaintsModal" element={<AdminComplaintsModal/>}/>
           <Route path="/AdminArchivedProducts" element={<AdminArchivedProducts/>}/>
+          <Route path="/AdminDeleteRequest" element={<AdminDeleteRequestsModal/>}/>
+
           <Route path="/CompletedItineraries" element={<CompletedItineraries/>}/>
           <Route path="/CompletedActivity" element={<CompletedActivity/>}/>
           <Route path="/CompletedMuseums" element={<CompletedMuseums/>}/>
