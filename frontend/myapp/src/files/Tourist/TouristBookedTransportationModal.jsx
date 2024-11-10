@@ -59,7 +59,7 @@ const convertTransportationPrices = async () => {
 
 
   return (
-    <Modal open={true} onClose={() => navigate('/touristHome')}>
+    <Modal open={true} onClose={onClose}>
       <Box sx={styles.modalContent}>
         <Typography variant="h6" component="h2">
           My Booked Transportation
@@ -100,7 +100,7 @@ const convertTransportationPrices = async () => {
             )}
           </Box>
         )}
-        <Button variant="contained" sx={styles.doneButton} onClick={() => navigate('/touristHome')}>
+        <Button variant="contained" sx={styles.doneButton} onClick={onClose}>
           Done
         </Button>
       </Box>
