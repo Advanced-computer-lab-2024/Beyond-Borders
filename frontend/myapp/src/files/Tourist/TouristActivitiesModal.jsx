@@ -124,7 +124,7 @@ function TouristActivitiesModal({ currency, onClose  }) {
     }
   };
 
-  /*const handleBookActivity = async (activity) => {
+  const handleBookActivity = async (activity) => {
     const touristUsername = localStorage.getItem('username');
     if (!touristUsername || !activity) {
       alert("Please log in and select an activity to book.");
@@ -153,48 +153,8 @@ function TouristActivitiesModal({ currency, onClose  }) {
       console.error('Error booking activity:', error);
       alert('An error occurred while booking the activity.');
     }
-  };*/
-
-  const handleBookActivity = async (activity) => {
-    const touristUsername = localStorage.getItem('username');
-    if (!touristUsername || !activity) {
-      alert("Please log in and select an activity to book.");
-      return;
-    }
-  
-    try {
-      // First, make the bookActivity request
-      const bookResponse = await axios.put('/bookActivity', {
-        touristUsername,
-        activityName: activity.Name
-      });
-  
-      if (bookResponse.status === 201) {
-        // If booking is successful, call the payActivity API
-        const payResponse = await axios.put('/payActivity', {
-          touristUsername,
-          activityName: activity.Name
-        });
-  
-        if (payResponse.status === 200) {
-          // Payment is successful
-          alert(`Payment successful!`);
-          // console.log(`Remaining Wallet Balance: $${payResponse.data.remainingWallet}`);
-          // console.log(`Points: ${payResponse.data.Points}, Badge Level: ${payResponse.data.BadgeLevelOfPoints}`);
-        } else {
-          alert(payResponse.data.msg || 'Failed to complete payment.');
-        }
-      } else {
-        alert(bookResponse.data.msg || 'Failed to book activity.');
-      }
-    } catch (error) {
-      console.error('Error processing activity booking/payment:', error);
-      alert('An error occurred while processing the booking/payment.');
-    }
   };
-  
-  
- 
+
   const convertActivityPrices = async () => {
     const newConvertedPrices = {};
     await Promise.all(

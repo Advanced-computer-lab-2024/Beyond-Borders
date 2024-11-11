@@ -51,7 +51,7 @@ function TouristHistoricalPlacesModal({ currency, onClose }) {
     }
   };
 
-  /*const handleBookPlace = async (place) => {
+  const handleBookPlace = async (place) => {
     const touristUsername = localStorage.getItem('username');
     if (!touristUsername || !place) {
       alert("Please log in and select a historical place event to book.");
@@ -80,46 +80,8 @@ function TouristHistoricalPlacesModal({ currency, onClose }) {
       console.error('Error booking historical place event:', error);
       alert('An error occurred while booking the historical place event.');
     }
-  };*/
-
-  const handleBookPlace = async (place) => {
-    const touristUsername = localStorage.getItem('username');
-    if (!touristUsername || !place) {
-      alert("Please log in and select a historical place event to book.");
-      return;
-    }
-  
-    try {
-      // First, make the bookHistoricalPlace request
-      const bookResponse = await axios.put('/bookHistoricalPlace', {
-        touristUsername,
-        historicalPlaceName: place.name
-      });
-  
-      if (bookResponse.status === 201) {
-        // If booking is successful, call the payHP API
-        const payResponse = await axios.put('/payHP', {
-          touristUsername,
-          HPName: place.name
-        });
-  
-        if (payResponse.status === 200) {
-          // Payment is successful
-          alert(`Payment successful! `);
-          // console.log(`Remaining Wallet Balance: $${payResponse.data.remainingWallet}`);
-          // console.log(`Points: ${payResponse.data.Points}, Badge Level: ${payResponse.data.BadgeLevelOfPoints}`);
-        } else {
-          alert(payResponse.data.msg || 'Failed to complete payment.');
-        }
-      } else {
-        alert(bookResponse.data.msg || 'Failed to book historical place event.');
-      }
-    } catch (error) {
-      console.error('Error processing historical place booking/payment:', error);
-      alert('An error occurred while processing the booking/payment.');
-    }
   };
-  
+
   
   const convertHistoricalPlacePrices = async () => {
     const newConvertedPrices = {};

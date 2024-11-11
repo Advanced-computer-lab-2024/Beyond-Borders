@@ -78,7 +78,7 @@ function TouristItineraryModal({ currency, onClose  }) {
     }
   };
 
-  /*const handleBookItinerary = async (itinerary) => {
+  const handleBookItinerary = async (itinerary) => {
     const touristUsername = localStorage.getItem('username');
     if (!touristUsername) {
       alert("Please log in to book an itinerary.");
@@ -107,45 +107,8 @@ function TouristItineraryModal({ currency, onClose  }) {
       console.error('Error booking itinerary:', error);
       alert('An error occurred while booking the itinerary.');
     }
-  };*/
-
-  const handleBookItinerary = async (itinerary) => {
-    const touristUsername = localStorage.getItem('username');
-    if (!touristUsername) {
-      alert("Please log in to book an itinerary.");
-      return;
-    }
-  
-    try {
-      // First, make the bookItinerary request
-      const bookResponse = await axios.put('/bookItinerary', {
-        touristUsername,
-        itineraryName: itinerary.Title
-      });
-  
-      if (bookResponse.status === 201) {
-        // If booking is successful, call the payItinerary API
-        const payResponse = await axios.put('/payItinerary', {
-          touristUsername,
-          ItineraryName: itinerary.Title
-        });
-  
-        if (payResponse.status === 200) {
-          // Payment is successful
-          alert(`Payment successful! `);
-          // console.log(`Remaining Wallet Balance: $${payResponse.data.remainingWallet}`);
-          // console.log(`Points: ${payResponse.data.Points}, Badge Level: ${payResponse.data.BadgeLevelOfPoints}`);
-        } else {
-          alert(payResponse.data.msg || 'Failed to complete payment.');
-        }
-      } else {
-        alert(bookResponse.data.msg || 'Failed to book itinerary.');
-      }
-    } catch (error) {
-      console.error('Error processing itinerary booking/payment:', error);
-      alert('An error occurred while processing the booking/payment.');
-    }
   };
+
   
 
   return (

@@ -85,7 +85,7 @@ function TouristMuseumsModal({ currency, onClose }) {
       alert('An error occurred while generating the share link.');
     }
   };
-  /*const handleBookMuseum = async (museum) => {
+  const handleBookMuseum = async (museum) => {
     const touristUsername = localStorage.getItem('username');
     console.log(touristUsername);
     console.log(museum); 
@@ -116,47 +116,6 @@ function TouristMuseumsModal({ currency, onClose }) {
     } catch (error) {
       console.error('Error booking museum event:', error);
       alert('An error occurred while booking the museum event.');
-    }
-  };*/
-
-  const handleBookMuseum = async (museum) => {
-    const touristUsername = localStorage.getItem('username');
-    console.log(touristUsername);
-    console.log(museum); 
-  
-    if (!touristUsername || !museum) {
-      alert("Please log in and select a museum event to book.");
-      return;
-    }
-  
-    try {
-      // First, make the bookMuseum request
-      const bookResponse = await axios.put('/bookMuseum', {
-        touristUsername,
-        museumName: museum.name 
-      });
-  
-      if (bookResponse.status === 201) {
-        // If booking is successful, call the payMuseum API
-        const payResponse = await axios.put('/payMuseum', {
-          touristUsername,
-          museumName: museum.name
-        });
-  
-        if (payResponse.status === 200) {
-          // Payment is successful
-          alert(`Payment successful!`);
-          // console.log(`Remaining Wallet Balance: $${payResponse.data.remainingWallet}`);
-          // console.log(`Points: ${payResponse.data.Points}, Badge Level: ${payResponse.data.BadgeLevelOfPoints}`);
-        } else {
-          alert(payResponse.data.msg || 'Failed to complete payment.');
-        }
-      } else {
-        alert(bookResponse.data.msg || 'Failed to book museum event.');
-      }
-    } catch (error) {
-      console.error('Error processing museum booking/payment:', error);
-      alert('An error occurred while processing the booking/payment.');
     }
   };
   
