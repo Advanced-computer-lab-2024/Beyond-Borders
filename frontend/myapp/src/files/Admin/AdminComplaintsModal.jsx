@@ -10,17 +10,14 @@ function AdminComplaintsModal({ filteredComplaints, onClose }) {
   const [activeModal, setActiveModal] = useState('complaints');
   const navigate = useNavigate();
 
-  
-   
-  
-    useEffect(() => {
-      // Use filtered complaints if provided, otherwise fetch all complaints
-      if (filteredComplaints) {
-        setComplaints(filteredComplaints);
-      } else {
-        fetchComplaints();
-      }
-    }, [filteredComplaints]);
+  useEffect(() => {
+    // Use filtered complaints if provided, otherwise fetch all complaints
+    if (filteredComplaints) {
+      setComplaints(filteredComplaints);
+    } else {
+      fetchComplaints();
+    }
+  }, [filteredComplaints]);
 
   const fetchComplaints = async () => {
     try {
@@ -67,12 +64,10 @@ function AdminComplaintsModal({ filteredComplaints, onClose }) {
   };
 
   const saveStatus = async (complaint) => {
-    const newStatus = complaint.Status === 'Resolved' ? 'Resolved' : 'Pending';
-
     try {
       const response = await axios.put('/updateComplaintStatus', {
         Title: complaint.Title,
-        newStatus,
+        newStatus: complaint.Status,
       });
 
       if (response.status === 200) {
@@ -104,16 +99,19 @@ function AdminComplaintsModal({ filteredComplaints, onClose }) {
                     <Typography variant="body2"><strong>Date:</strong> {new Date(complaint.Date).toLocaleDateString()}</Typography>
                     <Typography variant="body2"><strong>Reply:</strong> {complaint.Reply || 'No reply yet'}</Typography>
                     <Typography variant="body2"><strong>Tourist Username:</strong> {complaint.TouristUsername}</Typography>
+                    <Typography variant="body2"><strong>Status:</strong> {complaint.Status}</Typography>
                     
                     {/* Editable Checkbox for marking as resolved */}
                     <FormControlLabel
                       control={
                         <Checkbox
                           checked={complaint.Status === 'Resolved'}
-                          onChange={() => toggleResolvedStatus(complaint._id)}
+                          onChange={() => {
+                            toggleResolvedStatus(complaint._id);
+                          }}
                         />
                       }
-                      label={<Typography><strong>Status:</strong> Resolved</Typography>}
+                     
                     />
 
                     <Box sx={{ display: 'flex', gap: 1, mt: 2 }}>
