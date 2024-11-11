@@ -72,7 +72,7 @@ function TouristTransportationModal({ currency, onClose }) {
             const data = await response.json();
 
             if (response.ok) {
-                alert(`Transportation booked successfully! Total Cost: $${data.totalCost}`);
+                alert(`Transportation booked successfully! `);
                 navigate('/touristHome', {
                     state: {
                         type: 'transportation',

@@ -28,7 +28,7 @@ function PaymentPage() {
       const response = await axios.put(endpoint, payload);
 
       if (response.status === 200) {
-        alert(`Payment successful! Remaining Wallet Balance: $${response.data.remainingWallet}`);
+        alert(`Payment successful! Remaining Wallet Balance: ${response.data.remainingWallet}`);
         console.log(`Points: ${response.data.Points}, Badge Level: ${response.data.BadgeLevelOfPoints}`);
         navigate('/touristHome');
       } else {
@@ -46,7 +46,7 @@ function PaymentPage() {
       <Typography variant="body1">
         You are about to pay for a {type} booking: <strong>{name}</strong>
       </Typography>
-      <Typography variant="body1">Total Cost: ${totalCost}</Typography>
+      <Typography variant="body1">Total Cost: {totalCost}</Typography>
       <Button variant="contained" onClick={handlePayment} sx={styles.payButton}>
         Pay
       </Button>

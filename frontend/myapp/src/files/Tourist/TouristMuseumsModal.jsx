@@ -102,7 +102,7 @@ function TouristMuseumsModal({ currency, onClose }) {
       });
   
       if (response.status === 201) {
-        alert(`Museum event booked successfully! Total Cost: $${response.data.ticketPrice}`);
+        alert(`Museum event booked successfully!`);
         navigate('/PaymentPage', {
           state: {
             type: 'museum', 

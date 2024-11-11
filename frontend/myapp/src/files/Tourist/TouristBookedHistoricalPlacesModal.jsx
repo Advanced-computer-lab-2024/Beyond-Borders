@@ -107,6 +107,7 @@ function TouristBookedHistoricalPlacesModal({ currency, onClose }) {
                     Student: {currency === 'EGP' ? `${place.ticketPrices?.student} EGP` : `${convertedPrices[place._id]?.student || 'Loading...'} ${currency}`}
                   </Typography>
 
+
                   {/* Display Comments */}
                   <Typography variant="body2"><strong>Comments:</strong></Typography>
                   {place.Comments.length > 0 ? (
@@ -114,6 +115,7 @@ function TouristBookedHistoricalPlacesModal({ currency, onClose }) {
                       <Box key={idx} sx={styles.comment}>
                         <Typography variant="body2"><strong>{comment.touristUsername}:</strong> {comment.Comment}</Typography>
                       </Box>
+                      
                     ))
                   ) : (
                     <Typography variant="body2">No comments available</Typography>

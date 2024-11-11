@@ -92,7 +92,7 @@ function TouristItineraryModal({ currency, onClose  }) {
       });
 
       if (response.status === 201) {
-        alert(`Itinerary booked successfully! Total Cost: $${response.data.totalCost}`);
+        alert(`Itinerary booked successfully!`);
         navigate('/PaymentPage', {
           state: {
             type: 'itinerary', // Specify type as itinerary

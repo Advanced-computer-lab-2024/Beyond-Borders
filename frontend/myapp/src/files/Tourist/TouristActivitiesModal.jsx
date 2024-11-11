@@ -138,7 +138,7 @@ function TouristActivitiesModal({ currency, onClose  }) {
       });
   
       if (response.status === 201) {
-        alert(`Activity booked successfully! Total Cost: $${response.data.totalCost}`);
+        alert(`Activity booked successfully!`);
         navigate('/PaymentPage', {
           state: {
             type: 'activity', 

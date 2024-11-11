@@ -65,7 +65,7 @@ function TouristHistoricalPlacesModal({ currency, onClose }) {
       });
 
       if (response.status === 201) {
-        alert(`Historical place event booked successfully! Total Cost: $${response.data.ticketPrice}`);
+        alert(`Historical place event booked successfully!`);
         navigate('/PaymentPage', {
           state: {
             type: 'historicalPlace',
@@ -146,12 +146,7 @@ function TouristHistoricalPlacesModal({ currency, onClose }) {
               Native: {currency === 'EGP' ? `${place.ticketPrices?.native || 0} EGP` : `${convertedPrices[place._id]?.native || 'Loading...'} ${currency}`}, 
               Student: {currency === 'EGP' ? `${place.ticketPrices?.student || 0} EGP` : `${convertedPrices[place._id]?.student || 'Loading...'} ${currency}`}
             </Typography>
-            <Typography variant="body2"><strong>Ticket Prices:</strong></Typography>
-                <ul>
-                   <li>Foreigner: {place.ticketPrices?.foreigner || 'N/A'}</li>
-                 <li>Native: {place.ticketPrices?.native  ||'N/A'}</li>
-                  <li>Student: {place.ticketPrices?.student || 'N/A'}</li>
-                      </ul>
+          
              <Typography variant="body2"><strong>Author:</strong>{place.AuthorUsername}</Typography>
              <Typography variant="body2"><strong>Tags:</strong>{place.Tags}</Typography>
              <Typography variant="body2">

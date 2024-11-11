@@ -729,7 +729,7 @@ const handleRedeemPoints = async () => {
                 />
                 
                 
-                <Typography><strong>Wallet Balance:</strong> ${profile.Wallet}</Typography>
+                <Typography><strong>Wallet Balance:</strong> {profile.Wallet}</Typography>
                 <Typography><strong>Points:</strong> {profile.Points}</Typography>
                 <Button
                   variant="contained"
