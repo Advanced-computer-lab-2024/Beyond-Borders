@@ -154,12 +154,7 @@ function TouristHistoricalPlacesModal({ currency, onClose }) {
 </Typography>
 
 
-              <Typography variant="body2">
-              <strong>Ticket Prices:</strong> 
-              Foreigner: {currency === 'EGP' ? `${place.ticketPrices?.foreigner || 0} EGP` : `${convertedPrices[place._id]?.foreigner || 'Loading...'} ${currency}`}, 
-              Native: {currency === 'EGP' ? `${place.ticketPrices?.native || 0} EGP` : `${convertedPrices[place._id]?.native || 'Loading...'} ${currency}`}, 
-              Student: {currency === 'EGP' ? `${place.ticketPrices?.student || 0} EGP` : `${convertedPrices[place._id]?.student || 'Loading...'} ${currency}`}
-            </Typography>
+           
 
               <Button
                 variant="outlined"
