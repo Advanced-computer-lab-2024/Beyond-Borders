@@ -25,7 +25,7 @@ const HomePageGuest = () => {
     setLoading(true);
     setError('');
     try {
-      const response = await axios.get('/api/ViewAllUpcomingActivitiesGuest');
+      const response = await axios.get('/api/ViewAllUpcomingActivities');
       setActivities(response.data);
       openModal('activities');
     } catch {
@@ -181,6 +181,7 @@ const displayMuseums = () => {
     try {
       const response = await axios.post('/api/filterActivities', filters);
       setActivities(response.data);
+      console.log("Filters applied:", filters); // Debugging line
     } catch {
       setError('Error applying filters');
     } finally {
@@ -459,7 +460,7 @@ const ActivityFilters = ({ onApply }) => {
   const handleSubmit = (e) => {
     e.preventDefault();
     const filters = {
-      category: e.target.category.value || undefined,
+      Category: e.target.category.value || undefined,
       minPrice: e.target.minPrice.value ? parseFloat(e.target.minPrice.value) : undefined,
       maxPrice: e.target.maxPrice.value ? parseFloat(e.target.maxPrice.value) : undefined,
       date: selectedDate || undefined,
@@ -533,6 +534,12 @@ const ContentList = ({ items }) => (
         {item.Price && <p>Price: ${item.Price}</p>}
         {item.Rating && <p>Rating: {item.Rating}</p>}
         {item.Date && <p>Date: {new Date(item.Date).toLocaleDateString()}</p>}
+        {item.Time && <p>Time: {item.Time}</p>}
+        {item.Location && item.Location.address && <p>Location: {item.Location.address}</p>}
+        {item.Category && <p>Category: {item.Category}</p>}
+        {item.SpecialDiscount && <p>Special Discount: {item.SpecialDiscount}</p>}
+        {item.Tags && <p>Special Discount:{item.Tags}</p>}
+
       </div>
     ))}
   </div>
