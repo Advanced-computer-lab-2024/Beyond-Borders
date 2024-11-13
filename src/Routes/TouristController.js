@@ -1140,17 +1140,6 @@ const bookActivity = async (req, res) => {
       tourist.BookedActivities = [];
     }
 
-   
-    tourist.BookedActivities.push({
-      activityName: activity.Name,
-      confirmed: true 
-    });
-
-    activity.isBooked = true;
-    await activity.save(); 
-    await tourist.save();
-
-    
     res.status(201).json({ msg: 'Activity booked successfully!', activityName: activity.Name, totalCost: activity.Price});
   } catch (error) {
     console.error('Error booking activity:', error);
@@ -1192,11 +1181,6 @@ const bookItinerary = async (req, res) => {
     if (!tourist.BookedItineraries) {
       tourist.BookedItineraries = [];
     }
-
-    tourist.BookedItineraries.push({
-      ItineraryName: itinerary.Title,  
-      booked: true 
-    });
 
     
     await tourist.save();
@@ -1254,11 +1238,6 @@ const bookMuseum = async (req, res) => {
       tourist.BookedMuseums = [];
     }
 
-    tourist.BookedMuseums.push({
-      MuseumName: museum.name,  
-      booked: true 
-    });
-
     await tourist.save();
 
     res.status(201).json({ msg: 'Museum booked successfully!', museumName: museum.name, ticketPrice });
@@ -1313,10 +1292,7 @@ const bookHistoricalPlace = async (req, res) => {
       tourist.BookedHistPlaces = [];
     }
 
-    tourist.BookedHistPlaces.push({
-      HistPlaceName: historicalPlace.name,  
-      booked: true 
-    });
+    
 
     await tourist.save();
 
@@ -2519,10 +2495,21 @@ const payActivity = async (req, res) => {
       return res.status(404).json({ msg: 'Tourist not found' });
     }
 
+    tourist.BookedActivities.push({
+      activityName: activity.Name,
+      confirmed: true 
+    });
+
+    activity.isBooked = true;
+    await activity.save(); 
+    //await tourist.save();
+
     // Check if the activity is in the booked activities list
     const bookedActivityIndex = tourist.BookedActivities.findIndex(
       (activity) => activity.activityName === activityName
     );
+
+    
 
     if (bookedActivityIndex === -1) {
       return res.status(400).json({ msg: 'Activity not found in booked activities. Please book the activity first.' });
@@ -2534,10 +2521,12 @@ const payActivity = async (req, res) => {
     // Check if the tourist has enough funds in the wallet
     if (tourist.Wallet < ticketPrice) {
       // Remove the activity from the booked activities list if funds are insufficient
-      tourist.BookedActivities.splice(bookedActivityIndex, 1);
-      await tourist.save();
+      //tourist.BookedActivities.splice(bookedActivityIndex, 1);
+      //await tourist.save();
       return res.status(400).json({ msg: 'Insufficient funds in wallet. The activity has been removed from booked activities.' });
     }
+   
+
 
     // Deduct the ticket price from the tourist's wallet
     tourist.Wallet -= ticketPrice;
@@ -2593,6 +2582,13 @@ const payActivityByCard = async (req, res) => {
     if (!tourist) {
       return res.status(404).json({ msg: 'Tourist not found' });
     }
+    tourist.BookedActivities.push({
+      activityName: activity.Name,
+      confirmed: true 
+    });
+
+    activity.isBooked = true;
+    await activity.save(); 
 
     // Check if the activity is in the booked activities list
     const bookedActivityIndex = tourist.BookedActivities.findIndex(
@@ -2739,6 +2735,11 @@ const payItinerary = async (req, res) => {
       return res.status(404).json({ msg: 'Tourist not found' });
     }
 
+    tourist.BookedItineraries.push({
+      ItineraryName: itinerary.Title,  
+      booked: true 
+    });
+
     // Check if the itinerary is in the booked itineraries list
     const bookedItineraryIndex = tourist.BookedItineraries.findIndex(
       (itinerary) => itinerary.ItineraryName === ItineraryName
@@ -2812,6 +2813,11 @@ const payItineraryByCard = async (req, res) => {
       return res.status(404).json({ msg: 'Tourist not found' });
     }
 
+    tourist.BookedItineraries.push({
+      ItineraryName: itinerary.Title,  
+      booked: true 
+    });
+
     // Check if the itinerary is in the booked itineraries list
     const bookedItineraryIndex = tourist.BookedItineraries.findIndex(
       (itinerary) => itinerary.ItineraryName === ItineraryName
@@ -2873,6 +2879,12 @@ const payMuseum = async (req, res) => {
     if (!tourist) {
       return res.status(404).json({ msg: 'Tourist not found' });
     }
+
+    tourist.BookedMuseums.push({
+      MuseumName: museum.name,  
+      booked: true 
+    });
+
 
     // Check if the museum is in the booked museums list
     const bookedMuseumIndex = tourist.BookedMuseums.findIndex(
@@ -2954,6 +2966,12 @@ const payMuseumByCard = async (req, res) => {
       return res.status(404).json({ msg: 'Tourist not found' });
     }
 
+    tourist.BookedMuseums.push({
+      MuseumName: museum.name,  
+      booked: true 
+    });
+
+
     // Check if the museum is in the booked museums list
     const bookedMuseumIndex = tourist.BookedMuseums.findIndex(
       (museum) => museum.MuseumName === museumName
@@ -3022,6 +3040,11 @@ const payHP = async (req, res) => {
     if (!tourist) {
       return res.status(404).json({ msg: 'Tourist not found' });
     }
+
+    tourist.BookedHistPlaces.push({
+      HistPlaceName: hp.name,  
+      booked: true 
+    });
 
     // Check if the historical place is in the booked historical places list
     const bookedHistPlaceIndex = tourist.BookedHistPlaces.findIndex(
@@ -3102,6 +3125,11 @@ const payHPByCard = async (req, res) => {
     if (!tourist) {
       return res.status(404).json({ msg: 'Tourist not found' });
     }
+
+    tourist.BookedHistPlaces.push({
+      HistPlaceName: hp.name,  
+      booked: true 
+    });
 
     // Check if the historical place is in the booked historical places list
     const bookedHistPlaceIndex = tourist.BookedHistPlaces.findIndex(
