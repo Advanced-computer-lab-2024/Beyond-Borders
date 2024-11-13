@@ -17,7 +17,7 @@ const nodemailer = require('nodemailer');
 const ItineraryModel = require('../Models/Itinerary.js');
 const DeactivatedItinerariesModel = require('../Models/DeactivatedItineraries.js');
 const AdvertiserModel = require('../Models/Advertiser.js');
-
+const UserOTPModel = require('../Models/UserOTP.js');
 const DeactivatedActivitiesModel = require('../Models/DeactivatedActivities.js');
 const { default: mongoose } = require('mongoose');
 
@@ -4532,8 +4532,110 @@ const viewMyBookedTransportation = async (req, res) => {
   }
 };
 
+const sendOtp = async (req, res) => {
+  const { touristUsername } = req.body;
+
+  try {
+    // Find the tourist by username to get their email
+    const tourist = await TouristModel.findOne({ Username: touristUsername });
+    if (!tourist) {
+      throw new Error('Tourist not found');
+    }
+
+    const email = tourist.Email;
+
+    // Generate a 6-digit OTP
+    const otp = Math.floor(100000 + Math.random() * 900000);
+
+    // Check if the Username already exists in UserOTP
+    let userOtpEntry = await UserOTPModel.findOne({ Username: touristUsername });
+    
+    if (userOtpEntry) {
+      // Update the OTP if the Username exists
+      userOtpEntry.OTP = otp;
+      await userOtpEntry.save();
+    } else {
+      // Create a new UserOTP entry if the Username doesn't exist
+      userOtpEntry = new UserOTPModel({
+        Username: touristUsername,
+        OTP: otp
+      });
+      await userOtpEntry.save();
+    }
+
+    // Set up the email transporter
+    const transporter = nodemailer.createTransport({
+      service: 'gmail', // Adjust based on your email provider
+      auth: {
+        user: 'malook25062003@gmail.com', // Your email
+        pass: 'sxvo feuu woie gpfn'        // Your email password or app-specific password
+      },
+    });
+
+    // Configure the email options
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: email,
+      subject: 'Your OTP Code',
+      text: `Dear ${touristUsername},
+
+          Here is your OTP code: ${otp}
+
+          Please use this code to proceed.
+
+          Best regards,
+          Beyond Borders`
+    };
+
+    // Send the email
+    await transporter.sendMail(mailOptions);
+
+    console.log('OTP sent:', otp);
+
+    res.status(200).json({ msg: 'OTP sent successfully' });
+  } catch (error) {
+    console.error('Error sending OTP:', error);
+    res.status(500).json({ error: 'Failed to send OTP' });
+  }
+};
+
+const loginTouristOTP = async (req, res) => {
+  try {
+    const { username, OTP } = req.body;
+
+    // Validate input
+    if (!username || !OTP) {
+      return res.status(400).json({ error: "Username and OTP are required." });
+    }
+
+    // Find the tourist by username
+    const tourist = await TouristModel.findOne({ Username: username });
+    if (!tourist) {
+      return res.status(401).json({ error: "Invalid username." });
+    }
+
+    // Find the OTP entry for the username
+    const userOTP = await UserOTPModel.findOne({ Username: username });
+    if (!userOTP) {
+      return res.status(401).json({ error: "OTP not found. Please request a new one." });
+    }
+
+    // Check if the OTP matches
+    if (userOTP.OTP !== parseInt(OTP)) { // Ensure both are numbers for comparison
+      return res.status(401).json({ error: "Invalid OTP." });
+    }
+
+    // Successful authentication
+    res.status(200).json({ message: "Login successful!", tourist });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+};
+
+
+
 
 
 module.exports = {createTourist, getTourist, updateTourist, searchProductTourist, filterActivities, filterProductByPriceTourist, ActivityRating, sortProductsDescendingTourist, sortProductsAscendingTourist, ViewAllUpcomingActivities, ViewAllUpcomingMuseumEventsTourist, getMuseumsByTagTourist, getHistoricalPlacesByTagTourist, ViewAllUpcomingHistoricalPlacesEventsTourist,viewProductsTourist, sortActivitiesPriceAscendingTourist, sortActivitiesPriceDescendingTourist, sortActivitiesRatingAscendingTourist, sortActivitiesRatingDescendingTourist, loginTourist, ViewAllUpcomingItinerariesTourist, sortItinerariesPriceAscendingTourist, sortItinerariesPriceDescendingTourist, filterItinerariesTourist, ActivitiesSearchAll, ItinerarySearchAll, MuseumSearchAll, HistoricalPlacesSearchAll, ProductRating, createComplaint, getComplaintsByTouristUsername,ChooseActivitiesByCategoryTourist,bookActivity,bookItinerary,bookMuseum,bookHistoricalPlace, ratePurchasedProduct, addPurchasedProducts, reviewPurchasedProduct, addCompletedItinerary, rateTourGuide, commentOnTourGuide, rateCompletedItinerary, commentOnItinerary, addCompletedActivities, addCompletedMuseumEvents, addCompletedHPEvents, rateCompletedActivity, rateCompletedMuseum, rateCompletedHP, commentOnActivity, commentOnMuseum, commentOnHP,deleteBookedActivity,deleteBookedItinerary,deleteBookedMuseum,deleteBookedHP,payActivity,updateWallet,updatepoints,payItinerary,payMuseum,payHP,redeemPoints, convertEgp, fetchFlights,viewBookedItineraries, requestDeleteAccountTourist,convertCurr,getActivityDetails,getHistoricalPlaceDetails,getMuseumDetails,GetCopyLink, bookFlight
   ,fetchHotelsByCity, fetchHotels, bookHotel,bookTransportation,addPreferences, viewMyCompletedActivities, viewMyCompletedItineraries, viewMyCompletedMuseums, viewMyCompletedHistoricalPlaces,viewMyBookedActivities,viewMyBookedItineraries,viewMyBookedMuseums,viewMyBookedHistoricalPlaces,viewTourGuidesCompleted,viewAllTransportation, getItineraryDetails, viewPreferenceTags,viewPurchasedProducts,viewBookedActivities,viewMyBookedTransportation
-, payActivityByCard, payItineraryByCard, payMuseumByCard, payHPByCard};
+, payActivityByCard, payItineraryByCard, payMuseumByCard, payHPByCard, sendOtp, loginTouristOTP};
