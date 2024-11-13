@@ -2639,18 +2639,18 @@ const payActivityByCard = async (req, res) => {
       subject: 'Payment Receipt',
       text: `Dear ${touristUsername},
 
-Thank you for your payment for the activity "${activityName}".
+    Thank you for your payment for the activity "${activityName}".
 
-Here are the details of your transaction:
-- Activity Name: ${activityName}
-- Amount Paid: ${ticketPrice}
-- Payment Date: ${paymentDate.toLocaleDateString()}
-- Payment Time: ${paymentDate.toLocaleTimeString()}
+    Here are the details of your transaction:
+    - Activity Name: ${activityName}
+    - Amount Paid: ${ticketPrice}
+    - Payment Date: ${paymentDate.toLocaleDateString()}
+    - Payment Time: ${paymentDate.toLocaleTimeString()}
 
-Thank you for choosing our service!
+    Thank you for choosing our service!
 
-Best regards,
-Beyond Borders`,
+    Best regards,
+    Beyond Borders`,
     };
 
     // Send the email
@@ -2850,9 +2850,43 @@ const payItineraryByCard = async (req, res) => {
     // Save the updated tourist information
     await tourist.save();
 
+    // Set up the email transporter
+    const transporter1 = nodemailer.createTransport({
+      service: 'gmail', // You can use other email services if necessary
+      auth: {
+        user: 'malook25062003@gmail.com', // Your email
+        pass: 'sxvo feuu woie gpfn', // Your email password or app-specific password
+      },
+    });
+
+    // Create the email options
+    const paymentDate = new Date();
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: tourist.Email,
+      subject: 'Payment Receipt',
+      text: `Dear ${touristUsername},
+
+    Thank you for your payment for the itinerary "${ItineraryName}".
+
+    Here are the details of your transaction:
+    - Activity Name: ${ItineraryName}
+    - Amount Paid: ${ticketPrice}
+    - Payment Date: ${paymentDate.toLocaleDateString()}
+    - Payment Time: ${paymentDate.toLocaleTimeString()}
+
+    Thank you for choosing our service!
+
+    Best regards,
+    Beyond Borders`,
+    };
+
+    // Send the email
+    await transporter1.sendMail(mailOptions);
+
     // Respond with success and remaining wallet balance
     res.status(200).json({
-      msg: 'Payment successful!',
+      msg: 'Payment successful! An email has been sent with your payment details.',
       ItineraryName: itinerary.Title,
       BadgeLevelOfPoints: tourist.BadgeLevelOfPoints,
       Points: tourist.Points,
@@ -3010,18 +3044,51 @@ const payMuseumByCard = async (req, res) => {
 
     // Save the updated tourist information
     await tourist.save();
+// Set up the email transporter
+const transporter1 = nodemailer.createTransport({
+  service: 'gmail', // You can use other email services if necessary
+  auth: {
+    user: 'malook25062003@gmail.com', // Your email
+    pass: 'sxvo feuu woie gpfn', // Your email password or app-specific password
+  },
+});
 
-    // Respond with success and remaining wallet balance
-    res.status(200).json({
-      msg: 'Payment successful!',
-      MuseumName: museum.name,
-      BadgeLevelOfPoints: tourist.BadgeLevelOfPoints,
-      Points: tourist.Points,
-    });
-  } catch (error) {
-    console.error('Error processing payment for museum:', error);
-    res.status(500).json({ error: error.message });
-  }
+// Create the email options
+const paymentDate = new Date();
+const mailOptions = {
+  from: process.env.EMAIL_USER,
+  to: tourist.Email,
+  subject: 'Payment Receipt',
+  text: `Dear ${touristUsername},
+
+Thank you for your payment for the itinerary "${museumName}".
+
+Here are the details of your transaction:
+- Activity Name: ${museumName}
+- Amount Paid: ${ticketPrice}
+- Payment Date: ${paymentDate.toLocaleDateString()}
+- Payment Time: ${paymentDate.toLocaleTimeString()}
+
+Thank you for choosing our service!
+
+Best regards,
+Beyond Borders`,
+};
+
+// Send the email
+await transporter1.sendMail(mailOptions);
+
+// Respond with success and remaining wallet balance
+res.status(200).json({
+  msg: 'Payment successful! An email has been sent with your payment details.',
+  msueumName: museum.name,
+  BadgeLevelOfPoints: tourist.BadgeLevelOfPoints,
+  Points: tourist.Points,
+});
+} catch (error) {
+console.error('Error processing payment for museum:', error);
+res.status(500).json({ error: error.message });
+}
 };
 
 
@@ -3170,17 +3237,50 @@ const payHPByCard = async (req, res) => {
     // Save the updated tourist information
     await tourist.save();
 
+    const transporter1 = nodemailer.createTransport({
+      service: 'gmail', // You can use other email services if necessary
+      auth: {
+        user: 'malook25062003@gmail.com', // Your email
+        pass: 'sxvo feuu woie gpfn', // Your email password or app-specific password
+      },
+    });
+    
+    // Create the email options
+    const paymentDate = new Date();
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: tourist.Email,
+      subject: 'Payment Receipt',
+      text: `Dear ${touristUsername},
+    
+    Thank you for your payment for the itinerary "${HPName}".
+    
+    Here are the details of your transaction:
+    - Activity Name: ${HPName}
+    - Amount Paid: ${ticketPrice}
+    - Payment Date: ${paymentDate.toLocaleDateString()}
+    - Payment Time: ${paymentDate.toLocaleTimeString()}
+    
+    Thank you for choosing our service!
+    
+    Best regards,
+    Beyond Borders`,
+    };
+    
+    // Send the email
+    await transporter1.sendMail(mailOptions);
+    
     // Respond with success and remaining wallet balance
     res.status(200).json({
-      msg: 'Payment successful!',
+      msg: 'Payment successful! An email has been sent with your payment details.',
       hpName: hp.name,
       BadgeLevelOfPoints: tourist.BadgeLevelOfPoints,
       Points: tourist.Points,
     });
-  } catch (error) {
-    console.error('Error processing payment for historical place:', error);
+    } catch (error) {
+    console.error('Error processing payment for hp:', error);
     res.status(500).json({ error: error.message });
-  }
+    }
 };
 
 
