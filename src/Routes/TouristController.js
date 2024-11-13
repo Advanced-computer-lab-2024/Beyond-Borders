@@ -4793,7 +4793,7 @@ const addBookmark = async (req, res) => {
 
     
     await tourist.save();
-    
+
     res.status(201).json({ msg: 'Event Saved!', EventName:eventName});
   } catch (error) {
     console.error('Error saving bookmark:', error);
@@ -4801,7 +4801,49 @@ const addBookmark = async (req, res) => {
   }
 };
 
+const viewBookmarks = async (req, res) => {
+  const { touristUsername } = req.query;
+
+  try {
+    // Find the tourist by username
+    const tourist = await TouristModel.findOne({ Username: touristUsername });
+
+    if (!tourist) {
+      return res.status(404).json({ msg: 'Tourist not found' });
+    }
+
+    // Get the bookmarked event names
+    const bookmarkedEventNames = tourist.BookmarkedEvents.map((event) => event.EventName);
+
+    // Fetch events from the respective models
+    const activities = await ActivityModel.find({ Name: { $in: bookmarkedEventNames } });
+    const itineraries = await ItineraryModel.find({ Title: { $in: bookmarkedEventNames } });
+    const historicalPlaces = await HistoricalPlacesModel.find({ name: { $in: bookmarkedEventNames } });
+    const museums = await MuseumModel.find({ name: { $in: bookmarkedEventNames } });
+
+    // Combine all the found events
+    const allBookmarkedEvents = [
+      ...activities.map((activity) => ({ type: 'Activity', details: activity })),
+      ...itineraries.map((itinerary) => ({ type: 'Itinerary', details: itinerary })),
+      ...historicalPlaces.map((hp) => ({ type: 'Historical Place', details: hp })),
+      ...museums.map((museum) => ({ type: 'Museum', details: museum })),
+    ];
+
+    // Check if any events were found
+    if (allBookmarkedEvents.length === 0) {
+      return res.status(404).json({ msg: 'No bookmarked events found.' });
+    }
+
+    // Respond with the combined bookmarked events
+    res.status(200).json(allBookmarkedEvents);
+  } catch (error) {
+    console.error('Error fetching bookmarks:', error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+
 
 module.exports = {createTourist, getTourist, updateTourist, searchProductTourist, filterActivities, filterProductByPriceTourist, ActivityRating, sortProductsDescendingTourist, sortProductsAscendingTourist, ViewAllUpcomingActivities, ViewAllUpcomingMuseumEventsTourist, getMuseumsByTagTourist, getHistoricalPlacesByTagTourist, ViewAllUpcomingHistoricalPlacesEventsTourist,viewProductsTourist, sortActivitiesPriceAscendingTourist, sortActivitiesPriceDescendingTourist, sortActivitiesRatingAscendingTourist, sortActivitiesRatingDescendingTourist, loginTourist, ViewAllUpcomingItinerariesTourist, sortItinerariesPriceAscendingTourist, sortItinerariesPriceDescendingTourist, filterItinerariesTourist, ActivitiesSearchAll, ItinerarySearchAll, MuseumSearchAll, HistoricalPlacesSearchAll, ProductRating, createComplaint, getComplaintsByTouristUsername,ChooseActivitiesByCategoryTourist,bookActivity,bookItinerary,bookMuseum,bookHistoricalPlace, ratePurchasedProduct, addPurchasedProducts, reviewPurchasedProduct, addCompletedItinerary, rateTourGuide, commentOnTourGuide, rateCompletedItinerary, commentOnItinerary, addCompletedActivities, addCompletedMuseumEvents, addCompletedHPEvents, rateCompletedActivity, rateCompletedMuseum, rateCompletedHP, commentOnActivity, commentOnMuseum, commentOnHP,deleteBookedActivity,deleteBookedItinerary,deleteBookedMuseum,deleteBookedHP,payActivity,updateWallet,updatepoints,payItinerary,payMuseum,payHP,redeemPoints, convertEgp, fetchFlights,viewBookedItineraries, requestDeleteAccountTourist,convertCurr,getActivityDetails,getHistoricalPlaceDetails,getMuseumDetails,GetCopyLink, bookFlight
   ,fetchHotelsByCity, fetchHotels, bookHotel,bookTransportation,addPreferences, viewMyCompletedActivities, viewMyCompletedItineraries, viewMyCompletedMuseums, viewMyCompletedHistoricalPlaces,viewMyBookedActivities,viewMyBookedItineraries,viewMyBookedMuseums,viewMyBookedHistoricalPlaces,viewTourGuidesCompleted,viewAllTransportation, getItineraryDetails, viewPreferenceTags,viewPurchasedProducts,viewBookedActivities,viewMyBookedTransportation,addBookmark
-, payActivityByCard, payItineraryByCard, payMuseumByCard, payHPByCard, sendOtp, loginTouristOTP};
+, payActivityByCard, payItineraryByCard, payMuseumByCard, payHPByCard, sendOtp, loginTouristOTP,viewBookmarks};
