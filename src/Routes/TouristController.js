@@ -2577,6 +2577,104 @@ const payActivity = async (req, res) => {
 };
 
 
+
+const payActivityByCard = async (req, res) => {
+  const { touristUsername, activityName } = req.body;
+
+  try {
+    // Find the activity by name
+    const activity = await ActivityModel.findOne({ Name: activityName });
+    if (!activity) {
+      return res.status(404).json({ msg: 'Activity not found' });
+    }
+
+    // Find the tourist by username
+    const tourist = await TouristModel.findOne({ Username: touristUsername });
+    if (!tourist) {
+      return res.status(404).json({ msg: 'Tourist not found' });
+    }
+
+    // Check if the activity is in the booked activities list
+    const bookedActivityIndex = tourist.BookedActivities.findIndex(
+      (activity) => activity.activityName === activityName
+    );
+
+    if (bookedActivityIndex === -1) {
+      return res.status(400).json({ msg: 'Activity not found in booked activities. Please book the activity first.' });
+    }
+
+    // Calculate ticket price
+    const ticketPrice = activity.Price;
+
+    // Update points and badge level
+    if (tourist.BadgeLevelOfPoints === 1) {
+      tourist.Points += 0.5 * ticketPrice;
+      if (tourist.Points > 100000) {
+        tourist.BadgeLevelOfPoints = 2;
+      } else if (tourist.Points > 500000) {
+        tourist.BadgeLevelOfPoints = 3;
+      }
+    } else if (tourist.BadgeLevelOfPoints === 2) {
+      tourist.Points += ticketPrice;
+      if (tourist.Points > 500000) {
+        tourist.BadgeLevelOfPoints = 3;
+      }
+    } else if (tourist.BadgeLevelOfPoints === 3) {
+      tourist.Points += 1.5 * ticketPrice;
+    }
+
+    // Save the updated tourist information
+    await tourist.save();
+
+    // Set up the email transporter
+    const transporter1 = nodemailer.createTransport({
+      service: 'gmail', // You can use other email services if necessary
+      auth: {
+        user: 'malook25062003@gmail.com', // Your email
+        pass: 'sxvo feuu woie gpfn', // Your email password or app-specific password
+      },
+    });
+
+    // Create the email options
+    const paymentDate = new Date();
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: tourist.Email,
+      subject: 'Payment Receipt',
+      text: `Dear ${touristUsername},
+
+Thank you for your payment for the activity "${activityName}".
+
+Here are the details of your transaction:
+- Activity Name: ${activityName}
+- Amount Paid: ${ticketPrice}
+- Payment Date: ${paymentDate.toLocaleDateString()}
+- Payment Time: ${paymentDate.toLocaleTimeString()}
+
+Thank you for choosing our service!
+
+Best regards,
+Beyond Borders`,
+    };
+
+    // Send the email
+    await transporter1.sendMail(mailOptions);
+
+    // Respond with success and remaining wallet balance
+    res.status(200).json({
+      msg: 'Payment successful! An email has been sent with your payment details.',
+      activityName: activity.Name,
+      BadgeLevelOfPoints: tourist.BadgeLevelOfPoints,
+      Points: tourist.Points,
+    });
+  } catch (error) {
+    console.error('Error processing payment for activity:', error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+
+
 const updateWallet = async (req, res) => {
   const { username, amount } = req.body;
 
@@ -2698,6 +2796,67 @@ const payItinerary = async (req, res) => {
   }
 };
 
+const payItineraryByCard = async (req, res) => {
+  const { touristUsername, ItineraryName } = req.body;
+
+  try {
+    // Find the itinerary by name
+    const itinerary = await ItineraryModel.findOne({ Title: ItineraryName });
+    if (!itinerary) {
+      return res.status(404).json({ msg: 'Itinerary not found' });
+    }
+
+    // Find the tourist by username
+    const tourist = await TouristModel.findOne({ Username: touristUsername });
+    if (!tourist) {
+      return res.status(404).json({ msg: 'Tourist not found' });
+    }
+
+    // Check if the itinerary is in the booked itineraries list
+    const bookedItineraryIndex = tourist.BookedItineraries.findIndex(
+      (itinerary) => itinerary.ItineraryName === ItineraryName
+    );
+
+    if (bookedItineraryIndex === -1) {
+      return res.status(400).json({ msg: 'Itinerary not found in booked itineraries. Please book the itinerary first.' });
+    }
+
+    // Calculate itinerary price
+    const ticketPrice = itinerary.Price;
+
+    // Update points and badge level
+    if (tourist.BadgeLevelOfPoints === 1) {
+      tourist.Points += 0.5 * ticketPrice;
+      if (tourist.Points > 100000) {
+        tourist.BadgeLevelOfPoints = 2;
+      } else if (tourist.Points > 500000) {
+        tourist.BadgeLevelOfPoints = 3;
+      }
+    } else if (tourist.BadgeLevelOfPoints === 2) {
+      tourist.Points += ticketPrice;
+      if (tourist.Points > 500000) {
+        tourist.BadgeLevelOfPoints = 3;
+      }
+    } else if (tourist.BadgeLevelOfPoints === 3) {
+      tourist.Points += 1.5 * ticketPrice;
+    }
+
+    // Save the updated tourist information
+    await tourist.save();
+
+    // Respond with success and remaining wallet balance
+    res.status(200).json({
+      msg: 'Payment successful!',
+      ItineraryName: itinerary.Title,
+      BadgeLevelOfPoints: tourist.BadgeLevelOfPoints,
+      Points: tourist.Points,
+    });
+  } catch (error) {
+    console.error('Error processing payment for itinerary:', error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
 
 const payMuseum = async (req, res) => {
   const { touristUsername, museumName } = req.body;
@@ -2779,6 +2938,74 @@ const payMuseum = async (req, res) => {
   }
 };
 
+const payMuseumByCard = async (req, res) => {
+  const { touristUsername, museumName } = req.body;
+
+  try {
+    // Find the museum by name
+    const museum = await MuseumModel.findOne({ name: museumName });
+    if (!museum) {
+      return res.status(404).json({ msg: 'Museum not found' });
+    }
+
+    // Find the tourist by username
+    const tourist = await TouristModel.findOne({ Username: touristUsername });
+    if (!tourist) {
+      return res.status(404).json({ msg: 'Tourist not found' });
+    }
+
+    // Check if the museum is in the booked museums list
+    const bookedMuseumIndex = tourist.BookedMuseums.findIndex(
+      (museum) => museum.MuseumName === museumName
+    );
+
+    if (bookedMuseumIndex === -1) {
+      return res.status(400).json({ msg: 'Museum not found in booked activities. Please book the museum event first.' });
+    }
+
+    // Calculate ticket price
+    let ticketPrice;
+    if (tourist.Occupation.toLowerCase() === 'student') {
+      ticketPrice = museum.ticketPrices.student;
+    } else if (tourist.Nationality.toLowerCase() === 'egyptian') {
+      ticketPrice = museum.ticketPrices.native;
+    } else {
+      ticketPrice = museum.ticketPrices.foreigner;
+    }
+
+    // Update points and badge level
+    if (tourist.BadgeLevelOfPoints === 1) {
+      tourist.Points += 0.5 * ticketPrice;
+      if (tourist.Points > 100000) {
+        tourist.BadgeLevelOfPoints = 2;
+      } else if (tourist.Points > 500000) {
+        tourist.BadgeLevelOfPoints = 3;
+      }
+    } else if (tourist.BadgeLevelOfPoints === 2) {
+      tourist.Points += ticketPrice;
+      if (tourist.Points > 500000) {
+        tourist.BadgeLevelOfPoints = 3;
+      }
+    } else if (tourist.BadgeLevelOfPoints === 3) {
+      tourist.Points += 1.5 * ticketPrice;
+    }
+
+    // Save the updated tourist information
+    await tourist.save();
+
+    // Respond with success and remaining wallet balance
+    res.status(200).json({
+      msg: 'Payment successful!',
+      MuseumName: museum.name,
+      BadgeLevelOfPoints: tourist.BadgeLevelOfPoints,
+      Points: tourist.Points,
+    });
+  } catch (error) {
+    console.error('Error processing payment for museum:', error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
 
 const payHP = async (req, res) => {
   const { touristUsername, HPName } = req.body;
@@ -2851,6 +3078,74 @@ const payHP = async (req, res) => {
       msg: 'Payment successful!',
       hpName: hp.name,
       remainingWallet: tourist.Wallet,
+      BadgeLevelOfPoints: tourist.BadgeLevelOfPoints,
+      Points: tourist.Points,
+    });
+  } catch (error) {
+    console.error('Error processing payment for historical place:', error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+const payHPByCard = async (req, res) => {
+  const { touristUsername, HPName } = req.body;
+
+  try {
+    // Find the historical place by name
+    const hp = await HistoricalPlacesModel.findOne({ name: HPName });
+    if (!hp) {
+      return res.status(404).json({ msg: 'Historical place not found' });
+    }
+
+    // Find the tourist by username
+    const tourist = await TouristModel.findOne({ Username: touristUsername });
+    if (!tourist) {
+      return res.status(404).json({ msg: 'Tourist not found' });
+    }
+
+    // Check if the historical place is in the booked historical places list
+    const bookedHistPlaceIndex = tourist.BookedHistPlaces.findIndex(
+      (place) => place.HistPlaceName === HPName
+    );
+
+    if (bookedHistPlaceIndex === -1) {
+      return res.status(400).json({ msg: 'Historical place not found in booked activities. Please book the historical place event first.' });
+    }
+
+    // Calculate ticket price
+    let ticketPrice;
+    if (tourist.Occupation.toLowerCase() === 'student') {
+      ticketPrice = hp.ticketPrices.student;
+    } else if (tourist.Nationality.toLowerCase() === 'egyptian') {
+      ticketPrice = hp.ticketPrices.native;
+    } else {
+      ticketPrice = hp.ticketPrices.foreigner;
+    }
+
+    // Update points and badge level
+    if (tourist.BadgeLevelOfPoints === 1) {
+      tourist.Points += 0.5 * ticketPrice;
+      if (tourist.Points > 100000) {
+        tourist.BadgeLevelOfPoints = 2;
+      } else if (tourist.Points > 500000) {
+        tourist.BadgeLevelOfPoints = 3;
+      }
+    } else if (tourist.BadgeLevelOfPoints === 2) {
+      tourist.Points += ticketPrice;
+      if (tourist.Points > 500000) {
+        tourist.BadgeLevelOfPoints = 3;
+      }
+    } else if (tourist.BadgeLevelOfPoints === 3) {
+      tourist.Points += 1.5 * ticketPrice;
+    }
+
+    // Save the updated tourist information
+    await tourist.save();
+
+    // Respond with success and remaining wallet balance
+    res.status(200).json({
+      msg: 'Payment successful!',
+      hpName: hp.name,
       BadgeLevelOfPoints: tourist.BadgeLevelOfPoints,
       Points: tourist.Points,
     });
@@ -3177,66 +3472,6 @@ const bookFlight = async (req, res) => {
   }
 };
 
-
-/* oggg   const fetchFlights = async (req, res) => {
-  const { origin, destination, departureDate, arrivalDate } = req.body;
-
-  // Validate input
-  if (!origin || !destination || !departureDate || !arrivalDate) {
-    return res.status(400).json({ msg: "Origin, destination, departure date, and arrival date are required." });
-  }
-
-  try {
-    const apiKey = 'R7I0zjR1VKm8bGjuDyptuKbOobYnqoKu'; 
-    const apiSecret = 'unDRSQSWZtYDRwS8';
-    const tokenUrl = 'https://test.api.amadeus.com/v1/security/oauth2/token';
-    const apiUrl = 'https://test.api.amadeus.com/v2/shopping/flight-offers';
-
-    // Get access token
-    const tokenResponse = await axios.post(
-      tokenUrl,
-      new URLSearchParams({
-        grant_type: 'client_credentials',
-        client_id: apiKey,
-        client_secret: apiSecret,
-      }),
-      {
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-        },
-      }
-    );
-
-    const accessToken = tokenResponse.data.access_token;
-
-    // Fetch flight offers
-    const flightResponse = await axios.get(apiUrl, {
-      headers: {
-        Authorization: `Bearer ${accessToken}`, // Corrected syntax here
-      },
-      params: {
-        originLocationCode: origin,
-        destinationLocationCode: destination,
-        departureDate: departureDate,
-        returnDate: arrivalDate, // Include the arrival date as return date
-        adults: 1, // Adjust as needed
-      },
-    });
-
-    const flights = flightResponse.data.data;
-
-    // Check if flights are found
-    if (!flights || flights.length === 0) {
-      return res.status(404).json({ msg: "No flights found for the given criteria." });
-    }
-
-    // Return the flights in the response
-    res.status(200).json(flights);
-  } catch (error) {
-    console.error('Error fetching flights:', error);
-    res.status(500).json({ msg: "An error occurred while fetching flights.", error: error.message });
-  }
-};*/
 
 const viewBookedItineraries = async (req, res) => {
   const { touristUsername } = req.query; // Get the tourist's username from the query parameters
@@ -4174,4 +4409,4 @@ const viewMyBookedTransportation = async (req, res) => {
 
 module.exports = {createTourist, getTourist, updateTourist, searchProductTourist, filterActivities, filterProductByPriceTourist, ActivityRating, sortProductsDescendingTourist, sortProductsAscendingTourist, ViewAllUpcomingActivities, ViewAllUpcomingMuseumEventsTourist, getMuseumsByTagTourist, getHistoricalPlacesByTagTourist, ViewAllUpcomingHistoricalPlacesEventsTourist,viewProductsTourist, sortActivitiesPriceAscendingTourist, sortActivitiesPriceDescendingTourist, sortActivitiesRatingAscendingTourist, sortActivitiesRatingDescendingTourist, loginTourist, ViewAllUpcomingItinerariesTourist, sortItinerariesPriceAscendingTourist, sortItinerariesPriceDescendingTourist, filterItinerariesTourist, ActivitiesSearchAll, ItinerarySearchAll, MuseumSearchAll, HistoricalPlacesSearchAll, ProductRating, createComplaint, getComplaintsByTouristUsername,ChooseActivitiesByCategoryTourist,bookActivity,bookItinerary,bookMuseum,bookHistoricalPlace, ratePurchasedProduct, addPurchasedProducts, reviewPurchasedProduct, addCompletedItinerary, rateTourGuide, commentOnTourGuide, rateCompletedItinerary, commentOnItinerary, addCompletedActivities, addCompletedMuseumEvents, addCompletedHPEvents, rateCompletedActivity, rateCompletedMuseum, rateCompletedHP, commentOnActivity, commentOnMuseum, commentOnHP,deleteBookedActivity,deleteBookedItinerary,deleteBookedMuseum,deleteBookedHP,payActivity,updateWallet,updatepoints,payItinerary,payMuseum,payHP,redeemPoints, convertEgp, fetchFlights,viewBookedItineraries, requestDeleteAccountTourist,convertCurr,getActivityDetails,getHistoricalPlaceDetails,getMuseumDetails,GetCopyLink, bookFlight
   ,fetchHotelsByCity, fetchHotels, bookHotel,bookTransportation,addPreferences, viewMyCompletedActivities, viewMyCompletedItineraries, viewMyCompletedMuseums, viewMyCompletedHistoricalPlaces,viewMyBookedActivities,viewMyBookedItineraries,viewMyBookedMuseums,viewMyBookedHistoricalPlaces,viewTourGuidesCompleted,viewAllTransportation, getItineraryDetails, viewPreferenceTags,viewPurchasedProducts,viewBookedActivities,viewMyBookedTransportation
-};
+, payActivityByCard, payItineraryByCard, payMuseumByCard, payHPByCard};
