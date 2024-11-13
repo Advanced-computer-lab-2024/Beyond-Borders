@@ -1488,7 +1488,7 @@ const reviewPurchasedProduct = async (req, res) => {
 
 
 const addCompletedItinerary = async (req, res) => {
-  const { touristUsername, itineraryName } = req.body;
+  const { touristUsername } = req.body;
 
   try {
     // Find the tourist by username
@@ -1497,42 +1497,42 @@ const addCompletedItinerary = async (req, res) => {
       return res.status(404).json({ msg: 'Tourist not found' });
     }
 
-    // Find the booked itinerary
-    const bookedItinerary = tourist.BookedItineraries.find(itinerary => itinerary.ItineraryName === itineraryName);
-    if (!bookedItinerary) {
-      return res.status(400).json({ msg: 'Itinerary not booked by the tourist' });
-    }
-
-    // Fetch the itinerary from the ItineraryModel to check the date
-    const itinerary = await ItineraryModel.findOne({ Title: itineraryName }); // Assuming `name` is the key for the itinerary
-    if (!itinerary) {
-      return res.status(404).json({ msg: 'Itinerary not found' });
-    }
-
-    // Check if the date has passed
     const currentDate = new Date();
-    if (itinerary.Date > currentDate) { 
-      return res.status(400).json({ msg: 'The itinerary date has not passed yet' });
+    
+    // Iterate over the bookedItineraries array and check if the date has passed
+    const updatedBookedItineraries = [];
+    for (const bookedItinerary of tourist.BookedItineraries) {
+      const itinerary = await ItineraryModel.findOne({ Title: bookedItinerary.ItineraryName });
+      if (itinerary && itinerary.Date <= currentDate) {
+        // Move to completedItineraries if the date has passed
+        tourist.completedItineraries.push(bookedItinerary);
+      } else {
+        // Retain the itinerary if the date hasn't passed
+        updatedBookedItineraries.push(bookedItinerary);
+      }
     }
 
-    // Add the completed itinerary to the completedItineraries array
-    tourist.completedItineraries.push({
-      ItineraryName: itineraryName
-    });
+    // Update the tourist's bookedItineraries array
+    tourist.BookedItineraries = updatedBookedItineraries;
 
     // Save the updated tourist document
     await tourist.save();
 
     // Send a response with the updated tourist data
-    res.status(200).json({ msg: 'Itinerary marked as completed successfully!', completedItineraries: tourist.completedItineraries });
+    res.status(200).json({
+      msg: 'Itineraries updated successfully!',
+      completedItineraries: tourist.completedItineraries,
+      bookedItineraries: tourist.BookedItineraries
+    });
   } catch (error) {
-    console.error('Error adding completed itinerary:', error);
+    console.error('Error updating completed itineraries:', error);
     res.status(500).json({ error: error.message });
   }
 };
+
 
 const addCompletedActivities = async (req, res) => {
-  const { touristUsername, activityName } = req.body;
+  const { touristUsername } = req.body;
 
   try {
     // Find the tourist by username
@@ -1541,42 +1541,45 @@ const addCompletedActivities = async (req, res) => {
       return res.status(404).json({ msg: 'Tourist not found' });
     }
 
-    const bookedActivity = tourist.BookedActivities.find(activity => activity.activityName === activityName);
-    if (!bookedActivity) {
-      return res.status(400).json({ msg: 'Activity not booked by the tourist' });
-    }
-
-    // Fetch the activity to check the date
-    const activity = await ActivityModel.findOne({ Name: activityName });
-    if (!activity) {
-      return res.status(404).json({ msg: 'Activity not found' });
-    }
-
-    // Check if the activity date is in the past
     const currentDate = new Date();
-    if (activity.Date > currentDate) {
-      return res.status(400).json({ msg: 'The activity date has not passed yet' });
+    
+    // Iterate over the bookedActivities array and check if the date has passed
+    const updatedBookedActivities = [];
+    for (const bookedActivity of tourist.BookedActivities) {
+      const activity = await ActivityModel.findOne({ Name: bookedActivity.activityName });
+      if (activity && activity.Date <= currentDate) {
+        // Ensure the correct structure is pushed to completedActivities
+        tourist.completedActivities.push({
+          ActivityName: bookedActivity.activityName
+        });
+      } else {
+        // Retain the activity if the date hasn't passed
+        updatedBookedActivities.push(bookedActivity);
+      }
     }
 
-    // Add the completed activity to the completedActivities array
-    tourist.completedActivities.push({ ActivityName: activityName });
+    // Update the tourist's bookedActivities array
+    tourist.BookedActivities = updatedBookedActivities;
 
     // Save the updated tourist document
     await tourist.save();
 
     // Send a response with the updated tourist data
     res.status(200).json({
-      msg: 'Activity marked as completed successfully!',
-      completedActivities: tourist.completedActivities
+      msg: 'Activities updated successfully!',
+      completedActivities: tourist.completedActivities,
+      bookedActivities: tourist.BookedActivities
     });
   } catch (error) {
-    console.error('Error adding completed activity:', error);
+    console.error('Error updating completed activities:', error);
     res.status(500).json({ error: error.message });
   }
 };
+
+
 
 const addCompletedMuseumEvents = async (req, res) => {
-  const { touristUsername, museumName } = req.body;
+  const { touristUsername } = req.body;
 
   try {
     // Find the tourist by username
@@ -1585,43 +1588,44 @@ const addCompletedMuseumEvents = async (req, res) => {
       return res.status(404).json({ msg: 'Tourist not found' });
     }
 
-    // Check if the museum is in the bookedMuseums array
-    const bookedMuseum = tourist.BookedMuseums.find(museum => museum.MuseumName === museumName);
-    if (!bookedMuseum) {
-      return res.status(400).json({ msg: 'Museum event not booked by the tourist' });
-    }
-
-    // Fetch the museum event to check the date
-    const museumEvent = await MuseumModel.findOne({ name: museumName }); // Use the correct model name
-    if (!museumEvent) {
-      return res.status(404).json({ msg: 'Museum event not found' });
-    }
-
-    // Check if the museum event date is in the past
     const currentDate = new Date();
-    if (museumEvent.dateOfEvent > currentDate) { // Correctly access the dateOfEvent property
-      return res.status(400).json({ msg: 'The museum event date has not passed yet' });
+
+    // Iterate over the BookedMuseums array and check if the event date has passed
+    const updatedBookedMuseums = [];
+    for (const bookedMuseum of tourist.BookedMuseums) {
+      const museumEvent = await MuseumModel.findOne({ name: bookedMuseum.MuseumName });
+      if (museumEvent && museumEvent.dateOfEvent <= currentDate) {
+        // Move to completedMuseumEvents if the event date has passed
+        tourist.completedMuseumEvents.push({
+          MuseumName: bookedMuseum.MuseumName // Add other required fields if necessary
+        });
+      } else {
+        // Retain the museum in BookedMuseums if the event date hasn't passed
+        updatedBookedMuseums.push(bookedMuseum);
+      }
     }
 
-    // Add the completed museum event to the completedMuseumEvents array
-    tourist.completedMuseumEvents.push({ MuseumName: museumName });
+    // Update the tourist's BookedMuseums array
+    tourist.BookedMuseums = updatedBookedMuseums;
 
     // Save the updated tourist document
     await tourist.save();
 
     // Send a response with the updated tourist data
     res.status(200).json({
-      msg: 'Museum event marked as completed successfully!',
-      completedMuseumEvents: tourist.completedMuseumEvents
+      msg: 'Museum events updated successfully!',
+      completedMuseumEvents: tourist.completedMuseumEvents,
+      bookedMuseums: tourist.BookedMuseums
     });
   } catch (error) {
-    console.error('Error adding completed museum event:', error);
+    console.error('Error updating completed museum events:', error);
     res.status(500).json({ error: error.message });
   }
 };
+
 
 const addCompletedHPEvents = async (req, res) => {
-  const { touristUsername, hpName } = req.body;
+  const { touristUsername } = req.body;
 
   try {
     // Find the tourist by username
@@ -1630,45 +1634,40 @@ const addCompletedHPEvents = async (req, res) => {
       return res.status(404).json({ msg: 'Tourist not found' });
     }
 
-    // Check if the historical place is in the bookedHistPlaces array
-    const bookedHP = tourist.BookedHistPlaces.find(hp => hp.HistPlaceName === hpName);
-    if (!bookedHP) {
-      return res.status(400).json({ msg: 'Historical Place event not booked by the tourist' });
-    }
-
-    // Fetch the historical place event to check the date
-    const hpEvent = await HistoricalPlacesModel.findOne({ name: hpName }); // Correct model name
-    if (!hpEvent) {
-      return res.status(404).json({ msg: 'Historical Place event not found' });
-    }
-
-    // Check if the historical place event date is in the past
     const currentDate = new Date();
-    if (hpEvent.dateOfEvent > currentDate) { // Correctly access the dateOfEvent property
-      return res.status(400).json({ msg: 'The Historical Place event date has not passed yet' });
+
+    // Iterate over the BookedHistPlaces array and check if the event date has passed
+    const updatedBookedHistPlaces = [];
+    for (const bookedHP of tourist.BookedHistPlaces) {
+      const hpEvent = await HistoricalPlacesModel.findOne({ name: bookedHP.HistPlaceName });
+      if (hpEvent && hpEvent.dateOfEvent <= currentDate) {
+        // Move to completedHistoricalPlaceEvent if the event date has passed
+        tourist.completedHistoricalPlaceEvent.push({
+          HistoricalPlaceName: bookedHP.HistPlaceName
+        });
+      } else {
+        // Retain the historical place in BookedHistPlaces if the event date hasn't passed
+        updatedBookedHistPlaces.push(bookedHP);
+      }
     }
 
-    // Add the completed historical place event to the completedHistoricalPlaceEvent array
-    tourist.completedHistoricalPlaceEvent.push({ HistoricalPlaceName: hpName });
+    // Update the tourist's BookedHistPlaces array
+    tourist.BookedHistPlaces = updatedBookedHistPlaces;
 
     // Save the updated tourist document
     await tourist.save();
 
     // Send a response with the updated tourist data
     res.status(200).json({
-      msg: 'Historical Place event marked as completed successfully!',
-      completedHistoricalPlaceEvent: tourist.completedHistoricalPlaceEvent // Correctly reference the completed event
+      msg: 'Historical Place events updated successfully!',
+      completedHistoricalPlaceEvent: tourist.completedHistoricalPlaceEvent,
+      bookedHistPlaces: tourist.BookedHistPlaces
     });
   } catch (error) {
-    console.error('Error adding completed Historical Place event:', error);
+    console.error('Error updating completed Historical Place events:', error);
     res.status(500).json({ error: error.message });
   }
 };
-
-
-
-
-
 
 
 const rateTourGuide = async (req, res) => {
