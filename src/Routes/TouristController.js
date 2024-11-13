@@ -57,7 +57,8 @@ const createTourist = async (req, res) => {
               BookedFlights:[],
               BookedHotels:[],
               BookedTransportation:[],
-              MyPreferences:[]
+              MyPreferences:[],
+              BookmarkedEvents:[],
           });
 
           // Send the created user as a JSON response with a 201 Created status
@@ -4767,9 +4768,40 @@ const loginTouristOTP = async (req, res) => {
 };
 
 
+const addBookmark = async (req, res) => {
+  const { touristUsername, eventName } = req.body;
 
+  try {
+    const tourist = await TouristModel.findOne({ Username: touristUsername });
+
+    if (!tourist) {
+      return res.status(404).json({ msg: 'Tourist not found' });
+    }
+
+    const activity = await ActivityModel.findOne({ Name: eventName });
+    const itinerary = await ItineraryModel.findOne({Title:eventName });
+    const hp = await HistoricalPlacesModel.findOne({name:eventName});
+    const museum = await MuseumModel.findOne({name:eventName});
+
+    if (!activity && !itinerary && !hp && !museum) {
+       return res.status(404).json({ msg: 'Event not found' });
+    }
+   
+    tourist.BookmarkedEvents.push({
+      EventName: eventName
+    });
+
+    
+    await tourist.save();
+    
+    res.status(201).json({ msg: 'Event Saved!', EventName:eventName});
+  } catch (error) {
+    console.error('Error saving bookmark:', error);
+    res.status(500).json({ error: error.message });
+  }
+};
 
 
 module.exports = {createTourist, getTourist, updateTourist, searchProductTourist, filterActivities, filterProductByPriceTourist, ActivityRating, sortProductsDescendingTourist, sortProductsAscendingTourist, ViewAllUpcomingActivities, ViewAllUpcomingMuseumEventsTourist, getMuseumsByTagTourist, getHistoricalPlacesByTagTourist, ViewAllUpcomingHistoricalPlacesEventsTourist,viewProductsTourist, sortActivitiesPriceAscendingTourist, sortActivitiesPriceDescendingTourist, sortActivitiesRatingAscendingTourist, sortActivitiesRatingDescendingTourist, loginTourist, ViewAllUpcomingItinerariesTourist, sortItinerariesPriceAscendingTourist, sortItinerariesPriceDescendingTourist, filterItinerariesTourist, ActivitiesSearchAll, ItinerarySearchAll, MuseumSearchAll, HistoricalPlacesSearchAll, ProductRating, createComplaint, getComplaintsByTouristUsername,ChooseActivitiesByCategoryTourist,bookActivity,bookItinerary,bookMuseum,bookHistoricalPlace, ratePurchasedProduct, addPurchasedProducts, reviewPurchasedProduct, addCompletedItinerary, rateTourGuide, commentOnTourGuide, rateCompletedItinerary, commentOnItinerary, addCompletedActivities, addCompletedMuseumEvents, addCompletedHPEvents, rateCompletedActivity, rateCompletedMuseum, rateCompletedHP, commentOnActivity, commentOnMuseum, commentOnHP,deleteBookedActivity,deleteBookedItinerary,deleteBookedMuseum,deleteBookedHP,payActivity,updateWallet,updatepoints,payItinerary,payMuseum,payHP,redeemPoints, convertEgp, fetchFlights,viewBookedItineraries, requestDeleteAccountTourist,convertCurr,getActivityDetails,getHistoricalPlaceDetails,getMuseumDetails,GetCopyLink, bookFlight
-  ,fetchHotelsByCity, fetchHotels, bookHotel,bookTransportation,addPreferences, viewMyCompletedActivities, viewMyCompletedItineraries, viewMyCompletedMuseums, viewMyCompletedHistoricalPlaces,viewMyBookedActivities,viewMyBookedItineraries,viewMyBookedMuseums,viewMyBookedHistoricalPlaces,viewTourGuidesCompleted,viewAllTransportation, getItineraryDetails, viewPreferenceTags,viewPurchasedProducts,viewBookedActivities,viewMyBookedTransportation
+  ,fetchHotelsByCity, fetchHotels, bookHotel,bookTransportation,addPreferences, viewMyCompletedActivities, viewMyCompletedItineraries, viewMyCompletedMuseums, viewMyCompletedHistoricalPlaces,viewMyBookedActivities,viewMyBookedItineraries,viewMyBookedMuseums,viewMyBookedHistoricalPlaces,viewTourGuidesCompleted,viewAllTransportation, getItineraryDetails, viewPreferenceTags,viewPurchasedProducts,viewBookedActivities,viewMyBookedTransportation,addBookmark
 , payActivityByCard, payItineraryByCard, payMuseumByCard, payHPByCard, sendOtp, loginTouristOTP};

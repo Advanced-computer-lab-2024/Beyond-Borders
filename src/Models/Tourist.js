@@ -166,6 +166,14 @@ const TouristSchema = new Schema({
       }
     }
   ],
+  BookmarkedEvents: [
+    {
+      EventName: {
+        type: String,
+        required: false 
+      }
+    }
+  ],
   MyPreferences: [{type : String , required :true}],
     
   
