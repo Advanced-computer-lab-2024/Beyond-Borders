@@ -1182,7 +1182,18 @@ const flagItinerary = async (req, res) => {
     }
 };
 
+const getAdminPassword = async (req, res) => {
+    try {
+        const { username } = req.query;
+        const admin = await NewAdminModel.findOne({Username: username}); //Fetch all categories
+        const {Password} = admin;
+        res.status(200).json(Password);
+    } catch (error) {
+        res.status(400).json({ error: error.message }); 
+    }
+ };
+
 
 module.exports = {createNewAdmin, createNewTourismGoverner, createNewProduct, editProduct, acceptSeller, rejectSeller, createNewCategory, readAllActivityCategories, updateCategory, deleteActivityCategory, deleteAccount, searchProductAdmin, createNewTag, readAllTags, updateTag, deleteTag, 
     acceptTourGuide, rejectTourGuide, acceptAdvertiser, rejectAdvertiser, filterProductByPriceAdmin, sortProductsDescendingAdmin, sortProductsAscendingAdmin,viewProducts, loginAdmin, viewAllProductsAdmin, updateAdminPassword, getAllComplaints, updateComplaintStatus, replyToComplaint, getComplaintDetails, 
-    filterComplaintsByStatus, sortComplaintsByRecent, sortComplaintsByOldest, archiveProduct, unarchiveProduct, flagItinerary, flagActivity, viewArchivedProductsAdmin , viewAllActivitiesAdmin ,viewAllItinerariesAdmin,acceptTranspAdvertiser,rejectTranspAdvertiser, readAllDeleteRequests,rejectRequestDeleteAccout};
+    filterComplaintsByStatus, sortComplaintsByRecent, sortComplaintsByOldest, archiveProduct, unarchiveProduct, flagItinerary, flagActivity, viewArchivedProductsAdmin , viewAllActivitiesAdmin ,viewAllItinerariesAdmin,acceptTranspAdvertiser,rejectTranspAdvertiser, readAllDeleteRequests,rejectRequestDeleteAccout, getAdminPassword};
