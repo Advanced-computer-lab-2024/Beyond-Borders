@@ -38,7 +38,7 @@ const LoginAdmin = () => {
 
         // Redirect after 2 seconds
         setTimeout(() => {
-          window.location.href = `HomePageAdmin`; // Redirect to home page for admin
+          window.location.href = `YAdminDashboard`; // Redirect to home page for admin
         }, 2000);
       } else {
         setResponseMessage(`Error: ${result.error || 'Failed to log in.'}`);
