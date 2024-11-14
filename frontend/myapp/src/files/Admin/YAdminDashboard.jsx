@@ -85,10 +85,10 @@ function YAdminDashboard() {
           <Button onClick={() => navigate('/manage-access')} sx={styles.menuButton}>
             Manage Access
           </Button>
-          <IconButton color="inherit">
+          <IconButton sx={styles.iconButton}>
             <NotificationsIcon />
           </IconButton>
-          <IconButton color="inherit">
+          <IconButton sx={styles.iconButton}>
             <LogoutIcon />
           </IconButton>
         </Box>
@@ -229,10 +229,21 @@ const styles = {
     alignItems: 'center',
     gap: 2,
   },
+  iconButton: {
+    color: '#e6e7ed',  // Initial color
+    '&:hover': {
+      backgroundColor: '#e6e7ed', // Background color on hover
+      color: '#192959',           // Text color on hover
+    },
+  },
   menuButton: {
     color: '#e6e7ed',
     fontWeight: 'bold',
-  },
+    '&:hover': {
+      backgroundColor: '#e6e7ed', // Set background color on hover
+      color: '#192959',           // Set text color on hover
+    },
+  },  
   sidebar: {
     backgroundColor: '#4d587e',
     color: '#e6e7ed',
