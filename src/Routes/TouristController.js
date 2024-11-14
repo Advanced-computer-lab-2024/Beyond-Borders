@@ -60,7 +60,8 @@ const createTourist = async (req, res) => {
               MyPreferences:[],
               BookmarkedEvents:[],
               WishList:[],
-              Cart:[]
+              Cart:[],
+              DeliveryAddresses:[]
           });
 
           // Send the created user as a JSON response with a 201 Created status
@@ -5116,6 +5117,70 @@ const addPurchasedProducts = async (req, res) => {
   }
 };
 
+const checkout = async (req, res) => {
+  const { touristUsername } = req.body;
+
+  try {
+    // Find the tourist by username
+    const tourist = await TouristModel.findOne({ Username: touristUsername });
+    if (!tourist) {
+      return res.status(404).json({ error: "Tourist not found" });
+    }
+
+    // Initialize total price
+    let totalPrice = 0;
+
+    // Iterate over each product in the cart
+    for (const cartItem of tourist.Cart) {
+      const product = await ProductModel.findOne({ Name: cartItem.productName });
+
+      if (!product) {
+        return res.status(404).json({ error: `Product '${cartItem.productName}' not found in ProductModel` });
+      }
+
+      // Calculate the price for the current product and add it to the total
+      totalPrice += product.Price * cartItem.Quantity;
+    }
+
+    // Send the total price as the response
+    res.status(200).json({ msg: "Checkout successful", totalPrice });
+  } catch (error) {
+    console.error("Error during checkout:", error);
+    res.status(500).json({ error: "Failed to complete checkout" });
+  }
+};
+
+const addDeliveryAddress = async (req, res) => {
+  const { touristUsername, addresses } = req.body;
+
+  try {
+    // Find the tourist by username
+    const tourist = await TouristModel.findOne({ Username: touristUsername });
+    if (!tourist) {
+      return res.status(404).json({ error: "Tourist not found" });
+    }
+
+    // Ensure addresses is an array
+    const addressArray = Array.isArray(addresses) ? addresses : [addresses];
+
+    // Map addresses to the required format and add them to DeliveryAddresses
+    addressArray.forEach((address) => {
+      tourist.DeliveryAddresses.push({ address });
+    });
+
+    // Save the updated tourist document
+    await tourist.save();
+
+    // Send a success response with updated delivery addresses
+    res.status(200).json({
+      msg: "Addresses added to DeliveryAddresses successfully",
+      DeliveryAddresses: tourist.DeliveryAddresses
+    });
+  } catch (error) {
+    console.error("Error adding delivery addresses:", error);
+    res.status(500).json({ error: "Failed to add delivery addresses" });
+  }
+};
 
 
 
@@ -5134,4 +5199,4 @@ const addPurchasedProducts = async (req, res) => {
 
 module.exports = {createTourist, getTourist, updateTourist, searchProductTourist, filterActivities, filterProductByPriceTourist, ActivityRating, sortProductsDescendingTourist, sortProductsAscendingTourist, ViewAllUpcomingActivities, ViewAllUpcomingMuseumEventsTourist, getMuseumsByTagTourist, getHistoricalPlacesByTagTourist, ViewAllUpcomingHistoricalPlacesEventsTourist,viewProductsTourist, sortActivitiesPriceAscendingTourist, sortActivitiesPriceDescendingTourist, sortActivitiesRatingAscendingTourist, sortActivitiesRatingDescendingTourist, loginTourist, ViewAllUpcomingItinerariesTourist, sortItinerariesPriceAscendingTourist, sortItinerariesPriceDescendingTourist, filterItinerariesTourist, ActivitiesSearchAll, ItinerarySearchAll, MuseumSearchAll, HistoricalPlacesSearchAll, ProductRating, createComplaint, getComplaintsByTouristUsername,ChooseActivitiesByCategoryTourist,bookActivity,bookItinerary,bookMuseum,bookHistoricalPlace, ratePurchasedProduct, addPurchasedProducts, reviewPurchasedProduct, addCompletedItinerary, rateTourGuide, commentOnTourGuide, rateCompletedItinerary, commentOnItinerary, addCompletedActivities, addCompletedMuseumEvents, addCompletedHPEvents, rateCompletedActivity, rateCompletedMuseum, rateCompletedHP, commentOnActivity, commentOnMuseum, commentOnHP,deleteBookedActivity,deleteBookedItinerary,deleteBookedMuseum,deleteBookedHP,payActivity,updateWallet,updatepoints,payItinerary,payMuseum,payHP,redeemPoints, convertEgp, fetchFlights,viewBookedItineraries, requestDeleteAccountTourist,convertCurr,getActivityDetails,getHistoricalPlaceDetails,getMuseumDetails,GetCopyLink, bookFlight
   ,fetchHotelsByCity, fetchHotels, bookHotel,bookTransportation,addPreferences, viewMyCompletedActivities, viewMyCompletedItineraries, viewMyCompletedMuseums, viewMyCompletedHistoricalPlaces,viewMyBookedActivities,viewMyBookedItineraries,viewMyBookedMuseums,viewMyBookedHistoricalPlaces,viewTourGuidesCompleted,viewAllTransportation, getItineraryDetails, viewPreferenceTags,viewPurchasedProducts,viewBookedActivities,viewMyBookedTransportation,addBookmark
-, payActivityByCard, payItineraryByCard, payMuseumByCard, payHPByCard, sendOtp, loginTouristOTP,viewBookmarks, addToWishList, viewMyWishlist, removeFromWishlist, addToCartFromWishlist, addToCart, removeFromCart, changeProductQuantityInCart};
+, payActivityByCard, payItineraryByCard, payMuseumByCard, payHPByCard, sendOtp, loginTouristOTP,viewBookmarks, addToWishList, viewMyWishlist, removeFromWishlist, addToCartFromWishlist, addToCart, removeFromCart, changeProductQuantityInCart, checkout, addDeliveryAddress};

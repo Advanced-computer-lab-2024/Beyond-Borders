@@ -195,6 +195,14 @@ const TouristSchema = new Schema({
       }
     }
   ],
+  DeliveryAddresses: [
+    {
+      address: {
+      type: String,
+      required: false
+    }
+  }
+  ]
     
   
 }, { timestamps: true }); // adds Created At & Updated At fields
