@@ -59,7 +59,8 @@ const createTourist = async (req, res) => {
               BookedTransportation:[],
               MyPreferences:[],
               BookmarkedEvents:[],
-              WishList:[]
+              WishList:[],
+              Cart:[]
           });
 
           // Send the created user as a JSON response with a 201 Created status
@@ -4931,6 +4932,60 @@ const removeFromWishlist = async (req, res) => {
   }
 };
 
+const addToCartFromWishlist = async (req, res) => {
+  const { touristUsername, productName } = req.body;
+
+  try {
+    // Find the tourist by username
+    const tourist = await TouristModel.findOne({ Username: touristUsername });
+    if (!tourist) {
+      return res.status(404).json({ error: "Tourist not found" });
+    }
+
+    // Check if the product exists in the WishList
+    const wishlistIndex = tourist.WishList.findIndex(
+      (item) => item.productName === productName
+    );
+    if (wishlistIndex === -1) {
+      return res.status(404).json({ error: "Product not found in wishlist" });
+    }
+
+    // Check if the product is already in the Cart
+    const productInCart = tourist.Cart.find(
+      (item) => item.productName === productName
+    );
+
+    if (productInCart) {
+      // If the product is already in the cart, increment the quantity
+      productInCart.Quantity += 1;
+    } else {
+      // Add the product to the Cart with an initial quantity of 1
+      tourist.Cart.push({ productName, Quantity: 1 });
+    }
+
+    // Remove the product from the WishList
+    tourist.WishList.splice(wishlistIndex, 1);
+
+    // Save the updated tourist document
+    await tourist.save();
+
+    // Send a success response with updated cart and wishlist data
+    res.status(200).json({
+      msg: "Product added to cart and removed from wishlist successfully",
+      Cart: tourist.Cart,
+      WishList: tourist.WishList
+    });
+  } catch (error) {
+    console.error("Error adding product to cart:", error);
+    res.status(500).json({ error: "Failed to add product to cart" });
+  }
+};
+
+
+
+
+
+
 
 
 
@@ -4939,4 +4994,4 @@ const removeFromWishlist = async (req, res) => {
 
 module.exports = {createTourist, getTourist, updateTourist, searchProductTourist, filterActivities, filterProductByPriceTourist, ActivityRating, sortProductsDescendingTourist, sortProductsAscendingTourist, ViewAllUpcomingActivities, ViewAllUpcomingMuseumEventsTourist, getMuseumsByTagTourist, getHistoricalPlacesByTagTourist, ViewAllUpcomingHistoricalPlacesEventsTourist,viewProductsTourist, sortActivitiesPriceAscendingTourist, sortActivitiesPriceDescendingTourist, sortActivitiesRatingAscendingTourist, sortActivitiesRatingDescendingTourist, loginTourist, ViewAllUpcomingItinerariesTourist, sortItinerariesPriceAscendingTourist, sortItinerariesPriceDescendingTourist, filterItinerariesTourist, ActivitiesSearchAll, ItinerarySearchAll, MuseumSearchAll, HistoricalPlacesSearchAll, ProductRating, createComplaint, getComplaintsByTouristUsername,ChooseActivitiesByCategoryTourist,bookActivity,bookItinerary,bookMuseum,bookHistoricalPlace, ratePurchasedProduct, addPurchasedProducts, reviewPurchasedProduct, addCompletedItinerary, rateTourGuide, commentOnTourGuide, rateCompletedItinerary, commentOnItinerary, addCompletedActivities, addCompletedMuseumEvents, addCompletedHPEvents, rateCompletedActivity, rateCompletedMuseum, rateCompletedHP, commentOnActivity, commentOnMuseum, commentOnHP,deleteBookedActivity,deleteBookedItinerary,deleteBookedMuseum,deleteBookedHP,payActivity,updateWallet,updatepoints,payItinerary,payMuseum,payHP,redeemPoints, convertEgp, fetchFlights,viewBookedItineraries, requestDeleteAccountTourist,convertCurr,getActivityDetails,getHistoricalPlaceDetails,getMuseumDetails,GetCopyLink, bookFlight
   ,fetchHotelsByCity, fetchHotels, bookHotel,bookTransportation,addPreferences, viewMyCompletedActivities, viewMyCompletedItineraries, viewMyCompletedMuseums, viewMyCompletedHistoricalPlaces,viewMyBookedActivities,viewMyBookedItineraries,viewMyBookedMuseums,viewMyBookedHistoricalPlaces,viewTourGuidesCompleted,viewAllTransportation, getItineraryDetails, viewPreferenceTags,viewPurchasedProducts,viewBookedActivities,viewMyBookedTransportation,addBookmark
-, payActivityByCard, payItineraryByCard, payMuseumByCard, payHPByCard, sendOtp, loginTouristOTP,viewBookmarks, addToWishList, viewMyWishlist, removeFromWishlist};
+, payActivityByCard, payItineraryByCard, payMuseumByCard, payHPByCard, sendOtp, loginTouristOTP,viewBookmarks, addToWishList, viewMyWishlist, removeFromWishlist, addToCartFromWishlist};

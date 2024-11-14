@@ -183,6 +183,18 @@ const TouristSchema = new Schema({
       }
     }
   ],
+  Cart: [
+    {
+      productName: {
+        type: String,
+        required: false 
+      },
+      Quantity:{
+        type: Number,
+        required: false
+      }
+    }
+  ],
     
   
 }, { timestamps: true }); // adds Created At & Updated At fields
