@@ -57,40 +57,42 @@ function YAdminActivitiesPage() {
     const fullStars = Math.floor(rating);
     const halfStars = roundedRating > fullStars ? 1 : 0;
     const emptyStars = 5 - fullStars - halfStars;
-
+  
     return (
       <Box sx={styles.ratingContainer}>
-        <Typography variant="body2" sx={{ position: 'absolute', right: '110px', bottom: '4px' }}>
+        <Typography variant="body2" sx={{ fontSize: '24px', position: 'absolute', right: '170px', bottom: '2px' }}>
           {roundedRating}
         </Typography>
         {[...Array(fullStars)].map((_, index) => (
-          <StarIcon key={`full-${index}`} fontSize="small" />
+          <StarIcon key={`full-${index}`} sx={{ fontSize: '32px' }} />
         ))}
         {[...Array(halfStars)].map((_, index) => (
-          <StarIcon key={`half-${index}`} fontSize="small" />
+          <StarIcon key={`half-${index}`} sx={{ fontSize: '32px' }} />
         ))}
         {[...Array(emptyStars)].map((_, index) => (
-          <StarBorderIcon key={`empty-${index}`} fontSize="small" />
+          <StarBorderIcon key={`empty-${index}`} sx={{ fontSize: '32px' }} />
         ))}
       </Box>
     );
   };
+  
 
   const scrollCommentsLeft = (index) => {
     const container = document.getElementById(`commentsContainer-${index}`);
     container.scrollLeft -= 200; // Adjust scroll amount as needed
     updateScrollPosition(index, container.scrollLeft - 200);
   };
-
+  
   const scrollCommentsRight = (index) => {
     const container = document.getElementById(`commentsContainer-${index}`);
     container.scrollLeft += 200; // Adjust scroll amount as needed
     updateScrollPosition(index, container.scrollLeft + 200);
   };
-
+  
   const updateScrollPosition = (index, scrollLeft) => {
     setScrollPositions((prev) => ({ ...prev, [index]: scrollLeft }));
   };
+  
 
   return (
     <Box sx={styles.container}>
@@ -161,7 +163,7 @@ function YAdminActivitiesPage() {
             <Box
               sx={{
                 ...styles.activityCard,
-                backgroundColor: activity.flagged ? '#f0f0f0' : 'white',
+                backgroundColor: activity.flagged ? '#cccfda' : 'white',
               }}
             >
               <Button
@@ -173,72 +175,86 @@ function YAdminActivitiesPage() {
                 {activity.flagged ? 'FLAGGED' : 'FLAG'}
               </Button>
               <Box sx={styles.activityInfo}>
-                <Typography variant="h6" sx={{ fontWeight: 'bold', marginBottom: '5px', display: 'flex', alignItems: 'center' }}>{activity.Name}</Typography>
-                <Typography variant="body2" sx={{ display: 'flex', alignItems: 'center' }}>
+                <Typography variant="h6" sx={{ fontWeight: 'bold',fontSize: '24px', marginBottom: '5px', display: 'flex', alignItems: 'center' }}>{activity.Name}</Typography>
+                <Typography variant="body2" sx={{ display: 'flex', fontSize: '18px', alignItems: 'center' }}>
                   <LocationOnIcon fontSize="small" sx={{ mr: 1 }} />
                   {activity.Location?.address || 'N/A'}
                 </Typography>
-                <Typography variant="body2" sx={{ display: 'flex', alignItems: 'center' }}>
+                <Typography variant="body2" sx={{ display: 'flex', fontSize: '18px', alignItems: 'center' }}>
                   <PersonIcon fontSize="small" sx={{ mr: 1 }} />
                   {activity.AdvertiserName}
                 </Typography>
-                <Typography variant="body2" sx={{ display: 'flex', alignItems: 'center' }}>
+                <Typography variant="body2" sx={{ display: 'flex', fontSize: '18px', alignItems: 'center' }}>
                   <AttachMoneyIcon fontSize="small" sx={{ mr: 1 }} />
                   {activity.Price}
                 </Typography>
-                <Typography variant="body2" sx={{ display: 'flex', alignItems: 'center' }}>
+                <Typography variant="body2" sx={{ display: 'flex', fontSize: '18px', alignItems: 'center' }}>
                   <CalendarTodayIcon fontSize="small" sx={{ mr: 1 }} />
                   {new Date(activity.Date).toLocaleDateString()}
                 </Typography>
-                <Typography variant="body2" sx={{ display: 'flex', alignItems: 'center' }}>
+                <Typography variant="body2" sx={{ display: 'flex', fontSize: '18px', alignItems: 'center' }}>
                   <AccessTimeIcon fontSize="small" sx={{ mr: 1 }} />
                   {activity.Time}
                 </Typography>
                 <Box sx={styles.quickFacts}>
-                  <Typography variant="body2" sx={{ display: 'flex', alignItems: 'center' }}><strong>Category:</strong> {activity.Category}</Typography>
-                  <Typography variant="body2" sx={{ display: 'flex', alignItems: 'center' }}><strong>Tags:</strong> {activity.Tags.join(', ')}</Typography>
+                  <Box sx={{ ...styles.infoContainer, backgroundColor: activity.flagged ? '#b3b8c8' : '#f3f4f6' }}>
+                    <Typography variant="body2" sx={{ fontWeight: 'bold' }}>Category:</Typography>
+                    <Typography variant="body2">{activity.Category}</Typography>
+                  </Box>
+                  <Box sx={{ ...styles.infoContainer, backgroundColor: activity.flagged ? '#b3b8c8' : '#f3f4f6' }}>
+                    <Typography variant="body2" sx={{ fontWeight: 'bold' }}>Tags:</Typography>
+                    <Typography variant="body2">{activity.Tags.join(', ')}</Typography>
+                  </Box>
                 </Box>
               </Box>
               <Box sx={styles.activityRating}>
                 {renderRating(activity.Rating)}
               </Box>
-              <Box sx={styles.activityRating}>
-                <Typography variant="body2">Special Discount: {activity.SpecialDiscount}</Typography>
-                <Typography variant="body2" sx={{ marginBottom: '50px' }}>Booking Open: {activity.BookingOpen ? 'Yes' : 'No'}</Typography>
+              <Box sx={styles.discountContainer}>
+                <Box sx={{...styles.infoContainer, backgroundColor: activity.flagged ? '#b3b8c8' : '#f3f4f6'}}>
+                  <Typography variant="body2" sx={{ fontWeight: 'bold' }}>Special Discount:</Typography>
+                  <Typography variant="body2">{activity.SpecialDiscount}</Typography>
+                </Box>
+              </Box>
+              <Box sx={styles.bookingOpenContainer}>
+                <Box sx={{...styles.infoContainer, backgroundColor: activity.flagged ? '#b3b8c8' : '#f3f4f6'}}>
+                  <Typography variant="body2" sx={{ fontWeight: 'bold' }}>Booking Open:</Typography>
+                  <Typography variant="body2">{activity.BookingOpen ? 'Yes' : 'No'}</Typography>
+                </Box>
               </Box>
             </Box>
             {/* Comments Section */}
-            <Box sx={styles.commentsSection}>
-              {activity.Comments && activity.Comments.length > 0 ? (
-                <>
-                  {scrollPositions[index] > 0 && (
-                    <IconButton sx={styles.scrollButton} onClick={() => scrollCommentsLeft(index)}>
-                      <ArrowBackIcon />
-                    </IconButton>
-                  )}
-                  <Box
-                    sx={styles.commentsContainer}
-                    id={`commentsContainer-${index}`}
-                    onScroll={(e) => updateScrollPosition(index, e.target.scrollLeft)}
-                  >
-                    {activity.Comments.map((comment, idx) => (
-                      <Box key={idx} sx={styles.commentCard}>
-                        <Typography variant="body2">{comment.Comment || 'No comment available'}</Typography>
-                        <Typography variant="caption">@ {comment.touristUsername || 'Anonymous'}</Typography>
-                       
-                      </Box>
-                    ))}
-                  </Box>
-                  {scrollPositions[index] + 200 < document.getElementById(`commentsContainer-${index}`)?.scrollWidth && (
-                    <IconButton sx={styles.scrollButton} onClick={() => scrollCommentsRight(index)}>
-                      <ArrowForwardIcon />
-                    </IconButton>
-                  )}
-                </>
-              ) : (
-                <Typography variant="body2">No comments available</Typography>
-              )}
-            </Box>
+<Box sx={styles.commentsSection}>
+  {activity.Comments && activity.Comments.length > 0 ? (
+    <>
+      {scrollPositions[index] > 0 && (
+        <IconButton sx={styles.scrollButton} onClick={() => scrollCommentsLeft(index)}>
+          <ArrowBackIcon />
+        </IconButton>
+      )}
+      <Box
+        sx={styles.commentsContainer}
+        id={`commentsContainer-${index}`}
+        onScroll={(e) => updateScrollPosition(index, e.target.scrollLeft)}
+      >
+        {activity.Comments.map((comment, idx) => (
+          <Box key={idx} sx={styles.commentCard}>
+            <Typography variant="body2">{comment.Comment || 'No comment available'}</Typography>
+            <Typography variant="caption">@ {comment.touristUsername || 'Anonymous'}</Typography>
+          </Box>
+        ))}
+      </Box>
+      {scrollPositions[index] + 200 < document.getElementById(`commentsContainer-${index}`)?.scrollWidth && (
+        <IconButton sx={styles.scrollButton} onClick={() => scrollCommentsRight(index)}>
+          <ArrowForwardIcon />
+        </IconButton>
+      )}
+    </>
+  ) : (
+    <Typography variant="body2">No comments available</Typography>
+  )}
+</Box>
+ 
           </Box>
         ))}
       </Box>
@@ -332,14 +348,30 @@ const styles = {
     marginLeft: '60px',
     transition: 'margin-left 0.3s ease',
   },
+  discountContainer: {
+    position: 'absolute',
+    bottom: '100px',
+    right: '50px',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '10px',
+  },
+  bookingOpenContainer: {
+    position: 'absolute',
+    bottom: '50px',
+    right: '50px',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '10px',
+  },
   activityCard: {
     display: 'flex',
     position: 'relative',
     justifyContent: 'space-between',
-    padding: '20px',
+    padding: '50px 50px', // Increase padding for top/bottom and left/right
     borderRadius: '10px',
     boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.2)',
-  },
+  },  
   activityInfo: {
     flex: 2,
     display: 'flex',
@@ -347,20 +379,46 @@ const styles = {
     gap: 1,
   },
   quickFacts: {
+    display: 'flex',
+    flexDirection: 'row',
+    gap: '10px',
     marginTop: '10px',
+  },
+  infoContainer: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    backgroundColor: '#f3f4f6',
+    borderRadius: '16px',
+    padding: '5px 10px',
+    marginRight: '10px', // Add spacing between containers if needed
   },
   activityRating: {
     position: 'absolute',
-    bottom: '10px',
-    right: '10px',
+    bottom: '140px',
+    right: '60px',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '10px',
   },
   flagButton: {
     position: 'absolute',
-    top: '10px',
-    right: '10px',
+    top: '50px',
+    right: '50px',
     backgroundColor: '#ff5722',
     color: 'white',
     '&:hover': { backgroundColor: '#ff8a50' },
+  },
+  activityInfoLeft: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '5px',
+  },
+  
+  activityInfoRight: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '5px',
+    alignItems: 'flex-end',
   },
   commentsSection: {
     display: 'flex',
