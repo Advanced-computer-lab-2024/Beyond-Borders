@@ -4981,6 +4981,122 @@ const addToCartFromWishlist = async (req, res) => {
   }
 };
 
+const addToCart = async (req, res) => {
+  const { touristUsername, productName } = req.body;
+
+  try {
+    // Find the tourist by username
+    const tourist = await TouristModel.findOne({ Username: touristUsername });
+    if (!tourist) {
+      return res.status(404).json({ error: "Tourist not found" });
+    }
+
+    const product = await ProductModel.findOne({ Name: productName });
+    if (!product) {
+      return res.status(404).json({ error: "Product not found" });
+    }
+
+    // Check if the product is already in the Cart
+    const productInCart = tourist.Cart.find(
+      (item) => item.productName === productName
+    );
+
+    if (productInCart) {
+      // If the product is already in the cart, increment the quantity
+      productInCart.Quantity += 1;
+    } else {
+      // Add the product to the Cart with an initial quantity of 1
+      tourist.Cart.push({ productName, Quantity: 1 });
+    }
+
+    // Save the updated tourist document
+    await tourist.save();
+
+    // Send a success response with updated cart and wishlist data
+    res.status(200).json({
+      msg: "Product added to cart successfully",
+      Cart: tourist.Cart
+    });
+  } catch (error) {
+    console.error("Error adding product to cart:", error);
+    res.status(500).json({ error: "Failed to add product to cart" });
+  }
+};
+
+const removeFromCart = async (req, res) => {
+  const { touristUsername, productName } = req.body;
+
+  try {
+    // Find the tourist by username
+    const tourist = await TouristModel.findOne({ Username: touristUsername });
+    if (!tourist) {
+      return res.status(404).json({ error: "Tourist not found" });
+    }
+
+    // Find the index of the product in the Cart array
+    const cartIndex = tourist.Cart.findIndex(
+      (item) => item.productName === productName
+    );
+
+    // Check if the product exists in the cart
+    if (cartIndex === -1) {
+      return res.status(404).json({ error: "Product not found in cart" });
+    }
+
+    // Remove the product from the cart
+    tourist.Cart.splice(cartIndex, 1);
+
+    // Save the updated tourist document
+    await tourist.save();
+
+    // Send a success response with updated cart data
+    res.status(200).json({ msg: "Product removed from cart successfully", Cart: tourist.Cart });
+  } catch (error) {
+    console.error("Error removing product from cart:", error);
+    res.status(500).json({ error: "Failed to remove product from cart" });
+  }
+};
+
+const changeProductQuantityInCart = async (req, res) => {
+  const { touristUsername, productName, amount } = req.body;
+
+  try {
+    // Find the tourist by username
+    const tourist = await TouristModel.findOne({ Username: touristUsername });
+    if (!tourist) {
+      return res.status(404).json({ error: "Tourist not found" });
+    }
+
+    // Find the product in the Cart array
+    const productInCart = tourist.Cart.find(
+      (item) => item.productName === productName
+    );
+
+    // Check if the product exists in the cart
+    if (!productInCart) {
+      return res.status(404).json({ error: "Product not found in cart" });
+    }
+
+    // Update the quantity
+    if (amount <= 0) {
+      return res.status(400).json({ error: "Quantity must be greater than zero" });
+    }
+
+    productInCart.Quantity = amount;
+
+    // Save the updated tourist document
+    await tourist.save();
+
+    // Send a success response with updated cart data
+    res.status(200).json({ msg: "Product quantity updated successfully", Cart: tourist.Cart });
+  } catch (error) {
+    console.error("Error updating product quantity in cart:", error);
+    res.status(500).json({ error: "Failed to update product quantity in cart" });
+  }
+};
+
+
+
 
 
 
@@ -4994,4 +5110,4 @@ const addToCartFromWishlist = async (req, res) => {
 
 module.exports = {createTourist, getTourist, updateTourist, searchProductTourist, filterActivities, filterProductByPriceTourist, ActivityRating, sortProductsDescendingTourist, sortProductsAscendingTourist, ViewAllUpcomingActivities, ViewAllUpcomingMuseumEventsTourist, getMuseumsByTagTourist, getHistoricalPlacesByTagTourist, ViewAllUpcomingHistoricalPlacesEventsTourist,viewProductsTourist, sortActivitiesPriceAscendingTourist, sortActivitiesPriceDescendingTourist, sortActivitiesRatingAscendingTourist, sortActivitiesRatingDescendingTourist, loginTourist, ViewAllUpcomingItinerariesTourist, sortItinerariesPriceAscendingTourist, sortItinerariesPriceDescendingTourist, filterItinerariesTourist, ActivitiesSearchAll, ItinerarySearchAll, MuseumSearchAll, HistoricalPlacesSearchAll, ProductRating, createComplaint, getComplaintsByTouristUsername,ChooseActivitiesByCategoryTourist,bookActivity,bookItinerary,bookMuseum,bookHistoricalPlace, ratePurchasedProduct, addPurchasedProducts, reviewPurchasedProduct, addCompletedItinerary, rateTourGuide, commentOnTourGuide, rateCompletedItinerary, commentOnItinerary, addCompletedActivities, addCompletedMuseumEvents, addCompletedHPEvents, rateCompletedActivity, rateCompletedMuseum, rateCompletedHP, commentOnActivity, commentOnMuseum, commentOnHP,deleteBookedActivity,deleteBookedItinerary,deleteBookedMuseum,deleteBookedHP,payActivity,updateWallet,updatepoints,payItinerary,payMuseum,payHP,redeemPoints, convertEgp, fetchFlights,viewBookedItineraries, requestDeleteAccountTourist,convertCurr,getActivityDetails,getHistoricalPlaceDetails,getMuseumDetails,GetCopyLink, bookFlight
   ,fetchHotelsByCity, fetchHotels, bookHotel,bookTransportation,addPreferences, viewMyCompletedActivities, viewMyCompletedItineraries, viewMyCompletedMuseums, viewMyCompletedHistoricalPlaces,viewMyBookedActivities,viewMyBookedItineraries,viewMyBookedMuseums,viewMyBookedHistoricalPlaces,viewTourGuidesCompleted,viewAllTransportation, getItineraryDetails, viewPreferenceTags,viewPurchasedProducts,viewBookedActivities,viewMyBookedTransportation,addBookmark
-, payActivityByCard, payItineraryByCard, payMuseumByCard, payHPByCard, sendOtp, loginTouristOTP,viewBookmarks, addToWishList, viewMyWishlist, removeFromWishlist, addToCartFromWishlist};
+, payActivityByCard, payItineraryByCard, payMuseumByCard, payHPByCard, sendOtp, loginTouristOTP,viewBookmarks, addToWishList, viewMyWishlist, removeFromWishlist, addToCartFromWishlist, addToCart, removeFromCart, changeProductQuantityInCart};
