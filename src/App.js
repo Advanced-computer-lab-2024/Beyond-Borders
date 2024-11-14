@@ -185,7 +185,7 @@ app.post("/api/requestDeleteAccountTourGuide" , requestDeleteAccountTourGuide);
 app.post("/api/rejectRequestDeleteAccout" , rejectRequestDeleteAccout);
 app.get("/api/viewBookedActivities" , viewBookedActivities);
 app.get("/api/getAdminPassword" , getAdminPassword);
-
+ 
 //SPRINT 2 MALAK AND JANA
 app.get("/ChooseActivitiesByCategoryTourist",ChooseActivitiesByCategoryTourist);
 app.get("/ChooseActivitiesByCategoryGuest",ChooseActivitiesByCategoryGuest);
