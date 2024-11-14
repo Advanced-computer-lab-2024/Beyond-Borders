@@ -17,7 +17,7 @@ const nodemailer = require('nodemailer');
 const ItineraryModel = require('../Models/Itinerary.js');
 const DeactivatedItinerariesModel = require('../Models/DeactivatedItineraries.js');
 const AdvertiserModel = require('../Models/Advertiser.js');
-
+const UserOTPModel = require('../Models/UserOTP.js');
 const DeactivatedActivitiesModel = require('../Models/DeactivatedActivities.js');
 const { default: mongoose } = require('mongoose');
 
@@ -57,7 +57,8 @@ const createTourist = async (req, res) => {
               BookedFlights:[],
               BookedHotels:[],
               BookedTransportation:[],
-              MyPreferences:[]
+              MyPreferences:[],
+              BookmarkedEvents:[],
           });
 
           // Send the created user as a JSON response with a 201 Created status
@@ -1140,17 +1141,6 @@ const bookActivity = async (req, res) => {
       tourist.BookedActivities = [];
     }
 
-   
-    tourist.BookedActivities.push({
-      activityName: activity.Name,
-      confirmed: true 
-    });
-
-    activity.isBooked = true;
-    await activity.save(); 
-    await tourist.save();
-
-    
     res.status(201).json({ msg: 'Activity booked successfully!', activityName: activity.Name, totalCost: activity.Price});
   } catch (error) {
     console.error('Error booking activity:', error);
@@ -1192,11 +1182,6 @@ const bookItinerary = async (req, res) => {
     if (!tourist.BookedItineraries) {
       tourist.BookedItineraries = [];
     }
-
-    tourist.BookedItineraries.push({
-      ItineraryName: itinerary.Title,  
-      booked: true 
-    });
 
     
     await tourist.save();
@@ -1254,11 +1239,6 @@ const bookMuseum = async (req, res) => {
       tourist.BookedMuseums = [];
     }
 
-    tourist.BookedMuseums.push({
-      MuseumName: museum.name,  
-      booked: true 
-    });
-
     await tourist.save();
 
     res.status(201).json({ msg: 'Museum booked successfully!', museumName: museum.name, ticketPrice });
@@ -1313,10 +1293,7 @@ const bookHistoricalPlace = async (req, res) => {
       tourist.BookedHistPlaces = [];
     }
 
-    tourist.BookedHistPlaces.push({
-      HistPlaceName: historicalPlace.name,  
-      booked: true 
-    });
+    
 
     await tourist.save();
 
@@ -1512,7 +1489,7 @@ const reviewPurchasedProduct = async (req, res) => {
 
 
 const addCompletedItinerary = async (req, res) => {
-  const { touristUsername, itineraryName } = req.body;
+  const { touristUsername } = req.body;
 
   try {
     // Find the tourist by username
@@ -1521,42 +1498,42 @@ const addCompletedItinerary = async (req, res) => {
       return res.status(404).json({ msg: 'Tourist not found' });
     }
 
-    // Find the booked itinerary
-    const bookedItinerary = tourist.BookedItineraries.find(itinerary => itinerary.ItineraryName === itineraryName);
-    if (!bookedItinerary) {
-      return res.status(400).json({ msg: 'Itinerary not booked by the tourist' });
-    }
-
-    // Fetch the itinerary from the ItineraryModel to check the date
-    const itinerary = await ItineraryModel.findOne({ Title: itineraryName }); // Assuming `name` is the key for the itinerary
-    if (!itinerary) {
-      return res.status(404).json({ msg: 'Itinerary not found' });
-    }
-
-    // Check if the date has passed
     const currentDate = new Date();
-    if (itinerary.Date > currentDate) { 
-      return res.status(400).json({ msg: 'The itinerary date has not passed yet' });
+    
+    // Iterate over the bookedItineraries array and check if the date has passed
+    const updatedBookedItineraries = [];
+    for (const bookedItinerary of tourist.BookedItineraries) {
+      const itinerary = await ItineraryModel.findOne({ Title: bookedItinerary.ItineraryName });
+      if (itinerary && itinerary.Date <= currentDate) {
+        // Move to completedItineraries if the date has passed
+        tourist.completedItineraries.push(bookedItinerary);
+      } else {
+        // Retain the itinerary if the date hasn't passed
+        updatedBookedItineraries.push(bookedItinerary);
+      }
     }
 
-    // Add the completed itinerary to the completedItineraries array
-    tourist.completedItineraries.push({
-      ItineraryName: itineraryName
-    });
+    // Update the tourist's bookedItineraries array
+    tourist.BookedItineraries = updatedBookedItineraries;
 
     // Save the updated tourist document
     await tourist.save();
 
     // Send a response with the updated tourist data
-    res.status(200).json({ msg: 'Itinerary marked as completed successfully!', completedItineraries: tourist.completedItineraries });
+    res.status(200).json({
+      msg: 'Itineraries updated successfully!',
+      completedItineraries: tourist.completedItineraries,
+      bookedItineraries: tourist.BookedItineraries
+    });
   } catch (error) {
-    console.error('Error adding completed itinerary:', error);
+    console.error('Error updating completed itineraries:', error);
     res.status(500).json({ error: error.message });
   }
 };
+
 
 const addCompletedActivities = async (req, res) => {
-  const { touristUsername, activityName } = req.body;
+  const { touristUsername } = req.body;
 
   try {
     // Find the tourist by username
@@ -1565,42 +1542,45 @@ const addCompletedActivities = async (req, res) => {
       return res.status(404).json({ msg: 'Tourist not found' });
     }
 
-    const bookedActivity = tourist.BookedActivities.find(activity => activity.activityName === activityName);
-    if (!bookedActivity) {
-      return res.status(400).json({ msg: 'Activity not booked by the tourist' });
-    }
-
-    // Fetch the activity to check the date
-    const activity = await ActivityModel.findOne({ Name: activityName });
-    if (!activity) {
-      return res.status(404).json({ msg: 'Activity not found' });
-    }
-
-    // Check if the activity date is in the past
     const currentDate = new Date();
-    if (activity.Date > currentDate) {
-      return res.status(400).json({ msg: 'The activity date has not passed yet' });
+    
+    // Iterate over the bookedActivities array and check if the date has passed
+    const updatedBookedActivities = [];
+    for (const bookedActivity of tourist.BookedActivities) {
+      const activity = await ActivityModel.findOne({ Name: bookedActivity.activityName });
+      if (activity && activity.Date <= currentDate) {
+        // Ensure the correct structure is pushed to completedActivities
+        tourist.completedActivities.push({
+          ActivityName: bookedActivity.activityName
+        });
+      } else {
+        // Retain the activity if the date hasn't passed
+        updatedBookedActivities.push(bookedActivity);
+      }
     }
 
-    // Add the completed activity to the completedActivities array
-    tourist.completedActivities.push({ ActivityName: activityName });
+    // Update the tourist's bookedActivities array
+    tourist.BookedActivities = updatedBookedActivities;
 
     // Save the updated tourist document
     await tourist.save();
 
     // Send a response with the updated tourist data
     res.status(200).json({
-      msg: 'Activity marked as completed successfully!',
-      completedActivities: tourist.completedActivities
+      msg: 'Activities updated successfully!',
+      completedActivities: tourist.completedActivities,
+      bookedActivities: tourist.BookedActivities
     });
   } catch (error) {
-    console.error('Error adding completed activity:', error);
+    console.error('Error updating completed activities:', error);
     res.status(500).json({ error: error.message });
   }
 };
+
+
 
 const addCompletedMuseumEvents = async (req, res) => {
-  const { touristUsername, museumName } = req.body;
+  const { touristUsername } = req.body;
 
   try {
     // Find the tourist by username
@@ -1609,43 +1589,44 @@ const addCompletedMuseumEvents = async (req, res) => {
       return res.status(404).json({ msg: 'Tourist not found' });
     }
 
-    // Check if the museum is in the bookedMuseums array
-    const bookedMuseum = tourist.BookedMuseums.find(museum => museum.MuseumName === museumName);
-    if (!bookedMuseum) {
-      return res.status(400).json({ msg: 'Museum event not booked by the tourist' });
-    }
-
-    // Fetch the museum event to check the date
-    const museumEvent = await MuseumModel.findOne({ name: museumName }); // Use the correct model name
-    if (!museumEvent) {
-      return res.status(404).json({ msg: 'Museum event not found' });
-    }
-
-    // Check if the museum event date is in the past
     const currentDate = new Date();
-    if (museumEvent.dateOfEvent > currentDate) { // Correctly access the dateOfEvent property
-      return res.status(400).json({ msg: 'The museum event date has not passed yet' });
+
+    // Iterate over the BookedMuseums array and check if the event date has passed
+    const updatedBookedMuseums = [];
+    for (const bookedMuseum of tourist.BookedMuseums) {
+      const museumEvent = await MuseumModel.findOne({ name: bookedMuseum.MuseumName });
+      if (museumEvent && museumEvent.dateOfEvent <= currentDate) {
+        // Move to completedMuseumEvents if the event date has passed
+        tourist.completedMuseumEvents.push({
+          MuseumName: bookedMuseum.MuseumName // Add other required fields if necessary
+        });
+      } else {
+        // Retain the museum in BookedMuseums if the event date hasn't passed
+        updatedBookedMuseums.push(bookedMuseum);
+      }
     }
 
-    // Add the completed museum event to the completedMuseumEvents array
-    tourist.completedMuseumEvents.push({ MuseumName: museumName });
+    // Update the tourist's BookedMuseums array
+    tourist.BookedMuseums = updatedBookedMuseums;
 
     // Save the updated tourist document
     await tourist.save();
 
     // Send a response with the updated tourist data
     res.status(200).json({
-      msg: 'Museum event marked as completed successfully!',
-      completedMuseumEvents: tourist.completedMuseumEvents
+      msg: 'Museum events updated successfully!',
+      completedMuseumEvents: tourist.completedMuseumEvents,
+      bookedMuseums: tourist.BookedMuseums
     });
   } catch (error) {
-    console.error('Error adding completed museum event:', error);
+    console.error('Error updating completed museum events:', error);
     res.status(500).json({ error: error.message });
   }
 };
+
 
 const addCompletedHPEvents = async (req, res) => {
-  const { touristUsername, hpName } = req.body;
+  const { touristUsername } = req.body;
 
   try {
     // Find the tourist by username
@@ -1654,45 +1635,40 @@ const addCompletedHPEvents = async (req, res) => {
       return res.status(404).json({ msg: 'Tourist not found' });
     }
 
-    // Check if the historical place is in the bookedHistPlaces array
-    const bookedHP = tourist.BookedHistPlaces.find(hp => hp.HistPlaceName === hpName);
-    if (!bookedHP) {
-      return res.status(400).json({ msg: 'Historical Place event not booked by the tourist' });
-    }
-
-    // Fetch the historical place event to check the date
-    const hpEvent = await HistoricalPlacesModel.findOne({ name: hpName }); // Correct model name
-    if (!hpEvent) {
-      return res.status(404).json({ msg: 'Historical Place event not found' });
-    }
-
-    // Check if the historical place event date is in the past
     const currentDate = new Date();
-    if (hpEvent.dateOfEvent > currentDate) { // Correctly access the dateOfEvent property
-      return res.status(400).json({ msg: 'The Historical Place event date has not passed yet' });
+
+    // Iterate over the BookedHistPlaces array and check if the event date has passed
+    const updatedBookedHistPlaces = [];
+    for (const bookedHP of tourist.BookedHistPlaces) {
+      const hpEvent = await HistoricalPlacesModel.findOne({ name: bookedHP.HistPlaceName });
+      if (hpEvent && hpEvent.dateOfEvent <= currentDate) {
+        // Move to completedHistoricalPlaceEvent if the event date has passed
+        tourist.completedHistoricalPlaceEvent.push({
+          HistoricalPlaceName: bookedHP.HistPlaceName
+        });
+      } else {
+        // Retain the historical place in BookedHistPlaces if the event date hasn't passed
+        updatedBookedHistPlaces.push(bookedHP);
+      }
     }
 
-    // Add the completed historical place event to the completedHistoricalPlaceEvent array
-    tourist.completedHistoricalPlaceEvent.push({ HistoricalPlaceName: hpName });
+    // Update the tourist's BookedHistPlaces array
+    tourist.BookedHistPlaces = updatedBookedHistPlaces;
 
     // Save the updated tourist document
     await tourist.save();
 
     // Send a response with the updated tourist data
     res.status(200).json({
-      msg: 'Historical Place event marked as completed successfully!',
-      completedHistoricalPlaceEvent: tourist.completedHistoricalPlaceEvent // Correctly reference the completed event
+      msg: 'Historical Place events updated successfully!',
+      completedHistoricalPlaceEvent: tourist.completedHistoricalPlaceEvent,
+      bookedHistPlaces: tourist.BookedHistPlaces
     });
   } catch (error) {
-    console.error('Error adding completed Historical Place event:', error);
+    console.error('Error updating completed Historical Place events:', error);
     res.status(500).json({ error: error.message });
   }
 };
-
-
-
-
-
 
 
 const rateTourGuide = async (req, res) => {
@@ -2519,10 +2495,21 @@ const payActivity = async (req, res) => {
       return res.status(404).json({ msg: 'Tourist not found' });
     }
 
+    tourist.BookedActivities.push({
+      activityName: activity.Name,
+      confirmed: true 
+    });
+
+    activity.isBooked = true;
+    await activity.save(); 
+    //await tourist.save();
+
     // Check if the activity is in the booked activities list
     const bookedActivityIndex = tourist.BookedActivities.findIndex(
       (activity) => activity.activityName === activityName
     );
+
+    
 
     if (bookedActivityIndex === -1) {
       return res.status(400).json({ msg: 'Activity not found in booked activities. Please book the activity first.' });
@@ -2534,10 +2521,12 @@ const payActivity = async (req, res) => {
     // Check if the tourist has enough funds in the wallet
     if (tourist.Wallet < ticketPrice) {
       // Remove the activity from the booked activities list if funds are insufficient
-      tourist.BookedActivities.splice(bookedActivityIndex, 1);
-      await tourist.save();
+      //tourist.BookedActivities.splice(bookedActivityIndex, 1);
+      //await tourist.save();
       return res.status(400).json({ msg: 'Insufficient funds in wallet. The activity has been removed from booked activities.' });
     }
+   
+
 
     // Deduct the ticket price from the tourist's wallet
     tourist.Wallet -= ticketPrice;
@@ -2562,9 +2551,43 @@ const payActivity = async (req, res) => {
     // Save the updated tourist information
     await tourist.save();
 
+     // Set up the email transporter
+     const transporter1 = nodemailer.createTransport({
+      service: 'gmail', // You can use other email services if necessary
+      auth: {
+        user: 'malook25062003@gmail.com', // Your email
+        pass: 'sxvo feuu woie gpfn', // Your email password or app-specific password
+      },
+    });
+
+    // Create the email options
+    const paymentDate = new Date();
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: tourist.Email,
+      subject: 'Payment Receipt',
+      text: `Dear ${touristUsername},
+
+    Thank you for your payment for the activity "${activityName}".
+
+    Here are the details of your transaction:
+    - Activity Name: ${activityName}
+    - Amount Paid: ${ticketPrice}
+    - Payment Date: ${paymentDate.toLocaleDateString()}
+    - Payment Time: ${paymentDate.toLocaleTimeString()}
+
+    Thank you for choosing our service!
+
+    Best regards,
+    Beyond Borders`,
+    };
+
+    // Send the email
+    await transporter1.sendMail(mailOptions);
+
     // Respond with success and remaining wallet balance
     res.status(200).json({
-      msg: 'Payment successful!',
+      msg: 'Payment successful! An email has been sent with your payment details.',
       activityName: activity.Name,
       remainingWallet: tourist.Wallet,
       BadgeLevelOfPoints: tourist.BadgeLevelOfPoints,
@@ -2575,6 +2598,111 @@ const payActivity = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
+
+
+const payActivityByCard = async (req, res) => {
+  const { touristUsername, activityName } = req.body;
+
+  try {
+    // Find the activity by name
+    const activity = await ActivityModel.findOne({ Name: activityName });
+    if (!activity) {
+      return res.status(404).json({ msg: 'Activity not found' });
+    }
+
+    // Find the tourist by username
+    const tourist = await TouristModel.findOne({ Username: touristUsername });
+    if (!tourist) {
+      return res.status(404).json({ msg: 'Tourist not found' });
+    }
+    tourist.BookedActivities.push({
+      activityName: activity.Name,
+      confirmed: true 
+    });
+
+    activity.isBooked = true;
+    await activity.save(); 
+
+    // Check if the activity is in the booked activities list
+    const bookedActivityIndex = tourist.BookedActivities.findIndex(
+      (activity) => activity.activityName === activityName
+    );
+
+    if (bookedActivityIndex === -1) {
+      return res.status(400).json({ msg: 'Activity not found in booked activities. Please book the activity first.' });
+    }
+
+    // Calculate ticket price
+    const ticketPrice = activity.Price;
+
+    // Update points and badge level
+    if (tourist.BadgeLevelOfPoints === 1) {
+      tourist.Points += 0.5 * ticketPrice;
+      if (tourist.Points > 100000) {
+        tourist.BadgeLevelOfPoints = 2;
+      } else if (tourist.Points > 500000) {
+        tourist.BadgeLevelOfPoints = 3;
+      }
+    } else if (tourist.BadgeLevelOfPoints === 2) {
+      tourist.Points += ticketPrice;
+      if (tourist.Points > 500000) {
+        tourist.BadgeLevelOfPoints = 3;
+      }
+    } else if (tourist.BadgeLevelOfPoints === 3) {
+      tourist.Points += 1.5 * ticketPrice;
+    }
+
+    // Save the updated tourist information
+    await tourist.save();
+
+    // Set up the email transporter
+    const transporter1 = nodemailer.createTransport({
+      service: 'gmail', // You can use other email services if necessary
+      auth: {
+        user: 'malook25062003@gmail.com', // Your email
+        pass: 'sxvo feuu woie gpfn', // Your email password or app-specific password
+      },
+    });
+
+    // Create the email options
+    const paymentDate = new Date();
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: tourist.Email,
+      subject: 'Payment Receipt',
+      text: `Dear ${touristUsername},
+
+    Thank you for your payment for the activity "${activityName}".
+
+    Here are the details of your transaction:
+    - Activity Name: ${activityName}
+    - Amount Paid: ${ticketPrice}
+    - Payment Date: ${paymentDate.toLocaleDateString()}
+    - Payment Time: ${paymentDate.toLocaleTimeString()}
+
+    Thank you for choosing our service!
+
+    Best regards,
+    Beyond Borders`,
+    };
+
+    // Send the email
+    await transporter1.sendMail(mailOptions);
+
+    // Respond with success and remaining wallet balance
+    res.status(200).json({
+      msg: 'Payment successful! An email has been sent with your payment details.',
+      activityName: activity.Name,
+      BadgeLevelOfPoints: tourist.BadgeLevelOfPoints,
+      Points: tourist.Points,
+    });
+  } catch (error) {
+    console.error('Error processing payment for activity:', error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
 
 
 const updateWallet = async (req, res) => {
@@ -2641,6 +2769,11 @@ const payItinerary = async (req, res) => {
       return res.status(404).json({ msg: 'Tourist not found' });
     }
 
+    tourist.BookedItineraries.push({
+      ItineraryName: itinerary.Title,  
+      booked: true 
+    });
+
     // Check if the itinerary is in the booked itineraries list
     const bookedItineraryIndex = tourist.BookedItineraries.findIndex(
       (itinerary) => itinerary.ItineraryName === ItineraryName
@@ -2683,12 +2816,145 @@ const payItinerary = async (req, res) => {
 
     // Save the updated tourist information
     await tourist.save();
+// Set up the email transporter
+const transporter1 = nodemailer.createTransport({
+  service: 'gmail', // You can use other email services if necessary
+  auth: {
+    user: 'malook25062003@gmail.com', // Your email
+    pass: 'sxvo feuu woie gpfn', // Your email password or app-specific password
+  },
+});
+
+// Create the email options
+const paymentDate = new Date();
+const mailOptions = {
+  from: process.env.EMAIL_USER,
+  to: tourist.Email,
+  subject: 'Payment Receipt',
+  text: `Dear ${touristUsername},
+
+Thank you for your payment for the itinerary "${ItineraryName}".
+
+Here are the details of your transaction:
+- Activity Name: ${ItineraryName}
+- Amount Paid: ${ticketPrice}
+- Payment Date: ${paymentDate.toLocaleDateString()}
+- Payment Time: ${paymentDate.toLocaleTimeString()}
+
+Thank you for choosing our service!
+
+Best regards,
+Beyond Borders`,
+};
+
+// Send the email
+await transporter1.sendMail(mailOptions);
+
+// Respond with success and remaining wallet balance
+res.status(200).json({
+  msg: 'Payment successful! An email has been sent with your payment details.',
+  ItineraryName: itinerary.Title,
+  BadgeLevelOfPoints: tourist.BadgeLevelOfPoints,
+  remainingWallet: tourist.Wallet,
+  Points: tourist.Points,
+});
+} catch (error) {
+console.error('Error processing payment for itinerary:', error);
+res.status(500).json({ error: error.message });
+}
+};
+
+const payItineraryByCard = async (req, res) => {
+  const { touristUsername, ItineraryName } = req.body;
+
+  try {
+    // Find the itinerary by name
+    const itinerary = await ItineraryModel.findOne({ Title: ItineraryName });
+    if (!itinerary) {
+      return res.status(404).json({ msg: 'Itinerary not found' });
+    }
+
+    // Find the tourist by username
+    const tourist = await TouristModel.findOne({ Username: touristUsername });
+    if (!tourist) {
+      return res.status(404).json({ msg: 'Tourist not found' });
+    }
+
+    tourist.BookedItineraries.push({
+      ItineraryName: itinerary.Title,  
+      booked: true 
+    });
+
+    // Check if the itinerary is in the booked itineraries list
+    const bookedItineraryIndex = tourist.BookedItineraries.findIndex(
+      (itinerary) => itinerary.ItineraryName === ItineraryName
+    );
+
+    if (bookedItineraryIndex === -1) {
+      return res.status(400).json({ msg: 'Itinerary not found in booked itineraries. Please book the itinerary first.' });
+    }
+
+    // Calculate itinerary price
+    const ticketPrice = itinerary.Price;
+
+    // Update points and badge level
+    if (tourist.BadgeLevelOfPoints === 1) {
+      tourist.Points += 0.5 * ticketPrice;
+      if (tourist.Points > 100000) {
+        tourist.BadgeLevelOfPoints = 2;
+      } else if (tourist.Points > 500000) {
+        tourist.BadgeLevelOfPoints = 3;
+      }
+    } else if (tourist.BadgeLevelOfPoints === 2) {
+      tourist.Points += ticketPrice;
+      if (tourist.Points > 500000) {
+        tourist.BadgeLevelOfPoints = 3;
+      }
+    } else if (tourist.BadgeLevelOfPoints === 3) {
+      tourist.Points += 1.5 * ticketPrice;
+    }
+
+    // Save the updated tourist information
+    await tourist.save();
+
+    // Set up the email transporter
+    const transporter1 = nodemailer.createTransport({
+      service: 'gmail', // You can use other email services if necessary
+      auth: {
+        user: 'malook25062003@gmail.com', // Your email
+        pass: 'sxvo feuu woie gpfn', // Your email password or app-specific password
+      },
+    });
+
+    // Create the email options
+    const paymentDate = new Date();
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: tourist.Email,
+      subject: 'Payment Receipt',
+      text: `Dear ${touristUsername},
+
+    Thank you for your payment for the itinerary "${ItineraryName}".
+
+    Here are the details of your transaction:
+    - Activity Name: ${ItineraryName}
+    - Amount Paid: ${ticketPrice}
+    - Payment Date: ${paymentDate.toLocaleDateString()}
+    - Payment Time: ${paymentDate.toLocaleTimeString()}
+
+    Thank you for choosing our service!
+
+    Best regards,
+    Beyond Borders`,
+    };
+
+    // Send the email
+    await transporter1.sendMail(mailOptions);
 
     // Respond with success and remaining wallet balance
     res.status(200).json({
-      msg: 'Payment successful!',
+      msg: 'Payment successful! An email has been sent with your payment details.',
       ItineraryName: itinerary.Title,
-      remainingWallet: tourist.Wallet,
       BadgeLevelOfPoints: tourist.BadgeLevelOfPoints,
       Points: tourist.Points,
     });
@@ -2714,6 +2980,12 @@ const payMuseum = async (req, res) => {
     if (!tourist) {
       return res.status(404).json({ msg: 'Tourist not found' });
     }
+
+    tourist.BookedMuseums.push({
+      MuseumName: museum.name,  
+      booked: true 
+    });
+
 
     // Check if the museum is in the booked museums list
     const bookedMuseumIndex = tourist.BookedMuseums.findIndex(
@@ -2765,18 +3037,159 @@ const payMuseum = async (req, res) => {
     // Save the updated tourist information
     await tourist.save();
 
-    // Respond with success and remaining wallet balance
-    res.status(200).json({
-      msg: 'Payment successful!',
-      MuseumName: museum.name,
-      remainingWallet: tourist.Wallet,
-      BadgeLevelOfPoints: tourist.BadgeLevelOfPoints,
-      Points: tourist.Points,
+   // Set up the email transporter
+const transporter1 = nodemailer.createTransport({
+  service: 'gmail', // You can use other email services if necessary
+  auth: {
+    user: 'malook25062003@gmail.com', // Your email
+    pass: 'sxvo feuu woie gpfn', // Your email password or app-specific password
+  },
+});
+
+// Create the email options
+const paymentDate = new Date();
+const mailOptions = {
+  from: process.env.EMAIL_USER,
+  to: tourist.Email,
+  subject: 'Payment Receipt',
+  text: `Dear ${touristUsername},
+
+Thank you for your payment for the itinerary "${museumName}".
+
+Here are the details of your transaction:
+- Activity Name: ${museumName}
+- Amount Paid: ${ticketPrice}
+- Payment Date: ${paymentDate.toLocaleDateString()}
+- Payment Time: ${paymentDate.toLocaleTimeString()}
+
+Thank you for choosing our service!
+
+Best regards,
+Beyond Borders`,
+};
+
+// Send the email
+await transporter1.sendMail(mailOptions);
+
+// Respond with success and remaining wallet balance
+res.status(200).json({
+  msg: 'Payment successful! An email has been sent with your payment details.',
+  msueumName: museum.name,
+  remainingWallet: tourist.Wallet,
+  BadgeLevelOfPoints: tourist.BadgeLevelOfPoints,
+  Points: tourist.Points,
+});
+} catch (error) {
+console.error('Error processing payment for museum:', error);
+res.status(500).json({ error: error.message });
+}
+};
+
+const payMuseumByCard = async (req, res) => {
+  const { touristUsername, museumName } = req.body;
+
+  try {
+    // Find the museum by name
+    const museum = await MuseumModel.findOne({ name: museumName });
+    if (!museum) {
+      return res.status(404).json({ msg: 'Museum not found' });
+    }
+
+    // Find the tourist by username
+    const tourist = await TouristModel.findOne({ Username: touristUsername });
+    if (!tourist) {
+      return res.status(404).json({ msg: 'Tourist not found' });
+    }
+
+    tourist.BookedMuseums.push({
+      MuseumName: museum.name,  
+      booked: true 
     });
-  } catch (error) {
-    console.error('Error processing payment for museum:', error);
-    res.status(500).json({ error: error.message });
-  }
+
+
+    // Check if the museum is in the booked museums list
+    const bookedMuseumIndex = tourist.BookedMuseums.findIndex(
+      (museum) => museum.MuseumName === museumName
+    );
+
+    if (bookedMuseumIndex === -1) {
+      return res.status(400).json({ msg: 'Museum not found in booked activities. Please book the museum event first.' });
+    }
+
+    // Calculate ticket price
+    let ticketPrice;
+    if (tourist.Occupation.toLowerCase() === 'student') {
+      ticketPrice = museum.ticketPrices.student;
+    } else if (tourist.Nationality.toLowerCase() === 'egyptian') {
+      ticketPrice = museum.ticketPrices.native;
+    } else {
+      ticketPrice = museum.ticketPrices.foreigner;
+    }
+
+    // Update points and badge level
+    if (tourist.BadgeLevelOfPoints === 1) {
+      tourist.Points += 0.5 * ticketPrice;
+      if (tourist.Points > 100000) {
+        tourist.BadgeLevelOfPoints = 2;
+      } else if (tourist.Points > 500000) {
+        tourist.BadgeLevelOfPoints = 3;
+      }
+    } else if (tourist.BadgeLevelOfPoints === 2) {
+      tourist.Points += ticketPrice;
+      if (tourist.Points > 500000) {
+        tourist.BadgeLevelOfPoints = 3;
+      }
+    } else if (tourist.BadgeLevelOfPoints === 3) {
+      tourist.Points += 1.5 * ticketPrice;
+    }
+
+    // Save the updated tourist information
+    await tourist.save();
+// Set up the email transporter
+const transporter1 = nodemailer.createTransport({
+  service: 'gmail', // You can use other email services if necessary
+  auth: {
+    user: 'malook25062003@gmail.com', // Your email
+    pass: 'sxvo feuu woie gpfn', // Your email password or app-specific password
+  },
+});
+
+// Create the email options
+const paymentDate = new Date();
+const mailOptions = {
+  from: process.env.EMAIL_USER,
+  to: tourist.Email,
+  subject: 'Payment Receipt',
+  text: `Dear ${touristUsername},
+
+Thank you for your payment for the itinerary "${museumName}".
+
+Here are the details of your transaction:
+- Activity Name: ${museumName}
+- Amount Paid: ${ticketPrice}
+- Payment Date: ${paymentDate.toLocaleDateString()}
+- Payment Time: ${paymentDate.toLocaleTimeString()}
+
+Thank you for choosing our service!
+
+Best regards,
+Beyond Borders`,
+};
+
+// Send the email
+await transporter1.sendMail(mailOptions);
+
+// Respond with success and remaining wallet balance
+res.status(200).json({
+  msg: 'Payment successful! An email has been sent with your payment details.',
+  msueumName: museum.name,
+  BadgeLevelOfPoints: tourist.BadgeLevelOfPoints,
+  Points: tourist.Points,
+});
+} catch (error) {
+console.error('Error processing payment for museum:', error);
+res.status(500).json({ error: error.message });
+}
 };
 
 
@@ -2795,6 +3208,11 @@ const payHP = async (req, res) => {
     if (!tourist) {
       return res.status(404).json({ msg: 'Tourist not found' });
     }
+
+    tourist.BookedHistPlaces.push({
+      HistPlaceName: hp.name,  
+      booked: true 
+    });
 
     // Check if the historical place is in the booked historical places list
     const bookedHistPlaceIndex = tourist.BookedHistPlaces.findIndex(
@@ -2846,18 +3264,157 @@ const payHP = async (req, res) => {
     // Save the updated tourist information
     await tourist.save();
 
+    const transporter1 = nodemailer.createTransport({
+      service: 'gmail', // You can use other email services if necessary
+      auth: {
+        user: 'malook25062003@gmail.com', // Your email
+        pass: 'sxvo feuu woie gpfn', // Your email password or app-specific password
+      },
+    });
+    
+    // Create the email options
+    const paymentDate = new Date();
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: tourist.Email,
+      subject: 'Payment Receipt',
+      text: `Dear ${touristUsername},
+    
+    Thank you for your payment for the itinerary "${HPName}".
+    
+    Here are the details of your transaction:
+    - Activity Name: ${HPName}
+    - Amount Paid: ${ticketPrice}
+    - Payment Date: ${paymentDate.toLocaleDateString()}
+    - Payment Time: ${paymentDate.toLocaleTimeString()}
+    
+    Thank you for choosing our service!
+    
+    Best regards,
+    Beyond Borders`,
+    };
+    
+    // Send the email
+    await transporter1.sendMail(mailOptions);
+    
     // Respond with success and remaining wallet balance
     res.status(200).json({
-      msg: 'Payment successful!',
+      msg: 'Payment successful! An email has been sent with your payment details.',
       hpName: hp.name,
       remainingWallet: tourist.Wallet,
       BadgeLevelOfPoints: tourist.BadgeLevelOfPoints,
       Points: tourist.Points,
     });
-  } catch (error) {
-    console.error('Error processing payment for historical place:', error);
+    } catch (error) {
+    console.error('Error processing payment for hp:', error);
     res.status(500).json({ error: error.message });
-  }
+    }
+};
+
+const payHPByCard = async (req, res) => {
+  const { touristUsername, HPName } = req.body;
+
+  try {
+    // Find the historical place by name
+    const hp = await HistoricalPlacesModel.findOne({ name: HPName });
+    if (!hp) {
+      return res.status(404).json({ msg: 'Historical place not found' });
+    }
+
+    // Find the tourist by username
+    const tourist = await TouristModel.findOne({ Username: touristUsername });
+    if (!tourist) {
+      return res.status(404).json({ msg: 'Tourist not found' });
+    }
+
+    tourist.BookedHistPlaces.push({
+      HistPlaceName: hp.name,  
+      booked: true 
+    });
+
+    // Check if the historical place is in the booked historical places list
+    const bookedHistPlaceIndex = tourist.BookedHistPlaces.findIndex(
+      (place) => place.HistPlaceName === HPName
+    );
+
+    if (bookedHistPlaceIndex === -1) {
+      return res.status(400).json({ msg: 'Historical place not found in booked activities. Please book the historical place event first.' });
+    }
+
+    // Calculate ticket price
+    let ticketPrice;
+    if (tourist.Occupation.toLowerCase() === 'student') {
+      ticketPrice = hp.ticketPrices.student;
+    } else if (tourist.Nationality.toLowerCase() === 'egyptian') {
+      ticketPrice = hp.ticketPrices.native;
+    } else {
+      ticketPrice = hp.ticketPrices.foreigner;
+    }
+
+    // Update points and badge level
+    if (tourist.BadgeLevelOfPoints === 1) {
+      tourist.Points += 0.5 * ticketPrice;
+      if (tourist.Points > 100000) {
+        tourist.BadgeLevelOfPoints = 2;
+      } else if (tourist.Points > 500000) {
+        tourist.BadgeLevelOfPoints = 3;
+      }
+    } else if (tourist.BadgeLevelOfPoints === 2) {
+      tourist.Points += ticketPrice;
+      if (tourist.Points > 500000) {
+        tourist.BadgeLevelOfPoints = 3;
+      }
+    } else if (tourist.BadgeLevelOfPoints === 3) {
+      tourist.Points += 1.5 * ticketPrice;
+    }
+
+    // Save the updated tourist information
+    await tourist.save();
+
+    const transporter1 = nodemailer.createTransport({
+      service: 'gmail', // You can use other email services if necessary
+      auth: {
+        user: 'malook25062003@gmail.com', // Your email
+        pass: 'sxvo feuu woie gpfn', // Your email password or app-specific password
+      },
+    });
+    
+    // Create the email options
+    const paymentDate = new Date();
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: tourist.Email,
+      subject: 'Payment Receipt',
+      text: `Dear ${touristUsername},
+    
+    Thank you for your payment for the itinerary "${HPName}".
+    
+    Here are the details of your transaction:
+    - Activity Name: ${HPName}
+    - Amount Paid: ${ticketPrice}
+    - Payment Date: ${paymentDate.toLocaleDateString()}
+    - Payment Time: ${paymentDate.toLocaleTimeString()}
+    
+    Thank you for choosing our service!
+    
+    Best regards,
+    Beyond Borders`,
+    };
+    
+    // Send the email
+    await transporter1.sendMail(mailOptions);
+    
+    // Respond with success and remaining wallet balance
+    res.status(200).json({
+      msg: 'Payment successful! An email has been sent with your payment details.',
+      hpName: hp.name,
+      BadgeLevelOfPoints: tourist.BadgeLevelOfPoints,
+      Points: tourist.Points,
+    });
+    } catch (error) {
+    console.error('Error processing payment for hp:', error);
+    res.status(500).json({ error: error.message });
+    }
 };
 
 
@@ -3177,66 +3734,6 @@ const bookFlight = async (req, res) => {
   }
 };
 
-
-/* oggg   const fetchFlights = async (req, res) => {
-  const { origin, destination, departureDate, arrivalDate } = req.body;
-
-  // Validate input
-  if (!origin || !destination || !departureDate || !arrivalDate) {
-    return res.status(400).json({ msg: "Origin, destination, departure date, and arrival date are required." });
-  }
-
-  try {
-    const apiKey = 'R7I0zjR1VKm8bGjuDyptuKbOobYnqoKu'; 
-    const apiSecret = 'unDRSQSWZtYDRwS8';
-    const tokenUrl = 'https://test.api.amadeus.com/v1/security/oauth2/token';
-    const apiUrl = 'https://test.api.amadeus.com/v2/shopping/flight-offers';
-
-    // Get access token
-    const tokenResponse = await axios.post(
-      tokenUrl,
-      new URLSearchParams({
-        grant_type: 'client_credentials',
-        client_id: apiKey,
-        client_secret: apiSecret,
-      }),
-      {
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-        },
-      }
-    );
-
-    const accessToken = tokenResponse.data.access_token;
-
-    // Fetch flight offers
-    const flightResponse = await axios.get(apiUrl, {
-      headers: {
-        Authorization: `Bearer ${accessToken}`, // Corrected syntax here
-      },
-      params: {
-        originLocationCode: origin,
-        destinationLocationCode: destination,
-        departureDate: departureDate,
-        returnDate: arrivalDate, // Include the arrival date as return date
-        adults: 1, // Adjust as needed
-      },
-    });
-
-    const flights = flightResponse.data.data;
-
-    // Check if flights are found
-    if (!flights || flights.length === 0) {
-      return res.status(404).json({ msg: "No flights found for the given criteria." });
-    }
-
-    // Return the flights in the response
-    res.status(200).json(flights);
-  } catch (error) {
-    console.error('Error fetching flights:', error);
-    res.status(500).json({ msg: "An error occurred while fetching flights.", error: error.message });
-  }
-};*/
 
 const viewBookedItineraries = async (req, res) => {
   const { touristUsername } = req.query; // Get the tourist's username from the query parameters
@@ -4170,8 +4667,183 @@ const viewMyBookedTransportation = async (req, res) => {
   }
 };
 
+const sendOtp = async (req, res) => {
+  const { touristUsername } = req.body;
+
+  try {
+    // Find the tourist by username to get their email
+    const tourist = await TouristModel.findOne({ Username: touristUsername });
+    if (!tourist) {
+      throw new Error('Tourist not found');
+    }
+
+    const email = tourist.Email;
+
+    // Generate a 6-digit OTP
+    const otp = Math.floor(100000 + Math.random() * 900000);
+
+    // Check if the Username already exists in UserOTP
+    let userOtpEntry = await UserOTPModel.findOne({ Username: touristUsername });
+    
+    if (userOtpEntry) {
+      // Update the OTP if the Username exists
+      userOtpEntry.OTP = otp;
+      await userOtpEntry.save();
+    } else {
+      // Create a new UserOTP entry if the Username doesn't exist
+      userOtpEntry = new UserOTPModel({
+        Username: touristUsername,
+        OTP: otp
+      });
+      await userOtpEntry.save();
+    }
+
+    // Set up the email transporter
+    const transporter = nodemailer.createTransport({
+      service: 'gmail', // Adjust based on your email provider
+      auth: {
+        user: 'malook25062003@gmail.com', // Your email
+        pass: 'sxvo feuu woie gpfn'        // Your email password or app-specific password
+      },
+    });
+
+    // Configure the email options
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: email,
+      subject: 'Your OTP Code',
+      text: `Dear ${touristUsername},
+
+          Here is your OTP code: ${otp}
+
+          Please use this code to proceed.
+
+          Best regards,
+          Beyond Borders`
+    };
+
+    // Send the email
+    await transporter.sendMail(mailOptions);
+
+    console.log('OTP sent:', otp);
+
+    res.status(200).json({ msg: 'OTP sent successfully' });
+  } catch (error) {
+    console.error('Error sending OTP:', error);
+    res.status(500).json({ error: 'Failed to send OTP' });
+  }
+};
+
+const loginTouristOTP = async (req, res) => {
+  try {
+    const { username, OTP } = req.body;
+
+    // Validate input
+    if (!username || !OTP) {
+      return res.status(400).json({ error: "Username and OTP are required." });
+    }
+
+    // Find the tourist by username
+    const tourist = await TouristModel.findOne({ Username: username });
+    if (!tourist) {
+      return res.status(401).json({ error: "Invalid username." });
+    }
+
+    // Find the OTP entry for the username
+    const userOTP = await UserOTPModel.findOne({ Username: username });
+    if (!userOTP) {
+      return res.status(401).json({ error: "OTP not found. Please request a new one." });
+    }
+
+    // Check if the OTP matches
+    if (userOTP.OTP !== parseInt(OTP)) { // Ensure both are numbers for comparison
+      return res.status(401).json({ error: "Invalid OTP." });
+    }
+
+    // Successful authentication
+    res.status(200).json({ message: "Login successful!", tourist });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+};
+
+
+const addBookmark = async (req, res) => {
+  const { touristUsername, eventName } = req.body;
+
+  try {
+    const tourist = await TouristModel.findOne({ Username: touristUsername });
+
+    if (!tourist) {
+      return res.status(404).json({ msg: 'Tourist not found' });
+    }
+
+    const activity = await ActivityModel.findOne({ Name: eventName });
+    const itinerary = await ItineraryModel.findOne({Title:eventName });
+    const hp = await HistoricalPlacesModel.findOne({name:eventName});
+    const museum = await MuseumModel.findOne({name:eventName});
+
+    if (!activity && !itinerary && !hp && !museum) {
+       return res.status(404).json({ msg: 'Event not found' });
+    }
+   
+    tourist.BookmarkedEvents.push({
+      EventName: eventName
+    });
+
+    
+    await tourist.save();
+
+    res.status(201).json({ msg: 'Event Saved!', EventName:eventName});
+  } catch (error) {
+    console.error('Error saving bookmark:', error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+const viewBookmarks = async (req, res) => {
+  const { touristUsername } = req.query;
+
+  try {
+    // Find the tourist by username
+    const tourist = await TouristModel.findOne({ Username: touristUsername });
+
+    if (!tourist) {
+      return res.status(404).json({ msg: 'Tourist not found' });
+    }
+
+    // Get the bookmarked event names
+    const bookmarkedEventNames = tourist.BookmarkedEvents.map((event) => event.EventName);
+
+    // Fetch events from the respective models
+    const activities = await ActivityModel.find({ Name: { $in: bookmarkedEventNames } });
+    const itineraries = await ItineraryModel.find({ Title: { $in: bookmarkedEventNames } });
+    const historicalPlaces = await HistoricalPlacesModel.find({ name: { $in: bookmarkedEventNames } });
+    const museums = await MuseumModel.find({ name: { $in: bookmarkedEventNames } });
+
+    // Combine all the found events
+    const allBookmarkedEvents = [
+      ...activities.map((activity) => ({ type: 'Activity', details: activity })),
+      ...itineraries.map((itinerary) => ({ type: 'Itinerary', details: itinerary })),
+      ...historicalPlaces.map((hp) => ({ type: 'Historical Place', details: hp })),
+      ...museums.map((museum) => ({ type: 'Museum', details: museum })),
+    ];
+
+    // Check if any events were found
+    if (allBookmarkedEvents.length === 0) {
+      return res.status(404).json({ msg: 'No bookmarked events found.' });
+    }
+
+    // Respond with the combined bookmarked events
+    res.status(200).json(allBookmarkedEvents);
+  } catch (error) {
+    console.error('Error fetching bookmarks:', error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
 
 
 module.exports = {createTourist, getTourist, updateTourist, searchProductTourist, filterActivities, filterProductByPriceTourist, ActivityRating, sortProductsDescendingTourist, sortProductsAscendingTourist, ViewAllUpcomingActivities, ViewAllUpcomingMuseumEventsTourist, getMuseumsByTagTourist, getHistoricalPlacesByTagTourist, ViewAllUpcomingHistoricalPlacesEventsTourist,viewProductsTourist, sortActivitiesPriceAscendingTourist, sortActivitiesPriceDescendingTourist, sortActivitiesRatingAscendingTourist, sortActivitiesRatingDescendingTourist, loginTourist, ViewAllUpcomingItinerariesTourist, sortItinerariesPriceAscendingTourist, sortItinerariesPriceDescendingTourist, filterItinerariesTourist, ActivitiesSearchAll, ItinerarySearchAll, MuseumSearchAll, HistoricalPlacesSearchAll, ProductRating, createComplaint, getComplaintsByTouristUsername,ChooseActivitiesByCategoryTourist,bookActivity,bookItinerary,bookMuseum,bookHistoricalPlace, ratePurchasedProduct, addPurchasedProducts, reviewPurchasedProduct, addCompletedItinerary, rateTourGuide, commentOnTourGuide, rateCompletedItinerary, commentOnItinerary, addCompletedActivities, addCompletedMuseumEvents, addCompletedHPEvents, rateCompletedActivity, rateCompletedMuseum, rateCompletedHP, commentOnActivity, commentOnMuseum, commentOnHP,deleteBookedActivity,deleteBookedItinerary,deleteBookedMuseum,deleteBookedHP,payActivity,updateWallet,updatepoints,payItinerary,payMuseum,payHP,redeemPoints, convertEgp, fetchFlights,viewBookedItineraries, requestDeleteAccountTourist,convertCurr,getActivityDetails,getHistoricalPlaceDetails,getMuseumDetails,GetCopyLink, bookFlight
-  ,fetchHotelsByCity, fetchHotels, bookHotel,bookTransportation,addPreferences, viewMyCompletedActivities, viewMyCompletedItineraries, viewMyCompletedMuseums, viewMyCompletedHistoricalPlaces,viewMyBookedActivities,viewMyBookedItineraries,viewMyBookedMuseums,viewMyBookedHistoricalPlaces,viewTourGuidesCompleted,viewAllTransportation, getItineraryDetails, viewPreferenceTags,viewPurchasedProducts,viewBookedActivities,viewMyBookedTransportation
-};
+  ,fetchHotelsByCity, fetchHotels, bookHotel,bookTransportation,addPreferences, viewMyCompletedActivities, viewMyCompletedItineraries, viewMyCompletedMuseums, viewMyCompletedHistoricalPlaces,viewMyBookedActivities,viewMyBookedItineraries,viewMyBookedMuseums,viewMyBookedHistoricalPlaces,viewTourGuidesCompleted,viewAllTransportation, getItineraryDetails, viewPreferenceTags,viewPurchasedProducts,viewBookedActivities,viewMyBookedTransportation,addBookmark
+, payActivityByCard, payItineraryByCard, payMuseumByCard, payHPByCard, sendOtp, loginTouristOTP,viewBookmarks};
