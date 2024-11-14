@@ -175,6 +175,14 @@ const TouristSchema = new Schema({
     }
   ],
   MyPreferences: [{type : String , required :true}],
+  WishList: [
+    {
+      productName: {
+        type: String,
+        required: false 
+      }
+    }
+  ],
     
   
 }, { timestamps: true }); // adds Created At & Updated At fields
