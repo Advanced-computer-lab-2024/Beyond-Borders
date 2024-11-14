@@ -1341,70 +1341,6 @@ const bookHistoricalPlace = async (req, res) => {
 //   }
 // };
 
-const addPurchasedProducts = async (req, res) => {
-  const { touristUsername, products } = req.body; // Expecting an array of products with names and quantities
-
-  try {
-    // Find the tourist by username
-    const tourist = await TouristModel.findOne({ Username: touristUsername });
-    if (!tourist) {
-      return res.status(404).json({ msg: 'Tourist not found' });
-    }
-
-    // Check if products is an array
-    if (!Array.isArray(products)) {
-      return res.status(400).json({ msg: 'Products must be provided as an array' });
-    }
-
-    // Loop through the products and process each purchase
-    for (const { productName, quantity } of products) {
-      // Find the product by name
-      const product = await ProductModel.findOne({ Name: productName });
-      if (!product) {
-        return res.status(404).json({ msg: `Product not found: ${productName}` });
-      }
-
-      // Check if there's sufficient quantity
-      if (product.Quantity < quantity) {
-        return res.status(400).json({ msg: `Insufficient quantity for product: ${productName}` });
-      }
-
-      // Calculate total price for the purchased quantity
-      const totalPriceOfSales = product.Price * quantity;
-
-      // Update TotalPriceOfSales by adding to the existing total
-      product.TotalPriceOfSales += totalPriceOfSales;
-
-      // Decrease quantity and increase sales
-      product.Quantity -= quantity;  // Decrease quantity by the specified amount
-      product.Sales += quantity;     // Increase sales by the specified amount
-      await product.save();          // Save the product changes
-
-      // Check if the product is already in the purchasedProducts
-      const existingProduct = tourist.purchasedProducts.find(p => p.productName === productName);
-      if (existingProduct) {
-        // If it exists, update the quantity and total price
-        existingProduct.quantity += quantity;
-        existingProduct.TotalPriceOfSales += totalPriceOfSales; // Update total price
-      } else {
-        // If it does not exist, push the product with its quantity and total price
-        tourist.purchasedProducts.push({ productName, quantity, TotalPriceOfSales: totalPriceOfSales });
-      }
-    }
-
-    // Save the updated tourist document
-    await tourist.save();
-
-    // Send a response with the updated tourist data
-    res.status(200).json({ msg: 'Purchased products added successfully!', purchasedProducts: tourist.purchasedProducts });
-  } catch (error) {
-    console.error('Error adding purchased products:', error);
-    res.status(500).json({ error: error.message });
-  }
-};
-
-
-
 
 
 const ratePurchasedProduct = async (req, res) => {
@@ -4950,16 +4886,29 @@ const addToCartFromWishlist = async (req, res) => {
       return res.status(404).json({ error: "Product not found in wishlist" });
     }
 
+    // Find the product in the ProductModel to get the available stock
+    const product = await ProductModel.findOne({ Name: productName });
+    if (!product) {
+      return res.status(404).json({ error: "Product not found in ProductModel" });
+    }
+
     // Check if the product is already in the Cart
     const productInCart = tourist.Cart.find(
       (item) => item.productName === productName
     );
 
+    // Calculate the new quantity after adding to the cart
+    const newQuantityInCart = productInCart ? productInCart.Quantity + 1 : 1;
+
+    // Check if the new quantity exceeds the available stock
+    if (newQuantityInCart > product.Quantity) {
+      return res.status(400).json({ error: `Only ${product.Quantity} units of '${productName}' are available.` });
+    }
+
+    // Add to cart or increment the quantity if it’s within stock limits
     if (productInCart) {
-      // If the product is already in the cart, increment the quantity
       productInCart.Quantity += 1;
     } else {
-      // Add the product to the Cart with an initial quantity of 1
       tourist.Cart.push({ productName, Quantity: 1 });
     }
 
@@ -4981,6 +4930,7 @@ const addToCartFromWishlist = async (req, res) => {
   }
 };
 
+
 const addToCart = async (req, res) => {
   const { touristUsername, productName } = req.body;
 
@@ -4991,6 +4941,7 @@ const addToCart = async (req, res) => {
       return res.status(404).json({ error: "Tourist not found" });
     }
 
+    // Find the product in the ProductModel
     const product = await ProductModel.findOne({ Name: productName });
     if (!product) {
       return res.status(404).json({ error: "Product not found" });
@@ -5001,18 +4952,25 @@ const addToCart = async (req, res) => {
       (item) => item.productName === productName
     );
 
+    // Calculate the new quantity if the product is already in the cart
+    const newQuantityInCart = productInCart ? productInCart.Quantity + 1 : 1;
+
+    // Check if the new quantity exceeds available stock
+    if (newQuantityInCart > product.Quantity) {
+      return res.status(400).json({ error: `Only ${product.Quantity} units of '${productName}' are available.` });
+    }
+
+    // Add to cart or increment the quantity if within stock limits
     if (productInCart) {
-      // If the product is already in the cart, increment the quantity
       productInCart.Quantity += 1;
     } else {
-      // Add the product to the Cart with an initial quantity of 1
       tourist.Cart.push({ productName, Quantity: 1 });
     }
 
     // Save the updated tourist document
     await tourist.save();
 
-    // Send a success response with updated cart and wishlist data
+    // Send a success response with updated cart data
     res.status(200).json({
       msg: "Product added to cart successfully",
       Cart: tourist.Cart
@@ -5022,6 +4980,7 @@ const addToCart = async (req, res) => {
     res.status(500).json({ error: "Failed to add product to cart" });
   }
 };
+
 
 const removeFromCart = async (req, res) => {
   const { touristUsername, productName } = req.body;
@@ -5094,6 +5053,71 @@ const changeProductQuantityInCart = async (req, res) => {
     res.status(500).json({ error: "Failed to update product quantity in cart" });
   }
 };
+
+const addPurchasedProducts = async (req, res) => {
+  const { touristUsername, products } = req.body; // Expecting an array of products with names and quantities
+
+  try {
+    // Find the tourist by username
+    const tourist = await TouristModel.findOne({ Username: touristUsername });
+    if (!tourist) {
+      return res.status(404).json({ msg: 'Tourist not found' });
+    }
+
+    // Check if products is an array
+    if (!Array.isArray(products)) {
+      return res.status(400).json({ msg: 'Products must be provided as an array' });
+    }
+
+    // Loop through the products and process each purchase
+    for (const { productName, quantity } of products) {
+      // Find the product by name
+      const product = await ProductModel.findOne({ Name: productName });
+      if (!product) {
+        return res.status(404).json({ msg: `Product not found: ${productName}` });
+      }
+
+      // Check if there's sufficient quantity
+      if (product.Quantity < quantity) {
+        return res.status(400).json({ msg: `Insufficient quantity for product: ${productName}` });
+      }
+
+      // Calculate total price for the purchased quantity
+      const totalPriceOfSales = product.Price * quantity;
+
+      // Update TotalPriceOfSales by adding to the existing total
+      product.TotalPriceOfSales += totalPriceOfSales;
+
+      // Decrease quantity and increase sales
+      product.Quantity -= quantity;  // Decrease quantity by the specified amount
+      product.Sales += quantity;     // Increase sales by the specified amount
+      await product.save();          // Save the product changes
+
+      // Check if the product is already in the purchasedProducts
+      const existingProduct = tourist.purchasedProducts.find(p => p.productName === productName);
+      if (existingProduct) {
+        // If it exists, update the quantity and total price
+        existingProduct.quantity += quantity;
+        existingProduct.TotalPriceOfSales += totalPriceOfSales; // Update total price
+      } else {
+        // If it does not exist, push the product with its quantity and total price
+        tourist.purchasedProducts.push({ productName, quantity, TotalPriceOfSales: totalPriceOfSales });
+      }
+    }
+
+    // Save the updated tourist document
+    await tourist.save();
+
+    // Send a response with the updated tourist data
+    res.status(200).json({ msg: 'Purchased products added successfully!', purchasedProducts: tourist.purchasedProducts });
+  } catch (error) {
+    console.error('Error adding purchased products:', error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+
+
 
 
 
