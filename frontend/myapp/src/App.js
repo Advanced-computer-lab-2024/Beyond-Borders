@@ -69,6 +69,10 @@ import TouristTransportationModal from './files/Tourist/TouristTransportationMod
 import AdminDeleteRequestsModal from './files/Admin/AdminDeleteRequestsModal';
 import TouristBookedTransportationModal from './files/Tourist/TouristBookedTransportationModal';
 
+//YASSIN AND AMINA DASHBOARD
+import YAdminDashboard from './files/Admin/YAdminDashboard';
+import YAdminActivitiesPage from './files/Admin/YAdminActivitiesPage';
+
 
 //YASSIN AND AMINA DASHBOARD
 import YAdminDashboard from './files/Admin/YAdminDashboard';
@@ -181,7 +185,9 @@ function App() {
 
 
 
-          
+          {/*YASSIN AND AMINA ADMIN ROUTES*/}
+          <Route path="/YAdminDashboard" element={<YAdminDashboard />} /> 
+          <Route path="/YAdminActivitiesPage" element={<YAdminActivitiesPage />} /> 
           
 
          
