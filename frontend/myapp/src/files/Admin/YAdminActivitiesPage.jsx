@@ -16,11 +16,14 @@ import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import StarIcon from '@mui/icons-material/Star';
 import StarBorderIcon from '@mui/icons-material/StarBorder';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import axios from 'axios';
 
 function YAdminActivitiesPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activities, setActivities] = useState([]);
+  const [scrollPositions, setScrollPositions] = useState({});
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -57,9 +60,7 @@ function YAdminActivitiesPage() {
 
     return (
       <Box sx={styles.ratingContainer}>
-        <Typography variant="body2" sx={{position: 'absolute',
-    right: '110px',
-    bottom: '4px',}}>
+        <Typography variant="body2" sx={{ position: 'absolute', right: '110px', bottom: '4px' }}>
           {roundedRating}
         </Typography>
         {[...Array(fullStars)].map((_, index) => (
@@ -74,7 +75,23 @@ function YAdminActivitiesPage() {
       </Box>
     );
   };
-  
+
+  const scrollCommentsLeft = (index) => {
+    const container = document.getElementById(`commentsContainer-${index}`);
+    container.scrollLeft -= 200; // Adjust scroll amount as needed
+    updateScrollPosition(index, container.scrollLeft - 200);
+  };
+
+  const scrollCommentsRight = (index) => {
+    const container = document.getElementById(`commentsContainer-${index}`);
+    container.scrollLeft += 200; // Adjust scroll amount as needed
+    updateScrollPosition(index, container.scrollLeft + 200);
+  };
+
+  const updateScrollPosition = (index, scrollLeft) => {
+    setScrollPositions((prev) => ({ ...prev, [index]: scrollLeft }));
+  };
+
   return (
     <Box sx={styles.container}>
       {/* Dim overlay when sidebar is open */}
@@ -140,55 +157,87 @@ function YAdminActivitiesPage() {
       {/* Main Content Area with Activities */}
       <Box sx={styles.activitiesContainer}>
         {activities.map((activity, index) => (
-          <Box
-            key={index}
-            sx={{
-              ...styles.activityCard,
-              backgroundColor: activity.flagged ? '#f0f0f0' : 'white',
-            }}
-          >
-            <Button
-              variant="contained"
-              onClick={() => flagActivity(activity.Name)}
-              sx={styles.flagButton}
-              disabled={activity.flagged}
+          <Box key={index} sx={{ marginBottom: '20px' }}>
+            <Box
+              sx={{
+                ...styles.activityCard,
+                backgroundColor: activity.flagged ? '#f0f0f0' : 'white',
+              }}
             >
-              {activity.flagged ? 'FLAGGED' : 'FLAG'}
-            </Button>
-            <Box sx={styles.activityInfo}>
-              <Typography variant="h6" sx={{ fontWeight: 'bold', marginBottom: '5px', display: 'flex', alignItems: 'center' }}>{activity.Name}</Typography>
-              <Typography variant="body2" sx={{ display: 'flex', alignItems: 'center' }}>
-                <LocationOnIcon fontSize="small" sx={{ mr: 1 }} />
-                {activity.Location?.address || 'N/A'}
-              </Typography>
-              <Typography variant="body2" sx={{ display: 'flex', alignItems: 'center' }}>
-                <PersonIcon fontSize="small" sx={{ mr: 1 }} />
-                {activity.AdvertiserName}
-              </Typography>
-              <Typography variant="body2" sx={{ display: 'flex', alignItems: 'center' }}>
-                <AttachMoneyIcon fontSize="small" sx={{ mr: 1 }} />
-                {activity.Price}
-              </Typography>
-              <Typography variant="body2" sx={{ display: 'flex', alignItems: 'center' }}>
-                <CalendarTodayIcon fontSize="small" sx={{ mr: 1 }} />
-                {new Date(activity.Date).toLocaleDateString()}
-              </Typography>
-              <Typography variant="body2" sx={{ display: 'flex', alignItems: 'center' }}>
-                <AccessTimeIcon fontSize="small" sx={{ mr: 1 }} />
-                {activity.Time}
-              </Typography>
-              <Box sx={styles.quickFacts}>
-                
-                <Typography variant="body2" sx={{ display: 'flex', alignItems: 'center' }}><strong>Category:</strong> {activity.Category}</Typography>
-                <Typography variant="body2" sx={{ display: 'flex', alignItems: 'center' }}><strong>Tags:</strong> {activity.Tags.join(', ')}</Typography>
+              <Button
+                variant="contained"
+                onClick={() => flagActivity(activity.Name)}
+                sx={styles.flagButton}
+                disabled={activity.flagged}
+              >
+                {activity.flagged ? 'FLAGGED' : 'FLAG'}
+              </Button>
+              <Box sx={styles.activityInfo}>
+                <Typography variant="h6" sx={{ fontWeight: 'bold', marginBottom: '5px', display: 'flex', alignItems: 'center' }}>{activity.Name}</Typography>
+                <Typography variant="body2" sx={{ display: 'flex', alignItems: 'center' }}>
+                  <LocationOnIcon fontSize="small" sx={{ mr: 1 }} />
+                  {activity.Location?.address || 'N/A'}
+                </Typography>
+                <Typography variant="body2" sx={{ display: 'flex', alignItems: 'center' }}>
+                  <PersonIcon fontSize="small" sx={{ mr: 1 }} />
+                  {activity.AdvertiserName}
+                </Typography>
+                <Typography variant="body2" sx={{ display: 'flex', alignItems: 'center' }}>
+                  <AttachMoneyIcon fontSize="small" sx={{ mr: 1 }} />
+                  {activity.Price}
+                </Typography>
+                <Typography variant="body2" sx={{ display: 'flex', alignItems: 'center' }}>
+                  <CalendarTodayIcon fontSize="small" sx={{ mr: 1 }} />
+                  {new Date(activity.Date).toLocaleDateString()}
+                </Typography>
+                <Typography variant="body2" sx={{ display: 'flex', alignItems: 'center' }}>
+                  <AccessTimeIcon fontSize="small" sx={{ mr: 1 }} />
+                  {activity.Time}
+                </Typography>
+                <Box sx={styles.quickFacts}>
+                  <Typography variant="body2" sx={{ display: 'flex', alignItems: 'center' }}><strong>Category:</strong> {activity.Category}</Typography>
+                  <Typography variant="body2" sx={{ display: 'flex', alignItems: 'center' }}><strong>Tags:</strong> {activity.Tags.join(', ')}</Typography>
+                </Box>
+              </Box>
+              <Box sx={styles.activityRating}>
+                {renderRating(activity.Rating)}
+              </Box>
+              <Box sx={styles.activityRating}>
+                <Typography variant="body2">Special Discount: {activity.SpecialDiscount}</Typography>
+                <Typography variant="body2" sx={{ marginBottom: '50px' }}>Booking Open: {activity.BookingOpen ? 'Yes' : 'No'}</Typography>
               </Box>
             </Box>
-            <Box sx={styles.activityRating}>
-              {renderRating(activity.Rating)}
-            </Box>
-            <Box sx={styles.activityRating}>
-            <Typography variant="body2" >Special Discount: {activity.SpecialDiscount}</Typography>
-            <Typography variant="body2" sx={{marginBottom: '50px'}}>Booking Open: {activity.BookingOpen ? 'Yes' : 'No'}</Typography>
+            {/* Comments Section */}
+            <Box sx={styles.commentsSection}>
+              {activity.Comments && activity.Comments.length > 0 ? (
+                <>
+                  {scrollPositions[index] > 0 && (
+                    <IconButton sx={styles.scrollButton} onClick={() => scrollCommentsLeft(index)}>
+                      <ArrowBackIcon />
+                    </IconButton>
+                  )}
+                  <Box
+                    sx={styles.commentsContainer}
+                    id={`commentsContainer-${index}`}
+                    onScroll={(e) => updateScrollPosition(index, e.target.scrollLeft)}
+                  >
+                    {activity.Comments.map((comment, idx) => (
+                      <Box key={idx} sx={styles.commentCard}>
+                        <Typography variant="body2">{comment.Comment || 'No comment available'}</Typography>
+                        <Typography variant="caption">@ {comment.touristUsername || 'Anonymous'}</Typography>
+                       
+                      </Box>
+                    ))}
+                  </Box>
+                  {scrollPositions[index] + 200 < document.getElementById(`commentsContainer-${index}`)?.scrollWidth && (
+                    <IconButton sx={styles.scrollButton} onClick={() => scrollCommentsRight(index)}>
+                      <ArrowForwardIcon />
+                    </IconButton>
+                  )}
+                </>
+              ) : (
+                <Typography variant="body2">No comments available</Typography>
+              )}
             </Box>
           </Box>
         ))}
@@ -312,6 +361,40 @@ const styles = {
     backgroundColor: '#ff5722',
     color: 'white',
     '&:hover': { backgroundColor: '#ff8a50' },
+  },
+  commentsSection: {
+    display: 'flex',
+    alignItems: 'center',
+    marginTop: '10px',
+    overflow: 'hidden',
+    width: '100%',
+  },
+  commentsContainer: {
+    display: 'flex',
+    overflowX: 'auto',
+    scrollBehavior: 'smooth',
+    width: '100%',
+    padding: '10px',
+    '&::-webkit-scrollbar': {
+      display: 'none', // Hide scrollbar for a cleaner look
+    },
+  },
+  scrollButton: {
+    color: '#192959',
+    backgroundColor: '#e6e7ed',
+    '&:hover': {
+      backgroundColor: '#d1d5db',
+    },
+  },
+  commentCard: {
+    minWidth: '400px',
+    backgroundColor: '#f3f4f6',
+    borderRadius: '8px',
+    padding: '10px',
+    marginRight: '10px',
+    boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.1)',
+    display: 'flex',
+    flexDirection: 'column',
   },
 };
 
