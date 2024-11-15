@@ -310,7 +310,7 @@ const closeDeleteRequestsModal = () => {
         onMouseEnter={() => setSidebarOpen(true)}
         onMouseLeave={() => setSidebarOpen(false)}
       >
-        <Button onClick={() => navigate('/complaints')} sx={styles.sidebarButton}>
+        <Button onClick={() => navigate('/YAdminComplaintsPage')} sx={styles.sidebarButton}>
           <AssignmentIcon sx={styles.icon} />
           {sidebarOpen && 'Complaints'}
         </Button>
@@ -326,10 +326,10 @@ const closeDeleteRequestsModal = () => {
           <MapIcon sx={styles.icon} />
           {sidebarOpen && 'Itineraries'}
         </Button>
-        <Button onClick={() => navigate('/YAdminDashboard')} sx={styles.sidebarButton}>
+        {/* <Button onClick={() => navigate('/YAdminDashboard')} sx={styles.sidebarButton}>
           <DashboardIcon sx={styles.icon} />
           {sidebarOpen && 'Back to Dashboard'}
-        </Button>
+        </Button> */}
       </Box>
 
       {/* Main Content Area with Boxes */}
