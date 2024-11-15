@@ -5712,8 +5712,97 @@ const viewAllOrders = async (req, res) => {
   }
 };
 
+const sendUpcomingEventNotifications = async () => {
+  const today = new Date();
+  const tomorrow = new Date();
+  const todayStart = new Date(today.setHours(0, 0, 0, 0));
+  const tomorrowEnd = new Date(tomorrow.setDate(tomorrow.getDate() + 1));
+  tomorrowEnd.setHours(23, 59, 59, 999);
+
+  try {
+    const tourists = await TouristModel.find();
+
+    for (const tourist of tourists) {
+      const upcomingEvents = [];
+
+      // Check for activities
+      for (const activity of tourist.BookedActivities || []) {
+        const event = await ActivityModel.findOne({ Name: activity.activityName });
+        if (event && event.Date >= todayStart && event.Date <= tomorrowEnd) {
+          upcomingEvents.push({ name: event.Name, date: event.Date });
+        }
+      }
+
+      // Check for itineraries
+      for (const itinerary of tourist.BookedItineraries || []) {
+        const event = await ItineraryModel.findOne({ Title: itinerary.ItineraryName });
+        if (event && event.Date >= todayStart && event.Date <= tomorrowEnd) {
+          upcomingEvents.push({ name: event.Title, date: event.Date });
+        }
+      }
+
+      // Check for museums
+      for (const museum of tourist.BookedMuseums || []) {
+        const event = await MuseumModel.findOne({ name: museum.MuseumName });
+        if (event && event.dateOfEvent >= todayStart && event.dateOfEvent <= tomorrowEnd) {
+          upcomingEvents.push({ name: event.name, date: event.dateOfEvent });
+        }
+      }
+
+      // Check for historical places
+      for (const place of tourist.BookedHistPlaces || []) {
+        const event = await HistoricalPlacesModel.findOne({ name: place.HistPlaceName });
+        if (event && event.dateOfEvent >= todayStart && event.dateOfEvent <= tomorrowEnd) {
+          upcomingEvents.push({ name: event.name, date: event.dateOfEvent });
+        }
+      }
+
+      // Send notifications if there are upcoming events
+      if (upcomingEvents.length > 0) {
+        const transporter = nodemailer.createTransport({
+          service: "gmail",
+          auth: {
+            user: "malook25062003@gmail.com",
+            pass: "sxvo feuu woie gpfn", // Ensure this is correct
+          },
+        });
+
+        const eventDetails = upcomingEvents
+          .map(event => `- ${event.name} on ${new Date(event.date).toDateString()}`)
+          .join("\n");
+
+        const mailOptions = {
+          from: "malook25062003@gmail.com",
+          to: tourist.Email,
+          subject: "Upcoming Events Reminder 🎉",
+          text: `
+            Dear ${tourist.Username},
+
+            Here are your upcoming events for tomorrow:
+
+            ${eventDetails}
+
+            Don’t forget to prepare and enjoy your experience!
+
+            Best wishes,
+            The Beyond Borders Team
+          `,
+        };
+
+        try {
+          await transporter.sendMail(mailOptions);
+          console.log(`Reminder sent to ${tourist.Email}`);
+        } catch (emailError) {
+          console.error(`Failed to send email to ${tourist.Email}:`, emailError);
+        }
+      }
+    }
+  } catch (error) {
+    console.error("Error sending event reminders:", error);
+  }
+};
 
 
 module.exports = {createTourist, getTourist, updateTourist, searchProductTourist, filterActivities, filterProductByPriceTourist, ActivityRating, sortProductsDescendingTourist, sortProductsAscendingTourist, ViewAllUpcomingActivities, ViewAllUpcomingMuseumEventsTourist, getMuseumsByTagTourist, getHistoricalPlacesByTagTourist, ViewAllUpcomingHistoricalPlacesEventsTourist,viewProductsTourist, sortActivitiesPriceAscendingTourist, sortActivitiesPriceDescendingTourist, sortActivitiesRatingAscendingTourist, sortActivitiesRatingDescendingTourist, loginTourist, ViewAllUpcomingItinerariesTourist, sortItinerariesPriceAscendingTourist, sortItinerariesPriceDescendingTourist, filterItinerariesTourist, ActivitiesSearchAll, ItinerarySearchAll, MuseumSearchAll, HistoricalPlacesSearchAll, ProductRating, createComplaint, getComplaintsByTouristUsername,ChooseActivitiesByCategoryTourist,bookActivity,bookItinerary,bookMuseum,bookHistoricalPlace, ratePurchasedProduct, addPurchasedProducts, reviewPurchasedProduct, addCompletedItinerary, rateTourGuide, commentOnTourGuide, rateCompletedItinerary, commentOnItinerary, addCompletedActivities, addCompletedMuseumEvents, addCompletedHPEvents, rateCompletedActivity, rateCompletedMuseum, rateCompletedHP, commentOnActivity, commentOnMuseum, commentOnHP,deleteBookedActivity,deleteBookedItinerary,deleteBookedMuseum,deleteBookedHP,payActivity,updateWallet,updatepoints,payItinerary,payMuseum,payHP,redeemPoints, convertEgp, fetchFlights,viewBookedItineraries, requestDeleteAccountTourist,convertCurr,getActivityDetails,getHistoricalPlaceDetails,getMuseumDetails,GetCopyLink, bookFlight
   ,fetchHotelsByCity, fetchHotels, bookHotel,bookTransportation,addPreferences, viewMyCompletedActivities, viewMyCompletedItineraries, viewMyCompletedMuseums, viewMyCompletedHistoricalPlaces,viewMyBookedActivities,viewMyBookedItineraries,viewMyBookedMuseums,viewMyBookedHistoricalPlaces,viewTourGuidesCompleted,viewAllTransportation, getItineraryDetails, viewPreferenceTags,viewPurchasedProducts,viewBookedActivities,viewMyBookedTransportation,addBookmark
-, payActivityByCard, payItineraryByCard, payMuseumByCard, payHPByCard, sendOtp, loginTouristOTP,viewBookmarks, addToWishList, viewMyWishlist, removeFromWishlist, addToCartFromWishlist, addToCart, removeFromCart, changeProductQuantityInCart, checkout, addDeliveryAddress, viewDeliveryAddresses,chooseDeliveryAddress,payOrderWallet,payOrderCash,viewOrderDetails,cancelOrder,cancelOrder,markOrdersAsDelivered,viewAllOrders};
+, payActivityByCard, payItineraryByCard, payMuseumByCard, payHPByCard, sendOtp, loginTouristOTP,viewBookmarks, addToWishList, viewMyWishlist, removeFromWishlist, addToCartFromWishlist, addToCart, removeFromCart, changeProductQuantityInCart, checkout, addDeliveryAddress, viewDeliveryAddresses,chooseDeliveryAddress,payOrderWallet,payOrderCash,viewOrderDetails,cancelOrder,cancelOrder,markOrdersAsDelivered,viewAllOrders,sendUpcomingEventNotifications};
