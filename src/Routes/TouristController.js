@@ -17,8 +17,12 @@ const nodemailer = require('nodemailer');
 const ItineraryModel = require('../Models/Itinerary.js');
 const DeactivatedItinerariesModel = require('../Models/DeactivatedItineraries.js');
 const AdvertiserModel = require('../Models/Advertiser.js');
+const OrderCounterModel = require('../Models/OrderCounter.js'); 
+const OrderModel = require('../Models/Orders.js');
 const UserOTPModel = require('../Models/UserOTP.js');
 const DeactivatedActivitiesModel = require('../Models/DeactivatedActivities.js');
+
+
 const { default: mongoose } = require('mongoose');
 
 const createTourist = async (req, res) => {
@@ -61,7 +65,8 @@ const createTourist = async (req, res) => {
               BookmarkedEvents:[],
               WishList:[],
               Cart:[],
-              DeliveryAddresses:[]
+              DeliveryAddresses:[],
+              Orders:[]
           });
 
           // Send the created user as a JSON response with a 201 Created status
@@ -5150,6 +5155,8 @@ const checkout = async (req, res) => {
   }
 };
 
+
+
 const addDeliveryAddress = async (req, res) => {
   const { touristUsername, addresses } = req.body;
 
@@ -5200,22 +5207,513 @@ const viewDeliveryAddresses = async (req, res) => {
   }
 };
 
+const chooseDeliveryAddress = async (req, res) => {
+  const { orderNo, Address } = req.body; 
+
+  try {
+    const order = await OrderModel.findOne({ orderNumber: orderNo });
+    if (!order) {
+      return res.status(404).json({ error: "Order not found" });
+    }
+
+    order.deliveryAddress = Address;
+    await order.save();
+
+    res.status(200).json({ msg: "Delivery address updated successfully", order });
+  } catch (error) {
+    console.error("Error updating delivery address:", error);
+    res.status(500).json({ error: "Failed to update delivery address" });
+  }
+};
+
+// const payOrderWallet = async (req, res) => {
+//   const { touristUsername } = req.body;
+
+//   try {
+//     // Find the tourist by username
+//     const tourist = await TouristModel.findOne({ Username: touristUsername });
+//     if (!tourist) {
+//       return res.status(404).json({ error: "Tourist not found" });
+//     }
+
+//     let totalPrice = 0;
+//     const productsPurchased = [];
+
+//     for (const cartItem of tourist.Cart) {
+//       const product = await ProductModel.findOne({ Name: cartItem.productName });
+
+//       if (!product) {
+//         return res.status(404).json({ error: `Product '${cartItem.productName}' not found in ProductModel` });
+//       }
+
+//       // Ensure product.Price and cartItem.Quantity are valid numbers
+//       const pricePerUnit = parseFloat(product.Price) || 0;
+//       const quantity = parseInt(cartItem.Quantity) || 0;
+
+//       // Calculate the total price for the product
+//       const price = pricePerUnit * quantity;
+
+//       if (isNaN(price)) {
+//         return res.status(400).json({ error: `Invalid price calculation for product '${product.Name}'.` });
+//       }
+
+//       totalPrice += price;
+
+//       // Update product details
+//       product.Quantity -= quantity; // Decrease quantity
+//       product.Sales += quantity; // Increase sales
+//       await product.save();
+
+//       // Prepare product data for the order
+//       productsPurchased.push({
+//         productName: product.Name,
+//         quantity,
+//         price: pricePerUnit,
+//       });
+
+//       // Update purchasedProducts array in the tourist model
+//       const existingProduct = tourist.purchasedProducts.find(p => p.productName === product.Name);
+//       if (existingProduct) {
+//         existingProduct.quantity += quantity;
+//         existingProduct.totalSales += price;
+//       } else {
+//         tourist.purchasedProducts.push({ productName: product.Name, quantity, totalSales: price });
+//       }
+//     }
+
+//     // Check if the tourist's wallet has enough funds
+//     if (tourist.Wallet < totalPrice) {
+//       return res.status(400).json({
+//         error: "Insufficient funds in wallet. Please add funds or choose another payment method.",
+//       });
+//     }
+
+//     // Deduct total price from wallet
+//     tourist.Wallet -= totalPrice;
+
+//     // Generate order number
+//     const orderCounter = await OrderCounterModel.findOneAndUpdate(
+//       { name: 'orderNumber' },
+//       { $inc: { count: 1 } },
+//       { new: true, upsert: true }
+//     );
+
+//     // Create a new order
+//     const order = await OrderModel.create({
+//       orderNumber: orderCounter.count,
+//       touristUsername,
+//       productsPurchased,
+//       orderDate: new Date(),
+//       paymentStatus: "Paid",
+//       orderStatus: "Out for Delivery",
+//     });
+
+//     // Add order number to the tourist's Orders array
+//     tourist.Orders.push({ OrderNumber: order.orderNumber });
+
+//     // Clear the cart
+//     tourist.Cart = [];
+//     await tourist.save();
+
+//     // Respond with success message
+//     res.status(200).json({
+//       msg: "Payment successful! Order has been paid using the wallet.",
+//       orderDetails: order,
+//       remainingWallet: tourist.Wallet,
+//     });
+//   } catch (error) {
+//     console.error("Error during wallet payment:", error);
+//     res.status(500).json({ error: "Failed to process payment with wallet." });
+//   }
+// };
+
+const payOrderWallet = async (req, res) => {
+  const { touristUsername } = req.body;
+
+  try {
+    const tourist = await TouristModel.findOne({ Username: touristUsername });
+    if (!tourist) {
+      return res.status(404).json({ error: "Tourist not found" });
+    }
+
+    let totalPrice = 0;
+    const productsPurchased = [];
+
+    for (const cartItem of tourist.Cart) {
+      const product = await ProductModel.findOne({ Name: cartItem.productName });
+      if (!product) {
+        return res.status(404).json({ error: `Product '${cartItem.productName}' not found.` });
+      }
+
+      const pricePerUnit = parseFloat(product.Price) || 0;
+      const quantity = parseInt(cartItem.Quantity) || 0;
+      const price = pricePerUnit * quantity;
+
+      totalPrice += price;
+
+      product.Quantity -= quantity;
+      product.Sales += quantity;
+      product.TotalPriceOfSales += price;
+      await product.save();
+
+      productsPurchased.push({ productName: product.Name, quantity, price: pricePerUnit });
+
+      const existingProduct = tourist.purchasedProducts.find(p => p.productName === product.Name);
+      if (existingProduct) {
+        existingProduct.quantity += quantity;
+        existingProduct.totalSales += price;
+      } else {
+        tourist.purchasedProducts.push({ productName: product.Name, quantity, totalSales: price });
+      }
+    }
+
+    if (tourist.Wallet < totalPrice) {
+      return res.status(400).json({ error: "Insufficient wallet funds." });
+    }
+
+    tourist.Wallet -= totalPrice;
+
+    const orderCounter = await OrderCounterModel.findOneAndUpdate(
+      { name: "orderNumber" },
+      { $inc: { count: 1 } },
+      { new: true, upsert: true }
+    );
+
+    const order = await OrderModel.create({
+      orderNumber: orderCounter.count,
+      touristUsername,
+      productsPurchased,
+      orderDate: new Date(),
+      paymentStatus: "Paid",
+      orderStatus: "Out for Delivery",
+    });
+
+    tourist.Orders.push({ OrderNumber: order.orderNumber });
+    tourist.Cart = [];
+    await tourist.save();
+
+    // Send Email with Order Details
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: 'malook25062003@gmail.com', // Your email
+        pass: 'sxvo feuu woie gpfn',
+      },
+    });
+
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: tourist.Email,
+      subject: `Order Confirmation #${order.orderNumber}`,
+      text: `
+        Dear ${tourist.Username},
+        
+        Thank you for your order! Here are your order details:
+        
+        Order Number: ${order.orderNumber}
+        Order Date: ${order.orderDate.toLocaleDateString()}
+        Total Price: ${totalPrice}
+        Payment Method: Wallet
+        
+        Products Purchased:
+        ${productsPurchased.map(
+          p => `- ${p.productName}: ${p.quantity} x ${p.price} = ${p.quantity * p.price}`
+        ).join("\n")}
+
+        Your order is now out for delivery!
+        
+        Thank you for choosing our service.
+      `,
+    };
+
+    await transporter.sendMail(mailOptions);
+
+    res.status(200).json({
+      msg: "Payment successful! Order details emailed.",
+      orderDetails: order,
+      remainingWallet: tourist.Wallet,
+    });
+  } catch (error) {
+    console.error("Error during wallet payment:", error);
+    res.status(500).json({ error: "Failed to process payment with wallet." });
+  }
+};
+
+const payOrderCash = async (req, res) => {
+  const { touristUsername } = req.body;
+
+  try {
+    const tourist = await TouristModel.findOne({ Username: touristUsername });
+    if (!tourist) {
+      return res.status(404).json({ error: "Tourist not found" });
+    }
+
+    let totalPrice = 0;
+    const productsPurchased = [];
+
+    for (const cartItem of tourist.Cart) {
+      const product = await ProductModel.findOne({ Name: cartItem.productName });
+      if (!product) {
+        return res.status(404).json({ error: `Product '${cartItem.productName}' not found.` });
+      }
+
+      const pricePerUnit = parseFloat(product.Price) || 0;
+      const quantity = parseInt(cartItem.Quantity) || 0;
+      const price = pricePerUnit * quantity;
+
+      totalPrice += price;
+
+      product.Quantity -= quantity;
+      product.Sales += quantity;
+      product.TotalPriceOfSales += price;
+      await product.save();
+
+      productsPurchased.push({ productName: product.Name, quantity, price: pricePerUnit });
+
+      const existingProduct = tourist.purchasedProducts.find(p => p.productName === product.Name);
+      if (existingProduct) {
+        existingProduct.quantity += quantity;
+        existingProduct.totalSales += price;
+      } else {
+        tourist.purchasedProducts.push({ productName: product.Name, quantity, totalSales: price });
+      }
+    }
+
+    const orderCounter = await OrderCounterModel.findOneAndUpdate(
+      { name: "orderNumber" },
+      { $inc: { count: 1 } },
+      { new: true, upsert: true }
+    );
+
+    const order = await OrderModel.create({
+      orderNumber: orderCounter.count,
+      touristUsername,
+      productsPurchased,
+      orderDate: new Date(),
+      paymentStatus: "Cash On Delivery",
+      orderStatus: "Out for Delivery",
+    });
+
+    tourist.Orders.push({ OrderNumber: order.orderNumber });
+    tourist.Cart = [];
+    await tourist.save();
+
+    // Send Email with Order Details
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: 'malook25062003@gmail.com', // Your email
+        pass: 'sxvo feuu woie gpfn',
+      },
+    });
+
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: tourist.Email,
+      subject: `Order Confirmation #${order.orderNumber}`,
+      text: `
+        Dear ${tourist.Username},
+        
+        Thank you for your order! Here are your order details:
+        
+        Order Number: ${order.orderNumber}
+        Order Date: ${order.orderDate.toLocaleDateString()}
+        Total Price: ${totalPrice}
+        Payment Method: Cash On Delivery
+        
+        Products Purchased:
+        ${productsPurchased.map(
+          p => `- ${p.productName}: ${p.quantity} x ${p.price} = ${p.quantity * p.price}`
+        ).join("\n")}
+
+        Your order is now out for delivery!
+        
+        Thank you for choosing our service.
+      `,
+    };
+
+    await transporter.sendMail(mailOptions);
+
+    res.status(200).json({
+      msg: "Order successful! Order details emailed.",
+      orderDetails: order,
+    });
+  } catch (error) {
+    console.error("Error during COD payment:", error);
+    res.status(500).json({ error: "Failed to process payment with COD." });
+  }
+};
 
 
+const viewOrderDetails = async (req, res) => {
+  const { orderNumber } = req.query;
 
+  try {
+    if (!orderNumber) {
+      return res.status(400).json({ error: "Order number is required." });
+    }
 
+    
 
+    // Fetch the specific order by orderNumber and username
+    const order = await OrderModel.findOne({ orderNumber});
+    if (!order) {
+      return res.status(404).json({ error: `Order with number ${orderNumber} not found.` });
+    }
 
+    // Respond with the specific order details
+    res.status(200).json({
+      msg: "Order details retrieved successfully.",
+      orderDetails: order,
+    });
+  } catch (error) {
+    console.error("Error retrieving order details:", error);
+    res.status(500).json({ error: "Failed to retrieve order details." });
+  }
+};
 
+const cancelOrder = async (req, res) => {
+  const { touristUsername, orderNumber } = req.body;
 
+  try {
+    // Validate input
+    if (!orderNumber) {
+      return res.status(400).json({ error: "Order number is required." });
+    }
 
+    // Find the tourist by username
+    const tourist = await TouristModel.findOne({ Username: touristUsername });
+    if (!tourist) {
+      return res.status(404).json({ error: "Tourist not found." });
+    }
 
+    // Find the specific order
+    const order = await OrderModel.findOne({ orderNumber, touristUsername });
+    if (!order) {
+      return res.status(404).json({ error: `Order with number ${orderNumber} not found for user ${touristUsername}.` });
+    }
 
+    // Check if the order has already been delivered
+    if (order.orderStatus === "Delivered") {
+      return res.status(400).json({
+        error: "Delivered orders cannot be canceled.",
+      });
+    }
 
+    let totalRefund = 0;
 
+    // Revert product details in all cases
+    for (const item of order.productsPurchased) {
+      const product = await ProductModel.findOne({ Name: item.productName });
+
+      if (product) {
+        // Revert product quantity and sales
+        product.Quantity += item.quantity; // Increase product quantity
+        product.Sales -= item.quantity; // Decrease sales
+        product.TotalPriceOfSales -= item.quantity * item.price; // Decrease total sales price
+        await product.save();
+
+        // Calculate total refund for non-Cash On Delivery
+        if (order.paymentStatus !== "Cash On Delivery") {
+          totalRefund += item.quantity * item.price;
+        }
+      }
+    }
+
+    // If payment was not "Cash On Delivery", refund to wallet
+    if (order.paymentStatus !== "Cash On Delivery") {
+      tourist.Wallet += totalRefund;
+    }
+
+    // Remove the order from the Tourist's Orders array
+    tourist.Orders = tourist.Orders.filter((o) => parseInt(o.OrderNumber) !== orderNumber);
+
+    // Save the updated tourist details
+    await tourist.save();
+
+    // Remove the order from the OrderModel
+    await OrderModel.deleteOne({ orderNumber, touristUsername });
+
+    res.status(200).json({
+      msg: `Order ${orderNumber} has been successfully cancelled and removed. ${
+        order.paymentStatus !== "Cash On Delivery"
+          ? "Refund has been added to the wallet."
+          : ""
+      }`,
+    });
+  } catch (error) {
+    console.error("Error during order cancellation:", error);
+    res.status(500).json({ error: "Failed to cancel order." });
+  }
+};
+
+const markOrdersAsDelivered = async (req, res) => {
+  try {
+
+    const orders = await OrderModel.find({});
+
+    const now = new Date();
+    let updatedOrders = 0;
+
+    for (const order of orders) {
+      const orderDate = new Date(order.orderDate);
+
+      // Check if the order date is more than 2 days ago
+      const daysPassed = Math.floor((now - orderDate) / (1000 * 60 * 60 * 24)); // Calculate days difference
+      if (daysPassed > 2 && order.orderStatus !== "Delivered") {
+        // Update the order status to Delivered
+        order.orderStatus = "Delivered";
+        await order.save();
+        updatedOrders++;
+      }
+    }
+
+    res.status(200).json({
+      msg: `Orders updated successfully. ${updatedOrders} orders marked as Delivered.`,
+    });
+  } catch (error) {
+    console.error("Error marking orders as delivered:", error);
+    res.status(500).json({ error: "Failed to update orders." });
+  }
+};
+
+const viewAllOrders = async (req, res) => {
+  const { touristUsername } = req.query;
+
+  try {
+    // Find the tourist by username
+    const tourist = await TouristModel.findOne({ Username: touristUsername });
+
+    if (!tourist) {
+      return res.status(404).json({ error: "Tourist not found" });
+    }
+
+    // Retrieve orders based on the OrderNumbers in the tourist's Orders array
+    const orderNumbers = tourist.Orders.map(order => order.OrderNumber);
+    const orders = await OrderModel.find({ orderNumber: { $in: orderNumbers } });
+
+    // Separate active and past orders
+    const currentOrders = orders.filter(order => 
+      order.orderStatus !== "Delivered" && order.orderStatus !== "Cancelled"
+    );
+    const pastOrders = orders.filter(order => 
+      order.orderStatus === "Delivered" || order.orderStatus === "Cancelled"
+    );
+
+    // Respond with current and past orders
+    res.status(200).json({
+      msg: "Orders retrieved successfully.",
+      currentOrders,
+      pastOrders,
+    });
+  } catch (error) {
+    console.error("Error retrieving orders:", error);
+    res.status(500).json({ error: "Failed to retrieve orders." });
+  }
+};
 
 
 
 module.exports = {createTourist, getTourist, updateTourist, searchProductTourist, filterActivities, filterProductByPriceTourist, ActivityRating, sortProductsDescendingTourist, sortProductsAscendingTourist, ViewAllUpcomingActivities, ViewAllUpcomingMuseumEventsTourist, getMuseumsByTagTourist, getHistoricalPlacesByTagTourist, ViewAllUpcomingHistoricalPlacesEventsTourist,viewProductsTourist, sortActivitiesPriceAscendingTourist, sortActivitiesPriceDescendingTourist, sortActivitiesRatingAscendingTourist, sortActivitiesRatingDescendingTourist, loginTourist, ViewAllUpcomingItinerariesTourist, sortItinerariesPriceAscendingTourist, sortItinerariesPriceDescendingTourist, filterItinerariesTourist, ActivitiesSearchAll, ItinerarySearchAll, MuseumSearchAll, HistoricalPlacesSearchAll, ProductRating, createComplaint, getComplaintsByTouristUsername,ChooseActivitiesByCategoryTourist,bookActivity,bookItinerary,bookMuseum,bookHistoricalPlace, ratePurchasedProduct, addPurchasedProducts, reviewPurchasedProduct, addCompletedItinerary, rateTourGuide, commentOnTourGuide, rateCompletedItinerary, commentOnItinerary, addCompletedActivities, addCompletedMuseumEvents, addCompletedHPEvents, rateCompletedActivity, rateCompletedMuseum, rateCompletedHP, commentOnActivity, commentOnMuseum, commentOnHP,deleteBookedActivity,deleteBookedItinerary,deleteBookedMuseum,deleteBookedHP,payActivity,updateWallet,updatepoints,payItinerary,payMuseum,payHP,redeemPoints, convertEgp, fetchFlights,viewBookedItineraries, requestDeleteAccountTourist,convertCurr,getActivityDetails,getHistoricalPlaceDetails,getMuseumDetails,GetCopyLink, bookFlight
   ,fetchHotelsByCity, fetchHotels, bookHotel,bookTransportation,addPreferences, viewMyCompletedActivities, viewMyCompletedItineraries, viewMyCompletedMuseums, viewMyCompletedHistoricalPlaces,viewMyBookedActivities,viewMyBookedItineraries,viewMyBookedMuseums,viewMyBookedHistoricalPlaces,viewTourGuidesCompleted,viewAllTransportation, getItineraryDetails, viewPreferenceTags,viewPurchasedProducts,viewBookedActivities,viewMyBookedTransportation,addBookmark
-, payActivityByCard, payItineraryByCard, payMuseumByCard, payHPByCard, sendOtp, loginTouristOTP,viewBookmarks, addToWishList, viewMyWishlist, removeFromWishlist, addToCartFromWishlist, addToCart, removeFromCart, changeProductQuantityInCart, checkout, addDeliveryAddress, viewDeliveryAddresses};
+, payActivityByCard, payItineraryByCard, payMuseumByCard, payHPByCard, sendOtp, loginTouristOTP,viewBookmarks, addToWishList, viewMyWishlist, removeFromWishlist, addToCartFromWishlist, addToCart, removeFromCart, changeProductQuantityInCart, checkout, addDeliveryAddress, viewDeliveryAddresses,chooseDeliveryAddress,payOrderWallet,payOrderCash,viewOrderDetails,cancelOrder,cancelOrder,markOrdersAsDelivered,viewAllOrders};
