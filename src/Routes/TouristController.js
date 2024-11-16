@@ -14,6 +14,10 @@ const TransportationModel = require('../Models/Transportation.js');
 const TagsModel = require('../Models/Tags.js');
 const axios = require('axios');
 const nodemailer = require('nodemailer'); 
+
+const Stripe = require("stripe");
+const stripe = Stripe('sk_test_51QLqHGP7Sjm96OcqEPPQmxSyVbLV9L7Rnj9v67b7lvTT37QGD1aUroGnGnpU4rm8a7CgNrTpNOalXtiXfwofP3pC00FSmMdarL');
+
 const ItineraryModel = require('../Models/Itinerary.js');
 const DeactivatedItinerariesModel = require('../Models/DeactivatedItineraries.js');
 const AdvertiserModel = require('../Models/Advertiser.js');
@@ -2648,6 +2652,121 @@ const payActivityByCard = async (req, res) => {
 };
 
 
+const payActivityStripe = async (req, res) => {
+  const { touristUsername, activityName } = req.body;
+
+  try {
+
+    const paymentMethodId = "pm_card_visa";
+    // Find the activity by name
+    const activity = await ActivityModel.findOne({ Name: activityName });
+    if (!activity) {
+      return res.status(404).json({ msg: 'Activity not found' });
+    }
+
+    // Find the tourist by username
+    const tourist = await TouristModel.findOne({ Username: touristUsername });
+    if (!tourist) {
+      return res.status(404).json({ msg: 'Tourist not found' });
+    }
+
+    // Calculate ticket price
+    const ticketPrice = activity.Price;
+
+    // Process payment with Stripe
+    const paymentIntent = await stripe.paymentIntents.create({
+      amount: Math.round(ticketPrice * 100), // Stripe uses the smallest currency unit (e.g., cents for USD, piastres for EGP)
+      currency: 'usd', // Use EGP as the currency
+      payment_method: paymentMethodId, // Payment method ID from the frontend
+      confirm: true, // Automatically confirm the payment
+      automatic_payment_methods: {
+        enabled: true,
+        allow_redirects: 'never',
+      },
+    });
+
+    if (paymentIntent.status !== 'succeeded') {
+      return res.status(400).json({ msg: 'Payment failed. Please try again.' });
+    }
+
+    // Update activity as booked
+    tourist.BookedActivities.push({
+      activityName: activity.Name,
+      confirmed: true,
+    });
+
+    activity.isBooked = true;
+    await activity.save();
+
+    // Update points and badge level
+    if (tourist.BadgeLevelOfPoints === 1) {
+      tourist.Points += 0.5 * ticketPrice;
+      if (tourist.Points > 100000) {
+        tourist.BadgeLevelOfPoints = 2;
+      } else if (tourist.Points > 500000) {
+        tourist.BadgeLevelOfPoints = 3;
+      }
+    } else if (tourist.BadgeLevelOfPoints === 2) {
+      tourist.Points += ticketPrice;
+      if (tourist.Points > 500000) {
+        tourist.BadgeLevelOfPoints = 3;
+      }
+    } else if (tourist.BadgeLevelOfPoints === 3) {
+      tourist.Points += 1.5 * ticketPrice;
+    }
+
+    // Save the updated tourist information
+    await tourist.save();
+
+    // Set up the email transporter
+    const transporter1 = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: 'malook25062003@gmail.com', // Your email
+        pass: 'sxvo feuu woie gpfn', // Your email password or app-specific password
+      },
+    });
+
+    // Create the email options
+    const paymentDate = new Date();
+    const mailOptions = {
+      from: 'malook25062003@gmail.com',
+      to: tourist.Email,
+      subject: 'Payment Receipt',
+      text: `Dear ${tourist.Username},
+
+Thank you for your payment for the activity "${activityName}".
+
+Here are the details of your transaction:
+- Activity Name: ${activityName}
+- Amount Paid: ${ticketPrice} EGP
+- Payment Date: ${paymentDate.toLocaleDateString()}
+- Payment Time: ${paymentDate.toLocaleTimeString()}
+
+Thank you for choosing our service!
+
+Best regards,
+The Beyond Borders Team`,
+    };
+
+    // Send the email
+    await transporter1.sendMail(mailOptions);
+
+    // Respond with success
+    res.status(200).json({
+      msg: 'Payment successful! An email has been sent with your payment details.',
+      activityName: activity.Name,
+      BadgeLevelOfPoints: tourist.BadgeLevelOfPoints,
+      Points: tourist.Points,
+    });
+  } catch (error) {
+    console.error('Error processing payment for activity:', error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+
+
 
 const updateWallet = async (req, res) => {
   const { username, amount } = req.body;
@@ -2908,6 +3027,115 @@ const payItineraryByCard = async (req, res) => {
   }
 };
 
+const payItineraryStripe = async (req, res) => {
+  const { touristUsername, ItineraryName } = req.body;
+
+  try {
+    const paymentMethodId ="pm_card_visa";
+    // Find the itinerary by name
+    const itinerary = await ItineraryModel.findOne({ Title: ItineraryName });
+    if (!itinerary) {
+      return res.status(404).json({ msg: 'Itinerary not found' });
+    }
+
+    // Find the tourist by username
+    const tourist = await TouristModel.findOne({ Username: touristUsername });
+    if (!tourist) {
+      return res.status(404).json({ msg: 'Tourist not found' });
+    }
+
+    // Calculate itinerary price
+    const ticketPrice = itinerary.Price;
+
+    // Process payment with Stripe
+    const paymentIntent = await stripe.paymentIntents.create({
+      amount: Math.round(ticketPrice * 100), // Stripe works with the smallest currency unit (e.g., piasters for EGP)
+      currency: 'usd',
+      payment_method: paymentMethodId, // Payment method ID from the frontend
+      confirm: true, // Automatically confirm the payment
+      automatic_payment_methods: {
+        enabled: true,
+        allow_redirects: 'never',
+      },
+    });
+
+    if (paymentIntent.status !== 'succeeded') {
+      return res.status(400).json({ error: 'Payment failed. Please try again.' });
+    }
+
+    // Add itinerary to the tourist's booked itineraries
+    tourist.BookedItineraries.push({
+      ItineraryName: itinerary.Title,
+      booked: true,
+    });
+
+    // Update points and badge level
+    if (tourist.BadgeLevelOfPoints === 1) {
+      tourist.Points += 0.5 * ticketPrice;
+      if (tourist.Points > 100000) {
+        tourist.BadgeLevelOfPoints = 2;
+      } else if (tourist.Points > 500000) {
+        tourist.BadgeLevelOfPoints = 3;
+      }
+    } else if (tourist.BadgeLevelOfPoints === 2) {
+      tourist.Points += ticketPrice;
+      if (tourist.Points > 500000) {
+        tourist.BadgeLevelOfPoints = 3;
+      }
+    } else if (tourist.BadgeLevelOfPoints === 3) {
+      tourist.Points += 1.5 * ticketPrice;
+    }
+
+    await tourist.save();
+
+    // Set up the email transporter
+    const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+      user: 'malook25062003@gmail.com', 
+      pass: 'sxvo feuu woie gpfn',
+      },
+    });
+
+    // Create the email options
+    const paymentDate = new Date();
+    const mailOptions = {
+      from: 'malook25062003@gmail.com', // Replace with your email
+      to: tourist.Email,
+      subject: 'Payment Receipt',
+      text: `Dear ${tourist.Username},
+
+Thank you for your payment for the itinerary "${ItineraryName}".
+
+Here are the details of your transaction:
+- Itinerary Name: ${ItineraryName}
+- Amount Paid: ${ticketPrice} EGP
+- Payment Date: ${paymentDate.toLocaleDateString()}
+- Payment Time: ${paymentDate.toLocaleTimeString()}
+
+Thank you for choosing our service!
+
+Best regards,
+Beyond Borders`,
+    };
+
+
+
+    await transporter.sendMail(mailOptions);
+
+    // Respond with success message
+    res.status(200).json({
+      msg: 'Payment successful! An email has been sent with your payment details.',
+      ItineraryName: itinerary.Title,
+      BadgeLevelOfPoints: tourist.BadgeLevelOfPoints,
+      Points: tourist.Points,
+    });
+  } catch (error) {
+    console.error('Error processing payment for itinerary:', error);
+    res.status(500).json({ error: 'Failed to process payment for itinerary.' });
+  }
+};
+
 
 const payMuseum = async (req, res) => {
   const { touristUsername, museumName } = req.body;
@@ -3136,6 +3364,119 @@ res.status(500).json({ error: error.message });
 }
 };
 
+const payMuseumStripe = async (req, res) => {
+  const { touristUsername, museumName } = req.body;
+
+  try {
+    const paymentMethodId = 'pm_card_visa'; // You can replace this with the actual PaymentMethod ID sent from the frontend
+
+    // Find the museum by name
+    const museum = await MuseumModel.findOne({ name: museumName });
+    if (!museum) {
+      return res.status(404).json({ msg: 'Museum not found' });
+    }
+
+    // Find the tourist by username
+    const tourist = await TouristModel.findOne({ Username: touristUsername });
+    if (!tourist) {
+      return res.status(404).json({ msg: 'Tourist not found' });
+    }
+
+    // Calculate ticket price based on tourist's occupation or nationality
+    let ticketPrice;
+    if (tourist.Occupation.toLowerCase() === 'student') {
+      ticketPrice = museum.ticketPrices.student;
+    } else if (tourist.Nationality.toLowerCase() === 'egyptian') {
+      ticketPrice = museum.ticketPrices.native;
+    } else {
+      ticketPrice = museum.ticketPrices.foreigner;
+    }
+
+    // Process payment with Stripe
+    const paymentIntent = await stripe.paymentIntents.create({
+      amount: Math.round(ticketPrice * 100), // Convert price to the smallest currency unit
+      currency: 'usd', // Change to 'egp' if enabled in your Stripe account
+      payment_method: paymentMethodId, // Payment method ID from the frontend
+      confirm: true, // Automatically confirm the payment
+      automatic_payment_methods: {
+        enabled: true,
+        allow_redirects: 'never',
+      },
+    });
+
+    if (paymentIntent.status !== 'succeeded') {
+      return res.status(400).json({ error: 'Payment failed. Please try again.' });
+    }
+
+    // Add museum to tourist's booked museums
+    tourist.BookedMuseums.push({
+      MuseumName: museum.name,
+      booked: true,
+    });
+
+    // Update points and badge level
+    if (tourist.BadgeLevelOfPoints === 1) {
+      tourist.Points += 0.5 * ticketPrice;
+      if (tourist.Points > 100000) {
+        tourist.BadgeLevelOfPoints = 2;
+      } else if (tourist.Points > 500000) {
+        tourist.BadgeLevelOfPoints = 3;
+      }
+    } else if (tourist.BadgeLevelOfPoints === 2) {
+      tourist.Points += ticketPrice;
+      if (tourist.Points > 500000) {
+        tourist.BadgeLevelOfPoints = 3;
+      }
+    } else if (tourist.BadgeLevelOfPoints === 3) {
+      tourist.Points += 1.5 * ticketPrice;
+    }
+
+    await tourist.save();
+
+    // Send payment receipt email
+    const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: 'malook25062003@gmail.com', // Your email
+        pass: 'sxvo feuu woie gpfn',
+      },
+    });
+
+    const paymentDate = new Date();
+    const mailOptions = {
+      from: 'malook25062003@gmail.com',
+      to: tourist.Email,
+      subject: 'Payment Receipt for Museum Booking',
+      text: `Dear ${tourist.Username},
+
+Thank you for your payment for the museum "${museumName}".
+
+Here are the details of your transaction:
+- Museum Name: ${museumName}
+- Amount Paid: ${ticketPrice} USD
+- Payment Date: ${paymentDate.toLocaleDateString()}
+- Payment Time: ${paymentDate.toLocaleTimeString()}
+
+Thank you for choosing Beyond Borders!
+
+Best regards,
+Beyond Borders Team`,
+    };
+
+    await transporter.sendMail(mailOptions);
+
+    // Respond with success
+    res.status(200).json({
+      msg: 'Payment successful! An email has been sent with your payment details.',
+      museumName: museum.name,
+      BadgeLevelOfPoints: tourist.BadgeLevelOfPoints,
+      Points: tourist.Points,
+    });
+  } catch (error) {
+    console.error('Error processing payment for museum:', error);
+    res.status(500).json({ error: 'Failed to process payment for museum.' });
+  }
+};
 
 const payHP = async (req, res) => {
   const { touristUsername, HPName } = req.body;
@@ -3361,7 +3702,119 @@ const payHPByCard = async (req, res) => {
     }
 };
 
+const payHPStripe = async (req, res) => {
+  const { touristUsername, HPName } = req.body;
 
+  try {
+    const paymentMethodId = 'pm_card_visa'; // Replace with actual PaymentMethod ID from the frontend
+
+    // Find the historical place by name
+    const hp = await HistoricalPlacesModel.findOne({ name: HPName });
+    if (!hp) {
+      return res.status(404).json({ msg: 'Historical place not found' });
+    }
+
+    // Find the tourist by username
+    const tourist = await TouristModel.findOne({ Username: touristUsername });
+    if (!tourist) {
+      return res.status(404).json({ msg: 'Tourist not found' });
+    }
+
+    // Calculate ticket price
+    let ticketPrice;
+    if (tourist.Occupation.toLowerCase() === 'student') {
+      ticketPrice = hp.ticketPrices.student;
+    } else if (tourist.Nationality.toLowerCase() === 'egyptian') {
+      ticketPrice = hp.ticketPrices.native;
+    } else {
+      ticketPrice = hp.ticketPrices.foreigner;
+    }
+
+    // Process payment with Stripe
+    const paymentIntent = await stripe.paymentIntents.create({
+      amount: Math.round(ticketPrice * 100), // Convert to smallest currency unit
+      currency: 'usd', // Change to 'egp' if your Stripe account supports EGP
+      payment_method: paymentMethodId, // Payment method ID from the frontend
+      confirm: true, // Automatically confirm the payment
+      automatic_payment_methods: {
+        enabled: true,
+        allow_redirects: 'never',
+      },
+    });
+
+    if (paymentIntent.status !== 'succeeded') {
+      return res.status(400).json({ error: 'Payment failed. Please try again.' });
+    }
+
+    // Add historical place to tourist's booked list
+    tourist.BookedHistPlaces.push({
+      HistPlaceName: hp.name,
+      booked: true,
+    });
+
+    // Update points and badge level
+    if (tourist.BadgeLevelOfPoints === 1) {
+      tourist.Points += 0.5 * ticketPrice;
+      if (tourist.Points > 100000) {
+        tourist.BadgeLevelOfPoints = 2;
+      } else if (tourist.Points > 500000) {
+        tourist.BadgeLevelOfPoints = 3;
+      }
+    } else if (tourist.BadgeLevelOfPoints === 2) {
+      tourist.Points += ticketPrice;
+      if (tourist.Points > 500000) {
+        tourist.BadgeLevelOfPoints = 3;
+      }
+    } else if (tourist.BadgeLevelOfPoints === 3) {
+      tourist.Points += 1.5 * ticketPrice;
+    }
+
+    await tourist.save();
+
+    // Send payment receipt email
+    const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: 'malook25062003@gmail.com', // Your email
+        pass: 'sxvo feuu woie gpfn', // Use app-specific password
+      },
+    });
+
+    const paymentDate = new Date();
+    const mailOptions = {
+      from: 'malook25062003@gmail.com',
+      to: tourist.Email,
+      subject: 'Payment Receipt for Historical Place Booking',
+      text: `Dear ${tourist.Username},
+
+Thank you for your payment for the historical place "${HPName}".
+
+Here are the details of your transaction:
+- Historical Place Name: ${HPName}
+- Amount Paid: ${ticketPrice} USD
+- Payment Date: ${paymentDate.toLocaleDateString()}
+- Payment Time: ${paymentDate.toLocaleTimeString()}
+
+Thank you for choosing Beyond Borders!
+
+Best regards,
+Beyond Borders Team`,
+    };
+
+    await transporter.sendMail(mailOptions);
+
+    // Respond with success
+    res.status(200).json({
+      msg: 'Payment successful! An email has been sent with your payment details.',
+      hpName: hp.name,
+      BadgeLevelOfPoints: tourist.BadgeLevelOfPoints,
+      Points: tourist.Points,
+    });
+  } catch (error) {
+    console.error('Error processing payment for historical place:', error);
+    res.status(500).json({ error: 'Failed to process payment for historical place.' });
+  }
+};
 
 /*const redeemPoints = async (req, res) => {
   const { username } = req.body;
@@ -5545,6 +5998,140 @@ const payOrderCash = async (req, res) => {
 };
 
 
+
+
+const payOrderStripe = async (req, res) => {
+  const { touristUsername} = req.body;
+
+  try {
+
+    const paymentMethodId = "pm_card_visa";
+    // Find the tourist by username
+    const tourist = await TouristModel.findOne({ Username: touristUsername });
+    if (!tourist) {
+      return res.status(404).json({ error: "Tourist not found" });
+    }
+
+    let totalPrice = 0;
+    const productsPurchased = [];
+
+    // Calculate total price and update product details
+    for (const cartItem of tourist.Cart) {
+      const product = await ProductModel.findOne({ Name: cartItem.productName });
+      if (!product) {
+        return res.status(404).json({ error: `Product '${cartItem.productName}' not found.` });
+      }
+
+      const pricePerUnit = parseFloat(product.Price) || 0;
+      const quantity = parseInt(cartItem.Quantity) || 0;
+      const price = pricePerUnit * quantity;
+
+      totalPrice += price;
+
+      product.Quantity -= quantity;
+      product.Sales += quantity;
+      product.TotalPriceOfSales += price;
+      await product.save();
+
+      productsPurchased.push({ productName: product.Name, quantity, price: pricePerUnit });
+
+      const existingProduct = tourist.purchasedProducts.find(p => p.productName === product.Name);
+      if (existingProduct) {
+        existingProduct.quantity += quantity;
+        existingProduct.totalSales += price;
+      } else {
+        tourist.purchasedProducts.push({ productName: product.Name, quantity, totalSales: price });
+      }
+    }
+
+    // Create a PaymentIntent with Stripe
+    const paymentIntent = await stripe.paymentIntents.create({
+      amount: Math.round(totalPrice * 100), // Amount in the smallest currency unit (e.g., piasters for EGP)
+      currency: 'usd', // Use EGP currency
+      payment_method: paymentMethodId, // Payment method ID from the frontend
+      confirm: true, // Automatically confirm the payment
+      automatic_payment_methods: {
+        enabled: true,
+        allow_redirects: 'never', // Disable redirect-based payment methods
+      },
+    });
+
+    // Check if PaymentIntent was successful
+    if (paymentIntent.status !== 'succeeded') {
+      return res.status(400).json({ error: "Payment failed. Please try again." });
+    }
+
+    // Generate order number
+    const orderCounter = await OrderCounterModel.findOneAndUpdate(
+      { name: "orderNumber" },
+      { $inc: { count: 1 } },
+      { new: true, upsert: true }
+    );
+
+    // Create a new order
+    const order = await OrderModel.create({
+      orderNumber: orderCounter.count,
+      touristUsername,
+      productsPurchased,
+      orderDate: new Date(),
+      paymentStatus: "Paid",
+      orderStatus: "Out for Delivery",
+    });
+
+    // Add order to tourist's Orders array
+    tourist.Orders.push({ OrderNumber: order.orderNumber });
+    tourist.Cart = [];
+    await tourist.save();
+
+    // Send email with order details
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: "malook25062003@gmail.com",
+        pass: "sxvo feuu woie gpfn", 
+      },
+    });
+
+    const mailOptions = {
+      from: 'malook25062003@gmail.com',
+      to: tourist.Email,
+      subject: `Order Confirmation #${order.orderNumber}`,
+      text: `
+        Dear ${tourist.Username},
+
+        Thank you for your order! Here are your order details:
+
+        Order Number: ${order.orderNumber}
+        Order Date: ${order.orderDate.toLocaleDateString()}
+        Total Price: ${totalPrice.toFixed(2)} EGP
+        Payment Method: Credit Card (via Stripe)
+
+        Products Purchased:
+        ${productsPurchased.map(
+          p => `- ${p.productName}: ${p.quantity} x ${p.price} = ${(p.quantity * p.price).toFixed(2)}`
+        ).join("\n")}
+
+        Your order is now out for delivery!
+
+        Thank you for choosing our service.
+      `,
+    };
+
+    await transporter.sendMail(mailOptions);
+
+    // Respond with success
+    res.status(200).json({
+      msg: "Order successful! Payment completed via Stripe. Order details emailed.",
+      orderDetails: order,
+    });
+  } catch (error) {
+    console.error("Error during Stripe payment:", error);
+    res.status(500).json({ error: "Failed to process payment with Stripe." });
+  }
+};
+
+
+
 const viewOrderDetails = async (req, res) => {
   const { orderNumber } = req.query;
 
@@ -5805,4 +6392,5 @@ const sendUpcomingEventNotifications = async () => {
 
 module.exports = {createTourist, getTourist, updateTourist, searchProductTourist, filterActivities, filterProductByPriceTourist, ActivityRating, sortProductsDescendingTourist, sortProductsAscendingTourist, ViewAllUpcomingActivities, ViewAllUpcomingMuseumEventsTourist, getMuseumsByTagTourist, getHistoricalPlacesByTagTourist, ViewAllUpcomingHistoricalPlacesEventsTourist,viewProductsTourist, sortActivitiesPriceAscendingTourist, sortActivitiesPriceDescendingTourist, sortActivitiesRatingAscendingTourist, sortActivitiesRatingDescendingTourist, loginTourist, ViewAllUpcomingItinerariesTourist, sortItinerariesPriceAscendingTourist, sortItinerariesPriceDescendingTourist, filterItinerariesTourist, ActivitiesSearchAll, ItinerarySearchAll, MuseumSearchAll, HistoricalPlacesSearchAll, ProductRating, createComplaint, getComplaintsByTouristUsername,ChooseActivitiesByCategoryTourist,bookActivity,bookItinerary,bookMuseum,bookHistoricalPlace, ratePurchasedProduct, addPurchasedProducts, reviewPurchasedProduct, addCompletedItinerary, rateTourGuide, commentOnTourGuide, rateCompletedItinerary, commentOnItinerary, addCompletedActivities, addCompletedMuseumEvents, addCompletedHPEvents, rateCompletedActivity, rateCompletedMuseum, rateCompletedHP, commentOnActivity, commentOnMuseum, commentOnHP,deleteBookedActivity,deleteBookedItinerary,deleteBookedMuseum,deleteBookedHP,payActivity,updateWallet,updatepoints,payItinerary,payMuseum,payHP,redeemPoints, convertEgp, fetchFlights,viewBookedItineraries, requestDeleteAccountTourist,convertCurr,getActivityDetails,getHistoricalPlaceDetails,getMuseumDetails,GetCopyLink, bookFlight
   ,fetchHotelsByCity, fetchHotels, bookHotel,bookTransportation,addPreferences, viewMyCompletedActivities, viewMyCompletedItineraries, viewMyCompletedMuseums, viewMyCompletedHistoricalPlaces,viewMyBookedActivities,viewMyBookedItineraries,viewMyBookedMuseums,viewMyBookedHistoricalPlaces,viewTourGuidesCompleted,viewAllTransportation, getItineraryDetails, viewPreferenceTags,viewPurchasedProducts,viewBookedActivities,viewMyBookedTransportation,addBookmark
-, payActivityByCard, payItineraryByCard, payMuseumByCard, payHPByCard, sendOtp, loginTouristOTP,viewBookmarks, addToWishList, viewMyWishlist, removeFromWishlist, addToCartFromWishlist, addToCart, removeFromCart, changeProductQuantityInCart, checkout, addDeliveryAddress, viewDeliveryAddresses,chooseDeliveryAddress,payOrderWallet,payOrderCash,viewOrderDetails,cancelOrder,cancelOrder,markOrdersAsDelivered,viewAllOrders,sendUpcomingEventNotifications};
+, payActivityByCard, payItineraryByCard, payMuseumByCard, payHPByCard, sendOtp, loginTouristOTP,viewBookmarks, addToWishList, viewMyWishlist, removeFromWishlist, addToCartFromWishlist, addToCart, removeFromCart, changeProductQuantityInCart, checkout, addDeliveryAddress, viewDeliveryAddresses,chooseDeliveryAddress,payOrderWallet,payOrderCash,viewOrderDetails,cancelOrder,cancelOrder,markOrdersAsDelivered,viewAllOrders,sendUpcomingEventNotifications,payOrderStripe
+,payItineraryStripe,payActivityStripe,payMuseumStripe,payHPStripe};
