@@ -90,9 +90,18 @@ const TouristSchema = new Schema({
     {
       productName: {
         type: String,
-        required: false 
-      }
-    }
+        required: false, 
+      },
+      quantity: {
+        type: Number,
+        required: false, 
+        default: 1, 
+      },
+      totalSales: {
+        type: Number,
+        required: false, 
+      },
+    },
   ],
   completedItineraries: [
     {
@@ -195,6 +204,22 @@ const TouristSchema = new Schema({
       }
     }
   ],
+  DeliveryAddresses: [
+    {
+      address: {
+      type: String,
+      required: false
+    }
+  }
+  ],
+  Orders: [
+    {
+      OrderNumber: {
+      type: String,
+      required: false
+    }
+  }
+  ]
     
   
 }, { timestamps: true }); // adds Created At & Updated At fields

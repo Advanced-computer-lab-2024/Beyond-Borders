@@ -344,7 +344,7 @@ function YAdminActivitiesPage() {
         onMouseEnter={() => setSidebarOpen(true)}
         onMouseLeave={() => setSidebarOpen(false)}
       >
-        <Button onClick={() => navigate('/complaints')} sx={styles.sidebarButton}>
+        <Button onClick={() => navigate('/YAdminComplaintsPage')} sx={styles.sidebarButton}>
           <AssignmentIcon sx={styles.icon} />
           {sidebarOpen && 'Complaints'}
         </Button>
