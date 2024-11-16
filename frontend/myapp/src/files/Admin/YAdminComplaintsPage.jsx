@@ -12,6 +12,10 @@ import EditIcon from '@mui/icons-material/Edit';
 import CheckIcon from '@mui/icons-material/Check';
 import PersonIcon from '@mui/icons-material/Person';
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
+import FilterListIcon from '@mui/icons-material/FilterList';
+import SortIcon from '@mui/icons-material/Sort';
+
+
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
@@ -20,6 +24,7 @@ function YAdminComplaintsPage() {
   const [editMode, setEditMode] = useState(null);
   const [replyText, setReplyText] = useState('');
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [statusFilter, setStatusFilter] = useState(''); // State for selected status
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -63,6 +68,43 @@ function YAdminComplaintsPage() {
     }
   };
 
+  const handleFilterComplaints = async (status) => {
+    try {
+      if (status === "All" || status === "") {
+        // Fetch all complaints
+        const response = await axios.get('/getAllComplaints');
+        setComplaints(response.data);
+      } else {
+        // Fetch filtered complaints based on status
+        const response = await axios.post('/api/filterComplaintsByStatus', { Status: status });
+        setComplaints(response.data);
+      }
+    } catch (error) {
+      console.error('Error filtering complaints:', error);
+      alert('An error occurred while fetching complaints.');
+    }
+  };
+  
+  const handleSortMostRecent = async () => {
+    try {
+      const response = await axios.get('/sortComplaintsByRecent');
+      setComplaints(response.data);
+    } catch (error) {
+      console.error('Error sorting by most recent:', error);
+      alert('An error occurred while sorting complaints.');
+    }
+  };
+  
+  const handleSortLeastRecent = async () => {
+    try {
+      const response = await axios.get('/sortComplaintsByOldest');
+      setComplaints(response.data);
+    } catch (error) {
+      console.error('Error sorting by least recent:', error);
+      alert('An error occurred while sorting complaints.');
+    }
+  };
+  
   return (
     <Box sx={styles.container}>
       {/* Dim overlay when sidebar is open */}
@@ -121,6 +163,60 @@ function YAdminComplaintsPage() {
 
       {/* Main Content Area */}
       <Box sx={styles.mainContent}>
+  {/* Filter Section */}
+  <Box sx={styles.filterContainer}>
+  <Box sx={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+    {/* Filter Icon */}
+    <FilterListIcon sx={{ color: '#192959', fontSize: '28px' }} />
+
+    {/* Dropdown */}
+    <select
+  value={statusFilter}
+  onChange={(e) => {
+    setStatusFilter(e.target.value);
+    handleFilterComplaints(e.target.value); // Trigger filter function directly
+  }}
+  style={{
+    padding: '8px 12px',
+    borderRadius: '5px',
+    border: '1px solid #ccc',
+    outline: 'none',
+    fontSize: '16px',
+  }}
+>
+  <option value="" disabled>
+    Filter by status
+  </option>
+  <option value="All">All</option>
+  <option value="Pending">Pending</option>
+  <option value="Resolved">Resolved</option>
+</select>
+
+    {/* Filter Button
+    <Button
+      onClick={handleFilterComplaints}
+      sx={{
+        backgroundColor: '#192959',
+        color: '#ffffff',
+        '&:hover': { backgroundColor: '#33416b' },
+        padding: '8px 16px',
+      }}
+    >
+      Filter
+    </Button> */}
+   {/* Sorting Buttons */}
+   {/* <IconButton onClick={handleSortMostRecent} title="Sort by Most Recent"> */}
+    <IconButton onClick={handleSortMostRecent}>
+      <SortIcon sx={{ fontSize: '28px', color: '#192959', transform: 'rotate(0deg)' }} />
+    </IconButton>
+    <Typography variant="body2">Most Recent</Typography>
+
+    <IconButton onClick={handleSortLeastRecent}>
+      <SortIcon sx={{ fontSize: '28px', color: '#192959', transform: 'rotate(180deg)' }} />
+    </IconButton>
+    <Typography variant="body2">Least Recent</Typography>
+      </Box>
+    </Box>
         <Box sx={styles.complaintsContainer}>
           {complaints.map((complaint) => (
             <Box key={complaint._id} sx={styles.complaintCard}>
@@ -344,6 +440,16 @@ const styles = {
   replyTextField: {
     flex: 1,
   },
+  filterContainer: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    padding: '20px 0', // Adds spacing to place it in the gap
+    backgroundColor: '#e6e7ed', // Matches the background
+    gap: '20px', // Adds spacing between dropdown and button
+    borderBottom: '1px solid #ccc', // Optional: Adds a bottom border for separation
+  },
+  
 };
 
 export default YAdminComplaintsPage;
