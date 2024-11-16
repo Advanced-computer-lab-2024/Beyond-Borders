@@ -68,6 +68,9 @@ import TouristBookedHistoricalPlacesModal from './files/Tourist/TouristBookedHis
 import TouristTransportationModal from './files/Tourist/TouristTransportationModal';
 import AdminDeleteRequestsModal from './files/Admin/AdminDeleteRequestsModal';
 import TouristBookedTransportationModal from './files/Tourist/TouristBookedTransportationModal';
+import Begin2 from './files/Begin2';
+import New from './files/New';
+
 
 //YASSIN AND AMINA DASHBOARD
 import YAdminDashboard from './files/Admin/YAdminDashboard';
@@ -83,7 +86,7 @@ function App() {
     <div className="App">
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<Begin />} />  {/* Set Begin.jsx as the default page */}
+          <Route path="/" element={<Begin2 />} />  {/* Set Begin.jsx as the default page */}
           <Route path="/addTourist" element={<RegisterTourist />} />
           <Route path="/addUnregisteredTourGuide" element={<RegisterTourGuide />} />
           <Route path="/addUnregisteredSeller" element={<RegisterSeller />} />
@@ -104,6 +107,8 @@ function App() {
           <Route path="/createMuseum" element={<CreateMuseum/>}/>
           <Route path="/CreateItinerary" element={<CreateItinerary/>}/>
           <Route path="/HomePageTourGuide" element={<HomePageTourGuide/>}/>
+          <Route path="/New" element={<New/>}/>
+
 
           
 
