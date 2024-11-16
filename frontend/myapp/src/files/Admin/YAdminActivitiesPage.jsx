@@ -356,7 +356,7 @@ function YAdminActivitiesPage() {
           <LocalActivityIcon sx={styles.icon} />
           {sidebarOpen && 'Activities'}
         </Button>
-        <Button onClick={() => navigate('/itineraries')} sx={styles.sidebarButton}>
+        <Button onClick={() => navigate('/YAdminItinerariesPage')} sx={styles.sidebarButton}>
           <MapIcon sx={styles.icon} />
           {sidebarOpen && 'Itineraries'}
         </Button>

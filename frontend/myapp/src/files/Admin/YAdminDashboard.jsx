@@ -322,7 +322,7 @@ const closeDeleteRequestsModal = () => {
           <LocalActivityIcon sx={styles.icon} />
           {sidebarOpen && 'Activities'}
         </Button>
-        <Button onClick={() => navigate('/itineraries')} sx={styles.sidebarButton}>
+        <Button onClick={() => navigate('/YAdminItinerariesPage')} sx={styles.sidebarButton}>
           <MapIcon sx={styles.icon} />
           {sidebarOpen && 'Itineraries'}
         </Button>
@@ -342,7 +342,7 @@ const closeDeleteRequestsModal = () => {
           <img src="/images/activity.jpg" alt="Activities" style={styles.image} />
           <Typography variant="h6" sx={styles.text} className="text">Activities</Typography>
         </Box>
-        <Box sx={styles.infoBox} onClick={() => navigate('/itineraries')}>
+        <Box sx={styles.infoBox} onClick={() => navigate('/YAdminItinerariesPage')}>
           <img src="/images/itinerary.jpg" alt="Itineraries" style={styles.image} />
           <Typography variant="h6" sx={styles.text} className="text">Itineraries</Typography>
         </Box>

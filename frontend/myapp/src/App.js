@@ -73,6 +73,7 @@ import TouristBookedTransportationModal from './files/Tourist/TouristBookedTrans
 import YAdminDashboard from './files/Admin/YAdminDashboard';
 import YAdminActivitiesPage from './files/Admin/YAdminActivitiesPage';
 import YAdminComplaintsPage from './files/Admin/YAdminComplaintsPage';
+import YAdminItinerariesPage from './files/Admin/YAdminItinerariesPage';
 
 
 
@@ -179,6 +180,7 @@ function App() {
           <Route path="/YAdminDashboard" element={<YAdminDashboard />} /> 
           <Route path="/YAdminActivitiesPage" element={<YAdminActivitiesPage />} /> 
           <Route path="/YAdminComplaintsPage" element={<YAdminComplaintsPage />} /> 
+          <Route path="/YAdminItinerariesPage" element={<YAdminItinerariesPage />} />
 
          
          

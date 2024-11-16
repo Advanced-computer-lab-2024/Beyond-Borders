@@ -351,7 +351,7 @@ function YAdminItinerariesPage() {
         onMouseEnter={() => setSidebarOpen(true)}
         onMouseLeave={() => setSidebarOpen(false)}
       >
-        <Button onClick={() => navigate('/complaints')} sx={styles.sidebarButton}>
+        <Button onClick={() => navigate('//YAdminComplaintsPage')} sx={styles.sidebarButton}>
           <AssignmentIcon sx={styles.icon} />
           {sidebarOpen && 'Complaints'}
         </Button>
@@ -521,22 +521,22 @@ function YAdminItinerariesPage() {
 
           {/* Right Side */}
           <Box sx={styles.activityRight}>
-            <Typography variant="body2" sx={{ fontSize: '18px' }}>
+            <Typography variant="body2" sx={{ fontSize: '16px' }}>
               <strong>Activities:</strong> {activity.Activities}
             </Typography>
-            <Typography variant="body2" sx={{ fontSize: '18px' }}>
+            <Typography variant="body2" sx={{ fontSize: '16px' }}>
               <strong>Language:</strong> {activity.Language}
             </Typography>
-            <Typography variant="body2" sx={{ fontSize: '18px' }}>
+            <Typography variant="body2" sx={{ fontSize: '16px' }}>
               <strong>Accessibility:</strong> {activity.accessibility}
             </Typography>
-            <Typography variant="body2" sx={{ fontSize: '18px' }}>
+            <Typography variant="body2" sx={{ fontSize: '16px' }}>
               <strong>Pickup Location:</strong> {activity.pickupLocation}
             </Typography>
-            <Typography variant="body2" sx={{ fontSize: '18px' }}>
+            <Typography variant="body2" sx={{ fontSize: '16px' }}>
               <strong>Drop-off Location:</strong> {activity.dropoffLocation}
             </Typography>
-            <Typography variant="body2" sx={{ fontSize: '18px' }}>
+            <Typography variant="body2" sx={{ fontSize: '16px' }}>
               <strong>Booking Open:</strong> {activity.isBooked ? 'Yes' : 'No'}
             </Typography>
           </Box>
@@ -921,7 +921,7 @@ const styles = {
   },
   activityRating: {
     position: 'absolute',
-    bottom: '100px',
+    bottom: '80px',
     right: '60px',
     display: 'flex',
     flexDirection: 'column',
@@ -1079,10 +1079,10 @@ const styles = {
     display: 'flex',
     flexDirection: 'column',
     gap: '0px', // Reduce spacing between the rows
-    width: '45%', // Adjust width
+    width: '65%', // Adjust width
     alignItems: 'flex-start',
-    marginTop: '20px', // Adjust as necessary to align vertically
-    paddingLeft: '0px', // Reduce padding to move closer to the divider
+    marginTop: '40px', // Adjust as necessary to align vertically
+    paddingLeft: '15px', // Reduce padding to move closer to the divider
   },
   tagContainer: {
     display: 'flex',
