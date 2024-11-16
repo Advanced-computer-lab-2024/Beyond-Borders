@@ -10,7 +10,7 @@ require("dotenv").config(); //load enviironment variables
 //const {createUser,getUsers, updateUser, deleteUser} = require("./Routes/userController");
 const {createTourist,getTourist, updateTourist, searchProductTourist, filterActivities, filterProductByPriceTourist, ActivityRating, sortProductsDescendingTourist, sortProductsAscendingTourist, ViewAllUpcomingActivities, ViewAllUpcomingMuseumEventsTourist, getMuseumsByTagTourist, getHistoricalPlacesByTagTourist, ViewAllUpcomingHistoricalPlacesEventsTourist,viewProductsTourist, sortActivitiesPriceAscendingTourist, sortActivitiesPriceDescendingTourist, sortActivitiesRatingAscendingTourist, sortActivitiesRatingDescendingTourist, loginTourist, ViewAllUpcomingItinerariesTourist, sortItinerariesPriceAscendingTourist, sortItinerariesPriceDescendingTourist, filterItinerariesTourist,ActivitiesSearchAll, ItinerarySearchAll, MuseumSearchAll, HistoricalPlacesSearchAll, ProductRating, createComplaint, getComplaintsByTouristUsername,ChooseActivitiesByCategoryTourist,bookActivity,bookItinerary,bookMuseum,bookHistoricalPlace, ratePurchasedProduct, addPurchasedProducts, reviewPurchasedProduct, addCompletedItinerary, rateTourGuide, commentOnTourGuide, rateCompletedItinerary, commentOnItinerary, addCompletedActivities, addCompletedMuseumEvents, addCompletedHPEvents, rateCompletedActivity, rateCompletedMuseum, rateCompletedHP, commentOnActivity, commentOnMuseum, commentOnHP,deleteBookedActivity,deleteBookedItinerary,deleteBookedMuseum,deleteBookedHP,payActivity,updateWallet,updatepoints,payItinerary,payMuseum,payHP,redeemPoints, convertEgp, fetchFlights,viewBookedItineraries, requestDeleteAccountTourist,convertCurr,getActivityDetails,getHistoricalPlaceDetails,getMuseumDetails,GetCopyLink, bookFlight, fetchHotelsByCity, fetchHotels, 
   bookHotel,bookTransportation,addPreferences, viewMyCompletedActivities, viewMyCompletedItineraries, viewMyCompletedMuseums, viewMyCompletedHistoricalPlaces,viewMyBookedActivities,viewMyBookedItineraries,viewMyBookedMuseums,viewMyBookedHistoricalPlaces,viewTourGuidesCompleted,viewAllTransportation, getItineraryDetails, viewPreferenceTags,viewPurchasedProducts,viewBookedActivities,viewMyBookedTransportation, payActivityByCard, payItineraryByCard, payMuseumByCard, payHPByCard, sendOtp, loginTouristOTP,addBookmark,viewBookmarks, addToWishList, viewMyWishlist, removeFromWishlist, addToCartFromWishlist, addToCart, removeFromCart, changeProductQuantityInCart, checkout,
-  addDeliveryAddress, viewDeliveryAddresses,chooseDeliveryAddress,payOrderWallet,payOrderCash,viewOrderDetails,cancelOrder,markOrdersAsDelivered,viewAllOrders,sendUpcomingEventNotifications} = require("./Routes/TouristController");
+  addDeliveryAddress, viewDeliveryAddresses,chooseDeliveryAddress,payOrderWallet,payOrderCash,viewOrderDetails,cancelOrder,markOrdersAsDelivered,viewAllOrders,sendUpcomingEventNotifications,payOrderStripe,payItineraryStripe,payActivityStripe,payMuseumStripe,payHPStripe} = require("./Routes/TouristController");
 const {createUnregisteredAdvertiser} = require("./Routes/UnregisteredAdvertiserController");
 
 const {createUnregisteredTranspAdvertiser} = require("./Routes/UnregisteredTranspAdvertiserController");
@@ -322,9 +322,13 @@ app.post("/loginGoverner",loginGoverner);
 
 //SPRINT 3 MALAK AND JANA
 app.put("/payActivityByCard",payActivityByCard);
+app.put("/payActivityStripe",payActivityStripe);
 app.put("/payItineraryByCard",payItineraryByCard);
+app.put("/payItineraryStripe",payItineraryStripe);
 app.put("/payMuseumByCard",payMuseumByCard);
+app.put("/payMuseumStripe",payMuseumStripe);
 app.put("/payHPByCard",payHPByCard);
+app.put("/payHPStripe",payHPStripe);
 app.post("/sendOtp",sendOtp);
 app.post("/loginTouristOTP",loginTouristOTP);
 app.put("/addBookmark",addBookmark);
@@ -342,11 +346,13 @@ app.get("/viewDeliveryAddresses",viewDeliveryAddresses);
 app.put("/chooseDeliveryAddress",chooseDeliveryAddress);
 app.post("/payOrderWallet",payOrderWallet);
 app.post("/payOrderCash",payOrderCash);
+app.post("/payOrderStripe",payOrderStripe);
 app.get("/viewOrderDetails",viewOrderDetails);
 app.put("/cancelOrder",cancelOrder);
 app.put("/markOrdersAsDelivered",markOrdersAsDelivered);
 app.get("/viewAllOrders",viewAllOrders);
 app.get("/sendUpcomingEventNotifications",sendUpcomingEventNotifications);
+
 
 
 cron.schedule('0 8 * * *', async () => { // Run every day at 8 AM

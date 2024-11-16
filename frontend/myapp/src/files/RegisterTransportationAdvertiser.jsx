@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-import Button from '@mui/material/Button';
-import Box from '@mui/material/Box';
+import { Box, Button, TextField, Typography } from '@mui/material';
 import axios from 'axios';
 
 const RegisterTransportationAdvertiser = () => {
@@ -8,7 +7,7 @@ const RegisterTransportationAdvertiser = () => {
     Email: '',
     Username: '',
     Password: '',
-    CompanyName: '', // Added CompanyName field
+    CompanyName: '',
     Website: '',
     Hotline: '',
     CompanyProfile: '',
@@ -60,30 +59,74 @@ const RegisterTransportationAdvertiser = () => {
         padding: '20px',
         borderRadius: '5px',
         boxShadow: '0 0 10px rgba(0, 0, 0, 0.1)',
-        marginTop: '100px',
       }}
     >
-      <h2>Register Transportation Advertiser</h2>
+      <Typography variant="h4" align="center">
+        Register Transportation Advertiser
+      </Typography>
       <form onSubmit={handleSubmit}>
-        {Object.keys(formData).map((key) => (
-          <Box className="form-group" key={key} sx={{ marginBottom: '15px' }}>
-            <label htmlFor={key}>{key.charAt(0).toUpperCase() + key.slice(1)}:</label>
-            <input
-              type={key === 'Password' ? 'password' : 'text'}
-              id={key}
-              name={key}
-              required
-              value={formData[key]}
-              onChange={handleChange}
-              style={{
-                width: '100%',
-                padding: '10px',
-                border: '1px solid #ccc',
-                borderRadius: '4px',
-              }}
-            />
-          </Box>
-        ))}
+        <TextField
+          fullWidth
+          margin="normal"
+          label="Email"
+          type="email"
+          name="Email"
+          required
+          value={formData.Email}
+          onChange={handleChange}
+        />
+        <TextField
+          fullWidth
+          margin="normal"
+          label="Username"
+          name="Username"
+          required
+          value={formData.Username}
+          onChange={handleChange}
+        />
+        <TextField
+          fullWidth
+          margin="normal"
+          label="Password"
+          type="password"
+          name="Password"
+          required
+          value={formData.Password}
+          onChange={handleChange}
+        />
+        <TextField
+          fullWidth
+          margin="normal"
+          label="Company Name"
+          name="CompanyName"
+          required
+          value={formData.CompanyName}
+          onChange={handleChange}
+        />
+        <TextField
+          fullWidth
+          margin="normal"
+          label="Website"
+          name="Website"
+          value={formData.Website}
+          onChange={handleChange}
+        />
+        <TextField
+          fullWidth
+          margin="normal"
+          label="Hotline"
+          name="Hotline"
+          value={formData.Hotline}
+          onChange={handleChange}
+        />
+        <TextField
+          fullWidth
+          margin="normal"
+          label="Company Profile"
+          name="CompanyProfile"
+          value={formData.CompanyProfile}
+          onChange={handleChange}
+        />
         <Button
           type="submit"
           variant="contained"
@@ -99,16 +142,18 @@ const RegisterTransportationAdvertiser = () => {
           Register
         </Button>
       </form>
-      <div
-        className="message"
-        style={{
-          marginTop: '20px',
-          textAlign: 'center',
-          color: responseMessage && responseMessage.includes('Error') ? 'red' : 'green',
-        }}
-      >
-        {responseMessage}
-      </div>
+      {responseMessage && (
+        <Typography
+          variant="body1"
+          align="center"
+          sx={{
+            marginTop: '20px',
+            color: responseMessage.includes('Error') ? 'red' : 'green',
+          }}
+        >
+          {responseMessage}
+        </Typography>
+      )}
     </Box>
   );
 };

@@ -1,13 +1,12 @@
 import React, { useState } from 'react';
-import Button from '@mui/material/Button';
-import Box from '@mui/material/Box';
+import { Box, Button, TextField, Typography } from '@mui/material';
 import axios from 'axios';
 
 const RegisterAdvertiser = () => {
   // State to manage form inputs
   const [formData, setFormData] = useState({
     Email: '',
-    Username: '', // Ensure the field name matches what the backend expects
+    Username: '',
     Password: '',
     Website: '',
     Hotline: '',
@@ -31,11 +30,9 @@ const RegisterAdvertiser = () => {
     setResponseMessage(''); // Clear previous messages
 
     try {
-      // Send the POST request to register the advertiser
       const response = await axios.post('http://localhost:8000/addUnregisteredAdvertiser', formData);
       const result = response.data; // Access the response data
 
-      // Check if the response is successful
       if (response.status === 200) { // Assuming a 200 status indicates success
         setResponseMessage('Advertiser registered successfully!');
 
@@ -44,7 +41,6 @@ const RegisterAdvertiser = () => {
           window.location.href = '/loginAdvertiser'; // Redirect to login page
         }, 2000);
       } else {
-        // Handle error case if the response doesn't indicate success
         setResponseMessage(`Error: ${result.error || 'Failed to register advertiser.'}`);
       }
     } catch (error) {
@@ -68,30 +64,63 @@ const RegisterAdvertiser = () => {
         padding: '20px',
         borderRadius: '5px',
         boxShadow: '0 0 10px rgba(0, 0, 0, 0.1)',
-        marginTop: '100px', // Adjust as needed
       }}
     >
-      <h2>Register Advertiser</h2>
+      <Typography variant="h4" align="center">Register Advertiser</Typography>
       <form onSubmit={handleSubmit}>
-        {Object.keys(formData).map((key) => (
-          <Box className="form-group" key={key} sx={{ marginBottom: '15px' }}>
-            <label htmlFor={key}>{key.charAt(0).toUpperCase() + key.slice(1)}:</label>
-            <input
-              type={key === 'Password' ? 'password' : 'text'}
-              id={key}
-              name={key} // Ensure `name` attribute matches the formData key
-              required
-              value={formData[key]}
-              onChange={handleChange}
-              style={{
-                width: '100%',
-                padding: '10px',
-                border: '1px solid #ccc',
-                borderRadius: '4px',
-              }}
-            />
-          </Box>
-        ))}
+        <TextField
+          fullWidth
+          margin="normal"
+          label="Email"
+          type="email"
+          name="Email"
+          required
+          value={formData.Email}
+          onChange={handleChange}
+        />
+        <TextField
+          fullWidth
+          margin="normal"
+          label="Username"
+          name="Username"
+          required
+          value={formData.Username}
+          onChange={handleChange}
+        />
+        <TextField
+          fullWidth
+          margin="normal"
+          label="Password"
+          type="password"
+          name="Password"
+          required
+          value={formData.Password}
+          onChange={handleChange}
+        />
+        <TextField
+          fullWidth
+          margin="normal"
+          label="Website"
+          name="Website"
+          value={formData.Website}
+          onChange={handleChange}
+        />
+        <TextField
+          fullWidth
+          margin="normal"
+          label="Hotline"
+          name="Hotline"
+          value={formData.Hotline}
+          onChange={handleChange}
+        />
+        <TextField
+          fullWidth
+          margin="normal"
+          label="Company Profile"
+          name="CompanyProfile"
+          value={formData.CompanyProfile}
+          onChange={handleChange}
+        />
         <Button
           type="submit"
           variant="contained"
@@ -107,9 +136,18 @@ const RegisterAdvertiser = () => {
           Register
         </Button>
       </form>
-      <div className="message" style={{ marginTop: '20px', textAlign: 'center', color: responseMessage && responseMessage.includes('Error') ? 'red' : 'green' }}>
-        {responseMessage}
-      </div>
+      {responseMessage && (
+        <Typography
+          variant="body1"
+          align="center"
+          sx={{
+            marginTop: '20px',
+            color: responseMessage.includes('Error') ? 'red' : 'green',
+          }}
+        >
+          {responseMessage}
+        </Typography>
+      )}
     </Box>
   );
 };
