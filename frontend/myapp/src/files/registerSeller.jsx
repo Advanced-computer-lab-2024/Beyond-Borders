@@ -119,12 +119,12 @@ const handleSubmit = async (e) => {
           type="submit"
           variant="contained"
           sx={{
-            backgroundColor: '#28a745',
+            backgroundColor: '#192959',
             color: 'white',
             padding: '10px',
             borderRadius: '4px',
             width: '100%',
-            '&:hover': { backgroundColor: '#218838' },
+            '&:hover': { backgroundColor: '#4b5a86' },
           }}
         >
           Register
