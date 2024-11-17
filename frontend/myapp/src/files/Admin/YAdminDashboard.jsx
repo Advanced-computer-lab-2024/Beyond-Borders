@@ -295,7 +295,7 @@ const closeDeleteRequestsModal = () => {
           <IconButton sx={styles.iconButton}>
             <NotificationsIcon />
           </IconButton>
-          <IconButton sx={styles.iconButton}>
+          <IconButton onClick={() => navigate('/')}sx={styles.iconButton}>
             <LogoutIcon />
           </IconButton>
         </Box>
