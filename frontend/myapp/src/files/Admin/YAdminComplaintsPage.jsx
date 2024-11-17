@@ -384,7 +384,7 @@ const styles = {
   mainContent: {
     flex: 1,
     marginLeft: '80px',
-    padding: '40px 60px',
+    padding: '20px 60px',
   },
   complaintsContainer: {
     display: 'flex',
@@ -444,9 +444,8 @@ const styles = {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'flex-end',
-    padding: '20px 0', // Adds spacing to place it in the gap
+    paddingBottom: '20px', 
     backgroundColor: '#e6e7ed', // Matches the background
-    gap: '20px', // Adds spacing between dropdown and button
     borderBottom: '1px solid #ccc', // Optional: Adds a bottom border for separation
   },
   
