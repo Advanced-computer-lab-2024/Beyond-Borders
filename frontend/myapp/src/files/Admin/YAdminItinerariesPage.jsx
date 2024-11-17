@@ -477,42 +477,44 @@ function YAdminItinerariesPage() {
             <Typography variant="h6" sx={{ display: 'flex',fontWeight: 'bold', fontSize: '24px', marginBottom: '5px' }}>
               {activity.Title}
             </Typography>
-            <Typography variant="body2" sx={{ display: 'flex', fontSize: '18px', alignItems: 'center' }}>
+            <Typography variant="body2" sx={{ display: 'flex', fontSize: '18px', alignItems: 'left' }}>
               <LocationOnIcon fontSize="small" sx={{ mr: 1 }} />
               {activity.Locations || 'N/A'}
             </Typography>
-            <Typography variant="body2" sx={{ display: 'flex', fontSize: '18px', alignItems: 'center' }}>
+            <Typography variant="body2" sx={{ display: 'flex', fontSize: '18px', alignItems: 'left' }}>
               <PersonIcon fontSize="small" sx={{ mr: 1 }} />
               {activity.AuthorUsername}
             </Typography>
-            <Typography variant="body2" sx={{ display: 'flex', fontSize: '18px', alignItems: 'center' }}>
+            <Typography variant="body2" sx={{ display: 'flex', fontSize: '18px', alignItems: 'left' }}>
               <AttachMoneyIcon fontSize="small" sx={{ mr: 1 }} />
               {activity.Price}
             </Typography>
-            <Typography variant="body2" sx={{ display: 'flex', fontSize: '18px', alignItems: 'center' }}>
+            <Typography variant="body2" sx={{ display: 'flex', fontSize: '18px', alignItems: 'left' }}>
               <CalendarTodayIcon fontSize="small" sx={{ mr: 1 }} />
               {new Date(activity.Date).toLocaleDateString()}
             </Typography>
             {/* Other itinerary details */}
               {/* Tags */}
-              <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '5px' }}>
-                <Typography variant="body2" sx={{ fontWeight: 'bold' }}>Tags:</Typography>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
+                  Tags:
+                </Typography>
                 <Box sx={styles.tagContainer}>
-                    {activity.Tags.map((tag, tagIndex) => (
+                  {activity.Tags.map((tag, tagIndex) => (
                     <Typography
-                        key={tagIndex}
-                        sx={{
+                      key={tagIndex}
+                      sx={{
                         ...styles.tag,
-                        backgroundColor: activity.flagged ? '#b3b8c8' : 'cccfda',
+                        backgroundColor: activity.flagged ? '#b3b8c8' : '#cccfda',
                         color: activity.flagged ? '#192959' : '#192959',
-                        }}
-
+                      }}
                     >
-                        {tag}
+                      {tag}
                     </Typography>
-                    ))}
+                  ))}
                 </Box>
-                </Box>
+              </Box>
+
                 
           </Box>
 
@@ -521,14 +523,14 @@ function YAdminItinerariesPage() {
 
           {/* Right Side */}
           <Box sx={styles.activityRight}>
-            <Typography variant="body2" sx={{ fontSize: '16px' }}>
-              <strong>Activities:</strong> {activity.Activities}
-            </Typography>
+          <Typography variant="body2" sx={{ fontSize: '16px', wordBreak: 'break-word', maxWidth: '530px' }}>
+            <strong>Activities:</strong> {activity.Activities}
+          </Typography>
             <Typography variant="body2" sx={{ fontSize: '16px' }}>
               <strong>Language:</strong> {activity.Language}
             </Typography>
             <Typography variant="body2" sx={{ fontSize: '16px' }}>
-              <strong>Accessibility:</strong> {activity.accessibility}
+              <strong>Accessibility:</strong> {activity.accessibility ? 'Accessible' : 'Not Accessible'}
             </Typography>
             <Typography variant="body2" sx={{ fontSize: '16px' }}>
               <strong>Pickup Location:</strong> {activity.pickupLocation}
@@ -536,9 +538,9 @@ function YAdminItinerariesPage() {
             <Typography variant="body2" sx={{ fontSize: '16px' }}>
               <strong>Drop-off Location:</strong> {activity.dropoffLocation}
             </Typography>
-            <Typography variant="body2" sx={{ fontSize: '16px' }}>
+            {/* <Typography variant="body2" sx={{ fontSize: '16px' }}>
               <strong>Booking Open:</strong> {activity.isBooked ? 'Yes' : 'No'}
-            </Typography>
+            </Typography> */}
           </Box>
         </Box>
 
@@ -550,14 +552,52 @@ function YAdminItinerariesPage() {
         {/* Timeline with Read More / Read Less */}
         <Typography
           variant="body2"
-          sx={{ display: 'flex', fontSize: '18px', alignItems: 'center', cursor: 'pointer', marginTop: '10px' }}
-          onClick={() => setExpanded((prev) => ({ ...prev, [index]: !prev[index] }))}
+          sx={{
+            display: 'flex',
+            fontSize: '18px',
+            alignItems: 'flex-start',
+            textAlign: 'left',
+            cursor: activity.Timeline.length > 45 ? 'pointer' : 'default', // Make clickable only if necessary
+            marginTop: '10px',
+          }}
+          onClick={() => {
+            if (activity.Timeline.length > 45) {
+              setExpanded((prev) => ({ ...prev, [index]: !prev[index] }));
+            }
+          }}
         >
           <AccessTimeIcon fontSize="small" sx={{ mr: 1 }} />
-          {expanded[index] ? activity.Timeline : `${activity.Timeline.substring(0, 50)}...`}
-          <span style={{ color: '#007bff', marginLeft: '5px' }}>
-            {expanded[index] ? 'Read Less' : 'Read More'}
-          </span>
+          {expanded[index] || activity.Timeline.length <= 45
+            ? (
+                <span>
+                  {activity.Timeline}
+                  {activity.Timeline.length > 45 && (
+                    <span
+                      style={{
+                        color: '#8088a3',
+                        marginLeft: '5px',
+                        fontWeight: 'bold',
+                      }}
+                    >
+                      {" "}Read Less
+                    </span>
+                  )}
+                </span>
+              )
+            : (
+                <span>
+                  {activity.Timeline.substring(0, 45)}...
+                  <span
+                    style={{
+                      color: '#8088a3',
+                      marginLeft: '5px',
+                      fontWeight: 'bold',
+                    }}
+                  >
+                    {" "}Read More
+                  </span>
+                </span>
+              )}
         </Typography>
       </Box>
 
@@ -920,16 +960,16 @@ const styles = {
     marginRight: '10px', // Add spacing between containers if needed
   },
   activityRating: {
-    position: 'absolute',
-    bottom: '80px',
-    right: '60px',
+    position: 'absolute', // Fix the position of the rating section
+    top: '250px', // Adjust this value to set the vertical position
+    right: '50px', // Adjust this value to set the horizontal position
     display: 'flex',
     flexDirection: 'column',
     gap: '10px',
   },
   flagButton: {
     position: 'absolute',
-    top: '50px',
+    top: '40px',
     right: '50px',
     backgroundColor: '#ff5722',
     color: 'white',
@@ -980,6 +1020,7 @@ const styles = {
     boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.1)',
     display: 'flex',
     flexDirection: 'column',
+    textAlign: 'left', // Align comments text to the left
   },
   backToTop: {
     position: 'fixed',
@@ -1059,35 +1100,34 @@ const styles = {
   activityContent: {
     display: 'flex',
     justifyContent: 'space-between',
-    gap: '0px', // Reduce the gap between the left and right sections
+    gap: '20px', // Adjust spacing between left and right sections
   },
-  
   activityLeft: {
     display: 'flex',
     flexDirection: 'column',
-    gap: '0px', // Keep or reduce spacing between the lines
+    gap: '10px',
     width: '45%', // Adjust as necessary
-    paddingRight: '5px', // Add or reduce to control spacing near the divider
+    paddingRight: '10px',
+    textAlign: 'left', // Align text to the left
   },
   verticalDivider: {
     backgroundColor: '#d1d5db',
     width: '1px',
-    margin: '0', // Remove unnecessary margin
+    margin: '40px 15px 0 15px', // Adjust the top margin to position the start
   },
-  
   activityRight: {
     display: 'flex',
     flexDirection: 'column',
-    gap: '0px', // Reduce spacing between the rows
-    width: '65%', // Adjust width
-    alignItems: 'flex-start',
-    marginTop: '40px', // Adjust as necessary to align vertically
-    paddingLeft: '15px', // Reduce padding to move closer to the divider
+    gap: '10px',
+    width: '55%', // Adjust as necessary
+    paddingTop: '50px',
+    textAlign: 'left', // Align text to the left
   },
   tagContainer: {
     display: 'flex',
     gap: '10px',
     flexWrap: 'wrap',
+    textAlign: 'left', // Align text within tags to the left
   },
   tag: {
     borderRadius: '16px',
