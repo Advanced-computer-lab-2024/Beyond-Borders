@@ -70,6 +70,7 @@ import AdminDeleteRequestsModal from './files/Admin/AdminDeleteRequestsModal';
 import TouristBookedTransportationModal from './files/Tourist/TouristBookedTransportationModal';
 import Begin2 from './files/Begin2';
 import New from './files/New';
+import ItinerariesTourguide from './files/ItinerariesTourGuide';
 
 
 //YASSIN AND AMINA DASHBOARD
@@ -108,6 +109,7 @@ function App() {
           <Route path="/CreateItinerary" element={<CreateItinerary/>}/>
           <Route path="/HomePageTourGuide" element={<HomePageTourGuide/>}/>
           <Route path="/New" element={<New/>}/>
+          <Route path="/ItinerariesTourguide" element={<ItinerariesTourguide/>}/>
 
 
           

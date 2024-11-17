@@ -1,13 +1,121 @@
 import React, { useState } from 'react';
 import { Box, Button, Typography, Modal, TextField, IconButton, InputAdornment } from '@mui/material';
-import { Visibility, VisibilityOff } from '@mui/icons-material';
+import AssignmentIcon from "@mui/icons-material/Assignment";
+import StorefrontIcon from "@mui/icons-material/Storefront";
+import LocalActivityIcon from "@mui/icons-material/LocalActivity";
+import MapIcon from "@mui/icons-material/Map";
+import { Visibility, VisibilityOff } from "@mui/icons-material";
+import AccountCircleIcon from '@mui/icons-material/AccountCircle';
+import AddCircleIcon from '@mui/icons-material/AddCircle';
+import BlockIcon from '@mui/icons-material/Block';
 import axios from 'axios';
+
+
+const styles = {
+    container: {
+      display: "flex",
+      flexDirection: "row",
+      minHeight: "100vh",
+      backgroundColor: "#e6e7ed",
+    },
+    topMenu: {
+      display: "flex",
+      justifyContent: "space-between",
+      alignItems: "center",
+      padding: "10px 20px",
+      backgroundColor: "#192959",
+      color: "#e6e7ed",
+      position: "fixed",
+      top: 0,
+      width: "100%",
+      zIndex: 3,
+    },
+    logo: {
+      fontWeight: "bold",
+      color: "#e6e7ed",
+    },
+    topMenuRight: {
+      display: "flex",
+      alignItems: "left",
+      gap: "30px",
+      marginRight:"70px"
+    },
+    sidebar: {
+      backgroundColor: "#4d587e",
+      color: "#e6e7ed",
+      display: "flex",
+      flexDirection: "column",
+      position: "fixed",
+      left: 0,
+      top: "60px",
+      height: "calc(100vh - 60px)",
+      width: "60px",
+      transition: "width 0.3s ease",
+      overflowX: "hidden",
+      padding: "10px",
+      zIndex: 2,
+    },
+    sidebarExpanded: {
+      width: "280px",
+    },
+    sidebarButton: {
+        color: '#e6e7ed',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'flex-start',
+        textAlign: 'left',
+        width: '100%',
+        padding: '10px 20px',
+        fontSize: '16px',
+        '&:hover': {
+          backgroundColor: '#192959',
+        },
+      },
+    icon: {
+      marginRight: "10px",
+      fontSize: "20px",
+    },
+    content: {
+      flex: 1,
+      marginLeft: "60px",
+      marginTop: "60px",
+      padding: "20px",
+      transition: "margin-left 0.3s ease",
+    },
+    infoBox: {
+      backgroundColor: "#4d587e",
+      color: "#e6e7ed",
+      borderRadius: "15px",
+      display: "flex",
+      flexDirection: "column",
+      alignItems: "center",
+      justifyContent: "center",
+      padding: "20px",
+      boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.2)",
+      cursor: "pointer",
+      "&:hover": {
+        transform: "scale(1.05)",
+      },
+    },
+    menuButton: {
+        color: '#e6e7ed',
+        fontWeight: 'bold',
+        '&:hover': {
+          backgroundColor: '#e6e7ed', // Set background color on hover
+          color: '#192959',           // Set text color on hover
+          marginRight:"110px",
+          marginLeft:"30px"
+        },
+      
+      }, 
+  };
 
 const HomePageTourGuide = () => {
     const [isItinerariesModalOpen, setIsItinerariesModalOpen] = useState(false);
     const [isDeactivatedItinerariesModalOpen, setIsDeacivatedItinerariesModalOpen] = useState(false);
     const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
+    const [sidebarOpen, setSidebarOpen] = useState(false);
     const [itineraries, setItineraries] = useState([]);
     const [deactivatedItineraries, setDeactivatedItineraries] = useState([]);
     const [profileData, setProfileData] = useState({
@@ -206,19 +314,105 @@ const HomePageTourGuide = () => {
       };
 
     return (
-        <Box 
-    sx={{ 
-        backgroundColor: '#00c853', 
-        color: 'white', 
-        padding: '15px', 
-        display: 'flex', 
-        alignItems: 'center', 
-        justifyContent: 'space-between' 
-    }}
+        <Box style={styles.container}>
+      {/* Header */}
+      <Box style={styles.topMenu}>
+        <Typography variant="h6" style={styles.logo}>
+          Beyond Borders
+        </Typography>
+        <Box style={styles.topMenuRight}>
+
+        <Button
+                style={styles.menuButton}
+                onClick={RequestDeleteAccount}
+                
+            >
+                Request to delete account
+            </Button>
+            <Button
+                style={styles.menuButton}
+                onClick={readMyProfile}
+                startIcon={<AccountCircleIcon />}
+            >
+                My Profile
+            </Button>
+
+
+            
+        </Box>
+
+        
+      </Box>
+
+      <Box
+  style={{
+    ...styles.sidebar,
+    ...(sidebarOpen ? styles.sidebarExpanded : {}),
+  }}
+  onMouseEnter={() => setSidebarOpen(true)}
+  onMouseLeave={() => setSidebarOpen(false)}
 >
-    <Typography variant="h5" component="h1" sx={{ margin: 0 }}>
-        Beyond Borders
-    </Typography>
+  <Button
+    sx={{
+      color: '#e6e7ed',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'flex-start',
+      textAlign: 'left',
+      width: '100%',
+      padding: '10px 20px',
+      fontSize: '16px',
+      '&:hover': {
+        backgroundColor: '#192959',
+      },
+    }}
+    onClick={() => window.location.href = `/CreateItinerary`}
+  >
+    <AddCircleIcon style={styles.icon} />
+    {sidebarOpen && "Create New Itinerary"}
+  </Button>
+
+  <Button
+    sx={{
+      color: '#e6e7ed',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'flex-start',
+      textAlign: 'left',
+      width: '100%',
+      padding: '10px 20px',
+      fontSize: '16px',
+      '&:hover': {
+        backgroundColor: '#192959',
+      },
+    }}
+    onClick={loadMyDeactivatedItineraries}
+  >
+    <BlockIcon style={styles.icon} />
+    {sidebarOpen && "Deactivated Itineraries"}
+  </Button>
+
+  <Button
+    sx={{
+      color: '#e6e7ed',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'flex-start',
+      textAlign: 'left',
+      width: '100%',
+      padding: '10px 20px',
+      fontSize: '16px',
+      '&:hover': {
+        backgroundColor: '#192959',
+      },
+    }}
+    onClick={loadMyActivities}
+  >
+    <MapIcon style={styles.icon} />
+    {sidebarOpen && "Itineraries"}
+  </Button>
+</Box>
+
 
     <Box
         component="nav"
@@ -313,18 +507,6 @@ const HomePageTourGuide = () => {
         </Box>
     </Box>
 
-    <Button 
-        variant="contained" 
-        sx={{ 
-            backgroundColor: '#00c853',   
-            color: 'white',
-            borderRadius: '20px',
-            '&:hover': { backgroundColor: '#69f0ae' }
-        }}
-        onClick={readMyProfile}
-    >
-                My Profile
-            </Button>
 
             <Modal open={isItinerariesModalOpen} onClose={() => setIsItinerariesModalOpen(false)}>
                 <Box sx={{
@@ -551,14 +733,14 @@ const HomePageTourGuide = () => {
                             onClick={saveProfile}
                             sx={{
                                 mt: 2,
-                                borderColor: '#00c853',    
-                                color: '#00c853',           
+                                borderColor: '#192959',    
+                                color: '#192959',           
                                 backgroundColor: 'white',   
                                 borderRadius: '20px',       
                                 '&:hover': {
-                                    backgroundColor: '#e0f2f1', 
-                                    borderColor: '#00c853',     
-                                    color: '#00c853'            
+                                    backgroundColor: '#192959', 
+                                    borderColor: 'white',     
+                                    color: 'white'            
                                 }
                             }}
                         >
