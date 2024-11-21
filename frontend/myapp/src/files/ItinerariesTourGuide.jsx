@@ -23,6 +23,9 @@ import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import CheckIcon from '@mui/icons-material/Check';
 import AddCircleIcon from '@mui/icons-material/AddCircle';
+import FormControlLabel from '@mui/material/FormControlLabel';
+import Switch from '@mui/material/Switch';
+
 import axios from 'axios';
 
 function ItinerariesTourguide() {
@@ -57,6 +60,8 @@ function ItinerariesTourguide() {
   const [tagToDelete, setTagToDelete] = useState(null);
 
   const [expanded, setExpanded] = useState(false);
+  const [editing, setEditing] = useState({});
+
 
   const navigate = useNavigate();
 
@@ -104,6 +109,37 @@ function ItinerariesTourguide() {
       console.error('Error fetching categories:', error);
     }
   };
+
+
+  
+  const handleUpdateItinerary = async (index) => {
+    const updatedItinerary = activities[index]; // Get the updated activity data
+  
+    try {
+      const response = await axios.put('/api/updateItinerary', updatedItinerary);
+      alert(response.data.msg || "Itinerary updated successfully.");
+    } catch (error) {
+      console.error("Error updating itinerary:", error);
+      alert(`An error occurred while updating the itinerary: ${error.response?.data?.error || "Unknown error"}`);
+    }
+  };
+  
+  
+  
+  const handleEditFieldChange = (index, field, value) => {
+    const updatedActivities = [...activities];
+    updatedActivities[index][field] = value; // Update the specific field
+    setActivities(updatedActivities);
+  };
+  
+  const toggleEditing = (index) => {
+    setEditing((prev) => ({
+      ...prev,
+      [index]: !prev[index], // Toggle the editing state for this index
+    }));
+  };
+  
+  
 
   // Fetch tags from backend
   const fetchTags = async () => {
@@ -377,7 +413,7 @@ function ItinerariesTourguide() {
 
 
 <Button
-  onClick={() => setActiveModal('viewTags')}
+  onClick={() => window.location.href = `/CreateItinerary`}
   sx={styles.menuButton}
   startIcon={<AddIcon />}
 >
@@ -515,156 +551,303 @@ function ItinerariesTourguide() {
     
       {/* Main Content Area with Activities */}
       <Box sx={styles.activitiesContainer}>
-  {activities.map((activity, index) => (
-    <Box key={index} sx={{ marginBottom: '40px' }}> {/* Wrapper for each itinerary and comments */}
-      
-      {/* Itinerary Container */}
-      <Box
-        sx={{
-          ...styles.activityCard,
-          backgroundColor: activity.flagged ? '#cccfda' : 'white',
-        }}
-      >
-        {/* Flag Button */}
-        <Button
-  variant="contained"
-  onClick={() => handleDeleteItinerary(activity.Title)}
-  sx={styles.flagButton}
-  startIcon={<DeleteIcon />}
+      {activities.map((activity, index) => (
+  <Box key={index} sx={{ marginBottom: '40px' }}>
+    <Box
+      sx={{
+        ...styles.activityCard,
+        backgroundColor: activity.flagged ? '#cccfda' : 'white',
+      }}
+    >
+     <Box
+  sx={{
+    display: 'flex',
+    flexDirection: 'column', // Stack buttons vertically
+    alignItems: 'flex-end', // Align to the right
+    gap: '10px', // Space between buttons
+    position: 'absolute', // To maintain original positioning
+    top: '40px', // Align with top position
+    right: '50px', // Align with right position
+  }}
 >
-  Delete
-</Button>
+  {/* Delete Button */}
+  <Button
+    variant="contained"
+    onClick={() => handleDeleteItinerary(activity.Title)}
+    sx={{ ...styles.flagButton, position: 'static' }} // Override to avoid absolute positioning
+    startIcon={<DeleteIcon />}
+  >
+    Delete
+  </Button>
 
-        {/* Activity Content */}
-        <Box sx={styles.activityContent}>
-          {/* Left Side */}
-          <Box sx={styles.activityLeft}>
-            <Typography variant="h6" sx={{ display: 'flex',fontWeight: 'bold', fontSize: '24px', marginBottom: '5px' }}>
-              {activity.Title}
-            </Typography>
-            <Typography variant="body2" sx={{ display: 'flex', fontSize: '18px', alignItems: 'left' }}>
-              <LocationOnIcon fontSize="small" sx={{ mr: 1 }} />
-              {activity.Locations || 'N/A'}
-            </Typography>
-            <Typography variant="body2" sx={{ display: 'flex', fontSize: '18px', alignItems: 'left' }}>
-              <PersonIcon fontSize="small" sx={{ mr: 1 }} />
-              {activity.AuthorUsername}
-            </Typography>
-            <Typography variant="body2" sx={{ display: 'flex', fontSize: '18px', alignItems: 'left' }}>
-              <AttachMoneyIcon fontSize="small" sx={{ mr: 1 }} />
-              {activity.Price}
-            </Typography>
-            <Typography variant="body2" sx={{ display: 'flex', fontSize: '18px', alignItems: 'left' }}>
-              <CalendarTodayIcon fontSize="small" sx={{ mr: 1 }} />
-              {new Date(activity.Date).toLocaleDateString()}
-            </Typography>
-            {/* Other itinerary details */}
-              {/* Tags */}
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
-                  Tags:
-                </Typography>
-                <Box sx={styles.tagContainer}>
-                  {activity.Tags.map((tag, tagIndex) => (
-                    <Typography
-                      key={tagIndex}
-                      sx={{
-                        ...styles.tag,
-                        backgroundColor: activity.flagged ? '#b3b8c8' : '#cccfda',
-                        color: activity.flagged ? '#192959' : '#192959',
-                      }}
-                    >
-                      {tag}
-                    </Typography>
-                  ))}
-                </Box>
-              </Box>
+  {/* Edit Button */}
+  <Button
+    variant="contained"
+    onClick={() => {
+      if (editing[index]) {
+        handleUpdateItinerary(index);
+      }
+      setEditing((prev) => ({ ...prev, [index]: !prev[index] }));
+    }}
+    sx={{ ...styles.flagButton, position: 'static' }} // Override to avoid absolute positioning
+    startIcon={<EditIcon />}
+  >
+    {editing[index] ? 'Save' : 'Edit'}
+  </Button>
+</Box>
 
-                
+
+
+       {/* Activity Content */}
+      <Box sx={styles.activityContent}>
+        {/* Left Side */}
+        <Box sx={styles.activityLeft}>
+          {editing[index] ? (
+            <>
+              <TextField
+                label="Title"
+                value={activity.Title}
+                disabled 
+                onChange={(e) =>
+                  handleEditFieldChange(index, 'Title', e.target.value)
+                }
+                sx={{ marginBottom: '10px' }}
+              />
+              <TextField
+                label="Locations"
+                value={activity.Locations}
+                onChange={(e) =>
+                  handleEditFieldChange(index, 'Locations', e.target.value)
+                }
+                sx={{ marginBottom: '10px' }}
+              />
+              <TextField
+                label="Author"
+                value={activity.AuthorUsername}
+                onChange={(e) =>
+                  handleEditFieldChange(index, 'AuthorUsername', e.target.value)
+                }
+                sx={{ marginBottom: '10px' }}
+              />
+              <TextField
+                label="Price"
+                value={activity.Price}
+                onChange={(e) =>
+                  handleEditFieldChange(index, 'Price', e.target.value)
+                }
+                sx={{ marginBottom: '10px' }}
+              />
+              <TextField
+                label="Date"
+                type="date"
+                value={new Date(activity.Date).toISOString().split('T')[0]}
+                onChange={(e) =>
+                  handleEditFieldChange(index, 'Date', e.target.value)
+                }
+                sx={{ marginBottom: '10px' }}
+                InputLabelProps={{ shrink: true }}
+              />
+              <TextField
+          label="Tags"
+          value={activity.Tags.join(', ')} // Join tags into a single comma-separated string
+          onChange={(e) =>
+            handleEditFieldChange(index, 'Tags', e.target.value.split(',').map((tag) => tag.trim())) // Split input into array
+          }
+          sx={{ marginBottom: '10px' }}
+        />
+            </>
+          ) : (
+            <>
+              <Typography
+                variant="h6"
+                sx={{ display: 'flex', fontWeight: 'bold', fontSize: '24px', marginBottom: '5px' }}
+              >
+                {activity.Title}
+              </Typography>
+              <Typography variant="body2" sx={{ display: 'flex', fontSize: '18px', alignItems: 'left' }}>
+                <LocationOnIcon fontSize="small" sx={{ mr: 1 }} />
+                {activity.Locations || 'N/A'}
+              </Typography>
+              <Typography variant="body2" sx={{ display: 'flex', fontSize: '18px', alignItems: 'left' }}>
+                <PersonIcon fontSize="small" sx={{ mr: 1 }} />
+                {activity.AuthorUsername}
+              </Typography>
+              <Typography variant="body2" sx={{ display: 'flex', fontSize: '18px', alignItems: 'left' }}>
+                <AttachMoneyIcon fontSize="small" sx={{ mr: 1 }} />
+                {activity.Price}
+              </Typography>
+              <Typography variant="body2" sx={{ display: 'flex', fontSize: '18px', alignItems: 'left' }}>
+                <CalendarTodayIcon fontSize="small" sx={{ mr: 1 }} />
+                {new Date(activity.Date).toLocaleDateString()}
+              </Typography>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '10px' }}>
+          <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
+            Tags:
+          </Typography>
+          <Box sx={styles.tagContainer}>
+            {activity.Tags.map((tag, tagIndex) => (
+              <Typography
+                key={tagIndex}
+                sx={{
+                  ...styles.tag,
+                  backgroundColor: activity.flagged ? '#b3b8c8' : '#cccfda',
+                  color: activity.flagged ? '#192959' : '#192959',
+                }}
+              >
+                {tag}
+              </Typography>
+            ))}
           </Box>
+        </Box>
+            </>
+          )}
+        </Box>
 
           {/* Divider Line */}
           <Divider orientation="vertical" flexItem sx={styles.verticalDivider} />
 
           {/* Right Side */}
-          <Box sx={styles.activityRight}>
-          <Typography variant="body2" sx={{ fontSize: '16px', wordBreak: 'break-word', maxWidth: '530px' }}>
-            <strong>Activities:</strong> {activity.Activities}
-          </Typography>
-            <Typography variant="body2" sx={{ fontSize: '16px' }}>
-              <strong>Language:</strong> {activity.Language}
-            </Typography>
-            <Typography variant="body2" sx={{ fontSize: '16px' }}>
-              <strong>Accessibility:</strong> {activity.accessibility ? 'Accessible' : 'Not Accessible'}
-            </Typography>
-            <Typography variant="body2" sx={{ fontSize: '16px' }}>
-              <strong>Pickup Location:</strong> {activity.pickupLocation}
-            </Typography>
-            <Typography variant="body2" sx={{ fontSize: '16px' }}>
-              <strong>Drop-off Location:</strong> {activity.dropoffLocation}
-            </Typography>
-            {/* <Typography variant="body2" sx={{ fontSize: '16px' }}>
-              <strong>Booking Open:</strong> {activity.isBooked ? 'Yes' : 'No'}
-            </Typography> */}
-          </Box>
+          {/* Right Side */}
+  <Box sx={styles.activityRight}>
+    {editing[index] ? (
+      <>
+        <TextField
+          label="Activities"
+          value={activity.Activities}
+          onChange={(e) =>
+            handleEditFieldChange(index, 'Activities', e.target.value)
+          }
+          fullWidth
+          sx={{ marginBottom: '10px', maxWidth: '400px' }}
+        />
+        <TextField
+          label="Language"
+          value={activity.Language}
+          onChange={(e) =>
+            handleEditFieldChange(index, 'Language', e.target.value)
+          }
+          fullWidth
+          sx={{ marginBottom: '10px', maxWidth: '400px' }}
+        />
+        <FormControlLabel
+          control={
+            <Switch
+              checked={activity.accessibility}
+              onChange={(e) =>
+                handleEditFieldChange(index, 'accessibility', e.target.checked)
+              }
+            />
+          }
+          label="Accessibility"
+          sx={{ marginBottom: '10px' }}
+        />
+        <TextField
+          label="Pickup Location"
+          value={activity.pickupLocation}
+          onChange={(e) =>
+            handleEditFieldChange(index, 'pickupLocation', e.target.value)
+          }
+          fullWidth
+          sx={{ marginBottom: '10px', maxWidth: '400px' }}
+        />
+        <TextField
+          label="Drop-off Location"
+          value={activity.dropoffLocation}
+          onChange={(e) =>
+            handleEditFieldChange(index, 'dropoffLocation', e.target.value)
+          }
+          fullWidth
+          sx={{ marginBottom: '10px', maxWidth: '400px' }}
+        />
+      </>
+    ) : (
+      <>
+        <Typography variant="body2" sx={{ fontSize: '16px', wordBreak: 'break-word', maxWidth: '300px' }}>
+        <strong>Activities:</strong> {activity.Activities}
+      </Typography>
+        <Typography variant="body2" sx={{ fontSize: '16px' }}>
+          <strong>Language:</strong> {activity.Language}
+        </Typography>
+        <Typography variant="body2" sx={{ fontSize: '16px' }}>
+          <strong>Accessibility:</strong> {activity.accessibility ? 'Accessible' : 'Not Accessible'}
+        </Typography>
+        <Typography variant="body2" sx={{ fontSize: '16px' }}>
+          <strong>Pickup Location:</strong> {activity.pickupLocation}
+        </Typography>
+        <Typography variant="body2" sx={{ fontSize: '16px' }}>
+          <strong>Drop-off Location:</strong> {activity.dropoffLocation}
+        </Typography>
+      </>
+    )}
+  </Box>
+
         </Box>
 
         {/* Ratings */}
         <Box sx={styles.activityRating}>
-          {renderRating(activity.Ratings)}
-        </Box>
+    {renderRating(activity.Ratings)}
+  </Box>
 
-        {/* Timeline with Read More / Read Less */}
-        <Typography
-          variant="body2"
-          sx={{
-            display: 'flex',
-            fontSize: '18px',
-            alignItems: 'flex-start',
-            textAlign: 'left',
-            cursor: activity.Timeline.length > 45 ? 'pointer' : 'default', // Make clickable only if necessary
-            marginTop: '10px',
-          }}
-          onClick={() => {
-            if (activity.Timeline.length > 45) {
-              setExpanded((prev) => ({ ...prev, [index]: !prev[index] }));
-            }
-          }}
-        >
-          <AccessTimeIcon fontSize="small" sx={{ mr: 1 }} />
-          {expanded[index] || activity.Timeline.length <= 45
-            ? (
-                <span>
-                  {activity.Timeline}
-                  {activity.Timeline.length > 45 && (
-                    <span
-                      style={{
-                        color: '#8088a3',
-                        marginLeft: '5px',
-                        fontWeight: 'bold',
-                      }}
-                    >
-                      {" "}Read Less
-                    </span>
-                  )}
-                </span>
-              )
-            : (
-                <span>
-                  {activity.Timeline.substring(0, 45)}...
-                  <span
-                    style={{
-                      color: '#8088a3',
-                      marginLeft: '5px',
-                      fontWeight: 'bold',
-                    }}
-                  >
-                    {" "}Read More
-                  </span>
-                </span>
-              )}
-        </Typography>
-      </Box>
+       {/* Timeline with Read More / Read Less */}
+  {editing[index] ? (
+    <TextField
+      label="Timeline"
+      value={activity.Timeline}
+      onChange={(e) => handleEditFieldChange(index, 'Timeline', e.target.value)}
+      multiline
+      fullWidth
+      sx={{ marginTop: '10px' }}
+    />
+  ) : (
+    <Typography
+      variant="body2"
+      sx={{
+        display: 'flex',
+        fontSize: '18px',
+        alignItems: 'flex-start',
+        textAlign: 'left',
+        cursor: activity.Timeline.length > 45 ? 'pointer' : 'default',
+        marginTop: '10px',
+      }}
+      onClick={() => {
+        if (activity.Timeline.length > 45) {
+          setExpanded((prev) => ({ ...prev, [index]: !prev[index] }));
+        }
+      }}
+    >
+      <AccessTimeIcon fontSize="small" sx={{ mr: 1 }} />
+      {expanded[index] || activity.Timeline.length <= 45 ? (
+        <span>
+          {activity.Timeline}
+          {activity.Timeline.length > 45 && (
+            <span
+              style={{
+                color: '#8088a3',
+                marginLeft: '5px',
+                fontWeight: 'bold',
+              }}
+            >
+              {" "}Read Less
+            </span>
+          )}
+        </span>
+      ) : (
+        <span>
+          {activity.Timeline.substring(0, 45)}...
+          <span
+            style={{
+              color: '#8088a3',
+              marginLeft: '5px',
+              fontWeight: 'bold',
+            }}
+          >
+            {" "}Read More
+          </span>
+        </span>
+      )}
+    </Typography>
+  )}
+</Box>
 
       {/* Comments Section */}
       <Box sx={styles.commentsSection}>
@@ -1033,13 +1216,12 @@ const styles = {
     gap: '10px',
   },
   flagButton: {
-    position: 'absolute',
-    top: '40px',
-    right: '50px',
     backgroundColor: '#ff5722',
     color: 'white',
     '&:hover': { backgroundColor: '#ff8a50' },
+    gap: '5px', // Maintain button spacing within the button itself
   },
+  
   activityInfoLeft: {
     display: 'flex',
     flexDirection: 'column',

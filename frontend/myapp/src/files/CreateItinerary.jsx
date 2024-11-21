@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Box, Button, TextField, Typography, Switch, FormControlLabel } from '@mui/material';
 import axios from 'axios';
 
 const CreateItinerary = () => {
@@ -15,6 +16,7 @@ const CreateItinerary = () => {
     dropoffLocation: '',
     tags: ''
   });
+
   const [errorMessage, setErrorMessage] = useState('');
 
   const handleChange = (e) => {
@@ -34,8 +36,7 @@ const CreateItinerary = () => {
       return;
     }
 
-    const tagsArray = itineraryData.tags.split(',').map(tag => tag.trim());
-    
+    const tagsArray = itineraryData.tags.split(',').map((tag) => tag.trim());
     const dataToSubmit = {
       AuthorUsername,
       Title: itineraryData.title,
@@ -80,108 +81,150 @@ const CreateItinerary = () => {
   };
 
   return (
-    <div style={styles.container}>
-      <div style={styles.formContainer}>
-        <h2>Create New Itinerary</h2>
-        {errorMessage && <p style={styles.error}>{errorMessage}</p>}
-        <form onSubmit={handleSubmit}>
-          <div style={styles.formGroup}>
-            <label htmlFor="title">Itinerary Title:</label>
-            <input type="text" id="title" name="title" value={itineraryData.title} onChange={handleChange} required style={styles.input} />
-          </div>
-          <div style={styles.formGroup}>
-            <label htmlFor="activities">Activities (comma-separated):</label>
-            <input type="text" id="activities" name="activities" value={itineraryData.activities} onChange={handleChange} required style={styles.input} />
-          </div>
-          <div style={styles.formGroup}>
-            <label htmlFor="locations">Locations (comma-separated):</label>
-            <input type="text" id="locations" name="locations" value={itineraryData.locations} onChange={handleChange} required style={styles.input} />
-          </div>
-          <div style={styles.formGroup}>
-            <label htmlFor="timeline">Timeline:</label>
-            <input type="text" id="timeline" name="timeline" value={itineraryData.timeline} onChange={handleChange} required style={styles.input} />
-          </div>
-          <div style={styles.formGroup}>
-            <label htmlFor="language">Language:</label>
-            <input type="text" id="language" name="language" value={itineraryData.language} onChange={handleChange} required style={styles.input} />
-          </div>
-          <div style={styles.formGroup}>
-            <label htmlFor="price">Price (USD):</label>
-            <input type="number" id="price" name="price" value={itineraryData.price} onChange={handleChange} required style={styles.input} />
-          </div>
-          <div style={styles.formGroup}>
-            <label htmlFor="date">Date:</label>
-            <input type="date" id="date" name="date" value={itineraryData.date} onChange={handleChange} required style={styles.input} />
-          </div>
-          <div style={styles.formGroup}>
-            <label htmlFor="accessibility">Accessibility:</label>
-            <input type="checkbox" id="accessibility" name="accessibility" checked={itineraryData.accessibility} onChange={handleChange} style={styles.checkbox} />
-          </div>
-          <div style={styles.formGroup}>
-            <label htmlFor="pickupLocation">Pickup Location:</label>
-            <input type="text" id="pickupLocation" name="pickupLocation" value={itineraryData.pickupLocation} onChange={handleChange} required style={styles.input} />
-          </div>
-          <div style={styles.formGroup}>
-            <label htmlFor="dropoffLocation">Dropoff Location:</label>
-            <input type="text" id="dropoffLocation" name="dropoffLocation" value={itineraryData.dropoffLocation} onChange={handleChange} required style={styles.input} />
-          </div>
-          <div style={styles.formGroup}>
-            <label htmlFor="tags">Tags (comma-separated):</label>
-            <input type="text" id="tags" name="tags" value={itineraryData.tags} onChange={handleChange} required style={styles.input} />
-          </div>
-          <button type="submit" style={styles.button}>Create Itinerary</button>
-        </form>
-      </div>
-    </div>
+    <Box
+      sx={{
+        maxWidth: '600px',
+        margin: 'auto',
+        background: '#fff',
+        padding: '20px',
+        borderRadius: '5px',
+        boxShadow: '0 0 10px rgba(0, 0, 0, 0.1)',
+      }}
+    >
+      <Typography variant="h4" align="center" sx={{ marginBottom: '20px' }}>
+        Create New Itinerary
+      </Typography>
+      {errorMessage && (
+        <Typography variant="body2" color="error" sx={{ marginBottom: '10px' }}>
+          {errorMessage}
+        </Typography>
+      )}
+      <form onSubmit={handleSubmit}>
+        <TextField
+          fullWidth
+          margin="normal"
+          label="Itinerary Title"
+          name="title"
+          value={itineraryData.title}
+          onChange={handleChange}
+          required
+        />
+        <TextField
+          fullWidth
+          margin="normal"
+          label="Activities (comma-separated)"
+          name="activities"
+          value={itineraryData.activities}
+          onChange={handleChange}
+          required
+        />
+        <TextField
+          fullWidth
+          margin="normal"
+          label="Locations (comma-separated)"
+          name="locations"
+          value={itineraryData.locations}
+          onChange={handleChange}
+          required
+        />
+        <TextField
+          fullWidth
+          margin="normal"
+          label="Timeline"
+          name="timeline"
+          value={itineraryData.timeline}
+          onChange={handleChange}
+          required
+        />
+        <TextField
+          fullWidth
+          margin="normal"
+          label="Language"
+          name="language"
+          value={itineraryData.language}
+          onChange={handleChange}
+          required
+        />
+        <TextField
+          fullWidth
+          margin="normal"
+          label="Price (USD)"
+          name="price"
+          type="number"
+          value={itineraryData.price}
+          onChange={handleChange}
+          required
+        />
+        <TextField
+          fullWidth
+          margin="normal"
+          label="Date"
+          name="date"
+          type="date"
+          value={itineraryData.date}
+          onChange={handleChange}
+          InputLabelProps={{
+            shrink: true,
+          }}
+          required
+        />
+        
+        <TextField
+          fullWidth
+          margin="normal"
+          label="Pickup Location"
+          name="pickupLocation"
+          value={itineraryData.pickupLocation}
+          onChange={handleChange}
+          required
+        />
+        <TextField
+          fullWidth
+          margin="normal"
+          label="Dropoff Location"
+          name="dropoffLocation"
+          value={itineraryData.dropoffLocation}
+          onChange={handleChange}
+          required
+        />
+        <TextField
+          fullWidth
+          margin="normal"
+          label="Tags (comma-separated)"
+          name="tags"
+          value={itineraryData.tags}
+          onChange={handleChange}
+          required
+        />
+        <FormControlLabel
+          control={
+            <Switch
+              name="accessibility"
+              checked={itineraryData.accessibility}
+              onChange={handleChange}
+            />
+          }
+          label="Accessibility"
+          sx={{ marginTop: '10px', marginBottom: '10px',marginLeft:'10px'}}
+        />
+        <Button
+          type="submit"
+          variant="contained"
+          sx={{
+            backgroundColor: '#192959',
+            color: 'white',
+            padding: '10px',
+            borderRadius: '4px',
+            width: '100%',
+            '&:hover': { backgroundColor: '#4b5a86' },
+            marginTop: '20px',
+          }}
+        >
+          Create Itinerary
+        </Button>
+      </form>
+    </Box>
   );
-};
-
-const styles = {
-  container: {
-    fontFamily: 'Arial, sans-serif',
-    backgroundColor: '#ffffff',
-    padding: '50px',
-    margin: 0,
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-    height: '100vh',
-  },
-  formContainer: {
-    backgroundColor: '#fff',
-    padding: '30px',
-    borderRadius: '10px',
-    boxShadow: '0 0 15px rgba(0, 0, 0, 0.2)',
-    maxWidth: '500px',
-    width: '100%',
-  },
-  formGroup: {
-    marginBottom: '15px',
-  },
-  input: {
-    width: '100%',
-    padding: '10px',
-    border: '1px solid #ccc',
-    borderRadius: '5px',
-    fontSize: '14px',
-  },
-  checkbox: {
-    marginLeft: '10px',
-  },
-  button: {
-    backgroundColor: '#28a745',
-    color: 'white',
-    padding: '15px',
-    border: 'none',
-    borderRadius: '5px',
-    cursor: 'pointer',
-    width: '100%',
-    fontSize: '16px',
-  },
-  error: {
-    color: 'red',
-    marginBottom: '10px',
-  },
 };
 
 export default CreateItinerary;
