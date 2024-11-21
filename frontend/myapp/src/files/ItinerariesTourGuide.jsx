@@ -25,6 +25,8 @@ import CheckIcon from '@mui/icons-material/Check';
 import AddCircleIcon from '@mui/icons-material/AddCircle';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import Switch from '@mui/material/Switch';
+import PowerSettingsNewIcon from '@mui/icons-material/PowerSettingsNew';
+import BlockIcon from '@mui/icons-material/Block';
 
 import axios from 'axios';
 
@@ -61,6 +63,8 @@ function ItinerariesTourguide() {
 
   const [expanded, setExpanded] = useState(false);
   const [editing, setEditing] = useState({});
+  const [deactivateDialogOpen, setDeactivateDialogOpen] = useState(false);
+const [itineraryToDeactivate, setItineraryToDeactivate] = useState(null);
 
 
   const navigate = useNavigate();
@@ -305,6 +309,16 @@ function ItinerariesTourguide() {
   };
 
 
+  const handleDeactivateItinerary = (itineraryName) => {
+    setItineraryToDeactivate(itineraryName);
+    setDeactivateDialogOpen(true); // Open the deactivate confirmation dialog
+  };
+  
+
+
+
+
+
 
 
   const handleDeleteTag = (tagName) => {
@@ -386,6 +400,29 @@ function ItinerariesTourguide() {
   };
 
 
+  const confirmDeactivateItinerary = async () => {
+    if (itineraryToDeactivate) {
+      try {
+        const response = await axios.post('/api/deactivateItinerary', { title: itineraryToDeactivate });
+        if (response.status === 200) {
+          alert('Itinerary has been deactivated!');
+          fetchActivities(); // Refresh list of itineraries
+        } else {
+          alert('Failed to deactivate itinerary.');
+        }
+      } catch (error) {
+        console.error('Error deactivating itinerary:', error);
+        alert(`Failed to deactivate itinerary: ${error.response?.data?.error || error.message}`);
+      } finally {
+        setDeactivateDialogOpen(false); // Close the dialog
+        setItineraryToDeactivate(null); // Reset the itinerary to deactivate
+      }
+    }
+  };
+  
+  
+
+
   const toggleExpanded = () => {
     setExpanded(!expanded);
   };
@@ -412,13 +449,13 @@ function ItinerariesTourguide() {
         </Button> */}
 
 
-<Button
-  onClick={() => window.location.href = `/CreateItinerary`}
-  sx={styles.menuButton}
-  startIcon={<AddIcon />}
->
-  Create new itinerary
-</Button>
+        <Button
+          onClick={() => window.location.href = `/CreateItinerary`}
+          sx={styles.menuButton}
+          startIcon={<AddIcon />}
+        >
+          Create new itinerary
+        </Button>
 
 
      
@@ -459,14 +496,7 @@ function ItinerariesTourguide() {
     <AddCircleIcon style={styles.icon} />
     {sidebarOpen && "Create New Itinerary"}
   </Button>
-        <Button onClick={() => navigate('/products')} sx={styles.sidebarButton}>
-          <StorefrontIcon sx={styles.icon} />
-          {sidebarOpen && 'Products'}
-        </Button>
-        <Button onClick={() => navigate('/YAdminActivitiesPage')} sx={styles.sidebarButton}>
-          <LocalActivityIcon sx={styles.icon} />
-          {sidebarOpen && 'Activities'}
-        </Button>
+        
         <Button onClick={() => navigate('/ItinerariesTourguide')} sx={styles.sidebarButton}>
           <MapIcon sx={styles.icon} />
           {sidebarOpen && 'Itineraries'}
@@ -523,6 +553,34 @@ function ItinerariesTourguide() {
           </Button>
         </DialogActions>
       </Dialog>
+
+      <Dialog open={deactivateDialogOpen} onClose={() => setDeactivateDialogOpen(false)}>
+  <DialogContent>
+    <DialogContentText sx={{ fontWeight: 'bold', color: '#192959', fontSize: '20px' }}>
+      Are you sure you want to deactivate this itinerary?
+    </DialogContentText>
+  </DialogContent>
+  <DialogActions>
+    <Button
+      onClick={() => setDeactivateDialogOpen(false)} // Close the dialog
+      sx={{ color: '#192959', '&:hover': { backgroundColor: '#192959', color: '#e6e7ed' } }}
+    >
+      Cancel
+    </Button>
+    <Button
+      onClick={confirmDeactivateItinerary} // Confirm the deactivation
+      sx={{ color: '#192959', '&:hover': { backgroundColor: '#192959', color: '#e6e7ed' } }}
+    >
+      Confirm
+    </Button>
+  </DialogActions>
+</Dialog>
+
+
+
+
+
+
       {/*Dialogue for deleting a preference tag*/}
       <Dialog open={deleteDialogOpenTags} onClose={() => setDeleteDialogOpenTags(false)}>
         <DialogContent>
@@ -556,7 +614,7 @@ function ItinerariesTourguide() {
     <Box
       sx={{
         ...styles.activityCard,
-        backgroundColor: activity.flagged ? '#cccfda' : 'white',
+        backgroundColor: 'white',
       }}
     >
      <Box
@@ -570,15 +628,8 @@ function ItinerariesTourguide() {
     right: '50px', // Align with right position
   }}
 >
-  {/* Delete Button */}
-  <Button
-    variant="contained"
-    onClick={() => handleDeleteItinerary(activity.Title)}
-    sx={{ ...styles.flagButton, position: 'static' }} // Override to avoid absolute positioning
-    startIcon={<DeleteIcon />}
-  >
-    Delete
-  </Button>
+
+
 
   {/* Edit Button */}
   <Button
@@ -589,11 +640,50 @@ function ItinerariesTourguide() {
       }
       setEditing((prev) => ({ ...prev, [index]: !prev[index] }));
     }}
-    sx={{ ...styles.flagButton, position: 'static' }} // Override to avoid absolute positioning
+    sx={{
+      color: 'white', // Text color
+      backgroundColor: '192959', // Initial background
+      '&:hover': { 
+        backgroundColor: '#transparent', // Hover background color
+        color: '#e6e7ed', // Hover text color
+      },
+      
+      position: 'static', // Ensure proper positioning
+      fontWeight: 'bold', // Optional styling
+    }}
     startIcon={<EditIcon />}
   >
     {editing[index] ? 'Save' : 'Edit'}
   </Button>
+
+
+  <Button
+  variant="contained"
+  onClick={() => handleDeactivateItinerary(activity.Title)}
+  sx={{
+    color: 'white', // Same as the Edit button
+    backgroundColor: '192959',
+    '&:hover': {
+      backgroundColor: '#transparent', // Hover background
+      color: '#e6e7ed', // Hover text color
+    },
+    fontWeight: 'bold',
+  }}
+  startIcon={<BlockIcon />} // Use a suitable icon for Deactivate
+>
+  Deactivate
+</Button>
+
+
+<Button
+    variant="contained"
+    onClick={() => handleDeleteItinerary(activity.Title)}
+    sx={{ ...styles.flagButton, position: 'static' }} // Override to avoid absolute positioning
+    startIcon={<DeleteIcon />}
+  >
+    Delete
+  </Button>
+  
 </Box>
 
 
