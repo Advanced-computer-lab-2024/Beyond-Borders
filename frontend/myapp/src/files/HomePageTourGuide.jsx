@@ -386,7 +386,7 @@ const HomePageTourGuide = () => {
         backgroundColor: '#192959',
       },
     }}
-    onClick={loadMyDeactivatedItineraries}
+    onClick={() => window.location.href = `/Deactivated`}
   >
     <BlockIcon style={styles.icon} />
     {sidebarOpen && "Deactivated Itineraries"}
@@ -406,7 +406,7 @@ const HomePageTourGuide = () => {
         backgroundColor: '#192959',
       },
     }}
-    onClick={loadMyActivities}
+    onClick={() => window.location.href = `/ItinerariesTourGuide`}
   >
     <MapIcon style={styles.icon} />
     {sidebarOpen && "Itineraries"}

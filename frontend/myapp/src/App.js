@@ -71,6 +71,7 @@ import TouristBookedTransportationModal from './files/Tourist/TouristBookedTrans
 import Begin2 from './files/Begin2';
 import New from './files/New';
 import ItinerariesTourguide from './files/ItinerariesTourGuide';
+import Deactivated from './files/Deactivated';
 
 
 //YASSIN AND AMINA DASHBOARD
@@ -110,6 +111,7 @@ function App() {
           <Route path="/HomePageTourGuide" element={<HomePageTourGuide/>}/>
           <Route path="/New" element={<New/>}/>
           <Route path="/ItinerariesTourguide" element={<ItinerariesTourguide/>}/>
+          <Route path="/Deactivated" element={<Deactivated/>}/>
 
 
           

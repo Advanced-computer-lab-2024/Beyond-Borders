@@ -29,10 +29,12 @@ import PowerSettingsNewIcon from '@mui/icons-material/PowerSettingsNew';
 import BlockIcon from '@mui/icons-material/Block';
 import Tooltip from '@mui/material/Tooltip';
 import SaveIcon from '@mui/icons-material/Save';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+
 
 import axios from 'axios';
 
-function ItinerariesTourguide() {
+function Deactivated() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activities, setActivities] = useState([]);
   const [scrollPositions, setScrollPositions] = useState({});
@@ -97,8 +99,8 @@ const [itineraryToDeactivate, setItineraryToDeactivate] = useState(null);
             return;
         }
     try {
-        const response = await axios.get(`/api/getallItinerarys`, {
-            params: { AuthorUsername: username }
+        const response = await axios.get(`/api/viewMyDeactivatedItinerariesTourGuide`, {
+            params: { TourGuide: username }
         });
       setActivities(response.data);
     } catch (error) {
@@ -421,6 +423,23 @@ const [itineraryToDeactivate, setItineraryToDeactivate] = useState(null);
       }
     }
   };
+
+
+  const activateItinerary = async (title) => {
+    try {
+      const response = await axios.post('/api/activateItinerary', { title: title });
+      if (response.status === 200) {
+        alert('Itinerary has been activated!');
+        fetchActivities(); // Refresh product list after archiving
+        
+      } else {
+        alert('Failed to activate itinerary.');
+      }
+    } catch (error) {
+      console.error('Error activating itinerary:', error);
+      alert(`Failed to activate itinerary: ${error.response?.data?.error || error.message}`);
+    }
+  };
   
   
 
@@ -460,10 +479,6 @@ const [itineraryToDeactivate, setItineraryToDeactivate] = useState(null);
         </Button>
 
 
-
-
-
-
      
           {/* <IconButton sx={styles.iconButton}>
             <NotificationsIcon />
@@ -483,13 +498,6 @@ const [itineraryToDeactivate, setItineraryToDeactivate] = useState(null);
         onMouseEnter={() => setSidebarOpen(true)}
         onMouseLeave={() => setSidebarOpen(false)}
       >
-       
-        
-        <Button onClick={() => navigate('/ItinerariesTourguide')} sx={styles.sidebarButton}>
-          <MapIcon sx={styles.icon} />
-          {sidebarOpen && 'Itineraries'}
-        </Button>
-
         <Button
     sx={{
       color: '#e6e7ed',
@@ -504,11 +512,16 @@ const [itineraryToDeactivate, setItineraryToDeactivate] = useState(null);
         backgroundColor: '#192959',
       },
     }}
-    onClick={() => navigate('/Deactivated')}
+    onClick={() => window.location.href = `/CreateItinerary`}
   >
-    <BlockIcon style={styles.icon} />
-    {sidebarOpen && "Deactivated Itineraries"}
+    <AddCircleIcon style={styles.icon} />
+    {sidebarOpen && "Create New Itinerary"}
   </Button>
+        
+        <Button onClick={() => navigate('/ItinerariesTourguide')} sx={styles.sidebarButton}>
+          <MapIcon sx={styles.icon} />
+          {sidebarOpen && 'Itineraries'}
+        </Button>
         <Button onClick={() => navigate('/HomePageTourGuide')} sx={styles.sidebarButton}>
           <DashboardIcon sx={styles.icon} />
           {sidebarOpen && 'Back to Dashboard'}
@@ -638,14 +651,12 @@ const [itineraryToDeactivate, setItineraryToDeactivate] = useState(null);
 >
 
 
-<Tooltip title={editing[index] ? "Save" : "Edit"} arrow>
+
+
+
+<Tooltip title="Activate" arrow>
   <IconButton
-    onClick={() => {
-      if (editing[index]) {
-        handleUpdateItinerary(index);
-      }
-      setEditing((prev) => ({ ...prev, [index]: !prev[index] }));
-    }}
+    onClick={() => activateItinerary(activity.Title)}
     sx={{
       color: '#192959', // Icon color
       backgroundColor: '#f0f0f0', // Greyish background
@@ -656,46 +667,11 @@ const [itineraryToDeactivate, setItineraryToDeactivate] = useState(null);
       height: '40px',
     }}
   >
-    {editing[index] ? <SaveIcon /> : <EditIcon />}
+    <PowerSettingsNewIcon />
   </IconButton>
 </Tooltip>
 
 
-
-<Tooltip title="Deactivate" arrow>
-  <IconButton
-    onClick={() => handleDeactivateItinerary(activity.Title)}
-    sx={{
-      color: '#192959', // Icon color
-      backgroundColor: '#f0f0f0', // Greyish background
-      '&:hover': {
-        backgroundColor: '#e6e7ed', // Lighter hover background
-      },
-      width: '40px', // Ensure square icon button
-      height: '40px',
-    }}
-  >
-    <BlockIcon />
-  </IconButton>
-</Tooltip>
-
-<Tooltip title="Delete" arrow>
-  <IconButton
-    onClick={() => handleDeleteItinerary(activity.Title)}
-    sx={{
-      color: '#192959', // Icon color
-      backgroundColor: '#f0f0f0', // Greyish background
-      '&:hover': {
-        backgroundColor: '#e6e7ed', // Lighter hover background
-      },
-      width: '40px', // Ensure square icon button
-      height: '40px',
-    }}
-  >
-    <DeleteIcon />
-  </IconButton>
-</Tooltip>
-  
 </Box>
 
 
@@ -1488,6 +1464,6 @@ const styles = {
   
 };
 
-export default ItinerariesTourguide;
+export default Deactivated;
 
 
