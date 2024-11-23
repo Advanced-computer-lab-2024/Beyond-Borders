@@ -150,14 +150,15 @@ const TourismGovernorDashboard = () => {
         {/* Buttons as Main Content */}
         <Box sx={styles.content}>
           <Box sx={styles.infoBox} onClick={() => (window.location.href = '/MuseumTG')}>
-    
-            <Typography sx={styles.text}>Museums</Typography>
+          <img src="/images/museum.jpg" alt="Museums" style={styles.image} />
+          <Typography variant="h6" sx={styles.text} className="text">Musuems</Typography>
           </Box>
           <Box
             sx={styles.infoBox}
             onClick={() => (window.location.href = '/HistoricalPlaceTG')}
           >
-            <Typography sx={styles.text}>Historical Places</Typography>
+            <img src="/images/historicalplace.jpg" alt="Historical Place" style={styles.image} />
+            <Typography variant="h6" sx={styles.text} className="text">Historical Places</Typography>
           </Box>
         </Box>
       </Box>
@@ -227,7 +228,7 @@ const styles = {
     backgroundColor: '#e6e7ed',
   },
   sidebar: {
-    backgroundColor: '#4d587e', // Matches button colors
+    backgroundColor: '#4d587e', 
     color: '#e6e7ed',
     height: '100%',
     position: 'fixed',
@@ -305,13 +306,18 @@ const styles = {
     color: '#e6e7ed',
     borderRadius: '15px',
     display: 'flex',
+    flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'center',
     padding: '20px',
     boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.2)',
+    transition: 'transform 0.2s',
     cursor: 'pointer',
     '&:hover': {
       transform: 'scale(1.05)',
+    },
+    '&:hover .text': {
+      transform: 'scale(1.5)',
     },
   },
   text: {
@@ -336,7 +342,12 @@ const styles = {
       backgroundColor: '#4d587e',
     },
   },
-  
+  image: {
+    width: '100%',
+    borderRadius: '10px',
+    marginBottom: '10px',
+    transition: 'transform 0.2s',
+  },
     
 };
 
