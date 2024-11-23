@@ -129,7 +129,7 @@ app.post("/deleteAccount", deleteAccount);
 app.get("/searchProductAdmin", searchProductAdmin);
 app.get("/searchProductSeller", searchProductSeller);
 app.get("/searchProductTourist", searchProductTourist);
-app.put("/api/updateTourGuideProfile", updateTourGuideProfile);
+app.put("/api/updateTourGuideProfile",upload.single("Logo"), updateTourGuideProfile);
 app.get("/filterProductByPriceAdmin", filterProductByPriceAdmin);
 app.post("/api/filterProductByPriceTourist", filterProductByPriceTourist);
 app.post("/api/filterProductByPriceSeller", filterProductByPriceSeller);

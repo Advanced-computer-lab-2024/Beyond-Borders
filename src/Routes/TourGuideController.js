@@ -25,17 +25,7 @@ const ReadTourGuideProfile = async(req,res) =>{
     const TourGuide = await TourGuideModel.findOne({ Username: username }); // Find the user by name
     if (TourGuide) {
       res.status(200).json({TourGuide});
-        // Extract specific attributes
-      // console.log('Username:', TourGuide.Username);
-      // console.log('Email:', TourGuide.Email);
-      // console.log('Mobile Number:', TourGuide.MobileNum);
-      // console.log('Years of experience:', TourGuide.YearsOfExperience);
-      // if (TourGuide.PreviousWork !== undefined) {
-      //   console.log('Previuos work:', TourGuide.PreviousWork);
-      // } else {
-      //   console.log('None');
-      // }
-     // return user; // Return the full user object if needed
+      
     }
     else{
         res.status(400).json({error : "Tour guide does not exist"});
@@ -67,31 +57,40 @@ const ReadTourGuideProfile = async(req,res) =>{
 
 
 const updateTourGuideProfile = async (req, res) => {
-  const { Username } = req.body;  // Extract username from the request body
+  const { Username } = req.body;
 
   try {
-      // Ensure username is present for the update
-      if (!Username) {
-          return res.status(400).json({ msg: "Username is required to update the profile" });
-      }
+    if (!Username) {
+      return res.status(400).json({ msg: "Username is required to update the profile" });
+    }
 
-      // Check for other properties before proceeding
-      const { Password, Email, MobileNum, YearsOfExperience, PreviousWork } = req.body;
+    // Prepare update data
+    const updates = {
+      Password: req.body.Password,
+      Email: req.body.Email,
+      MobileNum: req.body.MobileNum,
+      YearsOfExperience: req.body.YearsOfExperience,
+      PreviousWork: req.body.PreviousWork,
+    };
 
-      // Perform the update while ensuring the username cannot be changed
-      const updatedTourGuide = await TourGuideModel.findOneAndUpdate(
-          { Username: Username },
-          { Password, Email, MobileNum, YearsOfExperience, PreviousWork },
-          { new: true, runValidators: true }
-      );
+    if (req.file) {
+      updates.Logo = `/uploads/${req.file.filename}`; // Save the relative path of the uploaded file
+    }
 
-      if (!updatedTourGuide) {
-          return res.status(404).json({ msg: "TourGuide not found" });
-      }
+    const updatedTourGuide = await TourGuideModel.findOneAndUpdate(
+      { Username },
+      updates,
+      { new: true, runValidators: true }
+    );
 
-      res.status(200).json(updatedTourGuide);
+    if (!updatedTourGuide) {
+      return res.status(404).json({ msg: "TourGuide not found" });
+    }
+
+    res.status(200).json(updatedTourGuide);
   } catch (error) {
-      res.status(400).json({ error: error.message });
+    console.error("Error updating profile:", error);
+    res.status(400).json({ error: error.message });
   }
 };
 

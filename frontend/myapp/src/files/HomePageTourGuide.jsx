@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState,useEffect } from 'react';
 import { Box, Button, Typography, Modal, TextField, IconButton, InputAdornment } from '@mui/material';
 import AssignmentIcon from "@mui/icons-material/Assignment";
 import StorefrontIcon from "@mui/icons-material/Storefront";
@@ -131,6 +131,34 @@ const HomePageTourGuide = () => {
         setShowPassword((prev) => !prev);
     };
 
+    useEffect(() => {
+        const fetchProfileData = async () => {
+          const username = localStorage.getItem('username');
+          if (!username) return;
+      
+          try {
+            const response = await axios.get(`/api/TourGuideProfile`, {
+              params: { username },
+            });
+            const data = response.data.TourGuide;
+      
+            setProfileData({
+              username: data.Username || '',
+              email: data.Email || '',
+              password: data.Password || '',
+              mobileNum: data.MobileNum || '',
+              yearsOfExperience: data.YearsOfExperience || '',
+              previousWork: data.PreviousWork || '',
+              logo: data.Logo ? `${window.location.origin}${data.Logo}` : '', // Set full logo path
+            });
+          } catch (error) {
+            console.error('Error fetching profile:', error);
+          }
+        };
+      
+        fetchProfileData();
+      }, []);
+
     // Load itineraries from backend
     const loadMyActivities = async () => {
         const username = localStorage.getItem('username');
@@ -183,31 +211,33 @@ const HomePageTourGuide = () => {
     const readMyProfile = async () => {
         const username = localStorage.getItem('username');
         if (!username) {
-            alert('You need to log in first.');
-            return;
+          alert('You need to log in first.');
+          return;
         }
-
+      
         try {
-            const response = await axios.get(`/api/TourGuideProfile`, {
-                params: { username }
-            });
-            const data = response.data.TourGuide;
-
-            setProfileData({
-                username: data.Username || '',
-                email: data.Email || '',
-                password: data.Password ||'',
-                mobileNum: data.MobileNum || '',
-                yearsOfExperience: data.YearsOfExperience || '',
-                previousWork: data.PreviousWork || ''
-            });
-
-            setIsProfileModalOpen(true);
+          const response = await axios.get(`/api/TourGuideProfile`, {
+            params: { username },
+          });
+          const data = response.data.TourGuide;
+      
+          setProfileData({
+            username: data.Username || '',
+            email: data.Email || '',
+            password: data.Password || '',
+            mobileNum: data.MobileNum || '',
+            yearsOfExperience: data.YearsOfExperience || '',
+            previousWork: data.PreviousWork || '',
+            logo: data.Logo ? `${window.location.origin}${data.Logo}` : '', // Full path to display image
+          });
+      
+          setIsProfileModalOpen(true);
         } catch (error) {
-            console.error('Error fetching profile:', error);
-            alert('An error occurred while loading the profile.');
+          console.error('Error fetching profile:', error);
+          alert('An error occurred while loading the profile.');
         }
-    };
+      };
+      
 
     const RequestDeleteAccount = async () => {
         try {
@@ -232,25 +262,34 @@ const HomePageTourGuide = () => {
 
     // Save profile data to the backend
     const saveProfile = async () => {
-        const { username, password, email, mobileNum, yearsOfExperience, previousWork } = profileData;
-
+        const { username, password, email, mobileNum, yearsOfExperience, previousWork, logoFile } = profileData;
+      
         try {
-            const response = await axios.put('/api/updateTourGuideProfile', {
-                Username: username,
-                Password: password,
-                Email: email,
-                MobileNum: mobileNum,
-                YearsOfExperience: yearsOfExperience,
-                PreviousWork: previousWork
-            });
-
-            alert('Profile updated successfully!');
-            setIsProfileModalOpen(false);
+          const formData = new FormData();
+          formData.append('Username', username);
+          formData.append('Password', password || '');
+          formData.append('Email', email || '');
+          formData.append('MobileNum', mobileNum || '');
+          formData.append('YearsOfExperience', yearsOfExperience || '');
+          formData.append('PreviousWork', previousWork || '');
+      
+          if (logoFile) {
+            formData.append('Logo', logoFile); // Append the selected file
+          }
+      
+          const response = await axios.put('/api/updateTourGuideProfile', formData, {
+            headers: { 'Content-Type': 'multipart/form-data' },
+          });
+      
+          alert('Profile updated successfully!');
+          setIsProfileModalOpen(false);
+          readMyProfile(); // Reload the profile to display the updated picture
         } catch (error) {
-            console.error('Error:', error);
-            alert('Failed to update profile: ' + error.message);
+          console.error('Error updating profile:', error);
+          alert('Failed to update profile: ' + error.message);
         }
-    };
+      };
+      
 
     // Delete activity
     const deleteActivity = async (activityName) => {
@@ -330,12 +369,28 @@ const HomePageTourGuide = () => {
                 Request to delete account
             </Button>
             <Button
-                style={styles.menuButton}
-                onClick={readMyProfile}
-                startIcon={<AccountCircleIcon />}
-            >
-                My Profile
-            </Button>
+  style={styles.menuButton}
+  startIcon={
+    profileData.logo ? (
+      <img
+        src={profileData.logo}
+        alt="Profile"
+        style={{
+          width: "30px",
+          height: "30px",
+          borderRadius: "50%",
+          objectFit: "cover",
+          border: "2px solid #e6e7ed",
+        }}
+      />
+    ) : (
+      <AccountCircleIcon />
+    )
+  }
+  onClick={readMyProfile}
+>
+  {profileData.username || "My Profile"}
+</Button>
 
 
             
@@ -659,96 +714,155 @@ const HomePageTourGuide = () => {
             </Modal>
 
             <Modal open={isProfileModalOpen} onClose={() => setIsProfileModalOpen(false)}>
-                <Box sx={{
-                    position: 'absolute', top: '50%', left: '50%',
-                    transform: 'translate(-50%, -50%)', width: 400,
-                    bgcolor: 'background.paper', p: 4, borderRadius: 1,
-                }}>
-                    <Typography variant="h6" component="h2">
-                        My Profile
-                    </Typography>
-                    <Box component="form" sx={{ mt: 2 }}>
-                        <TextField
-                            fullWidth
-                            label="Username"
-                            id="username"
-                            value={profileData.username}
-                            InputProps={{ readOnly: true }}
-                            margin="dense"
-                        />
-                        <TextField
-                            fullWidth
-                            label="Email Address"
-                            id="email"
-                            type="email"
-                            value={profileData.email}
-                            onChange={(e) => setProfileData({ ...profileData, email: e.target.value })}
-                            margin="dense"
-                        />
-                        <TextField
-                            fullWidth
-                            label="Password"
-                            id="password"
-                            type={showPassword ? "text" : "password"}
-                            value={profileData.password}
-                            onChange={(e) => setProfileData({ ...profileData, password: e.target.value })}
-                            margin="dense"
-                            InputProps={{
-                                endAdornment: (
-                                    <InputAdornment position="end">
-                                        <IconButton onClick={handleTogglePassword} edge="end">
-                                            {showPassword ? <VisibilityOff /> : <Visibility />}
-                                        </IconButton>
-                                    </InputAdornment>
-                                )
-                            }}
-                        />
-                        <TextField
-                            fullWidth
-                            label="Mobile Number"
-                            id="mobileNum"
-                            value={profileData.mobileNum}
-                            onChange={(e) => setProfileData({ ...profileData, mobileNum: e.target.value })}
-                            margin="dense"
-                        />
-                        <TextField
-                            fullWidth
-                            label="Years of Experience"
-                            id="yearsOfExperience"
-                            value={profileData.yearsOfExperience}
-                            onChange={(e) => setProfileData({ ...profileData, yearsOfExperience: e.target.value })}
-                            margin="dense"
-                        />
-                        <TextField
-                            fullWidth
-                            label="Previous Work"
-                            id="previousWork"
-                            type="url"
-                            value={profileData.previousWork}
-                            onChange={(e) => setProfileData({ ...profileData, previousWork: e.target.value })}
-                            margin="dense"
-                        />
-                        <Button
-                            variant="outlined"
-                            onClick={saveProfile}
-                            sx={{
-                                mt: 2,
-                                borderColor: '#192959',    
-                                color: '#192959',           
-                                backgroundColor: 'white',   
-                                borderRadius: '20px',       
-                                '&:hover': {
-                                    backgroundColor: '#192959', 
-                                    borderColor: 'white',     
-                                    color: 'white'            
-                                }
-                            }}
-                        >
-                            Save Changes
-                        </Button>
-                    </Box>
-                </Box>
-            </Modal>
+  <Box
+    sx={{
+      position: "absolute",
+      top: "50%",
+      left: "50%",
+      transform: "translate(-50%, -50%)",
+      width: 400,
+      bgcolor: "background.paper",
+      p: 4,
+      borderRadius: 1,
+    }}
+  >
+    <Typography variant="h6" component="h2">
+      My Profile
+    </Typography>
+
+    {/* Profile Picture Circle */}
+    <Box
+      sx={{
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        marginBottom: "20px",
+      }}
+    >
+      {profileData.logo ? (
+        <img
+          src={profileData.logo}
+          alt="Profile"
+          style={{
+            width: "100px",
+            height: "100px",
+            borderRadius: "50%",
+            border: "2px solid #192959",
+            objectFit: "cover",
+          }}
+        />
+      ) : (
+        <Box
+          sx={{
+            width: "100px",
+            height: "100px",
+            borderRadius: "50%",
+            backgroundColor: "#e6e7ed",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            border: "2px solid #192959",
+          }}
+        >
+          <Typography variant="body2" color="text.secondary">
+            No Image
+          </Typography>
+        </Box>
+      )}
+    </Box>
+
+    <Box component="form" sx={{ mt: 2 }}>
+      <TextField
+        fullWidth
+        label="Username"
+        id="username"
+        value={profileData.username}
+        InputProps={{ readOnly: true }}
+        margin="dense"
+      />
+      <TextField
+        fullWidth
+        label="Email Address"
+        id="email"
+        type="email"
+        value={profileData.email}
+        onChange={(e) => setProfileData({ ...profileData, email: e.target.value })}
+        margin="dense"
+      />
+      <TextField
+        fullWidth
+        label="Password"
+        id="password"
+        type={showPassword ? "text" : "password"}
+        value={profileData.password}
+        onChange={(e) => setProfileData({ ...profileData, password: e.target.value })}
+        margin="dense"
+        InputProps={{
+          endAdornment: (
+            <InputAdornment position="end">
+              <IconButton onClick={handleTogglePassword} edge="end">
+                {showPassword ? <VisibilityOff /> : <Visibility />}
+              </IconButton>
+            </InputAdornment>
+          ),
+        }}
+      />
+      <TextField
+        fullWidth
+        label="Mobile Number"
+        id="mobileNum"
+        value={profileData.mobileNum}
+        onChange={(e) => setProfileData({ ...profileData, mobileNum: e.target.value })}
+        margin="dense"
+      />
+      <TextField
+        fullWidth
+        label="Years of Experience"
+        id="yearsOfExperience"
+        value={profileData.yearsOfExperience}
+        onChange={(e) => setProfileData({ ...profileData, yearsOfExperience: e.target.value })}
+        margin="dense"
+      />
+      <TextField
+        fullWidth
+        label="Previous Work"
+        id="previousWork"
+        type="url"
+        value={profileData.previousWork}
+        onChange={(e) => setProfileData({ ...profileData, previousWork: e.target.value })}
+        margin="dense"
+      />
+      <TextField
+        fullWidth
+        label="Profile Picture"
+        id="logo"
+        type="file"
+        InputLabelProps={{ shrink: true }}
+        inputProps={{ accept: "image/*" }}
+        onChange={(e) => setProfileData({ ...profileData, logoFile: e.target.files[0] })}
+      />
+      <Button
+        variant="outlined"
+        onClick={saveProfile}
+        sx={{
+          mt: 2,
+          borderColor: "#192959",
+          color: "#192959",
+          backgroundColor: "white",
+          borderRadius: "20px",
+          "&:hover": {
+            backgroundColor: "#192959",
+            borderColor: "white",
+            color: "white",
+          },
+        }}
+      >
+        Save Changes
+      </Button>
+    </Box>
+  </Box>
+</Modal>
+
         </Box>
     );
 };
