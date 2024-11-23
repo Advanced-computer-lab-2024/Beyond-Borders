@@ -73,7 +73,7 @@ import New from './files/New';
 import ItinerariesTourguide from './files/ItinerariesTourGuide';
 import Deactivated from './files/Deactivated';
 import NewTouristHomePage from './files/NewTourist/NewTouristHomePage';
-
+import TouristFlights from './files/NewTourist/TouristFlights';
 
 //YASSIN AND AMINA DASHBOARD
 import YAdminDashboard from './files/Admin/YAdminDashboard';
@@ -114,7 +114,8 @@ function App() {
           <Route path="/ItinerariesTourguide" element={<ItinerariesTourguide/>}/>
           <Route path="/Deactivated" element={<Deactivated/>}/>
           <Route path="/NewTouristHomePage" element={<NewTouristHomePage/>}/>
-
+          <Route path="/TouristFlights" element={<TouristFlights/>}/>
+          
 
           
 

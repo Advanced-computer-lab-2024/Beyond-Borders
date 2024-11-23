@@ -434,7 +434,7 @@ const closeDeleteRequestsModal = () => {
         onMouseEnter={() => setSidebarOpen(true)}
         onMouseLeave={() => setSidebarOpen(false)}
       >
-        <Button onClick={() => navigate('/products')} sx={styles.sidebarButton}>
+        <Button onClick={() => navigate('/TouristFlights')} sx={styles.sidebarButton}>
           <FlightIcon sx={styles.icon} />
           {sidebarOpen && 'Flights'}
         </Button>
@@ -525,7 +525,7 @@ const closeDeleteRequestsModal = () => {
             }}
             >
             <ScheduleIcon sx={{ fontSize: '18px', marginRight: '10px' }} />
-            {sidebarOpen && 'Upcoming Activities'}
+            {sidebarOpen && 'Upcoming '}
             </Button>
 
             <Button
@@ -538,7 +538,7 @@ const closeDeleteRequestsModal = () => {
                 }}
                 >
                 <ChecklistIcon sx={{ fontSize: '18px', marginRight: '10px' }} /> {/* Add the icon here */}
-                {sidebarOpen && 'Completed Activities'}
+                {sidebarOpen && 'Completed '}
                 </Button>
 
                 <Button
@@ -551,7 +551,7 @@ const closeDeleteRequestsModal = () => {
                 }}
                 >
                 <EventAvailableIcon sx={{ fontSize: '18px', marginRight: '10px' }} />
-                {sidebarOpen && 'My Booked Activities'}
+                {sidebarOpen && 'Booked '}
                 </Button>
 
             </Box>
@@ -588,7 +588,7 @@ const closeDeleteRequestsModal = () => {
         }}
       >
         <ScheduleIcon sx={{ fontSize: '18px', marginRight: '10px' }} />
-        {sidebarOpen && 'Upcoming Itineraries'}
+        {sidebarOpen && 'Upcoming '}
       </Button>
       <Button
         onClick={() => navigate('/completed-itineraries')}
@@ -600,7 +600,7 @@ const closeDeleteRequestsModal = () => {
         }}
       >
         <ChecklistIcon sx={{ fontSize: '18px', marginRight: '10px' }} />
-        {sidebarOpen && 'Completed Itineraries'}
+        {sidebarOpen && 'Completed '}
       </Button>
       <Button
         onClick={() => navigate('/my-booked-itineraries')}
@@ -612,7 +612,7 @@ const closeDeleteRequestsModal = () => {
         }}
       >
         <EventAvailableIcon sx={{ fontSize: '18px', marginRight: '10px' }} />
-        {sidebarOpen && 'My Booked Itineraries'}
+        {sidebarOpen && ' Booked '}
       </Button>
     </Box>
   )}
@@ -647,7 +647,7 @@ const closeDeleteRequestsModal = () => {
         }}
       >
         <ScheduleIcon sx={{ fontSize: '18px', marginRight: '10px' }} />
-        {sidebarOpen && 'Upcoming Historical Places'}
+        {sidebarOpen && 'Upcoming '}
       </Button>
       <Button
         onClick={() => navigate('/visited-historical-places')}
@@ -659,7 +659,7 @@ const closeDeleteRequestsModal = () => {
         }}
       >
         <ChecklistIcon sx={{ fontSize: '18px', marginRight: '10px' }} />
-        {sidebarOpen && 'Visited Historical Places'}
+        {sidebarOpen && 'Visited '}
       </Button>
       <Button
         onClick={() => navigate('/saved-historical-places')}
@@ -671,7 +671,7 @@ const closeDeleteRequestsModal = () => {
         }}
       >
         <EventAvailableIcon sx={{ fontSize: '18px', marginRight: '10px' }} />
-        {sidebarOpen && 'Booked Historical Places'}
+        {sidebarOpen && 'Booked '}
       </Button>
     </Box>
   )}
