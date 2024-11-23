@@ -51,7 +51,11 @@ const TourGuideSchema = new Schema({
       type: Number,
       default: 0,
       required: false 
-    }
+    },
+    Logo: {
+      type: String, 
+      required: false,
+    },
 }, { timestamps: true }); //adds 2 more field (Created At:) & (Updated At:)
 
 const TourGuide = mongoose.model('TourGuide', TourGuideSchema);
