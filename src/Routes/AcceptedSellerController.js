@@ -6,20 +6,20 @@ const DeleteRequestsModel = require('../Models/DeleteRequests.js')
 const { default: mongoose } = require('mongoose');
 
 
-const readSellerProfile = async(req,res) =>{
-  try{
-   const{Username} = req.query;
-   const Seller = await AcceptedSellerModel.findOne({ Username: Username });
-   if (Seller) {
-     res.status(200).json(Seller);
-   }
-   else{
-       res.status(400).json({error : "Seller does not exist"});
-   }
- } catch (error) {
-   res.status(400).json({ error: error.message});
-}
-}
+const readSellerProfile = async (req, res) => {
+  try {
+    const { Username } = req.query;
+    const Seller = await AcceptedSellerModel.findOne({ Username: Username });
+    if (Seller) {
+      res.status(200).json(Seller);
+    } else {
+      res.status(400).json({ error: "Seller does not exist" });
+    }
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+};
+
 
 
 const updateSeller = async (req, res) => {
@@ -33,11 +33,17 @@ const updateSeller = async (req, res) => {
 
       // Check for other properties before proceeding
       const { Password, Email, Name, Description } = req.body;
+      let updateData = { Password, Email, Name, Description };
+
+      // Check if a file was uploaded
+      if (req.file) {
+          updateData.Logo = `/uploads/${req.file.filename}`; // Save file path
+      }
 
       // Perform the update while ensuring the username cannot be changed
       const updatedSeller = await AcceptedSellerModel.findOneAndUpdate(
           { Username: Username },
-          { Password, Email, Name, Description },
+          updateData,
           { new: true, runValidators: true }
       );
 
@@ -50,6 +56,7 @@ const updateSeller = async (req, res) => {
       res.status(400).json({ error: error.message });
   }
 };
+
 
 
   const createNewProductSeller = async(req,res) => {

@@ -37,30 +37,41 @@ function SellerHomePage() {
   };
 
   const editProfile = async () => {
-    // Check if the password fields are provided and match
     if (profile.newPassword && profile.confirmPassword) {
       if (profile.newPassword !== profile.confirmPassword) {
         alert("Passwords do not match.");
         return;
       }
-      // Only add the new password to the update payload if provided and matched
       profile.Password = profile.newPassword;
     }
   
     try {
-      const response = await axios.put('/api/updateSeller', profile);
+      const formData = new FormData();
+      formData.append("Username", profile.Username);
+      formData.append("Email", profile.Email);
+      formData.append("MobileNumber", profile.MobileNumber);
+      formData.append("Password", profile.Password || "");
+      if (profile.LogoFile) {
+        formData.append("Logo", profile.LogoFile);
+      }
+  
+      const response = await axios.put("/api/updateSeller", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+  
       if (response.status === 200) {
-        alert('Profile updated successfully!');
+        alert("Profile updated successfully!");
         setActiveModal(null);
         fetchProfile(); // Refresh profile data after update
       } else {
-        setErrorMessage('Failed to update profile.');
+        setErrorMessage("Failed to update profile.");
       }
     } catch (error) {
-      console.error('Error updating profile:', error);
-      alert('An error occurred while updating profile: ' + (error.response?.data?.error || error.message));
+      console.error("Error updating profile:", error);
+      alert("An error occurred while updating profile: " + (error.response?.data?.error || error.message));
     }
   };
+  
   
 
   const fetchProducts = async () => {
@@ -355,24 +366,40 @@ function SellerHomePage() {
       </Box>
 
       {activeModal === 'profile' && (
-        <Modal open={true} onClose={() => setActiveModal(null)}>
-          <Box sx={styles.modalContent}>
-            <Typography variant="h6" component="h2">My Profile</Typography>
-            {errorMessage ? (
-              <Typography color="error">{errorMessage}</Typography>
-            ) : profile ? (
-              <Box sx={styles.profileInfo}>
-                <Typography><strong>Username:</strong> {profile.Username}</Typography>
-                <Typography><strong>Email:</strong> {profile.Email}</Typography>
-                <Typography><strong>Phone:</strong> {profile.MobileNumber}</Typography>
-              </Box>
-            ) : (
-              <Typography>Loading...</Typography>
-            )}
-            <Button variant="contained" onClick={() => setActiveModal(null)} sx={styles.doneButton}>Close</Button>
-          </Box>
-        </Modal>
+  <Modal open={true} onClose={() => setActiveModal(null)}>
+    <Box sx={styles.modalContent}>
+      <Typography variant="h6" component="h2">My Profile</Typography>
+      {errorMessage ? (
+        <Typography color="error">{errorMessage}</Typography>
+      ) : profile ? (
+        <Box sx={styles.profileInfo}>
+          {profile.Logo ? (
+            <img
+              src={profile.Logo}
+              alt="Seller Logo"
+              style={{ width: "100px", height: "100px", borderRadius: "50%" }}
+            />
+          ) : (
+            <Typography>No logo uploaded.</Typography>
+          )}
+          <Typography><strong>Username:</strong> {profile.Username}</Typography>
+          <Typography><strong>Email:</strong> {profile.Email}</Typography>
+          <Typography><strong>Phone:</strong> {profile.MobileNumber}</Typography>
+        </Box>
+      ) : (
+        <Typography>Loading...</Typography>
       )}
+      <Button
+        variant="contained"
+        onClick={() => setActiveModal(null)}
+        sx={styles.doneButton}
+      >
+        Close
+      </Button>
+    </Box>
+  </Modal>
+)}
+
 
 {activeModal === 'editProfile' && (
   <Modal open={true} onClose={() => setActiveModal(null)}>
@@ -415,8 +442,14 @@ function SellerHomePage() {
         onChange={(e) => setProfile({ ...profile, confirmPassword: e.target.value })}
         fullWidth
         margin="normal"
-       />
-
+      />
+      <Typography variant="subtitle1" sx={{ mt: 2 }}>Upload Logo</Typography>
+      <input
+        type="file"
+        accept="image/*"
+        onChange={(e) => setProfile({ ...profile, LogoFile: e.target.files[0] })}
+        style={{ margin: "10px 0" }}
+      />
       <Button
         variant="contained"
         onClick={editProfile}
@@ -427,6 +460,7 @@ function SellerHomePage() {
     </Box>
   </Modal>
 )}
+
 
 
 {activeModal === 'addProduct' && (
