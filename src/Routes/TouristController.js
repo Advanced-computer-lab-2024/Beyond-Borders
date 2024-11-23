@@ -3983,6 +3983,63 @@ function convertEgp(priceEgp, currency) {
   }
 }; */ 
 
+const fetchCityCode = async (req, res) => {
+  const { cityName } = req.query; // Use req.query for GET requests
+
+  // Validate input
+  if (!cityName) {
+      return res.status(400).json({ msg: "City name is required." });
+  }
+
+  try {
+      const apiKey = 'R7I0zjR1VKm8bGjuDyptuKbOobYnqoKu';
+      const apiSecret = 'unDRSQSWZtYDRwS8';
+      const tokenUrl = 'https://test.api.amadeus.com/v1/security/oauth2/token';
+      const locationUrl = 'https://test.api.amadeus.com/v1/reference-data/locations';
+
+      // Get access token
+      const tokenResponse = await axios.post(tokenUrl, new URLSearchParams({
+          grant_type: 'client_credentials',
+          client_id: apiKey,
+          client_secret: apiSecret,
+      }), {
+          headers: {
+              'Content-Type': 'application/x-www-form-urlencoded',
+          },
+      });
+
+      const accessToken = tokenResponse.data.access_token;
+
+      // Fetch city code
+      const locationResponse = await axios.get(locationUrl, {
+          headers: {
+              Authorization: `Bearer ${accessToken}`,
+          },
+          params: {
+              keyword: cityName,
+              subType: 'CITY', // Ensures we're searching for cities
+          },
+      });
+
+      const locations = locationResponse.data.data;
+
+      // Check if city code is found
+      if (!locations || locations.length === 0) {
+          return res.status(404).json({ msg: `No city code found for the city: ${cityName}` });
+      }
+
+      // Extract the first matching city code
+      const cityCode = locations[0].iataCode;
+
+      // Log and return the city code
+      console.log(`City: ${cityName}, Code: ${cityCode}`);
+      res.status(200).json({ cityName, cityCode });
+  } catch (error) {
+      console.error('Error fetching city code:', error);
+      res.status(500).json({ msg: "An error occurred while fetching the city code.", error: error.message });
+  }
+};
+
 
 
 
@@ -6393,4 +6450,4 @@ const sendUpcomingEventNotifications = async () => {
 module.exports = {createTourist, getTourist, updateTourist, searchProductTourist, filterActivities, filterProductByPriceTourist, ActivityRating, sortProductsDescendingTourist, sortProductsAscendingTourist, ViewAllUpcomingActivities, ViewAllUpcomingMuseumEventsTourist, getMuseumsByTagTourist, getHistoricalPlacesByTagTourist, ViewAllUpcomingHistoricalPlacesEventsTourist,viewProductsTourist, sortActivitiesPriceAscendingTourist, sortActivitiesPriceDescendingTourist, sortActivitiesRatingAscendingTourist, sortActivitiesRatingDescendingTourist, loginTourist, ViewAllUpcomingItinerariesTourist, sortItinerariesPriceAscendingTourist, sortItinerariesPriceDescendingTourist, filterItinerariesTourist, ActivitiesSearchAll, ItinerarySearchAll, MuseumSearchAll, HistoricalPlacesSearchAll, ProductRating, createComplaint, getComplaintsByTouristUsername,ChooseActivitiesByCategoryTourist,bookActivity,bookItinerary,bookMuseum,bookHistoricalPlace, ratePurchasedProduct, addPurchasedProducts, reviewPurchasedProduct, addCompletedItinerary, rateTourGuide, commentOnTourGuide, rateCompletedItinerary, commentOnItinerary, addCompletedActivities, addCompletedMuseumEvents, addCompletedHPEvents, rateCompletedActivity, rateCompletedMuseum, rateCompletedHP, commentOnActivity, commentOnMuseum, commentOnHP,deleteBookedActivity,deleteBookedItinerary,deleteBookedMuseum,deleteBookedHP,payActivity,updateWallet,updatepoints,payItinerary,payMuseum,payHP,redeemPoints, convertEgp, fetchFlights,viewBookedItineraries, requestDeleteAccountTourist,convertCurr,getActivityDetails,getHistoricalPlaceDetails,getMuseumDetails,GetCopyLink, bookFlight
   ,fetchHotelsByCity, fetchHotels, bookHotel,bookTransportation,addPreferences, viewMyCompletedActivities, viewMyCompletedItineraries, viewMyCompletedMuseums, viewMyCompletedHistoricalPlaces,viewMyBookedActivities,viewMyBookedItineraries,viewMyBookedMuseums,viewMyBookedHistoricalPlaces,viewTourGuidesCompleted,viewAllTransportation, getItineraryDetails, viewPreferenceTags,viewPurchasedProducts,viewBookedActivities,viewMyBookedTransportation,addBookmark
 , payActivityByCard, payItineraryByCard, payMuseumByCard, payHPByCard, sendOtp, loginTouristOTP,viewBookmarks, addToWishList, viewMyWishlist, removeFromWishlist, addToCartFromWishlist, addToCart, removeFromCart, changeProductQuantityInCart, checkout, addDeliveryAddress, viewDeliveryAddresses,chooseDeliveryAddress,payOrderWallet,payOrderCash,viewOrderDetails,cancelOrder,cancelOrder,markOrdersAsDelivered,viewAllOrders,sendUpcomingEventNotifications,payOrderStripe
-,payItineraryStripe,payActivityStripe,payMuseumStripe,payHPStripe};
+,payItineraryStripe,payActivityStripe,payMuseumStripe,payHPStripe, fetchCityCode};
