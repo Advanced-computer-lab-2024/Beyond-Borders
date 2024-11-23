@@ -724,19 +724,20 @@ const HomePageTourGuide = () => {
       bgcolor: "background.paper",
       p: 4,
       borderRadius: 1,
+      boxShadow: 24,
     }}
   >
-    <Typography variant="h6" component="h2">
+    <Typography variant="h6" component="h2" sx={{ mb: 2 }}>
       My Profile
     </Typography>
 
-    {/* Profile Picture Circle */}
+    {/* Profile Picture Circle with Edit Icon */}
     <Box
       sx={{
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        marginBottom: "20px",
+        position: "relative",
+        width: "120px",
+        height: "120px",
+        margin: "0 auto 20px",
       }}
     >
       {profileData.logo ? (
@@ -744,8 +745,8 @@ const HomePageTourGuide = () => {
           src={profileData.logo}
           alt="Profile"
           style={{
-            width: "100px",
-            height: "100px",
+            width: "100%",
+            height: "100%",
             borderRadius: "50%",
             border: "2px solid #192959",
             objectFit: "cover",
@@ -754,8 +755,8 @@ const HomePageTourGuide = () => {
       ) : (
         <Box
           sx={{
-            width: "100px",
-            height: "100px",
+            width: "100%",
+            height: "100%",
             borderRadius: "50%",
             backgroundColor: "#e6e7ed",
             display: "flex",
@@ -765,13 +766,53 @@ const HomePageTourGuide = () => {
           }}
         >
           <Typography variant="body2" color="text.secondary">
-            No Image
+            Profile Picture
           </Typography>
         </Box>
       )}
+
+      {/* Edit Icon Overlay */}
+      <IconButton
+  sx={{
+    position: "absolute",
+    bottom: "5px",
+    right: "5px",
+    backgroundColor: "#192959",
+    color: "#fff",
+    padding: "5px", // Adjust the padding to make the button smaller
+    fontSize: "14px", // Smaller font size for the icon
+    "&:hover": {
+      backgroundColor: "#3a4a90",
+    },
+  }}
+  component="label"
+>
+  <input
+    type="file"
+    hidden
+    accept="image/*"
+    onChange={(e) => {
+      const file = e.target.files[0];
+      if (file) {
+        setProfileData({ ...profileData, logoFile: file });
+      }
+    }}
+  />
+  <Typography
+    sx={{
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      fontSize: "12px", // Reduce font size for the text/icon inside
+    }}
+  >
+    ✎
+  </Typography>
+</IconButton>
     </Box>
 
-    <Box component="form" sx={{ mt: 2 }}>
+    {/* Form Inputs */}
+    <Box component="form">
       <TextField
         fullWidth
         label="Username"
@@ -827,20 +868,12 @@ const HomePageTourGuide = () => {
         fullWidth
         label="Previous Work"
         id="previousWork"
-        type="url"
         value={profileData.previousWork}
         onChange={(e) => setProfileData({ ...profileData, previousWork: e.target.value })}
         margin="dense"
       />
-      <TextField
-        fullWidth
-        label="Profile Picture"
-        id="logo"
-        type="file"
-        InputLabelProps={{ shrink: true }}
-        inputProps={{ accept: "image/*" }}
-        onChange={(e) => setProfileData({ ...profileData, logoFile: e.target.files[0] })}
-      />
+
+      {/* Save Button */}
       <Button
         variant="outlined"
         onClick={saveProfile}
@@ -862,6 +895,7 @@ const HomePageTourGuide = () => {
     </Box>
   </Box>
 </Modal>
+
 
         </Box>
     );
