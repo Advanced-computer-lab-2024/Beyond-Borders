@@ -39,6 +39,8 @@ const user = require('./Models/User'); //transparent so not used in javaScript
 
 // Serve static files from the 'public' directory
 app.use('/images', express.static(path.join(__dirname, 'public')));
+app.use("/uploads", express.static(path.join(__dirname, "uploads/logos")));
+
 
 // #Importing the userController
 
@@ -67,6 +69,31 @@ app.get("/home", (req, res) => {
   //404 - error
 
 // #Routing to userController here
+///////////////////////Multer////////////
+const multer = require("multer");
+
+// Configure storage for Multer
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, path.join(__dirname, "/uploads/logos")); // Destination folder
+  },
+  filename: function (req, file, cb) {
+    cb(null, Date.now() + path.extname(file.originalname)); // Unique file name
+  }
+});
+
+// File filter to allow only images
+const fileFilter = (req, file, cb) => {
+  if (file.mimetype.startsWith("image/")) {
+    cb(null, true);
+  } else {
+    cb(new Error("Only image files are allowed!"), false);
+  }
+};
+
+// Initialize Multer
+const upload = multer({ storage, fileFilter });
+
 app.use(cors());
 app.use(express.json())
 app.post("/addTourist", createTourist);
@@ -86,10 +113,10 @@ app.post("/rejectSeller", rejectSeller);
 app.post("/rejectTourGuide", rejectTourGuide);
 app.post("/rejectAdvertiser", rejectAdvertiser);
 app.get("/api/viewTourist", getTourist);
-app.post("/api/filterActivities", filterActivities);//
+app.post("/api/filterActivities", filterActivities);
 app.put("/api/updateTourist", updateTourist);
 app.get("/api/readSellerProfile", readSellerProfile);
-app.put("/api/updateSeller", updateSeller);
+app.put("/api/updateSeller", upload.single("Logo"), updateSeller);
 app.post("/api/createNewCategory", createNewCategory);
 app.post("/api/createNewTag", createNewTag);
 app.get("/api/readAllActivityCategories", readAllActivityCategories);
