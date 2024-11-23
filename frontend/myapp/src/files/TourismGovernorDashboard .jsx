@@ -1,39 +1,49 @@
-// src/files/Tourist/TourismGovernorDashboard.jsx
 import React, { useState } from 'react';
-import { Box, Button, Modal, TextField, Typography } from '@mui/material';
+import { Box, Button, Modal, TextField, Typography, IconButton } from '@mui/material';
+import MenuIcon from '@mui/icons-material/Menu';
+import MuseumIcon from '@mui/icons-material/AccountBalance';
+import HistoricalPlaceIcon from '@mui/icons-material/HistoryEdu';
+import CloseIcon from '@mui/icons-material/Close';
+import NotificationsIcon from '@mui/icons-material/Notifications';
+import LogoutIcon from '@mui/icons-material/Logout';
+import { useNavigate } from 'react-router-dom'; // For navigation
 import axios from 'axios';
+
 
 const TourismGovernorDashboard = () => {
   const [tagName, setTagName] = useState('');
   const [showTagForm, setShowTagForm] = useState(false);
   const [responseMessage, setResponseMessage] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
-
-  // New states for password update
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [newPassword, setNewPassword] = useState('');
   const [passwordUpdateMessage, setPasswordUpdateMessage] = useState('');
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const navigate = useNavigate(); // Hook for navigation
 
-  // Toggle the Add Tag form visibility
+  const handleLogout = () => {
+    // Retrieve credentials from localStorage
+    const username = localStorage.getItem('username') || '';
+    const password = localStorage.getItem('password') || '';
+  
+    // Redirect to the login page with credentials autofilled
+    navigate('/login', { state: { username, password } });
+  };
+  
   const toggleTagForm = () => {
     setShowTagForm(!showTagForm);
     setResponseMessage('');
     setErrorMessage('');
   };
 
-  // Toggle the Update Password modal visibility
   const togglePasswordModal = () => {
     setShowPasswordModal(!showPasswordModal);
     setPasswordUpdateMessage('');
     setErrorMessage('');
   };
 
-  // Handle form submission for adding a new tag
   const handleTagFormSubmit = async (event) => {
     event.preventDefault();
-
-    setResponseMessage('');
-    setErrorMessage('');
 
     const formData = { NameOfHistoricalTags: tagName };
 
@@ -50,193 +60,263 @@ const TourismGovernorDashboard = () => {
 
       if (response.ok) {
         setResponseMessage('Historical Tag added successfully!');
-        setErrorMessage('');
         setTagName(''); // Reset the form
       } else {
         setErrorMessage(`Error: ${result.error}`);
-        setResponseMessage('');
       }
     } catch (error) {
       setErrorMessage('An error occurred. Please try again.');
-      setResponseMessage('');
     }
   };
 
-  // Handle form submission for updating the password
   const handlePasswordFormSubmit = async (event) => {
     event.preventDefault();
-  
-    setPasswordUpdateMessage('');
-    setErrorMessage('');
-  
-    const username = localStorage.getItem('username'); // Assuming username is stored in localStorage
+
+    const username = localStorage.getItem('username');
     const formData = { Username: username, newPassword };
-  
+
     try {
       const response = await axios.put('/updateGovernorPassword', formData);
-  
+
       if (response.status === 200) {
         setPasswordUpdateMessage('Password updated successfully!');
-        setErrorMessage('');
-        setNewPassword(''); // Reset the password field
-        window.alert('Password updated successfully!'); // Show alert
-        togglePasswordModal(); // Close the modal
+        setNewPassword('');
+        togglePasswordModal();
       } else {
         setErrorMessage(`Error: ${response.data.error}`);
-        setPasswordUpdateMessage('');
       }
     } catch (error) {
       setErrorMessage('An error occurred while updating the password.');
-      setPasswordUpdateMessage('');
     }
   };
-  
+
   return (
-    <div style={styles.container}>
-      <h2 style={styles.heading}>Tourism Governor Dashboard</h2>
-      <button
-        style={styles.button}
-        onClick={() => (window.location.href = '/MuseumTG')}
-      >
-        Museums
-      </button>
-      <button
-        style={styles.button}
-        onClick={() => (window.location.href = '/HistoricalPlaceTG')}
-      >
-        Historical Places
-      </button>
-      <button style={styles.button} onClick={toggleTagForm}>
-        Add New Historical Tag
-      </button>
-      <button style={styles.button} onClick={togglePasswordModal}>
-        Change Password
-      </button>
-
-      {showTagForm && (
-        <div style={styles.tagForm}>
-          <h2 style={styles.heading}>Add New Historical Tag</h2>
-          <form onSubmit={handleTagFormSubmit}>
-            <div style={styles.formGroup}>
-              <label htmlFor="name">Tag Name:</label>
-              <input
-                type="text"
-                id="name"
-                value={tagName}
-                onChange={(e) => setTagName(e.target.value)}
-                placeholder="Tag Name"
-                required
-                style={styles.input}
-              />
-            </div>
-            <button type="submit" style={styles.submitButton}>
-              Add Historical Tag
-            </button>
-            {responseMessage && (
-              <div style={{ ...styles.message, color: 'green' }}>
-                {responseMessage}
-              </div>
-            )}
-            {errorMessage && (
-              <div style={{ ...styles.message, color: 'red' }}>
-                {errorMessage}
-              </div>
-            )}
-          </form>
-        </div>
-      )}
-
-      {/* Password Update Modal */}
-      <Modal open={showPasswordModal} onClose={togglePasswordModal}>
-        <Box sx={styles.modalContent}>
-          <Typography variant="h6" component="h2">
-            Update Password
+    <Box sx={styles.container}>
+      {/* Sidebar */}
+      <Box sx={{ ...styles.sidebar, width: sidebarOpen ? '250px' : '60px' }}>
+        <Box sx={styles.sidebarHeader}>
+          <Button onClick={() => setSidebarOpen(!sidebarOpen)} sx={styles.menuButton}>
+            {sidebarOpen ? <CloseIcon /> : <MenuIcon />}
+          </Button>
+          {sidebarOpen && (
+            <Typography variant="h6" sx={styles.sidebarTitle}>
+              Tourism Dashboard
+            </Typography>
+          )}
+        </Box>
+        <Button
+          sx={styles.sidebarButton}
+          onClick={() => (window.location.href = '/MuseumTG')}
+        >
+          <MuseumIcon sx={styles.icon} />
+          {sidebarOpen && 'Museums'}
+        </Button>
+        <Button
+          sx={styles.sidebarButton}
+          onClick={() => (window.location.href = '/HistoricalPlaceTG')}
+        >
+          <HistoricalPlaceIcon sx={styles.icon} />
+          {sidebarOpen && 'Historical Places'}
+        </Button>
+      </Box>
+  
+      {/* Main Content */}
+      <Box sx={{ ...styles.mainContent, marginLeft: sidebarOpen ? '250px' : '60px' }}>
+        {/* Top Menu */}
+        <Box sx={styles.topMenu}>
+          <Typography variant="h6" sx={styles.logo}>
+            Beyond Borders
           </Typography>
-          <form onSubmit={handlePasswordFormSubmit}>
-            <div style={styles.formGroup}>
-              <label htmlFor="newPassword">New Password:</label>
-              <TextField
-                type="password"
-                id="newPassword"
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-                placeholder="New Password"
-                required
-                fullWidth
-                sx={{ mt: 2 }}
-              />
-            </div>
-            <Button type="submit" variant="contained" color="primary" fullWidth sx={{ mt: 2 }}>
-              Update Password
+          <Box>
+            <Button sx={styles.menuButton} onClick={toggleTagForm}>
+              Add New Historical Tag
             </Button>
-            {passwordUpdateMessage && (
-              <div style={{ ...styles.message, color: 'green' }}>
-                {passwordUpdateMessage}
-              </div>
-            )}
-            {errorMessage && (
-              <div style={{ ...styles.message, color: 'red' }}>
-                {errorMessage}
-              </div>
-            )}
+            <Button sx={styles.menuButton} onClick={togglePasswordModal}>
+              Change Password
+            </Button>
+  
+            {/* Notification Button */}
+            <IconButton sx={styles.iconButton}>
+              <NotificationsIcon />
+            </IconButton>
+  
+            {/* Logout Button */}
+            <IconButton onClick={handleLogout} sx={styles.iconButton}>
+              <LogoutIcon />
+            </IconButton>
+          </Box>
+        </Box>
+  
+        {/* Buttons as Main Content */}
+        <Box sx={styles.content}>
+          <Box sx={styles.infoBox} onClick={() => (window.location.href = '/MuseumTG')}>
+    
+            <Typography sx={styles.text}>Museums</Typography>
+          </Box>
+          <Box
+            sx={styles.infoBox}
+            onClick={() => (window.location.href = '/HistoricalPlaceTG')}
+          >
+            <Typography sx={styles.text}>Historical Places</Typography>
+          </Box>
+        </Box>
+      </Box>
+  
+      {/* Add Historical Tag Modal */}
+      <Modal open={showTagForm} onClose={toggleTagForm}>
+        <Box sx={styles.modalContent}>
+          <Typography variant="h6">Add New Historical Tag</Typography>
+          <form onSubmit={handleTagFormSubmit}>
+            <TextField
+              label="Tag Name"
+              value={tagName}
+              onChange={(e) => setTagName(e.target.value)}
+              fullWidth
+              required
+              sx={{ mt: 2, mb: 2 }}
+            />
+            <Button type="submit" variant="contained" sx={styles.actionButton}>
+              Add Tag
+            </Button>
           </form>
+          {responseMessage && (
+            <Typography sx={{ color: 'green', mt: 2 }}>{responseMessage}</Typography>
+          )}
+          {errorMessage && (
+            <Typography sx={{ color: 'red', mt: 2 }}>{errorMessage}</Typography>
+          )}
         </Box>
       </Modal>
-    </div>
+  
+      {/* Change Password Modal */}
+      <Modal open={showPasswordModal} onClose={togglePasswordModal}>
+        <Box sx={styles.modalContent}>
+          <Typography variant="h6">Change Password</Typography>
+          <form onSubmit={handlePasswordFormSubmit}>
+            <TextField
+              label="New Password"
+              type="password"
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+              fullWidth
+              required
+              sx={{ mt: 2, mb: 2 }}
+            />
+            <Button type="submit" variant="contained" sx={styles.actionButton}>
+              Update Password
+            </Button>
+          </form>
+          {passwordUpdateMessage && (
+            <Typography sx={{ color: 'green', mt: 2 }}>{passwordUpdateMessage}</Typography>
+          )}
+          {errorMessage && (
+            <Typography sx={{ color: 'red', mt: 2 }}>{errorMessage}</Typography>
+          )}
+        </Box>
+      </Modal>
+    </Box>
   );
+  
+  
 };
 
-// Inline styles for the component
 const styles = {
   container: {
-    maxWidth: '600px',
-    backgroundColor: '#fff',
-    padding: '30px',
-    borderRadius: '10px',
-    boxShadow: '0 0 15px rgba(0, 0, 0, 0.2)',
-    textAlign: 'center',
-    fontFamily: 'Arial, sans-serif',
-    margin: '20px auto',
+    display: 'flex',
+    minHeight: '100vh',
+    backgroundColor: '#e6e7ed',
   },
-  heading: {
-    marginBottom: '20px',
+  sidebar: {
+    backgroundColor: '#4d587e', // Matches button colors
+    color: '#e6e7ed',
+    height: '100%',
+    position: 'fixed',
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    transition: 'width 0.3s ease',
   },
-  button: {
-    backgroundColor: '#28a745',
-    color: 'white',
-    padding: '15px',
-    border: 'none',
-    borderRadius: '5px',
-    cursor: 'pointer',
-    margin: '10px',
+  sidebarHeader: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: '20px',
+  },
+  sidebarTitle: {
+    fontWeight: 'bold',
+    marginLeft: '10px',
+  },
+  sidebarButton: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'flex-start',
+    width: '100%',
+    padding: '10px 20px',
+    color: '#e6e7ed',
     fontSize: '16px',
-    width: '80%',
+    '&:hover': {
+      backgroundColor: '#192959',
+    },
   },
-  tagForm: {
-    marginTop: '20px',
+  icon: {
+    marginRight: '10px',
   },
-  formGroup: {
-    marginBottom: '15px',
+  mainContent: {
+    flex: 1,
+    display: 'flex',
+    flexDirection: 'column',
+    transition: 'margin-left 0.3s ease',
   },
-  input: {
+  topMenu: {
     width: '100%',
-    padding: '10px',
-    border: '1px solid #ccc',
-    borderRadius: '4px',
+    backgroundColor: '#192959',
+    color: '#e6e7ed',
+    padding: '10px 20px',
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
-  submitButton: {
-    backgroundColor: '#40be5b',
-    color: 'white',
-    padding: '10px',
-    border: 'none',
-    borderRadius: '4px',
+  logo: {
+    fontWeight: 'bold',
+  },
+  menuButton: {
+    color: '#e6e7ed',
+    fontWeight: 'bold',
+    '&:hover': {
+      backgroundColor: '#e6e7ed',
+      color: '#192959',
+    },
+  },
+  iconButton: {
+    color: '#e6e7ed',
+    '&:hover': {
+      backgroundColor: '#4d587e',
+    },
+  },
+  content: {
+    flex: 1,
+    display: 'grid',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+    gap: '20px',
+    padding: '20px',
+  },
+  infoBox: {
+    backgroundColor: '#4d587e',
+    color: '#e6e7ed',
+    borderRadius: '15px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: '20px',
+    boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.2)',
     cursor: 'pointer',
-    width: '100%',
-    marginTop: '10px',
+    '&:hover': {
+      transform: 'scale(1.05)',
+    },
   },
-  message: {
-    marginTop: '20px',
-    textAlign: 'center',
+  text: {
+    fontSize: '16px',
+    fontWeight: 'bold',
   },
   modalContent: {
     position: 'absolute',
@@ -249,6 +329,16 @@ const styles = {
     borderRadius: 2,
     boxShadow: 24,
   },
+  actionButton: {
+    backgroundColor: '#192959',
+    color: '#e6e7ed',
+    '&:hover': {
+      backgroundColor: '#4d587e',
+    },
+  },
+  
+    
 };
+
 
 export default TourismGovernorDashboard;
