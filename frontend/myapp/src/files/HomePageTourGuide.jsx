@@ -389,7 +389,7 @@ const HomePageTourGuide = () => {
   }
   onClick={readMyProfile}
 >
-  {profileData.username || "My Profile"}
+  {"My Profile"}
 </Button>
 
 
