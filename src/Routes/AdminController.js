@@ -1277,8 +1277,88 @@ const getAdminPassword = async (req, res) => {
     }
   };
   
+  const getAllUnregisteredAdvertisers = async (req, res) => {
+    try {
+      // Fetch all unregistered advertisers from the database
+      const advertisers = await NewUnregisteredAdvertiserModel.find();
+  
+      if (advertisers.length === 0) {
+        return res.status(404).json({ msg: "No unregistered advertisers found!" });
+      }
+  
+      // Respond with the list of advertisers
+      res.status(200).json({
+        msg: "Unregistered advertisers fetched successfully!",
+        advertisers,
+      });
+    } catch (error) {
+      // Handle any errors
+      res.status(500).json({ error: error.message });
+    }
+  };
+
+  const getAllUnregisteredTourGuides = async (req, res) => {
+    try {
+      // Fetch all unregistered tour guides from the database
+      const tourGuides = await NewUnregisteredTourGuideModel.find();
+  
+      if (tourGuides.length === 0) {
+        return res.status(404).json({ msg: "No unregistered tour guides found!" });
+      }
+  
+      // Respond with the list of tour guides
+      res.status(200).json({
+        msg: "Unregistered tour guides fetched successfully!",
+        tourGuides,
+      });
+    } catch (error) {
+      // Handle any errors
+      res.status(500).json({ error: error.message });
+    }
+};
+
+    const getAllUnregisteredSellers = async (req, res) => {
+        try {
+          // Fetch all unregistered sellers from the database
+          const sellers = await NewUnregisteredSellerModel.find();
+      
+          if (sellers.length === 0) {
+            return res.status(404).json({ msg: "No unregistered sellers found!" });
+          }
+      
+          // Respond with the list of sellers
+          res.status(200).json({
+            msg: "Unregistered sellers fetched successfully!",
+            sellers,
+          });
+        } catch (error) {
+          // Handle any errors
+          res.status(500).json({ error: error.message });
+        }
+      };
+
+      const getAllUnregisteredTransportationAdvertisers = async (req, res) => {
+        try {
+          // Fetch all unregistered transportation advertisers from the database
+          const transportationAdvertisers = await NewUnregisteredTransportationAdvertiserModel.find().sort({ createdAt: -1 });
+      
+          if (transportationAdvertisers.length === 0) {
+            return res.status(404).json({ msg: "No unregistered transportation advertisers found!" });
+          }
+      
+          // Respond with the list of transportation advertisers
+          res.status(200).json({
+            msg: "Unregistered transportation advertisers fetched successfully!",
+            transportationAdvertisers,
+          });
+        } catch (error) {
+          // Handle any errors
+          res.status(500).json({ error: error.message });
+        }
+      };
 
 
 module.exports = {createNewAdmin, createNewTourismGoverner, createNewProduct, editProduct, acceptSeller, rejectSeller, createNewCategory, readAllActivityCategories, updateCategory, deleteActivityCategory, deleteAccount, searchProductAdmin, createNewTag, readAllTags, updateTag, deleteTag, 
     acceptTourGuide, rejectTourGuide, acceptAdvertiser, rejectAdvertiser, filterProductByPriceAdmin, sortProductsDescendingAdmin, sortProductsAscendingAdmin,viewProducts, loginAdmin, viewAllProductsAdmin, updateAdminPassword, getAllComplaints, updateComplaintStatus, replyToComplaint, getComplaintDetails, 
-    filterComplaintsByStatus, sortComplaintsByRecent, sortComplaintsByOldest, archiveProduct, unarchiveProduct, flagItinerary, flagActivity, viewArchivedProductsAdmin , viewAllActivitiesAdmin ,viewAllItinerariesAdmin,acceptTranspAdvertiser,rejectTranspAdvertiser, readAllDeleteRequests,rejectRequestDeleteAccout, getAdminPassword,viewAdvertiserDocument,viewTourGuideDocuments,viewSellerDocument};
+    filterComplaintsByStatus, sortComplaintsByRecent, sortComplaintsByOldest, archiveProduct, unarchiveProduct, flagItinerary, flagActivity, viewArchivedProductsAdmin , viewAllActivitiesAdmin ,viewAllItinerariesAdmin,acceptTranspAdvertiser,rejectTranspAdvertiser, readAllDeleteRequests,rejectRequestDeleteAccout,
+    getAdminPassword,viewAdvertiserDocument,viewTourGuideDocuments,viewSellerDocument,getAllUnregisteredAdvertisers,getAllUnregisteredTourGuides,getAllUnregisteredSellers,getAllUnregisteredTransportationAdvertisers};
