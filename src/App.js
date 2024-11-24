@@ -72,32 +72,53 @@ app.get("/home", (req, res) => {
 ///////////////////////Multer////////////
 const multer = require("multer");
 
-// Configure storage for Multer
-const storage = multer.diskStorage({
+
+// Configure storage for images
+const imageStorage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, path.join(__dirname, "/uploads/logos")); // Destination folder
+    cb(null, path.join(__dirname, "/uploads/logos")); // Destination for images
   },
   filename: function (req, file, cb) {
     cb(null, Date.now() + path.extname(file.originalname)); // Unique file name
-  }
+  },
 });
 
-// File filter to allow only images
-const fileFilter = (req, file, cb) => {
+// Configure storage for PDFs
+const pdfStorage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, path.join(__dirname, "/uploads/documents")); // Destination for PDFs
+  },
+  filename: function (req, file, cb) {
+    cb(null, Date.now() + path.extname(file.originalname)); // Unique file name
+  },
+});
+
+// File filter for images
+const imageFileFilter = (req, file, cb) => {
   if (file.mimetype.startsWith("image/")) {
-    cb(null, true);
+    cb(null, true); // Accept images
   } else {
-    cb(new Error("Only image files are allowed!"), false);
+    cb(new Error("Only image files are allowed!"), false); // Reject non-images
   }
 };
 
-// Initialize Multer
-const upload = multer({ storage, fileFilter });
+// File filter for PDFs
+const pdfFileFilter = (req, file, cb) => {
+  if (file.mimetype === "application/pdf") {
+    cb(null, true); // Accept PDFs
+  } else {
+    cb(new Error("Only PDF files are allowed!"), false); // Reject non-PDFs
+  }
+};
+
+// Multer instances
+const uploadImage = multer({ storage: imageStorage, fileFilter: imageFileFilter });
+const uploadPDF = multer({ storage: pdfStorage, fileFilter: pdfFileFilter });
 
 app.use(cors());
 app.use(express.json())
 app.post("/addTourist", createTourist);
-app.post("/addUnregisteredTourGuide", createUnregisteredTourGuide);
+app.post('/addUnregisteredTourGuide',uploadPDF.fields([{ name: 'IDDocument', maxCount: 1 }, { name: 'CertificateDocument', maxCount: 1 }]),createUnregisteredTourGuide);
 app.post("/addUnregisteredSeller", createUnregisteredSeller);
 app.post("/addUnregisteredAdvertiser", createUnregisteredAdvertiser);
 app.post("/addTourismGovernor", createNewTourismGoverner);
@@ -116,7 +137,7 @@ app.get("/api/viewTourist", getTourist);
 app.post("/api/filterActivities", filterActivities);
 app.put("/api/updateTourist", updateTourist);
 app.get("/api/readSellerProfile", readSellerProfile);
-app.put("/api/updateSeller", upload.single("Logo"), updateSeller);
+app.put("/api/updateSeller", uploadImage.single("Logo"), updateSeller);
 app.post("/api/createNewCategory", createNewCategory);
 app.post("/api/createNewTag", createNewTag);
 app.get("/api/readAllActivityCategories", readAllActivityCategories);
@@ -129,7 +150,7 @@ app.post("/deleteAccount", deleteAccount);
 app.get("/searchProductAdmin", searchProductAdmin);
 app.get("/searchProductSeller", searchProductSeller);
 app.get("/searchProductTourist", searchProductTourist);
-app.put("/api/updateTourGuideProfile",upload.single("Logo"), updateTourGuideProfile);
+app.put("/api/updateTourGuideProfile",uploadImage.single("Logo"), updateTourGuideProfile);
 app.get("/filterProductByPriceAdmin", filterProductByPriceAdmin);
 app.post("/api/filterProductByPriceTourist", filterProductByPriceTourist);
 app.post("/api/filterProductByPriceSeller", filterProductByPriceSeller);

@@ -1,18 +1,20 @@
-import React, { useState } from 'react';
-import { Box, Button, TextField, Typography } from '@mui/material';
-import axios from 'axios';
+import React, { useState } from "react";
+import { Box, Button, TextField, Typography, Grid } from "@mui/material";
+import axios from "axios";
 
 const RegisterTourGuide = () => {
   const [formData, setFormData] = useState({
-    Email: '',
-    Username: '',
-    Password: '',
-    MobileNum: '',
-    YearsOfExperience: '',
-    PreviousWork: '',
+    Email: "",
+    Username: "",
+    Password: "",
+    MobileNum: "",
+    YearsOfExperience: "",
+    PreviousWork: "",
+    IDDocument: null,
+    CertificateDocument: null,
   });
 
-  const [responseMessage, setResponseMessage] = useState('');
+  const [responseMessage, setResponseMessage] = useState("");
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -22,53 +24,67 @@ const RegisterTourGuide = () => {
     });
   };
 
-  // Handle form submission
-const handleSubmit = async (e) => {
-    e.preventDefault(); // Prevent the default form submission
-    setResponseMessage(''); // Clear previous messages
+  const handleFileChange = (e) => {
+    const { name } = e.target;
+    setFormData({
+      ...formData,
+      [name]: e.target.files[0],
+    });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setResponseMessage("");
 
     try {
-        // Send the POST request to register the tour guide
-        const response = await axios.post('http://localhost:8000/addUnregisteredTourGuide', formData);
-        const result = response.data; // Access the response data
+      const data = new FormData();
+      for (const key in formData) {
+        data.append(key, formData[key]);
+      }
 
-        // Check if the response is successful
-        if (response.status === 200) { // Assuming a 200 status indicates success
-            setResponseMessage('Tour Guide registered successfully!');
+      const response = await axios.post(
+        "http://localhost:8000/addUnregisteredTourGuide",
+        data,
+        { headers: { "Content-Type": "multipart/form-data" } }
+      );
 
-            // Redirect after 2 seconds
-            setTimeout(() => {
-                window.location.href = '/loginTourGuide'; // Redirect to login page
-            }, 2000);
-        } else {
-            // Handle error case if the response doesn't indicate success
-            setResponseMessage(`Error: ${result.error || 'Failed to register tour guide.'}`);
-        }
+      if (response.status === 200) {
+        setResponseMessage("Tour Guide registered successfully!");
+        setTimeout(() => {
+          window.location.href = "/loginTourGuide";
+        }, 2000);
+      } else {
+        setResponseMessage(
+          `Error: ${response.data.error || "Failed to register tour guide."}`
+        );
+      }
     } catch (error) {
-        // Handle Axios errors
-        if (error.response && error.response.data) {
-            setResponseMessage(`Error: ${error.response.data.error || 'An error occurred.'}`);
-        } else {
-            setResponseMessage('An error occurred. Please try again.');
-        }
-        console.error('Error registering tour guide:', error); // Log the error for debugging
+      if (error.response && error.response.data) {
+        setResponseMessage(
+          `Error: ${error.response.data.error || "An error occurred."}`
+        );
+      } else {
+        setResponseMessage("An error occurred. Please try again.");
+      }
     }
-};
+  };
 
   return (
     <Box
       className="container"
       sx={{
-        maxWidth: '600px',
-        margin: 'auto',
-        background: '#fff',
-        padding: '20px',
-        borderRadius: '5px',
-        boxShadow: '0 0 10px rgba(0, 0, 0, 0.1)',
+        maxWidth: "600px",
+        margin: "auto",
+        background: "#fff",
+        padding: "20px",
+        borderRadius: "5px",
+        boxShadow: "0 0 10px rgba(0, 0, 0, 0.1)",
       }}
     >
-      <Typography variant="h4" align="center">Register Tour Guide</Typography>
-      <form onSubmit={handleSubmit}>
+      <Typography variant="h4" align="center">
+        Register Tour Guide
+      </Typography>
+      <form onSubmit={handleSubmit} encType="multipart/form-data">
         <TextField
           fullWidth
           margin="normal"
@@ -125,23 +141,86 @@ const handleSubmit = async (e) => {
           value={formData.PreviousWork}
           onChange={handleChange}
         />
+
+        {/* File Upload Fields */}
+        <Typography 
+  variant="h6" 
+  sx={{ marginTop: "20px", textAlign: "left", fontSize: "14px" }} // Align text to the left
+>
+  Upload Documents:
+</Typography>
+<Grid container spacing={2} sx={{ marginTop: "10px" }}>
+  <Grid item xs={6}>
+    <Button
+      variant="outlined"
+      component="label"
+      fullWidth
+      sx={{ textTransform: "none" }}
+    >
+      Upload ID Document
+      <input
+        type="file"
+        name="IDDocument"
+        accept="application/pdf"
+        hidden
+        onChange={handleFileChange}
+      />
+    </Button>
+    {formData.IDDocument && (
+      <Typography variant="body2" sx={{ marginTop: "5px" }}>
+        Selected: {formData.IDDocument.name}
+      </Typography>
+    )}
+  </Grid>
+
+  <Grid item xs={6}>
+    <Button
+      variant="outlined"
+      component="label"
+      fullWidth
+      sx={{ textTransform: "none" }}
+    >
+      Upload Certificate
+      <input
+        type="file"
+        name="CertificateDocument"
+        accept="application/pdf"
+        hidden
+        onChange={handleFileChange}
+      />
+    </Button>
+    {formData.CertificateDocument && (
+      <Typography variant="body2" sx={{ marginTop: "5px" }}>
+        Selected: {formData.CertificateDocument.name}
+      </Typography>
+    )}
+  </Grid>
+</Grid>
         <Button
           type="submit"
           variant="contained"
           sx={{
-            backgroundColor: '#192959',
-            color: 'white',
-            padding: '10px',
-            borderRadius: '4px',
-            width: '100%',
-            '&:hover': { backgroundColor: '#4b5a86' },
+            backgroundColor: "#192959",
+            color: "white",
+            padding: "10px",
+            borderRadius: "4px",
+            width: "100%",
+            marginTop: "20px",
+            "&:hover": { backgroundColor: "#4b5a86" },
           }}
         >
           Register
         </Button>
       </form>
       {responseMessage && (
-        <Typography variant="body1" align="center" sx={{ marginTop: '20px', color: responseMessage.includes('Error') ? 'red' : 'green' }}>
+        <Typography
+          variant="body1"
+          align="center"
+          sx={{
+            marginTop: "20px",
+            color: responseMessage.includes("Error") ? "red" : "green",
+          }}
+        >
           {responseMessage}
         </Typography>
       )}

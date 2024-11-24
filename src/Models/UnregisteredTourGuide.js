@@ -8,25 +8,33 @@ const UnregisteredTourGuideSchema = new Schema({
   },
   Email: {
     type: String,
-    required: true
+    required: true,
   },
   Password: {
     type: String,
     required: true,
   },
-  MobileNum :{
-    type: String ,
-    required : true, 
+  MobileNum: {
+    type: String,
+    required: true,
   },
-  YearsOfExperience :{
-    type : Number,
-    required : true ,
+  YearsOfExperience: {
+    type: Number,
+    required: true,
   },
-  PreviousWork : {
-  type : String ,
-  required : false,
-  }
-}, { timestamps: true }); //adds 2 more field (Created At:) & (Updated At:)
+  PreviousWork: {
+    type: String,
+    required: false,
+  },
+  IDDocument: {
+    type: String, // Store file path as a string
+    required: true,
+  },
+  CertificateDocument: {
+    type: String, // Store file path as a string
+    required: true,
+  },
+}, { timestamps: true });
 
 const UnregisteredTourGuide = mongoose.model('UnregisteredTourGuide', UnregisteredTourGuideSchema);
 module.exports = UnregisteredTourGuide;
