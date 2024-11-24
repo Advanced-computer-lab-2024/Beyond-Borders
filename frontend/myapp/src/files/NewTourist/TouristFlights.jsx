@@ -113,13 +113,13 @@ const [errorMessage, setErrorMessage] = useState('');
   const handleSearchFlights = async () => {
     try {
       setErrorMessage(""); // Clear previous errors
-
+  
       // Fetch city codes for origin and destination
       const [originCode, destinationCode] = await Promise.all([
         fetchCityCode(origin),
         fetchCityCode(destination),
       ]);
-
+  
       // Call the existing flight search function with city codes
       const response = await axios.post("/fetchFlights", {
         origin: originCode,
@@ -127,14 +127,15 @@ const [errorMessage, setErrorMessage] = useState('');
         departureDate,
         returnDate,
         adults,
-        direct: directFlight, // Send the checkbox value
+        direct: directFlight ? true : false, // Ensure boolean value
       });
-
+  
       setFlightOffers(response.data); // Set the flight offers to the state
     } catch (error) {
-      setErrorMessage(error.message); // Display error message
+      setErrorMessage(error.response?.data?.msg || "An error occurred while searching for flights.");
     }
   };
+  
 
   const handleBookFlight = async (flightID) => {
     const touristUsername = localStorage.getItem('username');
