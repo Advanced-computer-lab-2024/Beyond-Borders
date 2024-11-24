@@ -724,7 +724,7 @@ const [errorMessage, setErrorMessage] = useState('');
     {hotelOffers.length > 0 && (
   <Box sx={{ marginTop: "20px", width: "80%", margin: "0 auto" }}>
     <Typography variant="h5" sx={{ marginBottom: "20px", textAlign: "center" }}>
-      Available Hotels
+ 
     </Typography>
     {hotelOffers.map((hotel, index) => (
       <Box
@@ -738,6 +738,8 @@ const [errorMessage, setErrorMessage] = useState('');
           position: "relative", // Position relative for the Book button
           display: "flex", // Use flex for two-column layout
           justifyContent: "space-between", // Space between the columns
+          minHeight:"220px",
+          
           gap: "20px",
         }}
       >
@@ -749,6 +751,9 @@ const [errorMessage, setErrorMessage] = useState('');
             sx={{
               fontWeight: "bold",
               textAlign: "left", // Align to left
+              marginTop:"10px",
+              marginLeft:"20px"
+              
             }}
           >
             {hotel.hotelName}
@@ -756,7 +761,7 @@ const [errorMessage, setErrorMessage] = useState('');
 
           {/* City */}
           <Box sx={{ display: "flex", alignItems: "center" }}>
-            <LocationOnIcon sx={{ color: "#192959", marginRight: "8px" }} />
+            <LocationOnIcon sx={{ color: "#192959", marginRight: "8px",marginLeft:"20px" }} />
             <Typography sx={{ fontSize: "16px" }}>
               City: {hotel.roomOffers[0]?.cityCode || "N/A"}
             </Typography>
@@ -764,7 +769,7 @@ const [errorMessage, setErrorMessage] = useState('');
 
           {/* Price */}
           <Box sx={{ display: "flex", alignItems: "center" }}>
-            <PaymentIcon sx={{ color: "#192959", marginRight: "8px" }} />
+            <PaymentIcon sx={{ color: "#192959", marginRight: "8px",marginLeft:"20px" }} />
             <Typography sx={{ fontSize: "16px" }}>
               Price: {hotel.roomOffers[0]?.price || "N/A"} {hotel.roomOffers[0]?.currency || ""}
             </Typography>
@@ -772,13 +777,13 @@ const [errorMessage, setErrorMessage] = useState('');
 
           {/* Check-In and Check-Out Dates */}
           <Box sx={{ display: "flex", alignItems: "center" }}>
-            <CalendarTodayIcon sx={{ color: "#192959", marginRight: "8px" }} />
+            <CalendarTodayIcon sx={{ color: "#192959", marginRight: "8px",marginLeft:"20px" }} />
             <Typography sx={{ fontSize: "16px" }}>
               Check-In: {hotel.roomOffers[0]?.checkInDate}
             </Typography>
           </Box>
           <Box sx={{ display: "flex", alignItems: "center" }}>
-            <CalendarTodayIcon sx={{ color: "#192959", marginRight: "8px" }} />
+            <CalendarTodayIcon sx={{ color: "#192959", marginRight: "8px",marginLeft:"20px" }} />
             <Typography sx={{ fontSize: "16px" }}>
               Check-Out: {hotel.roomOffers[0]?.checkOutDate}
             </Typography>
@@ -790,7 +795,8 @@ const [errorMessage, setErrorMessage] = useState('');
           orientation="vertical"
           flexItem
           sx={{
-            borderRight: "1px solid #ddd",
+            borderRight: "1px solid #ddd"
+            
           }}
         />
 
@@ -801,6 +807,7 @@ const [errorMessage, setErrorMessage] = useState('');
             display: "flex",
             flexDirection: "column",
             gap: "10px",
+            marginTop:"45px",
             paddingLeft: "20px", // Padding to align text next to the divider
           }}
         >
