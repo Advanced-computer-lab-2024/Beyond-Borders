@@ -182,7 +182,7 @@ const [errorMessage, setErrorMessage] = useState('');
     try {
       const response = await axios.post('/bookHotel', {
         hotelNumber,
-        touristUsername,
+        touristUsername: touristUsername,
       });
       alert(response.data.msg); // Show success message
     } catch (error) {
@@ -761,9 +761,9 @@ const [errorMessage, setErrorMessage] = useState('');
 
           {/* City */}
           <Box sx={{ display: "flex", alignItems: "center" }}>
-            <LocationOnIcon sx={{ color: "#192959", marginRight: "8px",marginLeft:"20px" }} />
+            <LocationOnIcon sx={{ color: "#192959", marginRight: "8px", marginLeft: "20px" }} />
             <Typography sx={{ fontSize: "16px" }}>
-              City: {hotel.roomOffers[0]?.cityCode || "N/A"}
+              City Code: {hotel.cityCode || "N/A"}
             </Typography>
           </Box>
 
@@ -771,7 +771,7 @@ const [errorMessage, setErrorMessage] = useState('');
           <Box sx={{ display: "flex", alignItems: "center" }}>
             <PaymentIcon sx={{ color: "#192959", marginRight: "8px",marginLeft:"20px" }} />
             <Typography sx={{ fontSize: "16px" }}>
-              Price: {hotel.roomOffers[0]?.price || "N/A"} {hotel.roomOffers[0]?.currency || ""}
+              Price: {hotel.roomOffers[0]?.price || "N/A"}
             </Typography>
           </Box>
 
@@ -824,6 +824,22 @@ const [errorMessage, setErrorMessage] = useState('');
             </Typography>
             <Typography sx={{ fontSize: "16px", color: "#666" }}>
               {hotel.roomOffers[0]?.bedType ||
+                "N/A"}
+            
+            </Typography>
+          </Box>
+          <Box sx={{ display: "flex", alignItems: "center" }}>
+            <Typography
+              sx={{
+                fontWeight: "bold",
+                marginRight: "8px",
+                fontSize: "16px",
+              }}
+            >
+              Board Type:
+            </Typography>
+            <Typography sx={{ fontSize: "16px", color: "#666" }}>
+              {hotel.roomOffers[0]?.boardType ||
                 "N/A"}
             
             </Typography>
@@ -884,15 +900,6 @@ const [errorMessage, setErrorMessage] = useState('');
   </Box>
 )}
 
-
-
-
-
-
-
-
-
-
   
       {/* Collapsible Sidebar */}
       <Box
@@ -904,9 +911,9 @@ const [errorMessage, setErrorMessage] = useState('');
         onMouseLeave={() => setSidebarOpen(false)}
       >
 
-        <Button onClick={() => navigate('/products')} sx={styles.sidebarButton}>
-          <BedIcon sx={styles.icon} />
-          {sidebarOpen && 'Hotels'}
+<Button onClick={() => navigate('/TouristFlights')} sx={styles.sidebarButton}>
+          <FlightIcon sx={styles.icon} />
+          {sidebarOpen && 'Flights'}
         </Button>
         <Box>
   <Button

@@ -913,7 +913,7 @@ const [errorMessage, setErrorMessage] = useState('');
         onMouseLeave={() => setSidebarOpen(false)}
       >
 
-        <Button onClick={() => navigate('/products')} sx={styles.sidebarButton}>
+        <Button onClick={() => navigate('/TouristHotels')} sx={styles.sidebarButton}>
           <BedIcon sx={styles.icon} />
           {sidebarOpen && 'Hotels'}
         </Button>
