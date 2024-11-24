@@ -165,7 +165,7 @@ app.get("/api/sortProductsDescendingTourist", sortProductsDescendingTourist);
 app.get("/api/sortProductsAscendingTourist", sortProductsAscendingTourist);
 app.get("/filterActivitiesGuest", filterActivitiesGuest);
 app.post("/api/getMuseumsByTagGuest", getMuseumsByTagGuest);
-app.get("/getMuseumsByTagTourist", getMuseumsByTagTourist);
+app.post("/api/getMuseumsByTagTourist", getMuseumsByTagTourist);
 app.post("/api/getHistoricalPlacesByTagGuest", getHistoricalPlacesByTagGuest);
 app.get("/getHistoricalPlacesByTagTourist", getHistoricalPlacesByTagTourist);
 

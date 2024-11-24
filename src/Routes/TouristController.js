@@ -625,19 +625,26 @@ const createTourist = async (req, res) => {
           // Extract the tags array from the request body
           const { tags } = req.body; // Expecting an array of tags
   
-          // Find museums with any of the specified tags
-          const museums = await MuseumModel.find({ HistoricalTags: { $in: tags } });
+          // Get the current date
+          const currentDate = new Date();
+  
+          // Find museums with any of the specified tags and dateOfEvent >= currentDate
+          const museums = await MuseumModel.find({
+              HistoricalTags: { $in: tags },
+              dateOfEvent: { $gte: currentDate }, // Ensure dateOfEvent hasn't passed
+          });
   
           // Check if any museums were found
           if (museums.length > 0) {
               res.status(200).json(museums);
           } else {
-              res.status(404).json({ error: "No museums found with the specified tags." });
+              res.status(404).json({ error: "No museums found with the specified tags and future dates." });
           }
       } catch (error) {
           res.status(400).json({ error: error.message });
       }
   };
+  
 
   const getHistoricalPlacesByTagTourist = async (req, res) => {
     try {
@@ -1037,7 +1044,7 @@ const filterItinerariesTourist = async (req, res) => {
       }
   };
 
-  const MuseumSearchAll = async (req, res) => {
+  /*const MuseumSearchAll = async (req, res) => {
     const { searchString } = req.body; // Extract the search string from the request body
     const query = {}; // Initialize an empty query object
 
@@ -1062,9 +1069,38 @@ const filterItinerariesTourist = async (req, res) => {
         console.error('Error fetching museums:', error);
         res.status(500).json({ msg: "An error occurred while fetching museums." });
     }
+};*/
+const MuseumSearchAll = async (req, res) => {
+  const { searchString } = req.body; // Extract the search string from the request body
+  const currentDate = new Date(); // Get the current date
+
+  const query = { dateOfEvent: { $gte: currentDate } }; // Filter for upcoming events only
+
+  // Create a case-insensitive regex if a search string is provided
+  if (searchString) {
+      const regex = new RegExp(searchString, 'i'); // 'i' for case-insensitive matching
+
+      // Construct the query to search across the Name, Category, and Tags fields
+      query.$or = [
+          { name: regex },
+          { HistoricalTags: { $in: [searchString] } } // For Tags, match any tag that equals the search string
+      ];
+  }
+
+  try {
+      const fetchedMuseums = await MuseumModel.find(query); // Fetch museums based on the constructed query
+      if (fetchedMuseums.length === 0) {
+          return res.status(404).json({ msg: "No museums found for the given criteria!" });
+      }
+      res.status(200).json(fetchedMuseums); // Respond with the fetched museums
+  } catch (error) {
+      console.error('Error fetching museums:', error);
+      res.status(500).json({ msg: "An error occurred while fetching museums." });
+  }
 };
 
-const HistoricalPlacesSearchAll = async (req, res) => {
+
+/*const HistoricalPlacesSearchAll = async (req, res) => {
   const { searchString } = req.body; // Extract the search string from the request body
   const query = {}; // Initialize an empty query object
 
@@ -1088,6 +1124,40 @@ const HistoricalPlacesSearchAll = async (req, res) => {
   } catch (error) {
       console.error('Error fetching Historical Places:', error);
       res.status(500).json({ msg: "An error occurred while fetching Historical Places." });
+  }
+};
+*/
+
+const HistoricalPlacesSearchAll = async (req, res) => {
+  const { searchString } = req.body; // Extract the search string from the request body
+  const query = {}; // Initialize an empty query object
+
+  // Get the current date
+  const currentDate = new Date();
+
+  // Create a case-insensitive regex if a search string is provided
+  if (searchString) {
+    const regex = new RegExp(searchString, 'i'); // 'i' for case-insensitive matching
+
+    // Construct the query to search across the Name, Category, and Tags fields
+    query.$or = [
+      { name: regex },
+      { Tags: { $in: [searchString] } } // For Tags, match any tag that equals the search string
+    ];
+  }
+
+  // Add a condition to only fetch upcoming events
+  query.dateOfEvent = { $gte: currentDate };
+
+  try {
+    const fetchedHistoricalPlaces = await HistoricalPlacesModel.find(query); // Fetch activities based on the constructed query
+    if (fetchedHistoricalPlaces.length === 0) {
+      return res.status(404).json({ msg: "No upcoming Historical Places found for the given criteria!" });
+    }
+    res.status(200).json(fetchedHistoricalPlaces); // Respond with the fetched activities
+  } catch (error) {
+    console.error('Error fetching Historical Places:', error);
+    res.status(500).json({ msg: "An error occurred while fetching Historical Places." });
   }
 };
 
