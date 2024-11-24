@@ -47,7 +47,7 @@ import ShareIcon from '@mui/icons-material/Share';
 import LanguageIcon from '@mui/icons-material/Language';
 import axios from 'axios';
 
-function TouristUpcomingActivities() {
+function TouristUpcomingHP() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activities, setActivities] = useState([]);
   const [scrollPositions, setScrollPositions] = useState({});
@@ -626,7 +626,7 @@ const [currency, setCurrency] = useState('EGP'); // Default currency is EGP
   {itinerariesOpen && (
     <Box sx={{ display: 'flex', flexDirection: 'column', marginLeft: sidebarOpen ? '20px' : '0px' }}>
       <Button
-        onClick={() => navigate('/TouristUpcomingItineraries')}
+        onClick={() => navigate('/upcoming-itineraries')}
         sx={{
           ...styles.sidebarButton,
           fontSize: '14px',
@@ -1685,4 +1685,4 @@ const styles = {
   },
 };
 
-export default TouristUpcomingActivities;
+export default TouristUpcomingHP;
