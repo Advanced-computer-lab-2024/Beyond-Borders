@@ -4587,6 +4587,7 @@ const fetchHotels = async (req, res) => {
         if (offer.offers && offer.offers.length > 0) {
           // Map room offers and include additional details
           const roomDetails = offer.offers.map((room) => ({
+            hotelNumber: hotelOffers.length + 1,
             bedType: room.room?.typeEstimated?.bedType || "N/A",
             policies: room.policies || {}, // Include policies
             price: room.price?.total || "N/A",
