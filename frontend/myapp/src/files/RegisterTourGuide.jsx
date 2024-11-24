@@ -10,6 +10,8 @@ const RegisterTourGuide = () => {
     MobileNum: '',
     YearsOfExperience: '',
     PreviousWork: '',
+    IDDocument: null,
+    CertificateDocument: null,
   });
 
   const [responseMessage, setResponseMessage] = useState('');
@@ -22,38 +24,47 @@ const RegisterTourGuide = () => {
     });
   };
 
-  // Handle form submission
-const handleSubmit = async (e) => {
-    e.preventDefault(); // Prevent the default form submission
+  const handleFileChange = (e) => {
+    const { name, files } = e.target;
+    setFormData({
+      ...formData,
+      [name]: files[0], // Store the selected file
+    });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault(); // Prevent default form submission
     setResponseMessage(''); // Clear previous messages
 
     try {
-        // Send the POST request to register the tour guide
-        const response = await axios.post('http://localhost:8000/addUnregisteredTourGuide', formData);
-        const result = response.data; // Access the response data
+      const formDataToSend = new FormData();
+      Object.keys(formData).forEach((key) => {
+        formDataToSend.append(key, formData[key]); // Append form data and files
+      });
 
-        // Check if the response is successful
-        if (response.status === 200) { // Assuming a 200 status indicates success
-            setResponseMessage('Tour Guide registered successfully!');
+      // Send POST request to backend
+      const response = await axios.post('http://localhost:8000/addUnregisteredTourGuide', formDataToSend, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
 
-            // Redirect after 2 seconds
-            setTimeout(() => {
-                window.location.href = '/loginTourGuide'; // Redirect to login page
-            }, 2000);
-        } else {
-            // Handle error case if the response doesn't indicate success
-            setResponseMessage(`Error: ${result.error || 'Failed to register tour guide.'}`);
-        }
+      if (response.status === 200) {
+        setResponseMessage('Tour Guide registered successfully!');
+        setTimeout(() => {
+          window.location.href = '/loginTourGuide'; // Redirect to login page
+        }, 2000);
+      } else {
+        setResponseMessage(`Error: ${response.data.error || 'Failed to register tour guide.'}`);
+      }
     } catch (error) {
-        // Handle Axios errors
-        if (error.response && error.response.data) {
-            setResponseMessage(`Error: ${error.response.data.error || 'An error occurred.'}`);
-        } else {
-            setResponseMessage('An error occurred. Please try again.');
-        }
-        console.error('Error registering tour guide:', error); // Log the error for debugging
+      if (error.response && error.response.data) {
+        setResponseMessage(`Error: ${error.response.data.error || 'An error occurred.'}`);
+      } else {
+        setResponseMessage('An error occurred. Please try again.');
+      }
     }
-};
+  };
 
   return (
     <Box
@@ -67,7 +78,9 @@ const handleSubmit = async (e) => {
         boxShadow: '0 0 10px rgba(0, 0, 0, 0.1)',
       }}
     >
-      <Typography variant="h4" align="center">Register Tour Guide</Typography>
+      <Typography variant="h4" align="center">
+        Register Tour Guide
+      </Typography>
       <form onSubmit={handleSubmit}>
         <TextField
           fullWidth
@@ -125,6 +138,14 @@ const handleSubmit = async (e) => {
           value={formData.PreviousWork}
           onChange={handleChange}
         />
+        <Typography variant="body2" sx={{ marginTop: '10px' }}>
+          Upload ID Document (PDF):
+        </Typography>
+        <input type="file" name="IDDocument" accept="application/pdf" onChange={handleFileChange} />
+        <Typography variant="body2" sx={{ marginTop: '10px' }}>
+          Upload Certificate Document (PDF):
+        </Typography>
+        <input type="file" name="CertificateDocument" accept="application/pdf" onChange={handleFileChange} />
         <Button
           type="submit"
           variant="contained"
@@ -134,6 +155,7 @@ const handleSubmit = async (e) => {
             padding: '10px',
             borderRadius: '4px',
             width: '100%',
+            marginTop: '20px',
             '&:hover': { backgroundColor: '#4b5a86' },
           }}
         >
@@ -141,7 +163,11 @@ const handleSubmit = async (e) => {
         </Button>
       </form>
       {responseMessage && (
-        <Typography variant="body1" align="center" sx={{ marginTop: '20px', color: responseMessage.includes('Error') ? 'red' : 'green' }}>
+        <Typography
+          variant="body1"
+          align="center"
+          sx={{ marginTop: '20px', color: responseMessage.includes('Error') ? 'red' : 'green' }}
+        >
           {responseMessage}
         </Typography>
       )}
