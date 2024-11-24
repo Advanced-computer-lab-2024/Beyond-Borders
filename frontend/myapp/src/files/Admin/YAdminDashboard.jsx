@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Button, Typography, IconButton, Modal, TextField, InputAdornment, Dialog, DialogActions, DialogContent, DialogContentText } from '@mui/material';
+import { Box, Button, Typography, IconButton, Modal, TextField, InputAdornment, Dialog, DialogActions, DialogContent, DialogContentText , Tabs, Tab} from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import MenuIcon from '@mui/icons-material/Menu';
 import NotificationsIcon from '@mui/icons-material/Notifications';
@@ -15,6 +15,7 @@ import CheckIcon from '@mui/icons-material/Check';
 import ClearIcon from '@mui/icons-material/Clear';
 import CloseIcon from '@mui/icons-material/Clear';
 import PersonIcon from '@mui/icons-material/Person'; // Icon for generic user type
+import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
 import axios from 'axios';
 
 function YAdminDashboard() {
@@ -49,16 +50,31 @@ function YAdminDashboard() {
   const [selectedUser, setSelectedUser] = useState(null);
   const [requestToDelete, setRequestToDelete] = useState(null); // For confirmation dialog
 
+  
+  const [currentView, setCurrentView] = useState('Advertisers');
+  
+
+  const [toggleRequestsModal, setToggleRequestsModal] = useState(false);
+  const [value, setValue] = useState(0); // Active tab value
+  const [usernames, setUsernames] = useState([]); // List of usernames
+
+  const [tabValue, setTabValue] = useState(0);
+  const [requests, setRequests] = useState([]);
+  const [loading, setLoading] = useState(false);
+ 
+  const tabs = ['Advertisers', 'Sellers', 'Tour Guides', 'Transportation Advertisers'];
+
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (changePasswordModal) {
+    fetchRequests();
+   if (changePasswordModal) {
       fetchCurrentPassword();
     }
     if (deleteRequestsModal) {
       fetchDeleteRequests();
     }
-  }, [changePasswordModal, deleteRequestsModal]);
+  }, [changePasswordModal, deleteRequestsModal,tabValue]);
 
   const fetchCurrentPassword = async () => {
     const username = localStorage.getItem('username');
@@ -256,6 +272,179 @@ const closeDeleteRequestsModal = () => {
   setRequestToDelete(null);
 };
 
+const fetchRequests = async () => {
+  setLoading(true);
+  setErrorMessage('');
+  try {
+    let response;
+    switch (tabValue) {
+      case 0: // Advertisers
+        response = await axios.get('/api/getAllUnregisteredAdvertisers');
+        setRequests(response.data.advertisers || []);
+        break;
+      case 1: // Sellers
+        response = await axios.get('/api/getAllUnregisteredSellers');
+        setRequests(response.data.sellers || []);
+        break;
+      case 2: // Tour Guides
+        response = await axios.get('/api/getAllUnregisteredTourGuides');
+        setRequests(response.data.tourGuides || []);
+        break;
+      case 3: // Transportation Advertisers
+        response = await axios.get('/api/getAllUnregisteredTransportationAdvertisers');
+        setRequests(response.data.transportationAdvertisers || []);
+        break;
+      default:
+        setRequests([]);
+    }
+  } catch (error) {
+    setErrorMessage('Failed to fetch requests. Please try again.');
+  } finally {
+    setLoading(false);
+  }
+};
+
+
+
+const openToggleRequestsModal = () => {
+  setToggleRequestsModal(true);
+  fetchRequests();
+};
+
+
+const closeToggleRequestsModal = () => {
+  setToggleRequestsModal(false);
+  setUsernames([]); // Clear usernames
+};
+
+const handleViewChange = (view) => {
+  setCurrentView(view);
+  fetchRequests(view); // Fetch data for the selected view
+};
+
+const handleChange = (event, newValue) => {
+  setValue(newValue);
+  setUsernames([]); // Clear previous usernames
+  fetchRequests(); // Fetch data for the new tab
+};
+
+
+const handleAccept = async (username) => {
+  try {
+    let endpoint;
+    let requestBody = {};
+
+    switch (tabValue) {
+      case 0: // Advertisers
+        endpoint = 'http://localhost:8000/api/acceptAdvertiser';
+        requestBody = { AdvertiserUsername: username };
+        break;
+
+      case 1: // Sellers
+        endpoint = 'http://localhost:8000/api/acceptSeller';
+        requestBody = { SellerUsername: username };
+        break;
+
+      case 2: // Tour Guides
+        endpoint = 'http://localhost:8000/api/acceptTourGuide';
+        requestBody = { TourGuideUsername: username };
+        break;
+
+      case 3: // Transportation Advertisers
+        endpoint = 'http://localhost:8000/api/acceptTranspAdvertiser';
+        requestBody = { AdvertiserUsername: username }; // Assuming same key as AdvertiserUsername for transport advertisers
+        break;
+
+      default:
+        alert('Invalid request type.');
+        return;
+    }
+
+    // Send POST request
+    await axios.post(endpoint, requestBody);
+
+    alert(`${tabs[tabValue].slice(0, -1)} accepted successfully!`);
+    fetchRequests(); // Refresh the list
+  } catch (error) {
+    console.error('Error accepting request:', error);
+    alert('Error accepting request. Please try again.');
+  }
+};
+
+
+
+const handleReject = async (username) => {
+  try {
+    let endpoint;
+    let requestBody = {};
+
+    switch (tabValue) {
+      case 0: // Advertisers
+        endpoint = 'http://localhost:8000/api/rejectAdvertiser';
+        requestBody = { AdvertiserUsername: username };
+        break;
+
+      case 1: // Sellers
+        endpoint = 'http://localhost:8000/api/rejectSeller';
+        requestBody = { SellerUsername: username };
+        break;
+
+      case 2: // Tour Guides
+        endpoint = 'http://localhost:8000/api/rejectTourGuide';
+        requestBody = { TourGuideUsername: username };
+        break;
+
+      case 3: // Transportation Advertisers
+        endpoint = 'http://localhost:8000/api/rejectTranspAdvertiser';
+        requestBody = { AdvertiserUsername: username }; // Assuming the same key as AdvertiserUsername
+        break;
+
+      default:
+        alert('Invalid request type.');
+        return;
+    }
+
+    // Send POST request
+    await axios.post(endpoint, requestBody);
+
+    alert(`${tabs[tabValue].slice(0, -1)} rejected successfully!`);
+    fetchRequests(); // Refresh the list
+  } catch (error) {
+    console.error('Error rejecting request:', error);
+    alert('Error rejecting request. Please try again.');
+  }
+};
+
+
+const handleViewDocument = (username) => {
+  if (!username) {
+    alert("Username is required!");
+    return;
+  }
+
+  switch (tabValue) {
+    case 0: // Advertisers
+      window.open(`http://localhost:8000/api/viewAdvertiserDocument?Username=${username}`, "_blank");
+      break;
+
+    case 1: // Sellers
+      window.open(`http://localhost:8000/api/viewSellerDocument?Username=${username}`, "_blank");
+      break;
+
+    case 2: // Tour Guides
+      window.open(`http://localhost:8000/api/viewTourGuideDocuments?username=${username}&docType=ID`, "_blank");
+      setTimeout(() => {
+        window.open(`http://localhost:8000/api/viewTourGuideDocuments?username=${username}&docType=Certificate`, "_blank");
+      }, 100); // Add a small delay for the second tab
+      break;
+
+    default:
+      alert("No documents available for this category.");
+  }
+};
+
+
+
   return (
     <Box sx={styles.container}>
       {sidebarOpen && <Box sx={styles.overlay} onClick={() => setSidebarOpen(false)} />}
@@ -284,11 +473,8 @@ const closeDeleteRequestsModal = () => {
               <Box sx={styles.dropdown}>
                 <Button onClick={() => setAddAdminModal(true)} sx={styles.dropdownItem}>Add Admin</Button>
                 <Button onClick={() => setAddTourismGovModal(true)} sx={styles.dropdownItem}>Add Tourism Governor</Button>
-                <Button onClick={() => navigate('/requests')} sx={styles.dropdownItem}>Requests</Button>
-                <Button onClick={() => setDeleteRequestsModal(true)} sx={styles.dropdownItem}>
-                  Delete Requests
-                </Button>
-
+                <Button onClick={openToggleRequestsModal} sx={styles.dropdownItem}>Requests</Button>
+                <Button onClick={() => setDeleteRequestsModal(true)} sx={styles.dropdownItem}> Delete Requests</Button>
               </Box>
             )}
           </Box>
@@ -555,9 +741,68 @@ const closeDeleteRequestsModal = () => {
     </Button> */}
   </Box>
 </Modal>
+ {/* Manage Requests Modal */}
+ <Modal open={toggleRequestsModal} onClose={() => setToggleRequestsModal(false)}>
+  <Box sx={styles.largeModalContent}>
+    {/* Tabs for navigation */}
+    <Tabs
+      value={tabValue}
+      onChange={(e, newValue) => setTabValue(newValue)}
+      centered
+    >
+      {tabs.map((tab, index) => (
+        <Tab key={index} label={tab} />
+      ))}
+    </Tabs>
 
+    {/* Scrollable area for requests */}
+    <Box sx={styles.scrollableContainer}>
+      {loading && <Typography>Loading...</Typography>}
+      {errorMessage && <Typography color="error">{errorMessage}</Typography>}
+      {!loading && requests.length === 0 && (
+        <Typography>No requests found for {tabs[tabValue]}.</Typography>
+      )}
 
-      {/* Confirm Deletion Dialog */}
+      {!loading &&
+        requests.map((request, index) => (
+          <Box key={index} sx={styles.requestItem}>
+            {/* User Info with Icon */}
+            <Typography sx={styles.userInfo}>
+              <PersonIcon sx={{ mr: 1 }} />
+              {request.Username} 
+            </Typography>
+
+            {/* Icons for Actions */}
+            <Box sx={styles.actionIcons}>
+              {/* Conditionally render the "View Document" button */}
+              {tabValue !== 3 && (
+                <IconButton
+                  onClick={() => handleViewDocument(request.Username)}
+                  sx={{ color: "#99a0b5" }} // Blue for "View Document"
+                >
+                  <PictureAsPdfIcon />
+                </IconButton>
+              )}
+              <IconButton
+                onClick={() => handleAccept(request.Username)}
+                sx={{ color: "#4CAF50" }} // Green for "Accept"
+              >
+                <CheckIcon />
+              </IconButton>
+              <IconButton
+                onClick={() => handleReject(request.Username)}
+                sx={{ color: "#FF5252" }} // Red for "Reject"
+              >
+                <ClearIcon />
+              </IconButton>
+            </Box>
+          </Box>
+        ))}
+    </Box>
+  </Box>
+</Modal>
+
+{/* Confirm Deletion Dialog */}
       <Dialog open={confirmDeleteDialog} onClose={() => setConfirmDeleteDialog(false)}>
         <DialogContent>
           <DialogContentText sx={{ fontWeight: 'bold', color: '#192959', fontSize: '20px' }}>
@@ -784,6 +1029,50 @@ const styles = {
     color: "#fff",
     mt: 2,
     "&:hover": { backgroundColor: "#D32F2F" },
+  },
+  largeModalContent: {
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    transform: 'translate(-50%, -50%)',
+    width: '70vw', // Adjust width as needed
+    maxWidth: '600px', // Restrict max width
+    maxHeight: '80vh', // Limit height
+    backgroundColor: '#fff',
+    padding: '20px', // Added padding to give space inside the modal
+    margin: '20px', // Added margin to give space outside the modal
+    borderRadius: '8px',
+    boxShadow: 24,
+    display: 'flex',
+    flexDirection: 'column',
+    overflow: 'hidden', // Prevent outer scrolling
+  },
+  scrollableContainer: {
+    flex: 1,
+    padding: '20px',
+    borderRadius: '8px',
+    backgroundColor: '#ffffff',
+    overflowY: 'auto', // Enable only vertical scrolling
+  },
+  requestItem: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: '10px',
+    marginBottom: '10px',
+    borderRadius: '5px',
+    backgroundColor: '#f3f4f6',
+    boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+  },
+  userInfo: {
+    display: "flex",
+    alignItems: "center",
+    fontSize: "16px",
+    color: "#333",
+  },
+  actionIcons: {
+    display: "flex",
+    gap: "10px",
   },
 };
 

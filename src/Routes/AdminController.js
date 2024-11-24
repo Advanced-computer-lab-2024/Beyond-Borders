@@ -26,6 +26,8 @@ const DeactivatedActivitiesModel = require('../Models/DeactivatedActivities.js')
 
 
 const { default: mongoose } = require('mongoose');
+const path = require('path');
+const fs = require('fs');
 
 const createNewAdmin = async(req,res) => {
    //Destructure Name, Email, Age from the request body
@@ -210,29 +212,39 @@ const acceptTourGuide = async (req, res) => {
  };
 
 
-const rejectSeller = async (req, res) => {
-   const { UnregisteredSellerID } = req.body;
-
-   try {
-       // Find the unregistered seller by ID
-       const existingUser = await NewUnregisteredSellerModel.findById(UnregisteredSellerID);
-       
-       if (existingUser) {
+ const rejectSeller = async (req, res) => {
+    const { SellerUsername } = req.body;
+ 
+    if (!SellerUsername) {
+        return res.status(400).json({ error: "SellerUsername is required." });
+    }
+ 
+    try {
+        // Find the unregistered seller by Username
+        const existingUser = await NewUnregisteredSellerModel.findOne({ Username: SellerUsername });
+ 
+        if (existingUser) {
             // Extract Username
-            const {Username, Email, Password} = existingUser;
-            await AllUsernamesModel.findOneAndDelete({Username});
-           // Delete the unregistered seller
-           await NewUnregisteredSellerModel.findByIdAndDelete(UnregisteredSellerID);
-           // Respond with success message
-           res.status(200).json({ msg: "Seller has been rejected!" });
-       } else {
-           res.status(404).json({ error: "Unregistered seller not found." });
-       }
-   } catch (error) {
-       // Handle any errors that occur during the process
-       res.status(400).json({ error: error.message });
-   }
-};
+            const { Username } = existingUser;
+ 
+            // Delete from AllUsernamesModel
+            await AllUsernamesModel.findOneAndDelete({ Username });
+ 
+            // Delete the unregistered seller
+            await NewUnregisteredSellerModel.findOneAndDelete({ Username: SellerUsername });
+ 
+            // Respond with success message
+            res.status(200).json({ msg: "Seller has been rejected!" });
+        } else {
+            res.status(404).json({ error: "Unregistered seller not found." });
+        }
+    } catch (error) {
+        // Handle any errors that occur during the process
+        console.error("Error rejecting seller:", error.message);
+        res.status(400).json({ error: error.message });
+    }
+ };
+ 
 
 const rejectTourGuide = async (req, res) => {
     const {TourGuideUsername} = req.body;
@@ -1195,33 +1207,41 @@ const getAdminPassword = async (req, res) => {
     }
  };
 
+
+ 
  const viewAdvertiserDocument = async (req, res) => {
     try {
       const { Username } = req.query;
   
-      // Fetch the advertiser details based on the Username
+      // Fetch the advertiser from the database
       const advertiser = await NewUnregisteredAdvertiserModel.findOne({ Username });
   
       if (!advertiser) {
-        return res.status(404).json({ error: "Advertiser not found!" });
+        return res.status(404).json({ error: 'Advertiser not found!' });
       }
   
-      // Respond with the advertiser's document path
-      res.status(200).json({
-        msg: "Advertiser document fetched successfully!",
-        documentPath: advertiser.AdvertiserDocument, // Path to the uploaded document
-      });
+      // Use the absolute path directly from the database
+      const documentPath = advertiser.AdvertiserDocument;
+  
+      // Check if the file exists
+      if (!fs.existsSync(documentPath)) {
+        return res.status(404).json({ error: 'Document not found on the server!' });
+      }
+  
+      // Serve the PDF file
+      res.setHeader('Content-Type', 'application/pdf');
+      res.sendFile(documentPath);
     } catch (error) {
-      res.status(400).json({ error: error.message });
+      console.error('Error fetching document:', error);
+      res.status(500).json({ error: 'Internal server error' });
     }
   };
-
   const viewTourGuideDocuments = async (req, res) => {
     try {
-      const { username } = req.query; // Extract the username from the query string
+      const { username, docType } = req.query; // Extract username and document type from query string
   
-      if (!username) {
-        return res.status(400).json({ error: "Username is required!" });
+      if (!username || !docType) {
+        return res.status(400).json({ error: "Username and docType are required!" });
       }
   
       // Fetch the tour guide details using the username
@@ -1231,49 +1251,67 @@ const getAdminPassword = async (req, res) => {
         return res.status(404).json({ error: "Tour Guide not found!" });
       }
   
-      // Check if the documents exist
-      if (!tourGuide.IDDocument || !tourGuide.CertificateDocument) {
-        return res.status(404).json({ error: "Documents not found for this Tour Guide!" });
-      }
-  
-      // Return the document paths
-      res.status(200).json({
-        msg: "Tour Guide documents fetched successfully!",
-        IDDocument: tourGuide.IDDocument,
-        CertificateDocument: tourGuide.CertificateDocument,
-      });
-    } catch (error) {
-      res.status(400).json({ error: error.message });
-    }
-  };
-
-  const viewSellerDocument = async (req, res) => {
-    try {
-      const { username } = req.query; // Extract the username from the query string
-  
-      if (!username) {
-        return res.status(400).json({ error: "Username is required!" });
-      }
-  
-      // Fetch the seller details using the username
-      const seller = await NewUnregisteredSellerModel.findOne({ Username: username });
-  
-      if (!seller) {
-        return res.status(404).json({ error: "Seller not found!" });
+      // Determine the document path based on docType
+      let documentPath;
+      if (docType === 'ID') {
+        documentPath = tourGuide.IDDocument;
+      } else if (docType === 'Certificate') {
+        documentPath = tourGuide.CertificateDocument;
+      } else {
+        return res.status(400).json({ error: "Invalid docType! Use 'ID' or 'Certificate'." });
       }
   
       // Check if the document exists
-      if (!seller.Documents) {
-        return res.status(404).json({ error: "Document not found for this Seller!" });
+      if (!documentPath || !fs.existsSync(documentPath)) {
+        return res.status(404).json({ error: "Requested document not found!" });
       }
   
-      // Return the document path
-      res.status(200).json({
-        msg: "Seller document fetched successfully!",
-        Document: seller.Documents,
+      // Serve the PDF file
+      res.setHeader('Content-Type', 'application/pdf');
+      res.sendFile(documentPath);
+    } catch (error) {
+      console.error("Error fetching document:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  };
+  const viewSellerDocument = async (req, res) => {
+    try {
+      const { Username } = req.query; // Extract Username from the query string
+  
+      if (!Username) {
+        return res.status(400).json({ error: 'Username is required!' });
+      }
+  
+      // Fetch the seller details using the Username
+      const seller = await NewUnregisteredSellerModel.findOne({ Username });
+  
+      if (!seller) {
+        return res.status(404).json({ error: 'Seller not found!' });
+      }
+  
+      // Use the absolute path directly from the database
+      const documentPath = seller.Documents;
+  
+      if (!documentPath) {
+        return res.status(404).json({ error: 'Document not found for this Seller!' });
+      }
+  
+      // Check if the file exists on the server
+      if (!fs.existsSync(documentPath)) {
+        return res.status(404).json({ error: 'Document not found on the server!' });
+      }
+  
+      // Serve the PDF file
+      res.setHeader('Content-Type', 'application/pdf');
+      res.sendFile(documentPath, (err) => {
+        if (err) {
+          console.error('Error sending file:', err);
+          res.status(500).json({ error: 'Failed to retrieve the document.' });
+        }
       });
     } catch (error) {
-      res.status(400).json({ error: error.message });
+      console.error('Error fetching document:', error);
+      res.status(500).json({ error: 'Internal server error' });
     }
   };
   
