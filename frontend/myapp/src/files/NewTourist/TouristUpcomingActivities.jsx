@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Button, Typography, IconButton,Tooltip, TextField, InputAdornment, Modal } from '@mui/material';
+import { Box, Button, Typography, IconButton,Tooltip, TextField, InputAdornment, Modal,MenuItem,Select,FormControl,InputLabel,} from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import MenuIcon from '@mui/icons-material/Menu';
 import NotificationsIcon from '@mui/icons-material/Notifications';
@@ -39,6 +39,11 @@ import NotificationsNoneOutlinedIcon from '@mui/icons-material/NotificationsNone
 import AccountCircleIcon from '@mui/icons-material/AccountCircleRounded';
 import BookmarkBorderOutlinedIcon from '@mui/icons-material/BookmarkBorderOutlined';
 import FilterAltIcon from '@mui/icons-material/FilterAlt';
+import SwapVertIcon from '@mui/icons-material/SwapVert';
+import PaymentIcon from '@mui/icons-material/Payment';
+import ContentCopyIcon from '@mui/icons-material/ContentCopy';
+import IosShareIcon from '@mui/icons-material/IosShare';
+import ShareIcon from '@mui/icons-material/Share';
 import axios from 'axios';
 
 function TouristUpcomingActivities() {
@@ -69,6 +74,14 @@ function TouristUpcomingActivities() {
   InputDate: '',
   Rating: '',
 });
+//sort activties
+const [sortOption, setSortOption] = useState(""); // State for the selected sorting option
+//share
+const [isShareModalOpen, setShareModalOpen] = useState(false); // Modal state
+const [email, setEmail] = useState(''); // Email input state
+const [showEmailField, setShowEmailField] = useState(false); // State for toggling email input
+const [sharedLink, setSharedLink] = useState(''); // Shared link state
+const [currentActivityName, setCurrentActivityName] = useState(''); // Trac
 
   const navigate = useNavigate();
 
@@ -168,6 +181,103 @@ function TouristUpcomingActivities() {
       }
     }
   };
+
+
+  const handleSortChange = async (event) => {
+    const selectedOption = event.target.value;
+    setSortOption(selectedOption);
+
+    try {
+      let response;
+      switch (selectedOption) {
+        case "priceAsc":
+          response = await axios.get("/sortActivitiesPriceAscendingTourist");
+          break;
+        case "priceDesc":
+          response = await axios.get("/sortActivitiesPriceDescendingTourist");
+          break;
+        case "ratingAsc":
+          response = await axios.get("/sortActivitiesRatingAscendingTourist");
+          break;
+        case "ratingDesc":
+          response = await axios.get("/sortActivitiesRatingDescendingTourist");
+          break;
+        default:
+          return; // Do nothing if no valid option is selected
+      }
+
+      if (response && response.data) {
+        setActivities(response.data); // Update the activities with the sorted data
+      }
+    } catch (error) {
+      console.error("Error sorting activities:", error);
+    }
+  };
+  //book
+  const handleBookActivity = async (activityName) => {
+    const touristUsername = localStorage.getItem('username'); // Assuming username is stored in localStorage
+  
+    if (!touristUsername) {
+      alert('Please log in to book activities.');
+      return;
+    }
+  
+    try {
+      const response = await axios.put('/bookActivity', { touristUsername, activityName });
+      navigate('/TouristPaymentPage');
+    } catch (error) {
+      alert(error.response?.data?.msg || 'An error occurred while booking the activity.');
+    }
+  };
+
+  //share
+
+  const handleOpenShareModal = async (activityName) => {
+    try {
+      const response = await axios.post('/getCopyLink', {
+        entityType: 'activity',
+        entityName: activityName,
+      });
+      setSharedLink(response.data.link); // Set the generated link
+      setCurrentActivityName(activityName); // Store the activity name in state
+      setShareModalOpen(true); // Open the modal
+    } catch (error) {
+      console.error('Error generating link:', error);
+      alert('An error occurred while generating the link.');
+    }
+  };
+  
+  
+  const handleSendEmail = async (activityName) => {
+    if (!email || !sharedLink) {
+      alert('Please provide a valid email and ensure the link is generated.');
+      return;
+    }
+  
+    try {
+      const response = await axios.post('/getCopyLink', {
+        entityType: 'activity',
+        entityName: activityName,
+        email,
+      });
+      alert(response.data.msg); // Show success message
+      setShareModalOpen(false); // Close modal
+    } catch (error) {
+      console.error('Error sending email:', error);
+      alert(error.response?.data?.msg || 'An error occurred while sending the email.');
+    }
+  };
+  
+  
+  const handleCopyToClipboard = () => {
+    navigator.clipboard.writeText(sharedLink).then(() => {
+      alert('Link copied to clipboard!');
+    }).catch((err) => {
+      console.error('Failed to copy link: ', err);
+      alert('Failed to copy link.');
+    });
+  };
+  
   
   
 
@@ -750,15 +860,18 @@ function TouristUpcomingActivities() {
 </Box>
       </Box>
 
+
+
+
       <Box
   sx={{
     display: 'flex',
-    justifyContent: 'space-between', // Ensure space between search bar and icon
+    justifyContent: 'space-between', // Ensure space between search bar and the rest
     alignItems: 'center',           // Align items vertically in the center
     marginBottom: '20px',
     marginTop: '20px',
     marginLeft: '150px',
-    marginRight: '150px',           // Add margin to the right for consistent spacing
+    marginRight: '60px',           // Add margin to the right for consistent spacing
   }}
 >
   {/* Search Bar */}
@@ -797,19 +910,76 @@ function TouristUpcomingActivities() {
     }}
   />
 
-   {/* Filter Icon with Tooltip */}
-   <Tooltip title="Filter" placement="bottom" arrow>
-    <IconButton
-      onClick={() => setFilterModalOpen(true)}
+  {/* Sort Dropdown and Filter Icon */}
+  <Box sx={{ display: 'flex', alignItems: 'right', gap: '10px', marginLeft: '100px'}}>
+    <TextField
+      select
+      label={
+        <Box sx={{ display: 'flex', alignItems: 'right', gap: '8px' }}>
+          Sort By
+        </Box>
+      }
+      variant="outlined"
+      value={sortOption}
+      onChange={handleSortChange}
       sx={{
-        color: '#192959',
-        '&:hover': { backgroundColor: '#e6e7ed', color: '#33416b' },
+        width: '90%',
+        '& .MuiOutlinedInput-root': {
+          '& fieldset': {
+            borderColor: '#192959', // Default border color
+            borderWidth: '2px',
+          },
+          '&:hover fieldset': {
+            borderColor: '#33416b', // Hover border color
+            borderWidth: '2.5px',
+          },
+          '&.Mui-focused fieldset': {
+            borderColor: '#192959', // Focused border color
+            borderWidth: '2.5px',
+          },
+        },
+        '& .MuiInputLabel-root': {
+          color: '#192959', // Label color
+          fontSize: '18px',
+        },
+      }}
+      InputProps={{
+        startAdornment: (
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              color: '#192959',
+              paddingLeft: '5px',
+            }}
+          >
+            <SwapVertIcon />
+          </Box>
+        ),
       }}
     >
-      <FilterAltIcon fontSize="large" />
-    </IconButton>
-  </Tooltip>
+      <MenuItem value="priceAsc">Price: Low to High</MenuItem>
+      <MenuItem value="priceDesc">Price: High to Low</MenuItem>
+      <MenuItem value="ratingAsc">Rating: Low to High</MenuItem>
+      <MenuItem value="ratingDesc">Rating: High to Low</MenuItem>
+    </TextField>
+
+    {/* Filter Icon */}
+    <Tooltip title="Filter" placement="bottom" arrow>
+      <IconButton
+        onClick={() => setFilterModalOpen(true)}
+        sx={{
+          color: '#192959',
+          '&:hover': { backgroundColor: '#e6e7ed', color: '#33416b' },
+        }}
+      >
+        <FilterAltIcon fontSize="large" />
+      </IconButton>
+    </Tooltip>
+  </Box>
 </Box>
+
+
 
 
 
@@ -835,7 +1005,7 @@ function TouristUpcomingActivities() {
                   {activity.AdvertiserName}
                 </Typography>
                 <Typography variant="body2" sx={{ display: 'flex', fontSize: '18px', alignItems: 'center' }}>
-                  <AttachMoneyIcon fontSize="small" sx={{ mr: 1 }} />
+                  <PaymentIcon fontSize="small" sx={{ mr: 1 }} />
                   {activity.Price}
                 </Typography>
                 <Typography variant="body2" sx={{ display: 'flex', fontSize: '18px', alignItems: 'center' }}>
@@ -872,6 +1042,47 @@ function TouristUpcomingActivities() {
                   <Typography variant="body2">{activity.BookingOpen ? 'Yes' : 'No'}</Typography>
                 </Box>
               </Box>
+
+              
+
+              <Button
+          variant="contained"
+          disabled={!activity.BookingOpen} // Disable button if booking is not open
+          onClick={() => handleBookActivity(activity.Name)}
+          sx={{
+            position: 'absolute',
+            top: '60px', // Position at the top
+            right: '60px', // Position at the right
+            
+            backgroundColor: '#192959',
+
+            color: '#fff',
+            '&:hover': { backgroundColor: '#33416b' },
+          }}
+        >
+          Book
+        </Button>
+        <Tooltip title="Share" arrow>
+
+        <IconButton
+    onClick={() => handleOpenShareModal(activity.Name)} // Pass activity name
+    sx={{
+      position: 'absolute',
+      top: '60px',
+      right: '140px',
+      color: '#192959', // Icon color
+      '&:hover': {
+        color: '#33416b', // Hover color for the icon
+      },
+    }}
+  >
+    <IosShareIcon />
+  </IconButton>
+  
+</Tooltip>
+
+
+
             </Box>
             <Box sx={styles.commentsSection}>
   {activity.Comments && activity.Comments.length > 0 ? (
@@ -926,6 +1137,96 @@ function TouristUpcomingActivities() {
     </Typography>
   )}
 </Box>
+
+
+<Modal
+  open={isShareModalOpen}
+  onClose={() => setShareModalOpen(false)}
+  aria-labelledby="share-modal-title"
+  aria-describedby="share-modal-description"
+>
+  <Box
+    sx={{
+      position: 'absolute',
+      top: '50%',
+      left: '50%',
+      transform: 'translate(-50%, -50%)',
+      width: 400,
+      bgcolor: 'background.paper',
+      boxShadow: 24,
+      p: 4,
+      borderRadius: '10px',
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      gap: '10px',
+    }}
+  >
+    <Typography id="share-modal-title" variant="h6" component="h2">
+      Share Activity
+    </Typography>
+
+    {/* Copy to Clipboard Button */}
+    <Button
+      variant="contained"
+      onClick={handleCopyToClipboard}
+      sx={{
+        backgroundColor: '#192959',
+        color: '#fff',
+        '&:hover': { backgroundColor: '#33416b' },
+        display: 'flex',
+        alignItems: 'center',
+        gap: '8px',
+        width: '100%',
+      }}
+    >
+      <ContentCopyIcon />
+      Copy to Clipboard
+    </Button>
+
+    {/* Share via Email and Send Buttons */}
+    {!showEmailField ? (
+      <Button
+        variant="contained"
+        onClick={() => setShowEmailField(true)} // Toggle to show email input and "Send" button
+        sx={{
+          backgroundColor: '#192959',
+          color: '#fff',
+          '&:hover': { backgroundColor: '#33416b' },
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px',
+          width: '100%',
+        }}
+      >
+        <ShareIcon />
+        Share via Email
+      </Button>
+    ) : (
+      <>
+        <TextField
+          fullWidth
+          label="Email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+        />
+        <Button
+          variant="contained"
+          onClick={() => handleSendEmail(currentActivityName)} // Pass activityName
+          sx={{
+            backgroundColor: '#192959',
+            color: '#fff',
+            '&:hover': { backgroundColor: '#33416b' },
+            width: '100%',
+          }}
+        >
+          Send
+        </Button>
+      </>
+    )}
+  </Box>
+</Modal>
+
 
 
       <Modal

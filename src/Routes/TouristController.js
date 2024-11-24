@@ -305,7 +305,7 @@ const createTourist = async (req, res) => {
 
       const filterActivities = async (req, res) => {
         const { Category, minPrice, maxPrice, InputDate, Rating } = req.body; // Extract parameters from the request body
-        const query = {}; // Initialize an empty query object
+        const query = { flagged: false }; // Initialize query object to include `flagged: false`
     
         // Get the current date and set time to midnight
         const currentDate = new Date();
@@ -366,6 +366,7 @@ const createTourist = async (req, res) => {
             res.status(500).json({ msg: "An error occurred while fetching activities." });
         }
     };
+    
     
     // Example Express.js route
     // app.post('/filter-activities', filterActivities);
@@ -678,8 +679,8 @@ const sortActivitiesPriceAscendingTourist = async (req, res) => {
     const currentDate = new Date();
     currentDate.setHours(0, 0, 0, 0);
 
-    // Get all activities from the database
-    const activities = await ActivityModel.find();
+    // Get all activities from the database where `flagged` is `false`
+    const activities = await ActivityModel.find({ flagged: false });
 
     // Filter for upcoming activities only
     const upcomingActivities = activities.filter(activity => activity.Date >= currentDate);
@@ -694,13 +695,14 @@ const sortActivitiesPriceAscendingTourist = async (req, res) => {
   }
 };
 
+
 const sortActivitiesPriceDescendingTourist = async (req, res) => {
   try {
     const currentDate = new Date();
     currentDate.setHours(0, 0, 0, 0);
 
     // Get all activities from the database
-    const activities = await ActivityModel.find();
+    const activities = await ActivityModel.find({ flagged: false });
 
     // Filter for upcoming activities only
     const upcomingActivities = activities.filter(activity => activity.Date >= currentDate);
@@ -721,7 +723,7 @@ const sortActivitiesRatingAscendingTourist = async (req, res) => {
     currentDate.setHours(0, 0, 0, 0);
 
     // Get all activities from the database
-    const activities = await ActivityModel.find();
+    const activities = await ActivityModel.find({ flagged: false });
 
     // Filter for upcoming activities only
     const upcomingActivities = activities.filter(activity => activity.Date >= currentDate);
@@ -742,7 +744,7 @@ const sortActivitiesRatingDescendingTourist = async (req, res) => {
     currentDate.setHours(0, 0, 0, 0);
 
     // Get all activities from the database
-    const activities = await ActivityModel.find();
+    const activities = await ActivityModel.find({ flagged: false });
 
     // Filter for upcoming activities only
     const upcomingActivities = activities.filter(activity => activity.Date >= currentDate);
