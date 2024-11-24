@@ -26,7 +26,24 @@ import AddCircleIcon from '@mui/icons-material/AddCircle';
 import FlightTakeoffIcon from '@mui/icons-material/FlightTakeoff';
 import FlightLandIcon from '@mui/icons-material/FlightLand';
 import AirplanemodeActiveIcon from '@mui/icons-material/AirplanemodeActive';
-
+import ShoppingCartOutlinedIcon from '@mui/icons-material/ShoppingCartOutlined';
+import NotificationsNoneOutlinedIcon from '@mui/icons-material/NotificationsNoneOutlined';
+import AccountCircleIcon from '@mui/icons-material/AccountCircleRounded';
+import BookmarkBorderOutlinedIcon from '@mui/icons-material/BookmarkBorderOutlined';
+import FlightIcon from '@mui/icons-material/Flight';
+import BedIcon from '@mui/icons-material/Bed';
+import InventoryIcon from '@mui/icons-material/Inventory';
+import  FeedbackIcon  from '@mui/icons-material/Feedback';
+import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
+import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
+import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
+import ChecklistIcon from '@mui/icons-material/Checklist';
+import EventAvailableIcon from '@mui/icons-material/EventAvailable';
+import ScheduleIcon from '@mui/icons-material/Schedule';
+import AccountBalanceIcon from '@mui/icons-material/AccountBalance';
+import ChurchIcon from '@mui/icons-material/Church';
+import DirectionsBusIcon from '@mui/icons-material/DirectionsBus';
+import CommuteIcon from '@mui/icons-material/Commute';
 //import FormControlLabel from '@mui/material/FormControlLabel';
 import Switch from '@mui/material/Switch';
 import PowerSettingsNewIcon from '@mui/icons-material/PowerSettingsNew';
@@ -80,6 +97,14 @@ const [errorMessage, setErrorMessage] = useState('');
   const [adults, setAdults] = useState('');
   const [directFlight, setDirectFlight] = useState(false); // Single state for the checkbox
   const [flightOffers, setFlightOffers] = useState([]);
+
+  const [productsOpen, setProductsOpen] = useState(false);
+  const [activitiesOpen, setActivitiesOpen] = useState(false);
+  const [itinerariesOpen, setItinerariesOpen] = useState(false);
+  const [historicalPlacesOpen, setHistoricalPlacesOpen] = useState(false);
+  const [museumsOpen, setMuseumsOpen] = useState(false);
+  const [transportationOpen, setTransportationOpen] = useState(false);
+  const [complaintsOpen, setComplaintsOpen] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -506,13 +531,87 @@ const [errorMessage, setErrorMessage] = useState('');
           </Typography>
         </Box>
         <Box sx={styles.topMenuRight}>
-          <Button
-            onClick={() => (window.location.href = `/CreateItinerary`)}
-            sx={styles.menuButton}
-            startIcon={<AddIcon />}
-          >
-            Create new itinerary
-          </Button>
+        <Button
+  sx={{
+    ...styles.menuButton,
+    '&:hover': {
+      backgroundColor: '#e6e7ed', // Background color on hover
+      color: '#192959',           // Text color on hover
+    },
+  }}
+  startIcon={<AccountCircleIcon />}
+>
+  My Profile
+</Button>
+<Tooltip title="Notifications" arrow>
+  <IconButton
+    sx={{
+      ...styles.menuButton,
+      
+      '&:hover': {
+        backgroundColor: '#e6e7ed', // Lighter hover background
+      color: '#192959',           // Text color on hover
+
+      },
+      width: '40px', // Ensure square icon button
+      height: '40px',
+    }}
+  >
+    <NotificationsNoneOutlinedIcon />
+  </IconButton>
+</Tooltip>
+<Tooltip title="Shopping Cart" arrow>
+  <IconButton
+    sx={{
+      ...styles.menuButton,
+      
+      '&:hover': {
+        backgroundColor: '#e6e7ed', // Lighter hover background
+      color: '#192959',           // Text color on hover
+
+      },
+      width: '40px', // Ensure square icon button
+      height: '40px',
+    }}
+  >
+    <ShoppingCartOutlinedIcon />
+  </IconButton>
+</Tooltip>
+<Tooltip title="Wishlist" arrow>
+            <IconButton
+                sx={{
+                ...styles.menuButton,
+                
+                '&:hover': {
+                    backgroundColor: '#e6e7ed', // Lighter hover background
+                color: '#192959',           // Text color on hover
+
+                },
+                width: '40px', // Ensure square icon button
+                height: '40px',
+                }}
+            >
+    <BookmarkBorderOutlinedIcon/>
+  </IconButton>
+</Tooltip>
+
+<Tooltip title="Logout" arrow>
+            <IconButton
+                sx={{
+                ...styles.menuButton,
+                
+                '&:hover': {
+                    backgroundColor: '#e6e7ed', // Lighter hover background
+                color: '#192959',           // Text color on hover
+
+                },
+                width: '40px', // Ensure square icon button
+                height: '40px',
+                }}
+            >
+    <LogoutIcon />
+  </IconButton>
+</Tooltip>
         </Box>
       </Box>
   
@@ -813,34 +912,416 @@ const [errorMessage, setErrorMessage] = useState('');
         onMouseEnter={() => setSidebarOpen(true)}
         onMouseLeave={() => setSidebarOpen(false)}
       >
-        <Button onClick={() => navigate('/ItinerariesTourguide')} sx={styles.sidebarButton}>
-          <MapIcon sx={styles.icon} />
-          {sidebarOpen && 'Itineraries'}
+
+        <Button onClick={() => navigate('/products')} sx={styles.sidebarButton}>
+          <BedIcon sx={styles.icon} />
+          {sidebarOpen && 'Hotels'}
         </Button>
+        <Box>
+  <Button
+    onClick={() => setProductsOpen(!productsOpen)} // Toggle dropdown for products
+    sx={styles.sidebarButton}
+  >
+    <StorefrontIcon sx={styles.icon} /> {/* Products Icon */}
+    {sidebarOpen && (
+      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+        Products
+        {productsOpen ? (
+          <KeyboardArrowUpIcon sx={{ fontSize: '18px', marginLeft: '5px' }} />
+        ) : (
+          <KeyboardArrowDownIcon sx={{ fontSize: '18px', marginLeft: '5px' }} />
+        )}
+      </Box>
+    )}
+  </Button>
+  {productsOpen && (
+    <Box sx={{ display: 'flex', flexDirection: 'column', marginLeft: sidebarOpen ? '20px' : '0px' }}>
+      {/* My Purchased Products */}
+      <Button
+        onClick={() => navigate('/my-purchased-products')}
+        sx={{
+          ...styles.sidebarButton,
+          fontSize: '14px',
+          paddingLeft: sidebarOpen ? '20px' : '10px',
+          padding: '5px 20px',
+        }}
+      >
+        <ShoppingCartIcon sx={{ fontSize: '18px', marginRight: '10px' }} /> {/* Shopping Cart Icon */}
+        {sidebarOpen && 'My Purchased Products'}
+      </Button>
+      
+      {/* View All Products */}
+      <Button
+        onClick={() => navigate('/view-all-products')}
+        sx={{
+          ...styles.sidebarButton,
+          fontSize: '14px',
+          paddingLeft: sidebarOpen ? '20px' : '10px',
+          padding: '5px 20px',
+        }}
+      >
+        <InventoryIcon sx={{ fontSize: '18px', marginRight: '10px' }} /> {/* Storefront Icon */}
+        {sidebarOpen && 'All Products'}
+      </Button>
+    </Box>
+  )}
+</Box>
+{/* Activities Dropdown */}
+<Box>
         <Button
-          onClick={() => navigate('/Deactivated')}
-          sx={{
-            color: '#e6e7ed',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'flex-start',
-            textAlign: 'left',
-            width: '100%',
-            padding: '10px 20px',
-            fontSize: '16px',
-            '&:hover': {
-              backgroundColor: '#192959',
-            },
-          }}
+            onClick={() => setActivitiesOpen(!activitiesOpen)}
+            sx={styles.sidebarButton}
         >
-          <BlockIcon style={styles.icon} />
-          {sidebarOpen && 'Deactivated Itineraries'}
+            <LocalActivityIcon sx={styles.icon} />
+            {sidebarOpen && (
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+                Activities
+                {activitiesOpen ? (
+                <KeyboardArrowUpIcon sx={{ fontSize: '18px', marginLeft: '5px' }} />
+                ) : (
+                <KeyboardArrowDownIcon sx={{ fontSize: '18px', marginLeft: '5px' }} />
+                )}
+            </Box>
+            )}
         </Button>
-        <Button onClick={() => navigate('/HomePageTourGuide')} sx={styles.sidebarButton}>
+        {activitiesOpen && (
+            <Box sx={{ display: 'flex', flexDirection: 'column', marginLeft: sidebarOpen ? '20px' : '0px' }}>
+            <Button
+            onClick={() => navigate('/upcoming-activities')}
+            sx={{
+                ...styles.sidebarButton,
+                fontSize: '14px',
+                paddingLeft: sidebarOpen ? '20px' : '10px',
+                padding: '5px 20px',
+            }}
+            >
+            <ScheduleIcon sx={{ fontSize: '18px', marginRight: '10px' }} />
+            {sidebarOpen && 'Upcoming '}
+            </Button>
+
+            <Button
+                onClick={() => navigate('/completed-activities')}
+                sx={{
+                    ...styles.sidebarButton,
+                    fontSize: '14px',
+                    paddingLeft: sidebarOpen ? '20px' : '10px',
+                    padding: '5px 20px',
+                }}
+                >
+                <ChecklistIcon sx={{ fontSize: '18px', marginRight: '10px' }} /> {/* Add the icon here */}
+                {sidebarOpen && 'Completed '}
+                </Button>
+
+                <Button
+                onClick={() => navigate('/my-booked-activities')}
+                sx={{
+                    ...styles.sidebarButton,
+                    fontSize: '14px',
+                    paddingLeft: sidebarOpen ? '20px' : '10px',
+                    padding: '5px 20px',
+                }}
+                >
+                <EventAvailableIcon sx={{ fontSize: '18px', marginRight: '10px' }} />
+                {sidebarOpen && 'Booked '}
+                </Button>
+
+            </Box>
+        )}
+        </Box>
+        {/* Itineraries Dropdown */}
+<Box>
+  <Button
+    onClick={() => setItinerariesOpen(!itinerariesOpen)} // Toggle dropdown for itineraries
+    sx={styles.sidebarButton}
+  >
+    <MapIcon sx={styles.icon} />
+    {sidebarOpen && (
+      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+        Itineraries
+        {itinerariesOpen ? (
+          <KeyboardArrowUpIcon sx={{ fontSize: '18px', marginLeft: '5px' }} />
+        ) : (
+          <KeyboardArrowDownIcon sx={{ fontSize: '18px', marginLeft: '5px' }} />
+        )}
+      </Box>
+    )}
+  </Button>
+  {itinerariesOpen && (
+    <Box sx={{ display: 'flex', flexDirection: 'column', marginLeft: sidebarOpen ? '20px' : '0px' }}>
+      <Button
+        onClick={() => navigate('/upcoming-itineraries')}
+        sx={{
+          ...styles.sidebarButton,
+          fontSize: '14px',
+          paddingLeft: sidebarOpen ? '20px' : '10px',
+          padding: '5px 20px',
+        }}
+      >
+        <ScheduleIcon sx={{ fontSize: '18px', marginRight: '10px' }} />
+        {sidebarOpen && 'Upcoming '}
+      </Button>
+      <Button
+        onClick={() => navigate('/completed-itineraries')}
+        sx={{
+          ...styles.sidebarButton,
+          fontSize: '14px',
+          paddingLeft: sidebarOpen ? '20px' : '10px',
+          padding: '5px 20px',
+        }}
+      >
+        <ChecklistIcon sx={{ fontSize: '18px', marginRight: '10px' }} />
+        {sidebarOpen && 'Completed '}
+      </Button>
+      <Button
+        onClick={() => navigate('/my-booked-itineraries')}
+        sx={{
+          ...styles.sidebarButton,
+          fontSize: '14px',
+          paddingLeft: sidebarOpen ? '20px' : '10px',
+          padding: '5px 20px',
+        }}
+      >
+        <EventAvailableIcon sx={{ fontSize: '18px', marginRight: '10px' }} />
+        {sidebarOpen && ' Booked '}
+      </Button>
+    </Box>
+  )}
+</Box>
+{/* Historical Places Dropdown */}
+<Box>
+  <Button
+    onClick={() => setHistoricalPlacesOpen(!historicalPlacesOpen)} // Toggle dropdown for historical places
+    sx={styles.sidebarButton}
+  >
+    <ChurchIcon sx={styles.icon} />
+    {sidebarOpen && (
+      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+        Historical Places
+        {historicalPlacesOpen ? (
+          <KeyboardArrowUpIcon sx={{ fontSize: '18px', marginLeft: '5px' }} />
+        ) : (
+          <KeyboardArrowDownIcon sx={{ fontSize: '18px', marginLeft: '5px' }} />
+        )}
+      </Box>
+    )}
+  </Button>
+  {historicalPlacesOpen && (
+    <Box sx={{ display: 'flex', flexDirection: 'column', marginLeft: sidebarOpen ? '20px' : '0px' }}>
+      <Button
+        onClick={() => navigate('/upcoming-historical-places')}
+        sx={{
+          ...styles.sidebarButton,
+          fontSize: '14px',
+          paddingLeft: sidebarOpen ? '20px' : '10px',
+          padding: '5px 20px',
+        }}
+      >
+        <ScheduleIcon sx={{ fontSize: '18px', marginRight: '10px' }} />
+        {sidebarOpen && 'Upcoming '}
+      </Button>
+      <Button
+        onClick={() => navigate('/visited-historical-places')}
+        sx={{
+          ...styles.sidebarButton,
+          fontSize: '14px',
+          paddingLeft: sidebarOpen ? '20px' : '10px',
+          padding: '5px 20px',
+        }}
+      >
+        <ChecklistIcon sx={{ fontSize: '18px', marginRight: '10px' }} />
+        {sidebarOpen && 'Visited '}
+      </Button>
+      <Button
+        onClick={() => navigate('/saved-historical-places')}
+        sx={{
+          ...styles.sidebarButton,
+          fontSize: '14px',
+          paddingLeft: sidebarOpen ? '20px' : '10px',
+          padding: '5px 20px',
+        }}
+      >
+        <EventAvailableIcon sx={{ fontSize: '18px', marginRight: '10px' }} />
+        {sidebarOpen && 'Booked '}
+      </Button>
+    </Box>
+  )}
+</Box>
+
+
+<Box>
+  <Button
+    onClick={() => setMuseumsOpen(!museumsOpen)} // Toggle dropdown for museums
+    sx={styles.sidebarButton}
+  >
+    <AccountBalanceIcon sx={styles.icon} /> {/* Suitable icon for Museums */}
+    {sidebarOpen && (
+      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+        Museums
+        {museumsOpen ? (
+          <KeyboardArrowUpIcon sx={{ fontSize: '18px', marginLeft: '5px' }} />
+        ) : (
+          <KeyboardArrowDownIcon sx={{ fontSize: '18px', marginLeft: '5px' }} />
+        )}
+      </Box>
+    )}
+  </Button>
+  {museumsOpen && (
+    <Box sx={{ display: 'flex', flexDirection: 'column', marginLeft: sidebarOpen ? '20px' : '0px' }}>
+      {/* Upcoming Museums */}
+      <Button
+        onClick={() => navigate('/upcoming-museums')}
+        sx={{
+          ...styles.sidebarButton,
+          fontSize: '14px',
+          paddingLeft: sidebarOpen ? '20px' : '10px',
+          padding: '5px 20px',
+        }}
+      >
+        <ScheduleIcon sx={{ fontSize: '18px', marginRight: '10px' }} />
+        {sidebarOpen && 'Upcoming '}
+      </Button>
+      
+      {/* Visited Museums */}
+      <Button
+        onClick={() => navigate('/visited-museums')}
+        sx={{
+          ...styles.sidebarButton,
+          fontSize: '14px',
+          paddingLeft: sidebarOpen ? '20px' : '10px',
+          padding: '5px 20px',
+        }}
+      >
+        <ChecklistIcon sx={{ fontSize: '18px', marginRight: '10px' }} />
+        {sidebarOpen && 'Visited '}
+      </Button>
+      
+      {/* Saved Museums */}
+      <Button
+        onClick={() => navigate('/saved-museums')}
+        sx={{
+          ...styles.sidebarButton,
+          fontSize: '14px',
+          paddingLeft: sidebarOpen ? '20px' : '10px',
+          padding: '5px 20px',
+        }}
+      >
+        <EventAvailableIcon sx={{ fontSize: '18px', marginRight: '10px' }} />
+        {sidebarOpen && 'Booked '}
+      </Button>
+    </Box>
+  )}
+</Box>
+
+
+
+<Box>
+  <Button
+    onClick={() => setTransportationOpen(!transportationOpen)} // Toggle dropdown for transportation
+    sx={styles.sidebarButton}
+  >
+    <DirectionsBusIcon sx={styles.icon} /> {/* Transportation Icon */}
+    {sidebarOpen && (
+      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+        Transportation
+        {transportationOpen ? (
+          <KeyboardArrowUpIcon sx={{ fontSize: '18px', marginLeft: '5px' }} />
+        ) : (
+          <KeyboardArrowDownIcon sx={{ fontSize: '18px', marginLeft: '5px' }} />
+        )}
+      </Box>
+    )}
+  </Button>
+  {transportationOpen && (
+    <Box sx={{ display: 'flex', flexDirection: 'column', marginLeft: sidebarOpen ? '20px' : '0px' }}>
+      {/* Available Transportation */}
+      <Button
+        onClick={() => navigate('/available-transportation')}
+        sx={{
+          ...styles.sidebarButton,
+          fontSize: '14px',
+          paddingLeft: sidebarOpen ? '20px' : '10px',
+          padding: '5px 20px',
+        }}
+      >
+        <CommuteIcon sx={{ fontSize: '18px', marginRight: '10px' }} /> {/* Commute Icon */}
+        {sidebarOpen && 'Available Transportation'}
+      </Button>
+      
+      {/* Booked Transportation */}
+      <Button
+        onClick={() => navigate('/booked-transportation')}
+        sx={{
+          ...styles.sidebarButton,
+          fontSize: '14px',
+          paddingLeft: sidebarOpen ? '20px' : '10px',
+          padding: '5px 20px',
+        }}
+      >
+        <EventAvailableIcon sx={{ fontSize: '18px', marginRight: '10px' }} /> {/* Booked Icon */}
+        {sidebarOpen && 'Booked '}
+      </Button>
+    </Box>
+  )}
+</Box>
+<Box>
+  <Button
+    onClick={() => setComplaintsOpen(!complaintsOpen)} // Toggle dropdown for complaints
+    sx={styles.sidebarButton}
+  >
+    <AssignmentIcon sx={styles.icon} /> {/* Complaints Icon */}
+    {sidebarOpen && (
+      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+        Complaints
+        {complaintsOpen ? (
+          <KeyboardArrowUpIcon sx={{ fontSize: '18px', marginLeft: '5px' }} />
+        ) : (
+          <KeyboardArrowDownIcon sx={{ fontSize: '18px', marginLeft: '5px' }} />
+        )}
+      </Box>
+    )}
+  </Button>
+  {complaintsOpen && (
+    <Box sx={{ display: 'flex', flexDirection: 'column', marginLeft: sidebarOpen ? '20px' : '0px' }}>
+      {/* View All Complaints */}
+      <Button
+        onClick={() => navigate('/view-all-complaints')}
+        sx={{
+          ...styles.sidebarButton,
+          fontSize: '14px',
+          paddingLeft: sidebarOpen ? '20px' : '10px',
+          padding: '5px 20px',
+        }}
+      >
+        <AddIcon sx={{ fontSize: '18px', marginRight: '10px' }} />
+        {sidebarOpen && 'File Complaint'}
+      </Button>
+      
+      {/* My Submitted Complaints */}
+      <Button
+        onClick={() => navigate('/my-submitted-complaints')}
+        sx={{
+          ...styles.sidebarButton,
+          fontSize: '14px',
+          paddingLeft: sidebarOpen ? '20px' : '10px',
+          padding: '5px 20px',
+        }}
+      >
+        <FeedbackIcon sx={{ fontSize: '18px', marginRight: '10px' }} /> {/* Feedback Icon */}
+        {sidebarOpen && 'My Complaints'}
+      </Button>
+    </Box>
+  )}
+</Box>
+        
+        
+      
+        <Button onClick={() => navigate('/NewTouristHomePage')} sx={styles.sidebarButton}>
           <DashboardIcon sx={styles.icon} />
           {sidebarOpen && 'Back to Dashboard'}
         </Button>
       </Box>
+
+      
       {/* Confirmation Dialog */}
       <Dialog open={openDialog} onClose={() => setOpenDialog(false)}>
         <DialogContent>
