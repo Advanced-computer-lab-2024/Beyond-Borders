@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Button, Typography, IconButton,Tooltip, TextField, InputAdornment } from '@mui/material';
+import { Box, Button, Typography, IconButton,Tooltip, TextField, InputAdornment, Modal } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import MenuIcon from '@mui/icons-material/Menu';
 import NotificationsIcon from '@mui/icons-material/Notifications';
@@ -38,6 +38,7 @@ import ShoppingCartOutlinedIcon from '@mui/icons-material/ShoppingCartOutlined';
 import NotificationsNoneOutlinedIcon from '@mui/icons-material/NotificationsNoneOutlined';
 import AccountCircleIcon from '@mui/icons-material/AccountCircleRounded';
 import BookmarkBorderOutlinedIcon from '@mui/icons-material/BookmarkBorderOutlined';
+import FilterAltIcon from '@mui/icons-material/FilterAlt';
 import axios from 'axios';
 
 function TouristUpcomingActivities() {
@@ -57,8 +58,17 @@ function TouristUpcomingActivities() {
   const [transportationOpen, setTransportationOpen] = useState(false);
   const [productsOpen, setProductsOpen] = useState(false);
   const [complaintsOpen, setComplaintsOpen] = useState(false);
-//search bar
+  //search bar
   const [searchQuery, setSearchQuery] = useState(''); // Search query state
+  //filter activities
+  const [filterModalOpen, setFilterModalOpen] = useState(false);
+  const [filterInputs, setFilterInputs] = useState({
+  Category: '',
+  minPrice: '',
+  maxPrice: '',
+  InputDate: '',
+  Rating: '',
+});
 
   const navigate = useNavigate();
 
@@ -126,6 +136,40 @@ function TouristUpcomingActivities() {
       console.error('Error fetching categories:', error);
     }
   };
+
+  const handleFilterInputChange = (e) => {
+    const { name, value } = e.target;
+  
+    setFilterInputs((prev) => ({
+      ...prev,
+      [name]: name === "minPrice" || name === "maxPrice" || name === "Rating" // Ensure numerical values are parsed
+        ? parseFloat(value) || "" // Keep empty string if value is invalid
+        : value,
+    }));
+  };
+  
+  const handleFilterSubmit = async () => {
+    try {
+      // Remove empty or invalid fields before sending to backend
+      const sanitizedInputs = Object.fromEntries(
+        Object.entries(filterInputs).filter(([_, value]) => value !== "" && value !== null)
+      );
+  
+      const response = await axios.post('/api/filterActivities', sanitizedInputs);
+      setActivities(response.data); // Update activities with the filtered results
+      setFilterModalOpen(false); // Close the modal after applying filters
+    } catch (error) {
+      if (error.response && error.response.status === 404) {
+        // No activities found
+        setActivities([]); // Clear activities list
+        setFilterModalOpen(false); // Close the modal
+      } else {
+        console.error('Error filtering activities:', error);
+      }
+    }
+  };
+  
+  
 
   // Fetch tags from backend
   const fetchTags = async () => {
@@ -706,28 +750,23 @@ function TouristUpcomingActivities() {
 </Box>
       </Box>
 
-      {/* Search Bar */}
       <Box
   sx={{
     display: 'flex',
-    justifyContent: 'left',
+    justifyContent: 'space-between', // Ensure space between search bar and icon
+    alignItems: 'center',           // Align items vertically in the center
     marginBottom: '20px',
     marginTop: '20px',
     marginLeft: '150px',
+    marginRight: '150px',           // Add margin to the right for consistent spacing
   }}
 >
+  {/* Search Bar */}
   <TextField
     label="Search"
     variant="outlined"
     value={searchQuery}
     onChange={handleSearchChange}
-    InputProps={{
-      startAdornment: (
-        <InputAdornment position="start">
-          <SearchIcon sx={{ color: '#192959' }} />
-        </InputAdornment>
-      ),
-    }}
     sx={{
       width: '30%',
       '& .MuiOutlinedInput-root': {
@@ -745,16 +784,33 @@ function TouristUpcomingActivities() {
         },
       },
       '& .MuiInputLabel-root': {
-        color: '#192959', // Default label color,
-        fontSize: '18px'
-      },
-      '& .MuiInputLabel-root.Mui-focused': {
-        color: '#192959', // Focused label color
-        fontSize: '18px'
+        color: '#192959', // Label color
+        fontSize: '18px',
       },
     }}
+    InputProps={{
+      startAdornment: (
+        <Box sx={{ display: 'flex', alignItems: 'center', color: '#192959', paddingLeft: '5px' }}>
+          <SearchIcon />
+        </Box>
+      ),
+    }}
   />
+
+   {/* Filter Icon with Tooltip */}
+   <Tooltip title="Filter" placement="bottom" arrow>
+    <IconButton
+      onClick={() => setFilterModalOpen(true)}
+      sx={{
+        color: '#192959',
+        '&:hover': { backgroundColor: '#e6e7ed', color: '#33416b' },
+      }}
+    >
+      <FilterAltIcon fontSize="large" />
+    </IconButton>
+  </Tooltip>
 </Box>
+
 
 
       
@@ -856,6 +912,109 @@ function TouristUpcomingActivities() {
           </Box>
         ))}
       </Box>
+
+      <Box sx={styles.activitiesContainer}>
+  {activities.length > 0 ? (
+    activities.map((activity, index) => (
+      <Box key={index} sx={{ marginBottom: '20px' }}>
+        {/* Your activity card code */}
+      </Box>
+    ))
+  ) : (
+    <Typography variant="h6" sx={{ textAlign: 'center', color: '#192959', marginTop: '20px' }}>
+      No Activities Found Matching Your Criteria.
+    </Typography>
+  )}
+</Box>
+
+
+      <Modal
+  open={filterModalOpen}
+  onClose={() => setFilterModalOpen(false)}
+  aria-labelledby="filter-modal-title"
+  aria-describedby="filter-modal-description"
+>
+  <Box
+    sx={{
+      position: 'absolute',
+      top: '50%',
+      left: '50%',
+      transform: 'translate(-50%, -50%)',
+      width: 400,
+      bgcolor: 'background.paper',
+      boxShadow: 24,
+      p: 4,
+      borderRadius: '10px',
+    }}
+  >
+    <Typography id="filter-modal-title" variant="h6" component="h2" sx={{ marginBottom: '20px' }}>
+      Filter Activities
+    </Typography>
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+      <TextField
+        label="Category"
+        name="Category"
+        variant="outlined"
+        value={filterInputs.Category || ""}
+        onChange={handleFilterInputChange}
+      />
+      <TextField
+        label="Min Price"
+        name="minPrice"
+        type="number"
+        variant="outlined"
+        value={filterInputs.minPrice || ""}
+        onChange={handleFilterInputChange}
+      />
+      <TextField
+        label="Max Price"
+        name="maxPrice"
+        type="number"
+        variant="outlined"
+        value={filterInputs.maxPrice || ""}
+        onChange={handleFilterInputChange}
+      />
+      <TextField
+        label="Date"
+        name="InputDate"
+        type="date"
+        variant="outlined"
+        InputLabelProps={{ shrink: true }}
+        value={filterInputs.InputDate || ""}
+        onChange={handleFilterInputChange}
+      />
+      <TextField
+        label="Rating"
+        name="Rating"
+        type="number"
+        variant="outlined"
+        value={filterInputs.Rating || ""}
+        onChange={handleFilterInputChange}
+      />
+    </Box>
+    <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '20px' }}>
+    <Button
+  variant="outlined"
+  onClick={() => setFilterModalOpen(false)}
+  sx={{
+    color: '#192959', // Text color
+    borderColor: '#192959', // Outline color
+    '&:hover': {
+      backgroundColor: 'rgba(25, 41, 89, 0.1)', // Slight background highlight on hover
+      borderColor: '#192959', // Outline color on hover
+    },
+  }}
+>
+  Cancel
+</Button>
+
+      <Button variant="contained" onClick={handleFilterSubmit} sx={{ backgroundColor: '#192959', color: '#fff' }}>
+        Apply
+      </Button>
+    </Box>
+  </Box>
+</Modal>
+
       {/* Back to Top Button */}
       {showBackToTop && (
         <Button onClick={scrollToTop} sx={styles.backToTop}>
