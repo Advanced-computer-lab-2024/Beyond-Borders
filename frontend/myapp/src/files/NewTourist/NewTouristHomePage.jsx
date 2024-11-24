@@ -508,7 +508,7 @@ const closeDeleteRequestsModal = () => {
           {sidebarOpen && 'Flights'}
         </Button>
 
-        <Button onClick={() => navigate('/products')} sx={styles.sidebarButton}>
+        <Button onClick={() => navigate('/TouristHotels')} sx={styles.sidebarButton}>
           <BedIcon sx={styles.icon} />
           {sidebarOpen && 'Hotels'}
         </Button>

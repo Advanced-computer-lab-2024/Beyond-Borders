@@ -4541,6 +4541,7 @@ let hotelOffers = [];
 const fetchHotels = async (req, res) => {
   const { adults, checkInDate, checkOutDate } = req.body;
   hotelOffers = [];
+
   // Validate input
   if (!ids.length || !checkInDate || !checkOutDate) {
     return res.status(400).json({ msg: "Hotel IDs, check-in date, and check-out date are required." });
@@ -4584,26 +4585,25 @@ const fetchHotels = async (req, res) => {
     if (offers && offers.length > 0) {
       offers.forEach((offer) => {
         if (offer.offers && offer.offers.length > 0) {
-          const roomDetails = {
-            hotelNumber: hotelOffers.length + 1,
-            price: offer.offers[0].price.total,
-            checkInDate: checkInDate,
-            checkOutDate: checkOutDate,
-            adults: adults,
-            name: offer.hotel.name,
-            cityCode: offer.hotel.cityCode,
+          // Map room offers and include additional details
+          const roomDetails = offer.offers.map((room) => ({
+            bedType: room.room?.typeEstimated?.bedType || "N/A",
+            policies: room.policies || {}, // Include policies
+            price: room.price?.total || "N/A",
+            currency: room.price?.currency || "N/A",
+            boardType: room.boardType || "N/A",
+            checkInDate: room.checkInDate || checkInDate,
+            checkOutDate: room.checkOutDate || checkOutDate,
+          }));
+
+          // Build hotel details
+          const hotelDetails = {
+            hotelName: offer.hotel.name,
+            cityCode: offer.hotel.cityCode || "N/A",
+            roomOffers: roomDetails,
           };
 
-          const existingHotel = hotelOffers.find(h => h.hotelID === offer.hotel.hotelId);
-          if (existingHotel) {
-            existingHotel.roomOffers.push(roomDetails);
-          } else {
-            hotelOffers.push({
-              hotelID: offer.hotel.hotelId,
-              hotelName: offer.hotel.name,
-              roomOffers: [roomDetails],
-            });
-          }
+          hotelOffers.push(hotelDetails);
         } else {
           console.log(`No offers found for hotel: ${offer.hotel.name}`);
         }
@@ -4615,7 +4615,6 @@ const fetchHotels = async (req, res) => {
     if (hotelOffers.length === 0) {
       return res.status(404).json({ msg: "No hotel offers found for the given criteria." });
     }
-    
 
     console.log('Hotel offers:', hotelOffers[0]);
     res.status(200).json(hotelOffers);
@@ -4624,6 +4623,9 @@ const fetchHotels = async (req, res) => {
     res.status(500).json({ msg: "An error occurred while fetching hotels.", error: error.message });
   }
 };
+
+
+
 
 const bookHotel = async (req, res) => {
   const { hotelNumber, touristUsername } = req.body;
