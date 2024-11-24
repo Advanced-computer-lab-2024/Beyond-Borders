@@ -585,7 +585,7 @@ const closeDeleteRequestsModal = () => {
         {activitiesOpen && (
             <Box sx={{ display: 'flex', flexDirection: 'column', marginLeft: sidebarOpen ? '20px' : '0px' }}>
             <Button
-            onClick={() => navigate('/upcoming-activities')}
+            onClick={() => navigate('/TouristUpcomingActivities')}
             sx={{
                 ...styles.sidebarButton,
                 fontSize: '14px',

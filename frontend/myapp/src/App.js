@@ -75,6 +75,7 @@ import Deactivated from './files/Deactivated';
 import NewTouristHomePage from './files/NewTourist/NewTouristHomePage';
 import TouristFlights from './files/NewTourist/TouristFlights';
 import TouristHotels from './files/NewTourist/TouristHotels';
+import TouristUpcomingActivities from './files/NewTourist/TouristUpcomingActivities';
 
 //YASSIN AND AMINA DASHBOARD
 import YAdminDashboard from './files/Admin/YAdminDashboard';
@@ -117,8 +118,8 @@ function App() {
           <Route path="/NewTouristHomePage" element={<NewTouristHomePage/>}/>
           <Route path="/TouristFlights" element={<TouristFlights/>}/>
           <Route path="/TouristHotels" element={<TouristHotels/>}/>
+          <Route path="/TouristUpcomingActivities" element={<TouristUpcomingActivities/>}/>
           
-
           
 
 
