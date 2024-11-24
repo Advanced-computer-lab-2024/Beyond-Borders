@@ -119,7 +119,7 @@ app.use(cors());
 app.use(express.json())
 app.post("/addTourist", createTourist);
 app.post('/addUnregisteredTourGuide',uploadPDF.fields([{ name: 'IDDocument', maxCount: 1 }, { name: 'CertificateDocument', maxCount: 1 }]),createUnregisteredTourGuide);
-app.post("/addUnregisteredSeller", createUnregisteredSeller);
+app.post("/addUnregisteredSeller",uploadPDF.single("CombinedDocument"),createUnregisteredSeller);
 app.post("/addUnregisteredAdvertiser", createUnregisteredAdvertiser);
 app.post("/addTourismGovernor", createNewTourismGoverner);
 app.post("/addAdmin", createNewAdmin);
