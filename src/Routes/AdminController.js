@@ -23,6 +23,8 @@ const ArchivedProductsModel = require('../Models/ArchivedProducts.js');
 const DeleteRequestsModel = require('../Models/DeleteRequests.js');
 const DeactivatedItineraries = require('../Models/DeactivatedItineraries.js');
 const DeactivatedActivitiesModel = require('../Models/DeactivatedActivities.js');
+
+
 const { default: mongoose } = require('mongoose');
 
 const createNewAdmin = async(req,res) => {
@@ -1193,7 +1195,90 @@ const getAdminPassword = async (req, res) => {
     }
  };
 
+ const viewAdvertiserDocument = async (req, res) => {
+    try {
+      const { Username } = req.query;
+  
+      // Fetch the advertiser details based on the Username
+      const advertiser = await NewUnregisteredAdvertiserModel.findOne({ Username });
+  
+      if (!advertiser) {
+        return res.status(404).json({ error: "Advertiser not found!" });
+      }
+  
+      // Respond with the advertiser's document path
+      res.status(200).json({
+        msg: "Advertiser document fetched successfully!",
+        documentPath: advertiser.AdvertiserDocument, // Path to the uploaded document
+      });
+    } catch (error) {
+      res.status(400).json({ error: error.message });
+    }
+  };
+
+  const viewTourGuideDocuments = async (req, res) => {
+    try {
+      const { username } = req.query; // Extract the username from the query string
+  
+      if (!username) {
+        return res.status(400).json({ error: "Username is required!" });
+      }
+  
+      // Fetch the tour guide details using the username
+      const tourGuide = await NewUnregisteredTourGuideModel.findOne({ Username: username });
+  
+      if (!tourGuide) {
+        return res.status(404).json({ error: "Tour Guide not found!" });
+      }
+  
+      // Check if the documents exist
+      if (!tourGuide.IDDocument || !tourGuide.CertificateDocument) {
+        return res.status(404).json({ error: "Documents not found for this Tour Guide!" });
+      }
+  
+      // Return the document paths
+      res.status(200).json({
+        msg: "Tour Guide documents fetched successfully!",
+        IDDocument: tourGuide.IDDocument,
+        CertificateDocument: tourGuide.CertificateDocument,
+      });
+    } catch (error) {
+      res.status(400).json({ error: error.message });
+    }
+  };
+
+  const viewSellerDocument = async (req, res) => {
+    try {
+      const { username } = req.query; // Extract the username from the query string
+  
+      if (!username) {
+        return res.status(400).json({ error: "Username is required!" });
+      }
+  
+      // Fetch the seller details using the username
+      const seller = await NewUnregisteredSellerModel.findOne({ Username: username });
+  
+      if (!seller) {
+        return res.status(404).json({ error: "Seller not found!" });
+      }
+  
+      // Check if the document exists
+      if (!seller.Documents) {
+        return res.status(404).json({ error: "Document not found for this Seller!" });
+      }
+  
+      // Return the document path
+      res.status(200).json({
+        msg: "Seller document fetched successfully!",
+        Document: seller.Documents,
+      });
+    } catch (error) {
+      res.status(400).json({ error: error.message });
+    }
+  };
+  
+
 
 module.exports = {createNewAdmin, createNewTourismGoverner, createNewProduct, editProduct, acceptSeller, rejectSeller, createNewCategory, readAllActivityCategories, updateCategory, deleteActivityCategory, deleteAccount, searchProductAdmin, createNewTag, readAllTags, updateTag, deleteTag, 
     acceptTourGuide, rejectTourGuide, acceptAdvertiser, rejectAdvertiser, filterProductByPriceAdmin, sortProductsDescendingAdmin, sortProductsAscendingAdmin,viewProducts, loginAdmin, viewAllProductsAdmin, updateAdminPassword, getAllComplaints, updateComplaintStatus, replyToComplaint, getComplaintDetails, 
-    filterComplaintsByStatus, sortComplaintsByRecent, sortComplaintsByOldest, archiveProduct, unarchiveProduct, flagItinerary, flagActivity, viewArchivedProductsAdmin , viewAllActivitiesAdmin ,viewAllItinerariesAdmin,acceptTranspAdvertiser,rejectTranspAdvertiser, readAllDeleteRequests,rejectRequestDeleteAccout, getAdminPassword};
+    filterComplaintsByStatus, sortComplaintsByRecent, sortComplaintsByOldest, archiveProduct, unarchiveProduct, flagItinerary, flagActivity, viewArchivedProductsAdmin , viewAllActivitiesAdmin ,viewAllItinerariesAdmin,acceptTranspAdvertiser,rejectTranspAdvertiser, readAllDeleteRequests,rejectRequestDeleteAccout, getAdminPassword,viewAdvertiserDocument,viewTourGuideDocuments,viewSellerDocument};
