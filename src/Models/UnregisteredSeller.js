@@ -21,7 +21,11 @@ const UnregisteredSellerSchema = new Schema({
   Description: {
     type: String,
     required: true,
-  }
+  },
+  Documents: { 
+    type: String, 
+    required: true,
+   },
 }, { timestamps: true }); //adds 2 more field (Created At:) & (Updated At:)
 
 const UnregisteredSeller = mongoose.model('UnregisteredSeller', UnregisteredSellerSchema);
