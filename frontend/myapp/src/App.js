@@ -75,6 +75,7 @@ import Deactivated from './files/Deactivated';
 import NewTouristHomePage from './files/NewTourist/NewTouristHomePage';
 import TouristFlights from './files/NewTourist/TouristFlights';
 import TouristHotels from './files/NewTourist/TouristHotels';
+import TouristUpcomingActivities from './files/NewTourist/TouristUpcomingActivities';
 
 //YASSIN AND AMINA DASHBOARD
 import YAdminDashboard from './files/Admin/YAdminDashboard';
@@ -83,6 +84,7 @@ import YAdminComplaintsPage from './files/Admin/YAdminComplaintsPage';
 import YAdminItinerariesPage from './files/Admin/YAdminItinerariesPage';
 
 
+import GuestItinerariesPage from './files/GuestItinerariesPage';
 
 
 function App() {
@@ -117,8 +119,8 @@ function App() {
           <Route path="/NewTouristHomePage" element={<NewTouristHomePage/>}/>
           <Route path="/TouristFlights" element={<TouristFlights/>}/>
           <Route path="/TouristHotels" element={<TouristHotels/>}/>
+          <Route path="/TouristUpcomingActivities" element={<TouristUpcomingActivities/>}/>
           
-
           
 
 
@@ -181,6 +183,9 @@ function App() {
           <Route path="/PaymentPage" element={<PaymentPage />} />
 
           <Route path="/homeGuest" element={<HomePageGuest />} />
+          <Route path="/GuestItinerary" element={<GuestItinerariesPage />} />
+
+
 
 
 

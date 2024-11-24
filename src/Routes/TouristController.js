@@ -305,7 +305,7 @@ const createTourist = async (req, res) => {
 
       const filterActivities = async (req, res) => {
         const { Category, minPrice, maxPrice, InputDate, Rating } = req.body; // Extract parameters from the request body
-        const query = {}; // Initialize an empty query object
+        const query = { flagged: false }; // Initialize query object to include `flagged: false`
     
         // Get the current date and set time to midnight
         const currentDate = new Date();
@@ -366,6 +366,7 @@ const createTourist = async (req, res) => {
             res.status(500).json({ msg: "An error occurred while fetching activities." });
         }
     };
+    
     
     // Example Express.js route
     // app.post('/filter-activities', filterActivities);
@@ -678,8 +679,8 @@ const sortActivitiesPriceAscendingTourist = async (req, res) => {
     const currentDate = new Date();
     currentDate.setHours(0, 0, 0, 0);
 
-    // Get all activities from the database
-    const activities = await ActivityModel.find();
+    // Get all activities from the database where `flagged` is `false`
+    const activities = await ActivityModel.find({ flagged: false });
 
     // Filter for upcoming activities only
     const upcomingActivities = activities.filter(activity => activity.Date >= currentDate);
@@ -694,13 +695,14 @@ const sortActivitiesPriceAscendingTourist = async (req, res) => {
   }
 };
 
+
 const sortActivitiesPriceDescendingTourist = async (req, res) => {
   try {
     const currentDate = new Date();
     currentDate.setHours(0, 0, 0, 0);
 
     // Get all activities from the database
-    const activities = await ActivityModel.find();
+    const activities = await ActivityModel.find({ flagged: false });
 
     // Filter for upcoming activities only
     const upcomingActivities = activities.filter(activity => activity.Date >= currentDate);
@@ -721,7 +723,7 @@ const sortActivitiesRatingAscendingTourist = async (req, res) => {
     currentDate.setHours(0, 0, 0, 0);
 
     // Get all activities from the database
-    const activities = await ActivityModel.find();
+    const activities = await ActivityModel.find({ flagged: false });
 
     // Filter for upcoming activities only
     const upcomingActivities = activities.filter(activity => activity.Date >= currentDate);
@@ -742,7 +744,7 @@ const sortActivitiesRatingDescendingTourist = async (req, res) => {
     currentDate.setHours(0, 0, 0, 0);
 
     // Get all activities from the database
-    const activities = await ActivityModel.find();
+    const activities = await ActivityModel.find({ flagged: false });
 
     // Filter for upcoming activities only
     const upcomingActivities = activities.filter(activity => activity.Date >= currentDate);
@@ -949,7 +951,7 @@ const filterItinerariesTourist = async (req, res) => {
 // app.post('/filter-itineraries', filterItinerariesTourist);
 
 
-      const ActivitiesSearchAll = async (req, res) => {
+      /*const ActivitiesSearchAll = async (req, res) => {
         const { searchString } = req.body; // Extract the search string from the request body
         const query = {}; // Initialize an empty query object
     
@@ -975,7 +977,39 @@ const filterItinerariesTourist = async (req, res) => {
             console.error('Error fetching activities:', error);
             res.status(500).json({ msg: "An error occurred while fetching activities." });
         }
-    };
+    };*/
+
+    const ActivitiesSearchAll = async (req, res) => {
+      const { searchString } = req.body; // Extract the search string from the request body
+      const query = {
+          flagged: false, // Exclude flagged activities
+          Date: { $gte: new Date() }, // Include only upcoming activities
+      }; // Initialize the query object with base filters
+      
+      // Create a case-insensitive regex if a search string is provided
+      if (searchString) {
+          const regex = new RegExp(searchString, 'i'); // 'i' for case-insensitive matching
+          
+          // Add search criteria to the query
+          query.$or = [
+              { Name: regex },
+              { Category: regex },
+              { Tags: { $in: [searchString] } }, // Match if the tag equals the search string
+          ];
+      }
+      
+      try {
+          const fetchedActivities = await ActivityModel.find(query); // Fetch activities based on the constructed query
+          if (fetchedActivities.length === 0) {
+              return res.status(404).json({ msg: "No activities found for the given criteria!" });
+          }
+          res.status(200).json(fetchedActivities); // Respond with the fetched activities
+      } catch (error) {
+          console.error('Error fetching activities:', error);
+          res.status(500).json({ msg: "An error occurred while fetching activities." });
+      }
+  };
+  
     const ItinerarySearchAll = async (req, res) => {
       const { searchString } = req.body; // Extract the search string from the request body
       const query = {}; // Initialize an empty query object
