@@ -470,13 +470,7 @@ const [itineraryToDeactivate, setItineraryToDeactivate] = useState(null);
         </Button> */}
 
 
-        <Button
-          onClick={() => window.location.href = `/CreateItinerary`}
-          sx={styles.menuButton}
-          startIcon={<AddIcon />}
-        >
-          Create new itinerary
-        </Button>
+        
 
 
      
@@ -498,25 +492,7 @@ const [itineraryToDeactivate, setItineraryToDeactivate] = useState(null);
         onMouseEnter={() => setSidebarOpen(true)}
         onMouseLeave={() => setSidebarOpen(false)}
       >
-        <Button
-    sx={{
-      color: '#e6e7ed',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'flex-start',
-      textAlign: 'left',
-      width: '100%',
-      padding: '10px 20px',
-      fontSize: '16px',
-      '&:hover': {
-        backgroundColor: '#192959',
-      },
-    }}
-    onClick={() => window.location.href = `/CreateItinerary`}
-  >
-    <AddCircleIcon style={styles.icon} />
-    {sidebarOpen && "Create New Itinerary"}
-  </Button>
+       
         
         <Button onClick={() => navigate('/ItinerariesTourguide')} sx={styles.sidebarButton}>
           <MapIcon sx={styles.icon} />

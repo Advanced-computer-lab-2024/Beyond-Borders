@@ -67,6 +67,21 @@ function ItinerariesTourguide() {
   const [editing, setEditing] = useState({});
   const [deactivateDialogOpen, setDeactivateDialogOpen] = useState(false);
 const [itineraryToDeactivate, setItineraryToDeactivate] = useState(null);
+const [isModalOpen, setIsModalOpen] = useState(false); // Modal state
+  const [itineraryData, setItineraryData] = useState({
+    title: '',
+    activities: '',
+    locations: '',
+    timeline: '',
+    language: '',
+    price: '',
+    date: '',
+    accessibility: false,
+    pickupLocation: '',
+    dropoffLocation: '',
+    tags: '',
+  });
+  const [errorMessage, setErrorMessage] = useState(''); // Error message state
 
 
   const navigate = useNavigate();
@@ -104,6 +119,79 @@ const [itineraryToDeactivate, setItineraryToDeactivate] = useState(null);
     } catch (error) {
       console.error('Error fetching activities:', error);
     }
+  };
+
+
+   // Handle input changes
+   const handleChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    setItineraryData((prevData) => ({
+      ...prevData,
+      [name]: type === 'checkbox' ? checked : value,
+    }));
+  };
+
+  // Handle form submission
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    const AuthorUsername = localStorage.getItem('username');
+    if (!AuthorUsername) {
+      alert('You need to log in first.');
+      return;
+    }
+
+    const tagsArray = itineraryData.tags.split(',').map((tag) => tag.trim());
+    const dataToSubmit = {
+      AuthorUsername,
+      Title: itineraryData.title,
+      Date: itineraryData.date,
+      Timeline: itineraryData.timeline,
+      Price: itineraryData.price,
+      Locations: itineraryData.locations,
+      Activities: itineraryData.activities,
+      accessibility: itineraryData.accessibility,
+      pickupLocation: itineraryData.pickupLocation,
+      dropoffLocation: itineraryData.dropoffLocation,
+      Tags: tagsArray,
+      Language: itineraryData.language,
+    };
+
+    try {
+      const response = await axios.post('/api/createItinerary', dataToSubmit);
+      alert('Itinerary created successfully!');
+      handleModalClose(); // Close modal on success
+      fetchActivities();
+
+      // Clear form data
+      setItineraryData({
+        title: '',
+        activities: '',
+        locations: '',
+        timeline: '',
+        language: '',
+        price: '',
+        date: '',
+        accessibility: false,
+        pickupLocation: '',
+        dropoffLocation: '',
+        tags: '',
+      });
+    } catch (error) {
+      setErrorMessage(
+        error.response?.data?.error || 'An error occurred. Please try again.'
+      );
+    }
+  };
+
+  // Handle modal open
+  const handleModalOpen = () => {
+    setIsModalOpen(true);
+  };
+
+  // Handle modal close
+  const handleModalClose = () => {
+    setIsModalOpen(false);
   };
 
   // Fetch categories from backend
@@ -450,14 +538,17 @@ const [itineraryToDeactivate, setItineraryToDeactivate] = useState(null);
           Activity Categories
         </Button> */}
 
-
-        <Button
-          onClick={() => window.location.href = `/CreateItinerary`}
-          sx={styles.menuButton}
-          startIcon={<AddIcon />}
-        >
-          Create new itinerary
-        </Button>
+<Button
+        onClick={handleModalOpen}
+        sx={{
+          backgroundColor: "#192959",
+          color: "#fff",
+          "&:hover": { backgroundColor: "#4b5a86" },
+        }}
+        startIcon={<AddIcon />}
+      >
+        Create new itinerary
+      </Button>
 
 
 
@@ -987,6 +1078,155 @@ const [itineraryToDeactivate, setItineraryToDeactivate] = useState(null);
     </Box>
   ))}
 </Box>
+
+
+
+{/* Modal */}
+<Modal open={isModalOpen} onClose={handleModalClose}>
+  <Box
+    sx={{
+      position: "absolute",
+      top: "50%",
+      left: "50%",
+      transform: "translate(-50%, -50%)",
+      width: "90%", // Adjusted for smaller screens
+      maxWidth: "600px",
+      maxHeight: "90vh", // Limit height to viewport height
+      overflowY: "auto", // Enable vertical scrolling
+      bgcolor: "background.paper",
+      borderRadius: "10px",
+      boxShadow: 24,
+      p: 4,
+    }}
+  >
+    <Typography variant="h4" align="center" sx={{ marginBottom: "20px" }}>
+      Create New Itinerary
+    </Typography>
+    <form onSubmit={handleSubmit}>
+      <TextField
+        fullWidth
+        margin="normal"
+        label="Itinerary Title"
+        name="title"
+        value={itineraryData.title}
+        onChange={handleChange}
+        required
+      />
+      <TextField
+        fullWidth
+        margin="normal"
+        label="Activities (comma-separated)"
+        name="activities"
+        value={itineraryData.activities}
+        onChange={handleChange}
+        required
+      />
+      <TextField
+        fullWidth
+        margin="normal"
+        label="Locations (comma-separated)"
+        name="locations"
+        value={itineraryData.locations}
+        onChange={handleChange}
+        required
+      />
+      <TextField
+        fullWidth
+        margin="normal"
+        label="Timeline"
+        name="timeline"
+        value={itineraryData.timeline}
+        onChange={handleChange}
+        required
+      />
+      <TextField
+        fullWidth
+        margin="normal"
+        label="Language"
+        name="language"
+        value={itineraryData.language}
+        onChange={handleChange}
+        required
+      />
+      <TextField
+        fullWidth
+        margin="normal"
+        label="Price (USD)"
+        name="price"
+        type="number"
+        value={itineraryData.price}
+        onChange={handleChange}
+        required
+      />
+      <TextField
+        fullWidth
+        margin="normal"
+        label="Date"
+        name="date"
+        type="date"
+        value={itineraryData.date}
+        onChange={handleChange}
+        InputLabelProps={{
+          shrink: true,
+        }}
+        required
+      />
+      <TextField
+        fullWidth
+        margin="normal"
+        label="Pickup Location"
+        name="pickupLocation"
+        value={itineraryData.pickupLocation}
+        onChange={handleChange}
+        required
+      />
+      <TextField
+        fullWidth
+        margin="normal"
+        label="Dropoff Location"
+        name="dropoffLocation"
+        value={itineraryData.dropoffLocation}
+        onChange={handleChange}
+        required
+      />
+      <TextField
+        fullWidth
+        margin="normal"
+        label="Tags (comma-separated)"
+        name="tags"
+        value={itineraryData.tags}
+        onChange={handleChange}
+        required
+      />
+      <FormControlLabel
+        control={
+          <Switch
+            name="accessibility"
+            checked={itineraryData.accessibility}
+            onChange={handleChange}
+          />
+        }
+        label="Accessibility"
+        sx={{ marginTop: "10px", marginBottom: "10px" }}
+      />
+      <Button
+        type="submit"
+        variant="contained"
+        sx={{
+          backgroundColor: "#192959",
+          color: "white",
+          padding: "10px",
+          borderRadius: "4px",
+          width: "100%",
+          "&:hover": { backgroundColor: "#4b5a86" },
+          marginTop: "20px",
+        }}
+      >
+        Create Itinerary
+      </Button>
+    </form>
+  </Box>
+</Modal>
 
 
 

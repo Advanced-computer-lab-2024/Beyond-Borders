@@ -93,6 +93,91 @@ function NewTouristHomePage() {
   const [transportationOpen, setTransportationOpen] = useState(false);
   const [productsOpen, setProductsOpen] = useState(false);
   const [complaintsOpen, setComplaintsOpen] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false); // Modal state
+  
+  const [itineraryData, setItineraryData] = useState({
+    title: '',
+    activities: '',
+    locations: '',
+    timeline: '',
+    language: '',
+    price: '',
+    date: '',
+    accessibility: false,
+    pickupLocation: '',
+    dropoffLocation: '',
+    tags: '',
+  });
+
+
+
+
+  // Method to handle opening the modal
+  const handleModalOpen = () => {
+    setIsModalOpen(true);
+  };
+
+  // Method to handle closing the modal
+  const handleModalClose = () => {
+    setIsModalOpen(false);
+  };
+
+  const handleChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    setItineraryData((prevData) => ({
+      ...prevData,
+      [name]: type === 'checkbox' ? checked : value,
+    }));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    const AuthorUsername = localStorage.getItem('username');
+    if (!AuthorUsername) {
+      alert('You need to log in first.');
+      return;
+    }
+
+    const tagsArray = itineraryData.tags.split(',').map((tag) => tag.trim());
+    const dataToSubmit = {
+      AuthorUsername,
+      Title: itineraryData.title,
+      Date: itineraryData.date,
+      Timeline: itineraryData.timeline,
+      Price: itineraryData.price,
+      Locations: itineraryData.locations,
+      Activities: itineraryData.activities,
+      accessibility: itineraryData.accessibility,
+      pickupLocation: itineraryData.pickupLocation,
+      dropoffLocation: itineraryData.dropoffLocation,
+      Tags: tagsArray,
+      Language: itineraryData.language,
+    };
+
+    try {
+      const response = await axios.post('/api/createItinerary', dataToSubmit);
+      alert('Itinerary created successfully!');
+      handleModalClose(); // Close modal on success
+
+      // Clear form data
+      setItineraryData({
+        title: '',
+        activities: '',
+        locations: '',
+        timeline: '',
+        language: '',
+        price: '',
+        date: '',
+        accessibility: false,
+        pickupLocation: '',
+        dropoffLocation: '',
+        tags: '',
+      });
+    } catch (error) {
+      setErrorMessage(error.response?.data?.error || 'An error occurred. Please try again.');
+    }
+  };
 
 
 

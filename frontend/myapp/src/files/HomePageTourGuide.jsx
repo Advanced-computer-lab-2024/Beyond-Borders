@@ -1,5 +1,5 @@
 import React, { useState,useEffect } from 'react';
-import { Box, Button, Typography, Modal, TextField, IconButton, InputAdornment } from '@mui/material';
+import { Box, Button, Typography,Tooltip, Modal, TextField, IconButton, InputAdornment } from '@mui/material';
 import AssignmentIcon from "@mui/icons-material/Assignment";
 import StorefrontIcon from "@mui/icons-material/Storefront";
 import LocalActivityIcon from "@mui/icons-material/LocalActivity";
@@ -8,6 +8,15 @@ import { Visibility, VisibilityOff } from "@mui/icons-material";
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import AddCircleIcon from '@mui/icons-material/AddCircle';
 import BlockIcon from '@mui/icons-material/Block';
+import MenuIcon from '@mui/icons-material/Menu';
+import { useNavigate } from 'react-router-dom';
+import SaveIcon from '@mui/icons-material/Save';
+import EditIcon from '@mui/icons-material/Edit';
+
+import NotificationsNoneOutlinedIcon from '@mui/icons-material/NotificationsNoneOutlined';
+import LogoutIcon from '@mui/icons-material/Logout';
+
+
 import axios from 'axios';
 
 
@@ -108,6 +117,54 @@ const styles = {
         },
       
       }, 
+      content: {
+        flex: 1,
+        display: 'grid',
+        gridTemplateColumns: 'repeat(3, 1fr)', // 3 columns for horizontal layout
+        gap: '30px', // Spacing between items
+        padding: '20px',
+        marginTop:'70px',
+        marginLeft: '180px', // Center align with no offset
+    
+        transition: 'margin-left 0.3s ease',
+        justifyItems: 'left', // Center each item horizontally
+        alignItems: 'start', // Align items to the top
+      },
+      
+      infoBox: {
+        backgroundColor: '#4d587e',
+        color: '#e6e7ed',
+        borderRadius: '15px',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'left',
+        justifyContent: 'left',
+        padding: '20px',
+        boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.2)',
+        transition: 'transform 0.2s, box-shadow 0.2s',
+        cursor: 'pointer',
+        width: '400px', // Set consistent width for boxes
+        '&:hover': {
+          transform: 'scale(1.05)',
+          boxShadow: '0px 6px 12px rgba(0, 0, 0, 0.3)',
+        },
+      },
+      
+      image: {
+        width: '100%',
+        height: 'auto',
+        borderRadius: '15px',
+        marginBottom: '15px',
+        transition: 'transform 0.2s',
+      },
+      
+      text: {
+        textAlign: 'center',
+        fontWeight: 'bold',
+        fontSize: '18px',
+        transition: 'transform 0.2s',
+      },
+      
   };
 
 const HomePageTourGuide = () => {
@@ -117,6 +174,7 @@ const HomePageTourGuide = () => {
     const [showPassword, setShowPassword] = useState(false);
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [itineraries, setItineraries] = useState([]);
+    const [isEditable, setIsEditable] = useState(false); // Add this line
     const [deactivatedItineraries, setDeactivatedItineraries] = useState([]);
     const [profileData, setProfileData] = useState({
         username: '',
@@ -130,6 +188,8 @@ const HomePageTourGuide = () => {
     const handleTogglePassword = () => {
         setShowPassword((prev) => !prev);
     };
+    const navigate = useNavigate();
+
 
     useEffect(() => {
         const fetchProfileData = async () => {
@@ -356,31 +416,53 @@ const HomePageTourGuide = () => {
         <Box style={styles.container}>
       {/* Header */}
       <Box style={styles.topMenu}>
-        <Typography variant="h6" style={styles.logo}>
-          Beyond Borders
-        </Typography>
+      <IconButton onMouseEnter={() => setSidebarOpen(true)} color="inherit">
+            <MenuIcon />
+          </IconButton>
+        <Typography
+            variant="h6"
+            style={{
+                ...styles.logo,
+                marginLeft: "-650px", // Adjust the value as needed
+            }}
+            >
+                Beyond Borders
+                </Typography>
+
         <Box style={styles.topMenuRight}>
 
         <Button
-                style={styles.menuButton}
-                onClick={RequestDeleteAccount}
-                
-            >
-                Request to delete account
-            </Button>
-            <Button
-  style={styles.menuButton}
+  sx={{
+    ...styles.menuButton,
+    '&:hover': {
+      backgroundColor: '#e6e7ed', // Lighter hover background
+      color: '#192959',           // Text color on hover
+    },
+  }}
+  onClick={RequestDeleteAccount}
+>
+  Request to delete account
+</Button>
+
+<Button
+  sx={{
+    ...styles.menuButton,
+    '&:hover': {
+      backgroundColor: '#e6e7ed', // Lighter hover background
+      color: '#192959',           // Text color on hover
+    },
+  }}
   startIcon={
     profileData.logo ? (
       <img
         src={profileData.logo}
         alt="Profile"
         style={{
-          width: "30px",
-          height: "30px",
-          borderRadius: "50%",
-          objectFit: "cover",
-          border: "2px solid #e6e7ed",
+          width: '30px',
+          height: '30px',
+          borderRadius: '50%',
+          objectFit: 'cover',
+          border: '2px solid #e6e7ed',
         }}
       />
     ) : (
@@ -389,8 +471,45 @@ const HomePageTourGuide = () => {
   }
   onClick={readMyProfile}
 >
-  {"My Profile"}
+  My Profile
 </Button>
+<Tooltip title="Notifications" arrow>
+  <IconButton
+    sx={{
+      ...styles.menuButton,
+      
+      '&:hover': {
+        backgroundColor: '#e6e7ed', // Lighter hover background
+      color: '#192959',           // Text color on hover
+
+      },
+      width: '40px', // Ensure square icon button
+      height: '40px',
+    }}
+  >
+    <NotificationsNoneOutlinedIcon />
+  </IconButton>
+</Tooltip>
+
+
+
+<Tooltip title="Logout" arrow>
+            <IconButton
+                sx={{
+                ...styles.menuButton,
+                
+                '&:hover': {
+                    backgroundColor: '#e6e7ed', // Lighter hover background
+                color: '#192959',           // Text color on hover
+
+                },
+                width: '40px', // Ensure square icon button
+                height: '40px',
+                }}
+            >
+    <LogoutIcon />
+  </IconButton>
+</Tooltip>
 
 
             
@@ -407,25 +526,7 @@ const HomePageTourGuide = () => {
   onMouseEnter={() => setSidebarOpen(true)}
   onMouseLeave={() => setSidebarOpen(false)}
 >
-  <Button
-    sx={{
-      color: '#e6e7ed',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'flex-start',
-      textAlign: 'left',
-      width: '100%',
-      padding: '10px 20px',
-      fontSize: '16px',
-      '&:hover': {
-        backgroundColor: '#192959',
-      },
-    }}
-    onClick={() => window.location.href = `/CreateItinerary`}
-  >
-    <AddCircleIcon style={styles.icon} />
-    {sidebarOpen && "Create New Itinerary"}
-  </Button>
+ 
 
   <Button
     sx={{
@@ -487,80 +588,23 @@ const HomePageTourGuide = () => {
                 justifyContent: 'flex-end'
             }}
         >
-            <Box component="li">
-                <Button
-                    variant="outlined"
-                    color="inherit"
-                    onClick={loadMyActivities}
-                    sx={{
-                        borderColor: 'white',  
-                        color: 'white',        
-                        borderRadius: '20px',  
-                        '&:hover': { 
-                            backgroundColor: '#69f0ae'  
-                        }
-                    }}
-                >
-                    My Itineraries
-                </Button>
-            </Box>
+           
 
-            <Box component="li">
-                <Button
-                    variant="outlined"
-                    color="inherit"
-                    onClick={loadMyDeactivatedItineraries}
-                    sx={{
-                        borderColor: 'white',  
-                        color: 'white',        
-                        borderRadius: '20px',  
-                        '&:hover': { 
-                            backgroundColor: '#69f0ae'  
-                        }
-                    }}
-                >
-                    My Deactivated Itineraries
-                </Button>
-            </Box>
+        
 
-            <Box component="li">
-                <Button
-                    variant="outlined"
-                    color="inherit"
-                    onClick={() => window.location.href = `/CreateItinerary`}
-                    sx={{
-                        borderColor: 'white',   
-                        color: 'white',         
-                        borderRadius: '20px',   
-                        '&:hover': { 
-                            backgroundColor: '#69f0ae'  
-                        }
-                    }}
-                >
-                    Create New Itinerary
-                </Button>
-            </Box>
-
-            {/* Add the Request Account Deletion button here */}
-            <Box component="li">
-                <Button
-                    variant="outlined"
-                    color="inherit"
-                    onClick={RequestDeleteAccount} // Call the function to request account deletion
-                    sx={{
-                        borderColor: 'white',   
-                        color: 'white',         
-                        borderRadius: '20px',   
-                        '&:hover': { 
-                            backgroundColor: '#69f0ae'  
-                        }
-                    }}
-                >
-                    Request Account Deletion
-                </Button>
-            </Box>
+           
         </Box>
     </Box>
+
+    <Box sx={{ ...styles.content, filter: sidebarOpen ? 'brightness(0.5)' : 'none' }}>
+ 
+  <Box sx={styles.infoBox} onClick={() => navigate('/ItinerariesTourGuide')}>
+    <img src="/images/itinerary.jpg" alt="Itineraries" style={styles.image} />
+    <Typography variant="h6" sx={styles.text} className="text">
+      Itineraries
+    </Typography>
+  </Box>
+</Box>
 
 
             <Modal open={isItinerariesModalOpen} onClose={() => setIsItinerariesModalOpen(false)}>
@@ -773,42 +817,42 @@ const HomePageTourGuide = () => {
 
       {/* Edit Icon Overlay */}
       <IconButton
-  sx={{
-    position: "absolute",
-    bottom: "5px",
-    right: "5px",
-    backgroundColor: "#192959",
-    color: "#fff",
-    padding: "5px", // Adjust the padding to make the button smaller
-    fontSize: "14px", // Smaller font size for the icon
-    "&:hover": {
-      backgroundColor: "#3a4a90",
-    },
-  }}
-  component="label"
->
-  <input
-    type="file"
-    hidden
-    accept="image/*"
-    onChange={(e) => {
-      const file = e.target.files[0];
-      if (file) {
-        setProfileData({ ...profileData, logoFile: file });
-      }
-    }}
-  />
-  <Typography
-    sx={{
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      fontSize: "12px", // Reduce font size for the text/icon inside
-    }}
-  >
-    ✎
-  </Typography>
-</IconButton>
+        sx={{
+          position: "absolute",
+          bottom: "5px",
+          right: "5px",
+          backgroundColor: "#192959",
+          color: "#fff",
+          padding: "5px", // Adjust the padding to make the button smaller
+          fontSize: "14px", // Smaller font size for the icon
+          "&:hover": {
+            backgroundColor: "#3a4a90",
+          },
+        }}
+        component="label"
+      >
+        <input
+          type="file"
+          hidden
+          accept="image/*"
+          onChange={(e) => {
+            const file = e.target.files[0];
+            if (file) {
+              setProfileData({ ...profileData, logoFile: file });
+            }
+          }}
+        />
+        <Typography
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            fontSize: "12px", // Reduce font size for the text/icon inside
+          }}
+        >
+          ✎
+        </Typography>
+      </IconButton>
     </Box>
 
     {/* Form Inputs */}
@@ -818,7 +862,7 @@ const HomePageTourGuide = () => {
         label="Username"
         id="username"
         value={profileData.username}
-        InputProps={{ readOnly: true }}
+        InputProps={{ readOnly: !isEditable }}
         margin="dense"
       />
       <TextField
@@ -828,6 +872,7 @@ const HomePageTourGuide = () => {
         type="email"
         value={profileData.email}
         onChange={(e) => setProfileData({ ...profileData, email: e.target.value })}
+        InputProps={{ readOnly: !isEditable }}
         margin="dense"
       />
       <TextField
@@ -837,8 +882,8 @@ const HomePageTourGuide = () => {
         type={showPassword ? "text" : "password"}
         value={profileData.password}
         onChange={(e) => setProfileData({ ...profileData, password: e.target.value })}
-        margin="dense"
         InputProps={{
+          readOnly: !isEditable,
           endAdornment: (
             <InputAdornment position="end">
               <IconButton onClick={handleTogglePassword} edge="end">
@@ -847,6 +892,7 @@ const HomePageTourGuide = () => {
             </InputAdornment>
           ),
         }}
+        margin="dense"
       />
       <TextField
         fullWidth
@@ -854,6 +900,7 @@ const HomePageTourGuide = () => {
         id="mobileNum"
         value={profileData.mobileNum}
         onChange={(e) => setProfileData({ ...profileData, mobileNum: e.target.value })}
+        InputProps={{ readOnly: !isEditable }}
         margin="dense"
       />
       <TextField
@@ -862,6 +909,7 @@ const HomePageTourGuide = () => {
         id="yearsOfExperience"
         value={profileData.yearsOfExperience}
         onChange={(e) => setProfileData({ ...profileData, yearsOfExperience: e.target.value })}
+        InputProps={{ readOnly: !isEditable }}
         margin="dense"
       />
       <TextField
@@ -870,32 +918,41 @@ const HomePageTourGuide = () => {
         id="previousWork"
         value={profileData.previousWork}
         onChange={(e) => setProfileData({ ...profileData, previousWork: e.target.value })}
+        InputProps={{ readOnly: !isEditable }}
         margin="dense"
       />
 
-      {/* Save Button */}
+      {/* Toggle Edit and Save Button */}
       <Button
         variant="outlined"
-        onClick={saveProfile}
+        onClick={() => {
+          if (isEditable) {
+            saveProfile(); // Save changes when editable
+          }
+          setIsEditable(!isEditable); // Toggle editable state
+        }}
         sx={{
           mt: 2,
           borderColor: "#192959",
           color: "#192959",
           backgroundColor: "white",
           borderRadius: "20px",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
           "&:hover": {
             backgroundColor: "#192959",
             borderColor: "white",
             color: "white",
           },
         }}
+        startIcon={isEditable ? <SaveIcon /> : <EditIcon />}
       >
-        Save Changes
+        {isEditable ? "Save Changes" : "Edit"}
       </Button>
     </Box>
   </Box>
 </Modal>
-
 
         </Box>
     );
