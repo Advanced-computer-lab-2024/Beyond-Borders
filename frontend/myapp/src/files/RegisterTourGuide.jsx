@@ -1,20 +1,20 @@
-import React, { useState } from 'react';
-import { Box, Button, TextField, Typography } from '@mui/material';
-import axios from 'axios';
+import React, { useState } from "react";
+import { Box, Button, TextField, Typography, Grid } from "@mui/material";
+import axios from "axios";
 
 const RegisterTourGuide = () => {
   const [formData, setFormData] = useState({
-    Email: '',
-    Username: '',
-    Password: '',
-    MobileNum: '',
-    YearsOfExperience: '',
-    PreviousWork: '',
+    Email: "",
+    Username: "",
+    Password: "",
+    MobileNum: "",
+    YearsOfExperience: "",
+    PreviousWork: "",
     IDDocument: null,
     CertificateDocument: null,
   });
 
-  const [responseMessage, setResponseMessage] = useState('');
+  const [responseMessage, setResponseMessage] = useState("");
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -25,43 +25,46 @@ const RegisterTourGuide = () => {
   };
 
   const handleFileChange = (e) => {
-    const { name, files } = e.target;
+    const { name } = e.target;
     setFormData({
       ...formData,
-      [name]: files[0], // Store the selected file
+      [name]: e.target.files[0],
     });
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault(); // Prevent default form submission
-    setResponseMessage(''); // Clear previous messages
+    e.preventDefault();
+    setResponseMessage("");
 
     try {
-      const formDataToSend = new FormData();
-      Object.keys(formData).forEach((key) => {
-        formDataToSend.append(key, formData[key]); // Append form data and files
-      });
+      const data = new FormData();
+      for (const key in formData) {
+        data.append(key, formData[key]);
+      }
 
-      // Send POST request to backend
-      const response = await axios.post('http://localhost:8000/addUnregisteredTourGuide', formDataToSend, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
+      const response = await axios.post(
+        "http://localhost:8000/addUnregisteredTourGuide",
+        data,
+        { headers: { "Content-Type": "multipart/form-data" } }
+      );
 
       if (response.status === 200) {
-        setResponseMessage('Tour Guide registered successfully!');
+        setResponseMessage("Tour Guide registered successfully!");
         setTimeout(() => {
-          window.location.href = '/loginTourGuide'; // Redirect to login page
+          window.location.href = "/loginTourGuide";
         }, 2000);
       } else {
-        setResponseMessage(`Error: ${response.data.error || 'Failed to register tour guide.'}`);
+        setResponseMessage(
+          `Error: ${response.data.error || "Failed to register tour guide."}`
+        );
       }
     } catch (error) {
       if (error.response && error.response.data) {
-        setResponseMessage(`Error: ${error.response.data.error || 'An error occurred.'}`);
+        setResponseMessage(
+          `Error: ${error.response.data.error || "An error occurred."}`
+        );
       } else {
-        setResponseMessage('An error occurred. Please try again.');
+        setResponseMessage("An error occurred. Please try again.");
       }
     }
   };
@@ -70,18 +73,18 @@ const RegisterTourGuide = () => {
     <Box
       className="container"
       sx={{
-        maxWidth: '600px',
-        margin: 'auto',
-        background: '#fff',
-        padding: '20px',
-        borderRadius: '5px',
-        boxShadow: '0 0 10px rgba(0, 0, 0, 0.1)',
+        maxWidth: "600px",
+        margin: "auto",
+        background: "#fff",
+        padding: "20px",
+        borderRadius: "5px",
+        boxShadow: "0 0 10px rgba(0, 0, 0, 0.1)",
       }}
     >
       <Typography variant="h4" align="center">
         Register Tour Guide
       </Typography>
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit} encType="multipart/form-data">
         <TextField
           fullWidth
           margin="normal"
@@ -138,25 +141,72 @@ const RegisterTourGuide = () => {
           value={formData.PreviousWork}
           onChange={handleChange}
         />
-        <Typography variant="body2" sx={{ marginTop: '10px' }}>
-          Upload ID Document (PDF):
-        </Typography>
-        <input type="file" name="IDDocument" accept="application/pdf" onChange={handleFileChange} />
-        <Typography variant="body2" sx={{ marginTop: '10px' }}>
-          Upload Certificate Document (PDF):
-        </Typography>
-        <input type="file" name="CertificateDocument" accept="application/pdf" onChange={handleFileChange} />
+
+        {/* File Upload Fields */}
+        <Typography 
+  variant="h6" 
+  sx={{ marginTop: "20px", textAlign: "left", fontSize: "14px" }} // Align text to the left
+>
+  Upload Documents:
+</Typography>
+<Grid container spacing={2} sx={{ marginTop: "10px" }}>
+  <Grid item xs={6}>
+    <Button
+      variant="outlined"
+      component="label"
+      fullWidth
+      sx={{ textTransform: "none" }}
+    >
+      Upload ID Document
+      <input
+        type="file"
+        name="IDDocument"
+        accept="application/pdf"
+        hidden
+        onChange={handleFileChange}
+      />
+    </Button>
+    {formData.IDDocument && (
+      <Typography variant="body2" sx={{ marginTop: "5px" }}>
+        Selected: {formData.IDDocument.name}
+      </Typography>
+    )}
+  </Grid>
+
+  <Grid item xs={6}>
+    <Button
+      variant="outlined"
+      component="label"
+      fullWidth
+      sx={{ textTransform: "none" }}
+    >
+      Upload Certificate
+      <input
+        type="file"
+        name="CertificateDocument"
+        accept="application/pdf"
+        hidden
+        onChange={handleFileChange}
+      />
+    </Button>
+    {formData.CertificateDocument && (
+      <Typography variant="body2" sx={{ marginTop: "5px" }}>
+        Selected: {formData.CertificateDocument.name}
+      </Typography>
+    )}
+  </Grid>
+</Grid>
         <Button
           type="submit"
           variant="contained"
           sx={{
-            backgroundColor: '#192959',
-            color: 'white',
-            padding: '10px',
-            borderRadius: '4px',
-            width: '100%',
-            marginTop: '20px',
-            '&:hover': { backgroundColor: '#4b5a86' },
+            backgroundColor: "#192959",
+            color: "white",
+            padding: "10px",
+            borderRadius: "4px",
+            width: "100%",
+            marginTop: "20px",
+            "&:hover": { backgroundColor: "#4b5a86" },
           }}
         >
           Register
@@ -166,7 +216,10 @@ const RegisterTourGuide = () => {
         <Typography
           variant="body1"
           align="center"
-          sx={{ marginTop: '20px', color: responseMessage.includes('Error') ? 'red' : 'green' }}
+          sx={{
+            marginTop: "20px",
+            color: responseMessage.includes("Error") ? "red" : "green",
+          }}
         >
           {responseMessage}
         </Typography>
