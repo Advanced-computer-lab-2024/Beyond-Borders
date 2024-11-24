@@ -1,21 +1,20 @@
-import React, { useState } from 'react';
-import { Box, Button, TextField, Typography } from '@mui/material';
-import axios from 'axios';
+import React, { useState } from "react";
+import { Box, Button, TextField, Typography, Grid } from "@mui/material";
+import axios from "axios";
 
 const RegisterAdvertiser = () => {
-  // State to manage form inputs
   const [formData, setFormData] = useState({
-    Email: '',
-    Username: '',
-    Password: '',
-    Website: '',
-    Hotline: '',
-    CompanyProfile: '',
+    Email: "",
+    Username: "",
+    Password: "",
+    Website: "",
+    Hotline: "",
+    CompanyProfile: "",
+    AdvertiserDocument: null, // New field for the uploaded document
   });
 
-  const [responseMessage, setResponseMessage] = useState('');
+  const [responseMessage, setResponseMessage] = useState("");
 
-  // Handle input changes
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({
@@ -24,50 +23,66 @@ const RegisterAdvertiser = () => {
     });
   };
 
-  // Handle form submission
+  const handleFileChange = (e) => {
+    const { name } = e.target;
+    setFormData({
+      ...formData,
+      [name]: e.target.files[0],
+    });
+  };
+
   const handleSubmit = async (e) => {
-    e.preventDefault(); // Prevent the default form submission
-    setResponseMessage(''); // Clear previous messages
+    e.preventDefault();
+    setResponseMessage("");
 
     try {
-      const response = await axios.post('http://localhost:8000/addUnregisteredAdvertiser', formData);
-      const result = response.data; // Access the response data
+      const data = new FormData();
+      for (const key in formData) {
+        data.append(key, formData[key]);
+      }
 
-      if (response.status === 200) { // Assuming a 200 status indicates success
-        setResponseMessage('Advertiser registered successfully!');
+      const response = await axios.post(
+        "http://localhost:8000/addUnregisteredAdvertiser",
+        data,
+        { headers: { "Content-Type": "multipart/form-data" } }
+      );
 
-        // Redirect after 2 seconds
+      if (response.status === 200) {
+        setResponseMessage("Advertiser registered successfully!");
         setTimeout(() => {
-          window.location.href = '/loginAdvertiser'; // Redirect to login page
+          window.location.href = "/loginAdvertiser";
         }, 2000);
       } else {
-        setResponseMessage(`Error: ${result.error || 'Failed to register advertiser.'}`);
+        setResponseMessage(
+          `Error: ${response.data.error || "Failed to register advertiser."}`
+        );
       }
     } catch (error) {
-      // Handle Axios errors
       if (error.response && error.response.data) {
-        setResponseMessage(`Error: ${error.response.data.error || 'An error occurred.'}`);
+        setResponseMessage(
+          `Error: ${error.response.data.error || "An error occurred."}`
+        );
       } else {
-        setResponseMessage('An error occurred. Please try again.');
+        setResponseMessage("An error occurred. Please try again.");
       }
-      console.error('Error registering advertiser:', error); // Log the error for debugging
     }
   };
 
   return (
     <Box
-      className="container"
       sx={{
-        maxWidth: '600px',
-        margin: 'auto',
-        background: '#fff',
-        padding: '20px',
-        borderRadius: '5px',
-        boxShadow: '0 0 10px rgba(0, 0, 0, 0.1)',
+        maxWidth: "600px",
+        margin: "auto",
+        background: "#fff",
+        padding: "20px",
+        borderRadius: "5px",
+        boxShadow: "0 0 10px rgba(0, 0, 0, 0.1)",
       }}
     >
-      <Typography variant="h4" align="center">Register Advertiser</Typography>
-      <form onSubmit={handleSubmit}>
+      <Typography variant="h4" align="center">
+        Register Advertiser
+      </Typography>
+      <form onSubmit={handleSubmit} encType="multipart/form-data">
         <TextField
           fullWidth
           margin="normal"
@@ -121,16 +136,50 @@ const RegisterAdvertiser = () => {
           value={formData.CompanyProfile}
           onChange={handleChange}
         />
+
+        <Typography variant="h6" sx={{
+            marginTop: "20px",
+            textAlign: "left",
+            fontSize: "14px",
+          }}>
+          Upload Documents:
+        </Typography>
+        <Grid container spacing={2} sx={{ marginTop: "10px" }}>
+          <Grid item xs={12}>
+            <Button
+              variant="outlined"
+              component="label"
+              fullWidth
+              sx={{ textTransform: "none" }}
+            >
+              Upload ID & Taxation Registry
+              <input
+                type="file"
+                name="AdvertiserDocument"
+                accept="application/pdf"
+                hidden
+                onChange={handleFileChange}
+              />
+            </Button>
+            {formData.AdvertiserDocument && (
+              <Typography variant="body2" sx={{ marginTop: "5px" }}>
+                Selected: {formData.AdvertiserDocument.name}
+              </Typography>
+            )}
+          </Grid>
+        </Grid>
+
         <Button
           type="submit"
           variant="contained"
           sx={{
-            backgroundColor: '#192959',
-            color: 'white',
-            padding: '10px',
-            borderRadius: '4px',
-            width: '100%',
-            '&:hover': { backgroundColor: '#4b5a86' },
+            backgroundColor: "#192959",
+            color: "white",
+            padding: "10px",
+            borderRadius: "4px",
+            width: "100%",
+            marginTop: "20px",
+            "&:hover": { backgroundColor: "#4b5a86" },
           }}
         >
           Register
@@ -141,8 +190,8 @@ const RegisterAdvertiser = () => {
           variant="body1"
           align="center"
           sx={{
-            marginTop: '20px',
-            color: responseMessage.includes('Error') ? 'red' : 'green',
+            marginTop: "20px",
+            color: responseMessage.includes("Error") ? "red" : "green",
           }}
         >
           {responseMessage}

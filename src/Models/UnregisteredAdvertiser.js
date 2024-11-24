@@ -26,7 +26,11 @@ const UnregisteredAdvertiserSchema = new Schema({
   CompanyProfile : {
   type : String ,
   required : true,
-  }
+  },
+  AdvertiserDocument: { 
+    type: String, 
+    required: true,
+   },
 }, { timestamps: true }); //adds 2 more field (Created At:) & (Updated At:)
 
 const UnregisteredAdvertiser = mongoose.model('UnregisteredAdvertiser', UnregisteredAdvertiserSchema);
