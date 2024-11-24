@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Button, Typography, IconButton,Tooltip, TextField, InputAdornment, Modal,MenuItem,Select,FormControl,InputLabel,} from '@mui/material';
+import { Box, Button, Typography, Divider,IconButton,Tooltip, TextField, InputAdornment, Modal,MenuItem,Select,FormControl,InputLabel,} from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import MenuIcon from '@mui/icons-material/Menu';
 import NotificationsIcon from '@mui/icons-material/Notifications';
@@ -86,21 +86,24 @@ const [currentActivityName, setCurrentActivityName] = useState(''); // Trac
 const [convertedPrices, setConvertedPrices] = useState({});
 const [currency, setCurrency] = useState('EGP'); // Default currency is EGP
 
-  const navigate = useNavigate();
+//hps
+const [HPs, setHPs] = useState([]);
+const navigate = useNavigate();
+const [expanded, setExpanded] = React.useState({});
 
   useEffect(() => {
     // Function to handle fetching or searching activities
-    const fetchOrSearchActivities = async () => {
+    const fetchOrSearchHPs = async () => {
       if (!searchQuery) {
-        // Fetch all activities when there's no search query
-        await fetchActivities();
+        // Fetch all hps when there's no search query
+        await fetchHistoricalPlaces();
       } else {
         // Perform search when there's a query
-        await searchActivities(searchQuery);
+        await searchHPs(searchQuery);
       }
     };
   
-    fetchOrSearchActivities(); // Call the fetch or search logic
+    fetchOrSearchHPs(); // Call the fetch or search logic
     fetchCategories(); // Fetch categories
     fetchTags(); // Fetch tags
   
@@ -119,6 +122,9 @@ const [currency, setCurrency] = useState('EGP'); // Default currency is EGP
     return () => window.removeEventListener('scroll', handleScroll);
   }, [searchQuery]); // Depend on `searchQuery` to refetch activities when it changes
 
+  // useEffect(() => {
+  //   fetchHistoricalPlaces();
+  // }, []);
 
   useEffect(() => {
     if (currency !== 'EGP') {
@@ -146,24 +152,39 @@ const [currency, setCurrency] = useState('EGP'); // Default currency is EGP
   };
   
   
-  
-
-  const fetchActivities = async () => {
+  const fetchHistoricalPlaces = async () => {
     try {
-      const response = await axios.get('/api/ViewAllUpcomingActivities');
-      setActivities(response.data);
+      const response = await axios.get('/api/ViewAllUpcomingHistoricalPlacesEventsTourist');
+      setHPs(response.data);
     } catch (error) {
-      console.error('Error fetching activities:', error);
+      console.error('Error fetching hps:', error);
     }
   };
 
-  const searchActivities = async (query) => {
+  const handleToggleDescription = (index) => {
+    setExpanded((prev) => ({
+      ...prev,
+      [index]: !prev[index],
+    }));
+  };
+
+  // const searchActivities = async (query) => {
+  //   try {
+  //     const response = await axios.post('/api/ActivitiesSearchAll', { searchString: query });
+  //     setActivities(response.data);
+  //   } catch (error) {
+  //     console.error('Error searching activities:', error);
+  //     setActivities([]); // Clear activities if no results or error
+  //   }
+  // };
+
+  const searchHPs = async (query) => {
     try {
-      const response = await axios.post('/api/ActivitiesSearchAll', { searchString: query });
-      setActivities(response.data);
+      const response = await axios.post('/api/HistoricalPlacesSearchAll', { searchString: query });
+      setHPs(response.data);
     } catch (error) {
-      console.error('Error searching activities:', error);
-      setActivities([]); // Clear activities if no results or error
+      console.error('Error searching hps:', error);
+      setHPs([]); // Clear activities if no results or error
     }
   };
 
@@ -261,12 +282,17 @@ const [currency, setCurrency] = useState('EGP'); // Default currency is EGP
     }
   };
 
+  const handleBookHistoricalPlace = (name) => {
+    console.log(`Booking historical place: ${name}`);
+    // Implement your booking logic here
+  };
+
   //share
 
   const handleOpenShareModal = async (activityName) => {
     try {
       const response = await axios.post('/getCopyLink', {
-        entityType: 'activity',
+        entityType: 'historicalPlace',
         entityName: activityName,
       });
       setSharedLink(response.data.link); // Set the generated link
@@ -1065,81 +1091,187 @@ const [currency, setCurrency] = useState('EGP'); // Default currency is EGP
 
 
       
-      {/* Main Content Area with Activities */}
-      <Box sx={styles.activitiesContainer}>
-        {activities.map((activity, index) => (
-          <Box key={index} sx={{ marginBottom: '20px' }}>
-            <Box
-              sx={{
-                ...styles.activityCard,
-                backgroundColor: activity.flagged ? '#cccfda' : 'white',
-              }}
-            >
-              <Box sx={styles.activityInfo}>
-                <Typography variant="h6" sx={{ fontWeight: 'bold',fontSize: '24px', marginBottom: '5px', display: 'flex', alignItems: 'center' }}>{activity.Name}</Typography>
-                <Typography variant="body2" sx={{ display: 'flex', fontSize: '18px', alignItems: 'center' }}>
-                  <LocationOnIcon fontSize="small" sx={{ mr: 1 }} />
-                  {activity.Location?.address || 'N/A'}
-                </Typography>
-                <Typography variant="body2" sx={{ display: 'flex', fontSize: '18px', alignItems: 'center' }}>
-                  <PersonIcon fontSize="small" sx={{ mr: 1 }} />
-                  {activity.AdvertiserName}
-                </Typography>
-                <Typography variant="body2" sx={{ display: 'flex', fontSize: '18px', alignItems: 'center' }}>
-                <PaymentIcon fontSize="small" sx={{ mr: 1 }} />
-                {currency === 'EGP'
-                  ? `${activity.Price} EGP`
-                  : `${convertedPrices[activity._id] || 'Loading...'} ${currency}`}
-              </Typography>
+{/* Main Content Area with Historical Places */}
+<Box sx={styles.activitiesContainer}>
+  {HPs.map((hp, index) => (
+    <Box key={index} sx={{ marginBottom: '20px' }}>
+      <Box
+        sx={{
+          ...styles.activityCard,
+          backgroundColor: hp.flagged ? '#cccfda' : 'white',
+          display: 'flex', // Ensures the children are laid out horizontally
+        }}
+      >
+       {/* Flex Container for Left and Right Sections */}
+<Box sx={{ display: 'flex', flex: 1 }}>
+  {/* Left Side: Activity Info */}
+  <Box sx={{ flex: 1 }}>
+    <Typography
+      variant="h6"
+      sx={{
+        fontWeight: 'bold',
+        fontSize: '24px',
+        marginBottom: '10px', // Increased spacing below the title
+        display: 'flex',
+        alignItems: 'center',
+      }}
+    >
+      {hp.name}
+    </Typography>
+    <Typography
+      variant="body2"
+      sx={{
+        display: 'flex',
+        fontSize: '18px',
+        alignItems: 'center',
+        marginBottom: '10px', // Added spacing between items
+      }}
+    >
+      <LocationOnIcon fontSize="small" sx={{ mr: 1 }} />
+      {hp.location || 'N/A'}
+    </Typography>
+    <Typography
+      variant="body2"
+      sx={{
+        display: 'flex',
+        fontSize: '18px',
+        alignItems: 'center',
+        marginBottom: '10px', // Added spacing between items
+      }}
+    >
+      <PersonIcon fontSize="small" sx={{ mr: 1 }} />
+      {hp.AuthorUsername}
+    </Typography>
+    <Typography
+      variant="body2"
+      sx={{
+        display: 'flex',
+        fontSize: '18px',
+        alignItems: 'center',
+        marginBottom: '10px', // Added spacing between items
+      }}
+    >
+      <AccessTimeIcon fontSize="small" sx={{ mr: 1 }} />
+      {hp.openingHours || 'N/A'}
+    </Typography>
+    <Typography
+      variant="body2"
+      sx={{
+        display: 'flex',
+        fontSize: '18px',
+        alignItems: 'center',
+        marginBottom: '10px', // Added spacing between items
+      }}
+    >
+      <PaymentIcon fontSize="small" sx={{ mr: 1 }} />
+      {currency === 'EGP'
+        ? `Native: ${hp.ticketPrices?.native || 0} EGP | Foreigner: ${hp.ticketPrices?.foreigner || 0} EGP | Student: ${hp.ticketPrices?.student || 0} EGP`
+        : `Native: ${convertedPrices[hp._id]?.native || 'Loading...'} ${currency} | Foreigner: ${convertedPrices[hp._id]?.foreigner || 'Loading...'} ${currency} | Student: ${convertedPrices[hp._id]?.student || 'Loading...'} ${currency}`}
+    </Typography>
+    <Typography
+      variant="body2"
+      sx={{
+        display: 'flex',
+        fontSize: '18px',
+        alignItems: 'center',
+        marginBottom: '10px', // Added spacing between items
+      }}
+    >
+      <CalendarTodayIcon fontSize="small" sx={{ mr: 1 }} />
+      {hp.dateOfEvent ? new Date(hp.dateOfEvent).toLocaleDateString() : 'N/A'}
+    </Typography>
+    <Box sx={{ ...styles.quickFacts, marginTop: '10px' /* Added spacing above quick facts */ }}>
+      <Box
+        sx={{
+          ...styles.infoContainer,
+          backgroundColor: hp.flagged ? '#b3b8c8' : '#f3f4f6',
+          padding: '10px', // Optional padding for better layout
+        }}
+      >
+        <Typography
+          variant="body2"
+          sx={{
+            fontWeight: 'bold',
+            marginBottom: '5px', // Added spacing between label and tags
+          }}
+        >
+          Tags:
+        </Typography>
+        <Typography variant="body2">{hp.Tags?.join(', ') || 'N/A'}</Typography>
+      </Box>
+    </Box>
+  </Box>
 
-                <Typography variant="body2" sx={{ display: 'flex', fontSize: '18px', alignItems: 'center' }}>
-                  <CalendarTodayIcon fontSize="small" sx={{ mr: 1 }} />
-                  {new Date(activity.Date).toLocaleDateString()}
-                </Typography>
-                <Typography variant="body2" sx={{ display: 'flex', fontSize: '18px', alignItems: 'center' }}>
-                  <AccessTimeIcon fontSize="small" sx={{ mr: 1 }} />
-                  {activity.Time}
-                </Typography>
-                <Box sx={styles.quickFacts}>
-                  <Box sx={{ ...styles.infoContainer, backgroundColor: activity.flagged ? '#b3b8c8' : '#f3f4f6' }}>
-                    <Typography variant="body2" sx={{ fontWeight: 'bold' }}>Category:</Typography>
-                    <Typography variant="body2">{activity.Category}</Typography>
-                  </Box>
-                  <Box sx={{ ...styles.infoContainer, backgroundColor: activity.flagged ? '#b3b8c8' : '#f3f4f6' }}>
-                    <Typography variant="body2" sx={{ fontWeight: 'bold' }}>Tags:</Typography>
-                    <Typography variant="body2">{activity.Tags.join(', ')}</Typography>
-                  </Box>
-                </Box>
-              </Box>
-              <Box sx={styles.activityRating}>
-                {renderRating(activity.Rating)}
-              </Box>
-              <Box sx={styles.discountContainer}>
-                <Box sx={{...styles.infoContainer, backgroundColor: activity.flagged ? '#b3b8c8' : '#f3f4f6'}}>
-                  <Typography variant="body2" sx={{ fontWeight: 'bold' }}>Special Discount:</Typography>
-                  <Typography variant="body2">{activity.SpecialDiscount}</Typography>
-                </Box>
-              </Box>
-              <Box sx={styles.bookingOpenContainer}>
-                <Box sx={{...styles.infoContainer, backgroundColor: activity.flagged ? '#b3b8c8' : '#f3f4f6'}}>
-                  <Typography variant="body2" sx={{ fontWeight: 'bold' }}>Booking Open:</Typography>
-                  <Typography variant="body2">{activity.BookingOpen ? 'Yes' : 'No'}</Typography>
-                </Box>
-              </Box>
+{/* Divider */}
+<Divider orientation="vertical" flexItem sx={{ marginX: '20px', borderColor: '#ccc' }} />
 
-              
+{/* Right Side: Description */}
+<Box sx={{ flex: 1, paddingLeft: '20px', textAlign: 'left' }}>
+  <Typography variant="body2" sx={{ fontSize: '18px', fontWeight: 'bold', marginBottom: '10px',marginTop:'40px' }}>
+    Description:
+  </Typography>
 
-              <Button
+  <Typography
+    variant="body2"
+    sx={{
+      fontSize: '18px',
+      wordWrap: 'break-word', // Break long words
+      whiteSpace: 'normal',  // Wrap text normally
+      maxWidth: '550px',     // Ensure width consistency
+    }}
+  >
+    {expanded[index] || (hp.description && hp.description.length <= 45) ? (
+      <span>
+        {hp.description || 'No description available'}
+        {hp.description && hp.description.length > 45 && (
+          <span
+            style={{
+              color: '#8088a3',
+              marginLeft: '5px',
+              fontWeight: 'bold',
+              cursor: 'pointer',
+            }}
+            onClick={() => handleToggleDescription(index)}
+          >
+            {" "}Read Less
+          </span>
+        )}
+      </span>
+    ) : (
+      <span>
+        {(hp.description || 'No description available').substring(0, 45)}...
+        <span
+          style={{
+            color: '#8088a3',
+            marginLeft: '5px',
+            fontWeight: 'bold',
+            cursor: 'pointer',
+          }}
+          onClick={() => handleToggleDescription(index)}
+        >
+          {" "}Read More
+        </span>
+      </span>
+    )}
+  </Typography>
+</Box>
+
+        </Box>
+
+
+        <Box sx={styles.activityRating}>
+          {renderRating(hp.Ratings || 0)}
+        </Box>
+
+
+        <Button
           variant="contained"
-          disabled={!activity.BookingOpen} // Disable button if booking is not open
-          onClick={() => handleBookActivity(activity.Name)}
+          onClick={() => handleBookHistoricalPlace(hp.name)}
           sx={{
             position: 'absolute',
-            top: '60px', // Position at the top
-            right: '60px', // Position at the right
-            
+            top: '60px',
+            right: '60px',
             backgroundColor: '#192959',
-
             color: '#fff',
             '&:hover': { backgroundColor: '#33416b' },
           }}
@@ -1147,29 +1279,25 @@ const [currency, setCurrency] = useState('EGP'); // Default currency is EGP
           Book
         </Button>
         <Tooltip title="Share" arrow>
-
-        <IconButton
-    onClick={() => handleOpenShareModal(activity.Name)} // Pass activity name
-    sx={{
-      position: 'absolute',
-      top: '60px',
-      right: '140px',
-      color: '#192959', // Icon color
-      '&:hover': {
-        color: '#33416b', // Hover color for the icon
-      },
-    }}
-  >
-    <IosShareIcon />
-  </IconButton>
-  
-</Tooltip>
+          <IconButton
+            onClick={() => handleOpenShareModal(hp.name)}
+            sx={{
+              position: 'absolute',
+              top: '60px',
+              right: '140px',
+              color: '#192959',
+              '&:hover': { color: '#33416b' },
+            }}
+          >
+            <IosShareIcon />
+          </IconButton>
+        </Tooltip>
 
 
 
-            </Box>
+     </Box>
             <Box sx={styles.commentsSection}>
-  {activity.Comments && activity.Comments.length > 0 ? (
+  {hp.Comments && hp.Comments.length > 0 ? (
     <>
       {/* Show the scroll left button only if there's content to scroll back */}
       {scrollPositions[index] > 0 && (
@@ -1183,7 +1311,7 @@ const [currency, setCurrency] = useState('EGP'); // Default currency is EGP
         id={`commentsContainer-${index}`}
         onScroll={(e) => updateScrollPosition(index, e.target.scrollLeft)}
       >
-        {activity.Comments.map((comment, idx) => (
+        {hp.Comments.map((comment, idx) => (
           <Box key={idx} sx={styles.commentCard}>
             <Typography variant="body2">{comment.Comment || 'No comment available'}</Typography>
             <Typography variant="caption">@ {comment.touristUsername || 'Anonymous'}</Typography>
@@ -1192,7 +1320,7 @@ const [currency, setCurrency] = useState('EGP'); // Default currency is EGP
       </Box>
       
       {/* Show the scroll right button only if there are 3 or more comments */}
-      {activity.Comments.length >= 3 && (
+      {hp.Comments.length >= 3 && (
         <IconButton sx={styles.scrollButton} onClick={() => scrollCommentsRight(index)}>
           <ArrowForwardIcon />
         </IconButton>
@@ -1217,7 +1345,7 @@ const [currency, setCurrency] = useState('EGP'); // Default currency is EGP
     ))
   ) : (
     <Typography variant="h6" sx={{ textAlign: 'center', color: '#192959', marginTop: '20px' }}>
-      No Activities Found Matching Your Criteria.
+      
     </Typography>
   )}
 </Box>
@@ -1509,6 +1637,7 @@ const styles = {
     padding: '20px 70px 20px 90px',
     marginLeft: '60px',
     transition: 'margin-left 0.3s ease',
+    height: '200px',
   },
   discountContainer: {
     position: 'absolute',
@@ -1556,7 +1685,7 @@ const styles = {
   },
   activityRating: {
     position: 'absolute',
-    bottom: '140px',
+    bottom: '60px',
     right: '60px',
     display: 'flex',
     flexDirection: 'column',
@@ -1644,6 +1773,11 @@ const styles = {
     boxShadow: 24,
     display: 'flex',
     flexDirection: 'column',
+  },
+  verticalDivider: {
+    backgroundColor: '#d1d5db',
+    width: '1px',
+    margin: '40px 15px 0 15px', // Adjust the top margin to position the start
   },
   modalHeader: {
     display: 'flex',
