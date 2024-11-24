@@ -51,9 +51,11 @@ import BlockIcon from '@mui/icons-material/Block';
 import Tooltip from '@mui/material/Tooltip';
 import SaveIcon from '@mui/icons-material/Save';
 import SearchIcon from '@mui/icons-material/Search';
+import PaymentIcon from '@mui/icons-material/Payment';
+import HotelIcon from '@mui/icons-material/Hotel';
 import axios from 'axios';
 
-function TouristFlights() {
+function TouristHotels() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activities, setActivities] = useState([]);
   const [scrollPositions, setScrollPositions] = useState({});
@@ -105,6 +107,12 @@ const [errorMessage, setErrorMessage] = useState('');
   const [museumsOpen, setMuseumsOpen] = useState(false);
   const [transportationOpen, setTransportationOpen] = useState(false);
   const [complaintsOpen, setComplaintsOpen] = useState(false);
+
+  const [city, setCity] = useState("");
+  const [checkInDate, setCheckInDate] = useState("");
+  const [checkOutDate, setCheckOutDate] = useState("");
+  const [hotelOffers, setHotelOffers] = useState([]);
+
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -128,52 +136,65 @@ const [errorMessage, setErrorMessage] = useState('');
 
   const fetchCityCode = async (cityName) => {
     try {
-      const response = await axios.get("/fetchCityCode", { params: { cityName } });
-      return response.data.cityCode; // Return the city code
+      const response = await axios.get(`/fetchCityCode`, {
+        params: { cityName },
+      });
+      return response.data.cityCode;
     } catch (error) {
-      throw new Error(error.response?.data?.msg || `Error fetching city code for ${cityName}`);
+      throw new Error("Failed to fetch city code.");
     }
   };
 
-  const handleSearchFlights = async () => {
+  const handleSearchHotels = async () => {
     try {
       setErrorMessage(""); // Clear previous errors
-  
-      // Fetch city codes for origin and destination
-      const [originCode, destinationCode] = await Promise.all([
-        fetchCityCode(origin),
-        fetchCityCode(destination),
-      ]);
-  
-      // Call the existing flight search function with city codes
-      const response = await axios.post("/fetchFlights", {
-        origin: originCode,
-        destination: destinationCode,
-        departureDate,
-        returnDate,
-        adults,
-        direct: directFlight ? true : false, // Ensure boolean value
+
+      // Fetch city code
+      const cityCode = await fetchCityCode(city);
+
+      // Fetch hotels by city
+      const hotelIdsResponse = await axios.post("/fetchHotelsByCity", {
+        city: cityCode,
       });
-  
-      setFlightOffers(response.data); // Set the flight offers to the state
+
+      // Fetch hotel offers
+      const offersResponse = await axios.post("/fetchHotels", {
+        checkInDate,
+        checkOutDate,
+        adults,
+      });
+
+      setHotelOffers(offersResponse.data); // Set the hotel offers
     } catch (error) {
-      setErrorMessage(error.response?.data?.msg || "An error occurred while searching for flights.");
+      setErrorMessage(error.response?.data?.msg || "An error occurred while searching for hotels.");
     }
   };
+
+  const handleBookHotel = async (hotelNumber) => {
+    const touristUsername = localStorage.getItem('username'); // Retrieve the username from local storage
+    console.log(touristUsername);
+    // Ensure touristUsername is available
+    if (!touristUsername) {
+      alert('You must be logged in to book a hotel.');
+      return;
+    }
+  
+    try {
+      const response = await axios.post('/bookHotel', {
+        hotelNumber,
+        touristUsername,
+      });
+      alert(response.data.msg); // Show success message
+    } catch (error) {
+      console.error('Error booking hotel:', error);
+      alert(error.response?.data?.msg || 'An error occurred.');
+    }
+  };
+  
   
 
-  const handleBookFlight = async (flightID) => {
-    const touristUsername = localStorage.getItem('username');
-    try {
-      const response = await axios.post('/bookFlight', {
-        touristUsername: touristUsername, // Replace with actual tourist username
-        flightID: flightID, // Pass the flightID directly
-      });
-      alert(response.data.msg); // Success message
-    } catch (error) {
-      alert(error.response?.data?.msg || 'Error booking flight');
-    }
-  };
+
+  
   
 
   const fetchActivities = async () => {
@@ -615,292 +636,262 @@ const [errorMessage, setErrorMessage] = useState('');
         </Box>
       </Box>
   
-      {/* Search Box */}
+      <Box
+      sx={{
+        padding: "20px",
+        maxWidth: "1200px",
+        margin: "0 auto",
+        backgroundColor: "#fff",
+        borderRadius: "10px",
+        boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.2)",
+        marginTop: "40px", // Space between search box and other components
+      }}
+    >
+      <Typography
+        variant="h5"
+        sx={{ marginBottom: "20px", color: "#192959", fontWeight: "bold", textAlign: "center" }}
+      >
+        Hotels
+      </Typography>
       <Box
         sx={{
-          padding: '20px',
-          maxWidth: '1200px',
-          margin: '0 auto',
-          backgroundColor: '#fff',
-          borderRadius: '10px',
-          boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.2)',
-          marginTop: '40px', // Space between search box and containers
+          display: "flex",
+          flexWrap: "nowrap",
+          justifyContent: "space-between",
+          alignItems: "center",
+          gap: "10px",
+          marginBottom: "20px",
         }}
       >
-        <Typography
-          variant="h5"
-          sx={{ marginBottom: '20px', color: '#192959', fontWeight: 'bold', textAlign: 'center' }}
-        >
-          Flights
-        </Typography>
-        <Box
+        <TextField
+          label="City"
+          variant="outlined"
+          value={city}
+          onChange={(e) => setCity(e.target.value)}
+          sx={{ flex: "1 1 150px" }}
+        />
+        <TextField
+          label="Adults"
+          type="number"
+          variant="outlined"
+          value={adults}
+          onChange={(e) => setAdults(e.target.value)}
+          sx={{ flex: "1 1 100px" }}
+        />
+        <TextField
+          label="Check-In Date"
+          type="date"
+          variant="outlined"
+          value={checkInDate}
+          onChange={(e) => setCheckInDate(e.target.value)}
+          InputLabelProps={{ shrink: true }}
+          sx={{ flex: "1 1 150px" }}
+        />
+        <TextField
+          label="Check-Out Date"
+          type="date"
+          variant="outlined"
+          value={checkOutDate}
+          onChange={(e) => setCheckOutDate(e.target.value)}
+          InputLabelProps={{ shrink: true }}
+          sx={{ flex: "1 1 150px" }}
+        />
+        <Button
+          variant="contained"
           sx={{
-            display: 'flex',
-            flexWrap: 'nowrap',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            gap: '10px',
-            marginBottom: '20px',
+            backgroundColor: "#192959",
+            color: "#fff",
+            "&:hover": { backgroundColor: "#33416b" },
+            height: "56px", // Match the height of textboxes
+            display: "flex",
+            alignItems: "center",
+            gap: "8px",
+            padding: "0 16px",
           }}
+          onClick={handleSearchHotels}
         >
-          <TextField
-            label="Origin"
-            variant="outlined"
-            value={origin}
-            onChange={(e) => setOrigin(e.target.value)}
-            sx={{ flex: '1 1 150px' }}
-          />
-          <TextField
-            label="Destination"
-            variant="outlined"
-            value={destination}
-            onChange={(e) => setDestination(e.target.value)}
-            sx={{ flex: '1 1 150px' }}
-          />
-          <TextField
-            label="Departure Date"
-            type="date"
-            value={departureDate}
-            onChange={(e) => setDepartureDate(e.target.value)}
-            InputLabelProps={{ shrink: true }}
-            sx={{ flex: '1 1 150px' }}
-          />
-          <TextField
-            label="Return Date"
-            type="date"
-            value={returnDate}
-            onChange={(e) => setReturnDate(e.target.value)}
-            InputLabelProps={{ shrink: true }}
-            sx={{ flex: '1 1 150px' }}
-          />
-          <TextField
-            label="Adults"
-            type="number"
-            value={adults}
-            onChange={(e) => setAdults(e.target.value)}
-            sx={{ flex: '1 1 100px' }}
-          />
-          <FormControlLabel
-            control={
-              <Checkbox
-                checked={directFlight}
-                onChange={(e) => setDirectFlight(e.target.checked)}
-                color="primary"
-              />
-            }
-            label="Direct"
-            sx={{ flex: '1 1 auto', whiteSpace: 'nowrap' }}
-          />
-          <Button
-            variant="contained"
-            sx={{
-              backgroundColor: '#192959',
-              color: '#fff',
-              '&:hover': {
-                backgroundColor: '#33416b',
-              },
-              height: '56px',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              padding: '0 16px',
-            }}
-            onClick={handleSearchFlights}
-          >
-            Search
-            <SearchIcon />
-          </Button>
-        </Box>
-        {errorMessage && (
-          <Typography color="error" sx={{ marginBottom: '20px' }}>
-            {errorMessage}
-          </Typography>
-        )}
+          Search
+          <SearchIcon />
+        </Button>
       </Box>
-  
-{/* Flight Offers */}
-<Box
-  sx={{
-    marginTop: '70px', // Additional space from the top
-    width: '80%',
-    margin: '0 auto',
-  }}
->
-  {flightOffers.length > 0 && (
-    <Box>
-      {flightOffers.map((flightGroup, groupIndex) => (
-        <Box
-          key={groupIndex}
-          sx={{
-            marginTop: '50px',
-            backgroundColor: '#fff',
-            borderRadius: '10px',
-            boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.1)',
-            padding: '20px',
-            marginBottom: '50px', // Space between containers
-          }}
-        >
-          {/* Outbound Flight */}
+      {errorMessage && (
+        <Typography color="error" sx={{ marginBottom: "20px" }}>
+          {errorMessage}
+        </Typography>
+      )}
+    </Box>
+
+    {hotelOffers.length > 0 && (
+  <Box sx={{ marginTop: "20px", width: "80%", margin: "0 auto" }}>
+    <Typography variant="h5" sx={{ marginBottom: "20px", textAlign: "center" }}>
+ 
+    </Typography>
+    {hotelOffers.map((hotel, index) => (
+      <Box
+        key={index}
+        sx={{
+          backgroundColor: "#f9f9f9",
+          padding: "15px",
+          marginBottom: "20px",
+          borderRadius: "8px",
+          boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.1)",
+          position: "relative", // Position relative for the Book button
+          display: "flex", // Use flex for two-column layout
+          justifyContent: "space-between", // Space between the columns
+          minHeight:"220px",
+          
+          gap: "20px",
+        }}
+      >
+        {/* Left Column */}
+        <Box sx={{ flex: "1", display: "flex", flexDirection: "column", gap: "10px" }}>
+          {/* Hotel Name */}
           <Typography
             variant="h5"
             sx={{
-              fontWeight: 'bold',
-              marginBottom: '20px',
-              textAlign: 'center',
+              fontWeight: "bold",
+              textAlign: "left", // Align to left
+              marginTop:"10px",
+              marginLeft:"20px"
+              
             }}
           >
-           
+            {hotel.hotelName}
           </Typography>
 
-          <Box sx={{ marginBottom: '20px', width: '100%' }}>
-            <Typography
-              variant="h5"
-              sx={{
-                fontWeight: 'bold',
-                marginBottom: '10px',
-                textAlign: 'center',
-              }}
-            >
-              Outbound Flight
+          {/* City */}
+          <Box sx={{ display: "flex", alignItems: "center" }}>
+            <LocationOnIcon sx={{ color: "#192959", marginRight: "8px",marginLeft:"20px" }} />
+            <Typography sx={{ fontSize: "16px" }}>
+              City: {hotel.roomOffers[0]?.cityCode || "N/A"}
             </Typography>
-            {flightGroup[0].segments.map((segment, segmentIndex) => (
-              <Box
-                key={segmentIndex}
-                sx={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  marginBottom: '20px',
-                  width: '100%',
-                }}
-              >
-                <FlightTakeoffIcon sx={{ marginRight: '10px', color: '#192959' }} />
-                <Box sx={{ textAlign: 'center' }}>
-                  <Typography>Departure: {segment.departure.iataCode}</Typography>
-                  <Typography>Terminal: {segment.departure.terminal || 'N/A'}</Typography>
-                  <Typography>
-                    Time: {new Date(segment.departure.at).toLocaleTimeString([], {
-                      hour: '2-digit',
-                      minute: '2-digit',
-                    })}
-                  </Typography>
-                </Box>
-                <Box
-                  sx={{
-                    borderBottom: '2px solid #192959',
-                    margin: '0 20px',
-                    width: '40%',
-                  }}
-                ></Box>
-                <FlightLandIcon sx={{ marginLeft: '10px', marginRight: '10px', color: '#192959' }} />
-                <Box sx={{ textAlign: 'center' }}>
-                  <Typography>Arrival: {segment.arrival.iataCode}</Typography>
-                  <Typography>Terminal: {segment.arrival.terminal || 'N/A'}</Typography>
-                  <Typography>
-                    Time: {new Date(segment.arrival.at).toLocaleTimeString([], {
-                      hour: '2-digit',
-                      minute: '2-digit',
-                    })}
-                  </Typography>
-                </Box>
-              </Box>
-            ))}
           </Box>
 
-          {/* Return Flight */}
-          <Box sx={{ marginBottom: '20px', width: '100%' }}>
-            <Typography
-              variant="h5"
-              sx={{
-                fontWeight: 'bold',
-                marginBottom: '10px',
-                textAlign: 'center',
-              }}
-            >
-              Return Flight
+          {/* Price */}
+          <Box sx={{ display: "flex", alignItems: "center" }}>
+            <PaymentIcon sx={{ color: "#192959", marginRight: "8px",marginLeft:"20px" }} />
+            <Typography sx={{ fontSize: "16px" }}>
+              Price: {hotel.roomOffers[0]?.price || "N/A"} {hotel.roomOffers[0]?.currency || ""}
             </Typography>
-            {flightGroup[1]?.segments.map((segment, segmentIndex) => (
-              <Box
-                key={segmentIndex}
-                sx={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  marginBottom: '20px',
-                  width: '100%',
-                }}
-              >
-                <FlightTakeoffIcon sx={{ marginRight: '10px', color: '#192959' }} />
-                <Box sx={{ textAlign: 'center' }}>
-                  <Typography>Departure: {segment.departure.iataCode}</Typography>
-                  <Typography>Terminal: {segment.departure.terminal || 'N/A'}</Typography>
-                  <Typography>
-                    Time: {new Date(segment.departure.at).toLocaleTimeString([], {
-                      hour: '2-digit',
-                      minute: '2-digit',
-                    })}
-                  </Typography>
-                </Box>
-                <Box
-                  sx={{
-                    borderBottom: '2px solid #192959',
-                    margin: '0 20px',
-                    width: '40%',
-                  }}
-                ></Box>
-                <FlightLandIcon sx={{ marginLeft: '10px', marginRight: '10px', color: '#192959' }} />
-                <Box sx={{ textAlign: 'center' }}>
-                  <Typography>Arrival: {segment.arrival.iataCode}</Typography>
-                  <Typography>Terminal: {segment.arrival.terminal || 'N/A'}</Typography>
-                  <Typography>
-                    Time: {new Date(segment.arrival.at).toLocaleTimeString([], {
-                      hour: '2-digit',
-                      minute: '2-digit',
-                    })}
-                  </Typography>
-                </Box>
-              </Box>
-            ))}
           </Box>
-{/* Price and Book Now */}
-<Box
-  sx={{
-    display: 'flex',
-    justifyContent: 'flex-end', // Align content to the right
-    alignItems: 'center',
-    width: '100%',
-  }}
->
-  <Box sx={{ textAlign: 'center', marginRight: '10px' }}>
-    
-    <Typography
-      variant="h6"
-      sx={{
-        fontWeight: 'bold',
-        color: '#192959',
-      }}
-    >
-      Total Price: {flightGroup[0].price} {flightGroup[0].currency}
-    </Typography>
-  </Box>
-  <Button
-    variant="contained"
-    sx={{
-      backgroundColor: '#192959',
-      color: '#fff',
-      '&:hover': { backgroundColor: '#33416b' },
-    }}
-    onClick={() => handleBookFlight(flightGroup[0].flightID)}
-  >
-    Book
-  </Button>
-</Box>
 
+          {/* Check-In and Check-Out Dates */}
+          <Box sx={{ display: "flex", alignItems: "center" }}>
+            <CalendarTodayIcon sx={{ color: "#192959", marginRight: "8px",marginLeft:"20px" }} />
+            <Typography sx={{ fontSize: "16px" }}>
+              Check-In: {hotel.roomOffers[0]?.checkInDate}
+            </Typography>
+          </Box>
+          <Box sx={{ display: "flex", alignItems: "center" }}>
+            <CalendarTodayIcon sx={{ color: "#192959", marginRight: "8px",marginLeft:"20px" }} />
+            <Typography sx={{ fontSize: "16px" }}>
+              Check-Out: {hotel.roomOffers[0]?.checkOutDate}
+            </Typography>
+          </Box>
         </Box>
-      ))}
-    </Box>
-  )}
-</Box>
+
+        {/* Divider Line */}
+        <Divider
+          orientation="vertical"
+          flexItem
+          sx={{
+            borderRight: "1px solid #ddd"
+            
+          }}
+        />
+
+        {/* Right Column */}
+        <Box
+          sx={{
+            flex: "1",
+            display: "flex",
+            flexDirection: "column",
+            gap: "10px",
+            marginTop:"45px",
+            paddingLeft: "20px", // Padding to align text next to the divider
+          }}
+        >
+            {/* BedType*/}
+          <Box sx={{ display: "flex", alignItems: "center" }}>
+            <Typography
+              sx={{
+                fontWeight: "bold",
+                marginRight: "8px",
+                fontSize: "16px",
+              }}
+            >
+              Bed Type:
+            </Typography>
+            <Typography sx={{ fontSize: "16px", color: "#666" }}>
+              {hotel.roomOffers[0]?.bedType ||
+                "N/A"}
+            
+            </Typography>
+          </Box>
+          {/* Cancellation Policy */}
+          <Box sx={{ display: "flex", alignItems: "center" }}>
+            <Typography
+              sx={{
+                fontWeight: "bold",
+                marginRight: "8px",
+                fontSize: "16px",
+              }}
+            >
+              Cancellation Policy:
+            </Typography>
+            <Typography sx={{ fontSize: "16px", color: "#666" }}>
+              {hotel.roomOffers[0]?.policies?.cancellations?.[0]?.description?.text ||
+                "No cancellation policy available."}, {' '}
+                  {hotel.roomOffers[0]?.policies?.cancellations?.[0]?.type ||
+                "No type available."}
+            </Typography>
+          </Box>
+
+          {/* Payment Policy */}
+          <Box sx={{ display: "flex", alignItems: "center" }}>
+            <Typography
+              sx={{
+                fontWeight: "bold",
+                marginRight: "8px",
+                fontSize: "16px",
+              }}
+            >
+              Payment Type:
+            </Typography>
+            <Typography sx={{ fontSize: "16px", color: "#666" }}>
+              {hotel.roomOffers[0]?.policies?.paymentType || "No payment policy available."}
+            </Typography>
+          </Box>
+        </Box>
+
+        {/* Book Button */}
+        <Button
+          variant="contained"
+          onClick={() => handleBookHotel(hotel.roomOffers[0]?.hotelNumber)}
+          sx={{
+            position: "absolute",
+            bottom: "15px",
+            right: "15px", // Positioned at the bottom-right
+            backgroundColor: "#192959",
+            color: "#fff",
+            "&:hover": { backgroundColor: "#33416b" },
+          }}
+        >
+          Book Hotel
+        </Button>
+      </Box>
+    ))}
+  </Box>
+)}
+
+
+
+
+
+
+
+
+
 
   
       {/* Collapsible Sidebar */}
@@ -2300,6 +2291,6 @@ const styles = {
   
 };
 
-export default TouristFlights;
+export default TouristHotels;
 
 
