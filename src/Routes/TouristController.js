@@ -1017,32 +1017,35 @@ const filterItinerariesTourist = async (req, res) => {
       }
   };
   
-    const ItinerarySearchAll = async (req, res) => {
-      const { searchString } = req.body; // Extract the search string from the request body
-      const query = {}; // Initialize an empty query object
-  
-      // Create a case-insensitive regex if a search string is provided
-      if (searchString) {
-          const regex = new RegExp(searchString, 'i'); // 'i' for case-insensitive matching
-  
-          // Construct the query to search across the Name, Category, and Tags fields
-          query.$or = [
-              { Title: regex },
-              { Tags: { $in: [searchString] } } // For Tags, match any tag that equals the search string
-          ];
-      }
-  
-      try {
-          const fetchedItineraries = await ItineraryModel.find(query); // Fetch activities based on the constructed query
-          if (fetchedItineraries.length === 0) {
-              return res.status(404).json({ msg: "No itineraries found for the given criteria!" });
-          }
-          res.status(200).json(fetchedItineraries); // Respond with the fetched activities
-      } catch (error) {
-          console.error('Error fetching itineraries:', error);
-          res.status(500).json({ msg: "An error occurred while fetching itineraries." });
-      }
-  };
+  const ItinerarySearchAll = async (req, res) => {
+    const { searchString } = req.body; // Extract the search string from the request body
+    const query = {
+        Date: { $gte: new Date() }, // Ensure the itinerary date has not passed
+        flagged: false, // Only include itineraries where flagged is false
+    };
+
+    // Create a case-insensitive regex if a search string is provided
+    if (searchString) {
+        const regex = new RegExp(searchString, 'i'); // 'i' for case-insensitive matching
+
+        // Add search conditions for Title and Tags
+        query.$or = [
+            { Title: regex },
+            { Tags: { $in: [searchString] } }, // For Tags, match any tag that equals the search string
+        ];
+    }
+
+    try {
+        const fetchedItineraries = await ItineraryModel.find(query); // Fetch itineraries based on the constructed query
+        if (fetchedItineraries.length === 0) {
+            return res.status(404).json({ msg: "No itineraries found for the given criteria!" });
+        }
+        res.status(200).json(fetchedItineraries); // Respond with the fetched itineraries
+    } catch (error) {
+        console.error('Error fetching itineraries:', error);
+        res.status(500).json({ msg: "An error occurred while fetching itineraries." });
+    }
+};
 
   /*const MuseumSearchAll = async (req, res) => {
     const { searchString } = req.body; // Extract the search string from the request body
