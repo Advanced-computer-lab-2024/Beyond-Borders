@@ -1072,7 +1072,7 @@ const [expanded, setExpanded] = useState({});
             <Box
               sx={{
                 ...styles.infoContainer,
-                backgroundColor: '#f3f4f6',
+                backgroundColor: '#b3b8c8',
               }}
             >
               <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
