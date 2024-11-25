@@ -249,17 +249,12 @@ const [currency, setCurrency] = useState('EGP'); // Default currency is EGP
       let response;
       switch (selectedOption) {
         case "priceAsc":
-          response = await axios.get("/sortActivitiesPriceAscendingTourist");
+          response = await axios.get("/sortItinerariesPriceAscendingTourist");
           break;
         case "priceDesc":
-          response = await axios.get("/sortActivitiesPriceDescendingTourist");
+          response = await axios.get("/sortItinerariesPriceDescendingTourist");
           break;
-        case "ratingAsc":
-          response = await axios.get("/sortActivitiesRatingAscendingTourist");
-          break;
-        case "ratingDesc":
-          response = await axios.get("/sortActivitiesRatingDescendingTourist");
-          break;
+       
         default:
           return; // Do nothing if no valid option is selected
       }
@@ -294,14 +289,14 @@ const [currency, setCurrency] = useState('EGP'); // Default currency is EGP
 
   //share
 
-  const handleOpenShareModal = async (activityName) => {
+  const handleOpenShareModal = async (itineraryName) => {
     try {
       const response = await axios.post('/getCopyLink', {
-        entityType: 'activity',
-        entityName: activityName,
+        entityType: 'itinerary',
+        entityName: itineraryName,
       });
       setSharedLink(response.data.link); // Set the generated link
-      setCurrentActivityName(activityName); // Store the activity name in state
+      setCurrentActivityName(itineraryName); // Store the activity name in state
       setShareModalOpen(true); // Open the modal
     } catch (error) {
       console.error('Error generating link:', error);
@@ -310,7 +305,7 @@ const [currency, setCurrency] = useState('EGP'); // Default currency is EGP
   };
   
   
-  const handleSendEmail = async (activityName) => {
+  const handleSendEmail = async (itineraryName) => {
     if (!email || !sharedLink) {
       alert('Please provide a valid email and ensure the link is generated.');
       return;
@@ -318,8 +313,8 @@ const [currency, setCurrency] = useState('EGP'); // Default currency is EGP
   
     try {
       const response = await axios.post('/getCopyLink', {
-        entityType: 'activity',
-        entityName: activityName,
+        entityType: 'itinerary',
+        entityName: itineraryName,
         email,
       });
       alert(response.data.msg); // Show success message
@@ -1032,8 +1027,7 @@ const [currency, setCurrency] = useState('EGP'); // Default currency is EGP
     >
       <MenuItem value="priceAsc">Price: Low to High</MenuItem>
       <MenuItem value="priceDesc">Price: High to Low</MenuItem>
-      <MenuItem value="ratingAsc">Rating: Low to High</MenuItem>
-      <MenuItem value="ratingDesc">Rating: High to Low</MenuItem>
+      
     </TextField>
 
     <TextField
@@ -1249,7 +1243,7 @@ const [currency, setCurrency] = useState('EGP'); // Default currency is EGP
                         <Typography
                     variant="body2"
                     sx={{
-                        fontSize: '18px',
+                        fontSize: '16px',
                         color: '#192959',
                     }}
                 >
@@ -1353,7 +1347,7 @@ const [currency, setCurrency] = useState('EGP'); // Default currency is EGP
         <Tooltip title="Share" arrow>
 
         <IconButton
-    onClick={() => handleOpenShareModal(activity.Name)} // Pass activity name
+    onClick={() => handleOpenShareModal(activity.Title)} // Pass activity name
     sx={{
       position: 'absolute',
       top: '60px',
