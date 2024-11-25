@@ -355,7 +355,7 @@ function YAdminItinerariesPage() {
           <AssignmentIcon sx={styles.icon} />
           {sidebarOpen && 'Complaints'}
         </Button>
-        <Button onClick={() => navigate('/products')} sx={styles.sidebarButton}>
+        <Button onClick={() => navigate('/YAdminProductsPage')} sx={styles.sidebarButton}>
           <StorefrontIcon sx={styles.icon} />
           {sidebarOpen && 'Products'}
         </Button>

@@ -500,7 +500,7 @@ const handleViewDocument = (username) => {
           <AssignmentIcon sx={styles.icon} />
           {sidebarOpen && 'Complaints'}
         </Button>
-        <Button onClick={() => navigate('/products')} sx={styles.sidebarButton}>
+        <Button onClick={() => navigate('/YAdminProductsPage')} sx={styles.sidebarButton}>
           <StorefrontIcon sx={styles.icon} />
           {sidebarOpen && 'Products'}
         </Button>
@@ -520,7 +520,7 @@ const handleViewDocument = (username) => {
 
       {/* Main Content Area with Boxes */}
       <Box sx={{ ...styles.content, filter: sidebarOpen ? 'brightness(0.5)' : 'none' }}>
-        <Box sx={styles.infoBox} onClick={() => navigate('/products')}>
+        <Box sx={styles.infoBox} onClick={() => navigate('/YAdminProductsPage')}>
           <img src="/images/products.jpg" alt="Products" style={styles.image} />
           <Typography variant="h6" sx={styles.text} className="text">Products</Typography>
         </Box>

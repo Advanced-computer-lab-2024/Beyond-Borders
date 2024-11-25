@@ -7,6 +7,7 @@ import {
   TextField,
   InputAdornment,
 } from '@mui/material';
+import { useNavigate } from 'react-router-dom';
 import MenuIcon from '@mui/icons-material/Menu';
 import SearchIcon from '@mui/icons-material/Search';
 import ArchiveIcon from '@mui/icons-material/Archive';
@@ -49,7 +50,7 @@ function YAdminProductsPage() {
   const [showModal, setShowModal] = useState(false);
   const [addProductModal, setAddProductModal] = useState(false);
  
-
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchProducts();
@@ -311,25 +312,25 @@ function YAdminProductsPage() {
         onMouseEnter={() => setSidebarOpen(true)}
         onMouseLeave={() => setSidebarOpen(false)}
       >
-        <Button sx={styles.sidebarButton}>
-          <StorefrontIcon sx={styles.icon} />
-          {sidebarOpen && 'Products'}
-        </Button>
-        <Button sx={styles.sidebarButton}>
-          <LocalActivityIcon sx={styles.icon} />
-          {sidebarOpen && 'Activities'}
-        </Button>
-        <Button sx={styles.sidebarButton}>
-          <MapIcon sx={styles.icon} />
-          {sidebarOpen && 'Itineraries'}
-        </Button>
-        <Button sx={styles.sidebarButton}>
+        <Button onClick={() => navigate('/YAdminComplaintsPage')} sx={styles.sidebarButton}>
           <AssignmentIcon sx={styles.icon} />
           {sidebarOpen && 'Complaints'}
         </Button>
-        <Button sx={styles.sidebarButton}>
+        <Button onClick={() => navigate('/YAdminProductsPage')} sx={styles.sidebarButton}>
+          <StorefrontIcon sx={styles.icon} />
+          {sidebarOpen && 'Products'}
+        </Button>
+        <Button onClick={() => navigate('/YAdminActivitiesPage')} sx={styles.sidebarButton}>
+          <LocalActivityIcon sx={styles.icon} />
+          {sidebarOpen && 'Activities'}
+        </Button>
+        <Button onClick={() => navigate('/YAdminItinerariesPage')} sx={styles.sidebarButton}>
+          <MapIcon sx={styles.icon} />
+          {sidebarOpen && 'Itineraries'}
+        </Button>
+        <Button onClick={() => navigate('/YAdminDashboard')} sx={styles.sidebarButton}>
           <DashboardIcon sx={styles.icon} />
-          {sidebarOpen && 'Dashboard'}
+          {sidebarOpen && 'Back to Dashboard'}
         </Button>
       </Box>
 
