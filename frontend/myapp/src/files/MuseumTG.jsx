@@ -20,12 +20,14 @@ import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import AttachMoneyIcon from "@mui/icons-material/AttachMoney";
 import ImageIcon from "@mui/icons-material/Image";
 import TagIcon from "@mui/icons-material/Label";
+import { useNavigate } from 'react-router-dom';
+import DashboardIcon from '@mui/icons-material/Dashboard';
 
 const MuseumTG = () => {
   const [museums, setMuseums] = useState([]);
   const [errorMessage, setErrorMessage] = useState("");
   const [sidebarOpen, setSidebarOpen] = useState(true);
-
+    const navigate = useNavigate();
   // Fetch museums
   const fetchMuseumsByAuthor = async () => {
     const AuthorUsername = localStorage.getItem("username");
@@ -91,18 +93,43 @@ const MuseumTG = () => {
 
   return (
     <Box sx={styles.container}>
-      {/* Sidebar */}
-      <Box sx={{ ...styles.sidebar, width: sidebarOpen ? "250px" : "60px" }}>
-        <Box sx={styles.sidebarHeader}>
-          <Button onClick={() => setSidebarOpen(!sidebarOpen)} sx={styles.menuButton}>
-            {sidebarOpen ? <CloseIcon /> : <MenuIcon />}
-          </Button>
-          {sidebarOpen && (
-            <Typography variant="h6" sx={styles.sidebarTitle}>
-              Museum Dashboard
-            </Typography>
-          )}
+      {/* Dim overlay when sidebar is open */}
+      {sidebarOpen && <Box sx={styles.overlay} onClick={() => setSidebarOpen(false)} />}
+
+      {/* Top Menu Bar */}
+      <Box sx={styles.topMenu}>
+        <Box sx={styles.menuIconContainer}>
+          <IconButton onMouseEnter={() => setSidebarOpen(true)} color="inherit">
+            <MenuIcon />
+          </IconButton>
+          <Typography variant="h6" component="div" sx={styles.logo}>
+            Beyond Borders
+          </Typography>
         </Box>
+        <Box sx={styles.topMenuRight}>
+        <Box>
+            <Button
+              sx={styles.menuButton}
+              onClick={() => (window.location.href = "/createMuseum")}
+            >
+              Add New Museum
+            </Button>
+            <IconButton onClick={() => alert("Logged out!")} sx={styles.iconButton}>
+              <LogoutIcon />
+            </IconButton>
+          </Box>
+        </Box>
+      </Box>
+
+      {/* Collapsible Sidebar */}
+      <Box
+        sx={{
+          ...styles.sidebar,
+          width: sidebarOpen ? '280px' : '60px',
+        }}
+        onMouseEnter={() => setSidebarOpen(true)}
+        onMouseLeave={() => setSidebarOpen(false)}
+      >
         <Button
           sx={styles.sidebarButton}
           onClick={() => (window.location.href = "/MuseumTG")}
@@ -117,97 +144,89 @@ const MuseumTG = () => {
           <HistoricalPlaceIcon sx={styles.icon} />
           {sidebarOpen && "Historical Places"}
         </Button>
+        <Button onClick={() => navigate('/TourismGovernorDashboard')} sx={styles.sidebarButton}>
+          <DashboardIcon sx={styles.icon} />
+          {sidebarOpen && 'Back to Dashboard'}
+        </Button>
       </Box>
-  
-      {/* Main Content */}
-      <Box sx={{ ...styles.mainContent, marginLeft: sidebarOpen ? "250px" : "60px" }}>
-        {/* Top Menu */}
-        <Box sx={styles.topMenu}>
-          <Typography variant="h6" sx={styles.logo}>
-            Museums
-          </Typography>
-          <Box>
-            <Button
-              sx={styles.menuButton}
-              onClick={() => (window.location.href = "/createMuseum")}
-            >
-              Add New Museum
-            </Button>
-            <IconButton onClick={() => alert("Logged out!")} sx={styles.iconButton}>
-              <LogoutIcon />
-            </IconButton>
-          </Box>
-        </Box>
-  
-        <Box sx={styles.activitiesContainer}>
-          {errorMessage ? (
-            <Typography sx={styles.errorMessage}>{errorMessage}</Typography>
-          ) : (
-            museums.map((museum, index) => (
-              <Box key={index} sx={styles.activityCard}>
-                <Box sx={styles.activityContent}>
-                  {/* Left Side */}
-                  <Box sx={styles.activityLeft}>
+
+      {/* Main Content Area with Activities */}
+      <Box sx={styles.activitiesContainer}>
+  {museums.map((museum, index) => (
+    <Box key={index} sx={{ marginBottom: '40px' }}> {/* Wrapper for each itinerary and comments */}
+      
+      {/* Itinerary Container */}
+      <Box
+        sx={{
+          ...styles.activityCard,
+          backgroundColor: 'white',
+        }}
+      >
+        
+
+        {/* Activity Content */}
+        <Box sx={styles.activityContent}>
+          {/* Left Side */}
+          <Box sx={styles.activityLeft}>
+            <Typography variant="h6" sx={{ display: 'flex',fontWeight: 'bold', fontSize: '24px', marginBottom: '5px' }}>
+              {museum.name}
+            </Typography>
+            <Typography variant="body2" sx={{ display: 'flex', fontSize: '18px', alignItems: 'left' }}>
+              <LocationOnIcon fontSize="small" sx={{ mr: 1 }} />
+              {museum.location || 'N/A'}
+            </Typography>
+            {/* Other musuem details */}
+              {/* Tags */}
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
+                  Tags:
+                </Typography>
+                <Box sx={styles.tagContainer}>
+                  {museum.HistoricalTags.map((tag, tagIndex) => (
                     <Typography
-                      variant="h6"
-                      sx={{ fontWeight: "bold", fontSize: "20px", marginBottom: "10px" }}
-                    >
-                      {museum.name}
-                    </Typography>
-                    <Typography variant="body2" sx={styles.info}>
-                      <LocationOnIcon fontSize="small" sx={{ mr: 1 }} />
-                      Location: {museum.location}
-                    </Typography>
-                    <Typography variant="body2" sx={styles.info}>
-                      <AttachMoneyIcon fontSize="small" sx={{ mr: 1 }} />
-                      Ticket Prices: Foreigner - ${museum.ticketPrices.foreigner}, Native - $
-                      {museum.ticketPrices.native}, Student - ${museum.ticketPrices.student}
-                    </Typography>
-                    <Typography variant="body2" sx={styles.info}>
-                      <CalendarTodayIcon fontSize="small" sx={{ mr: 1 }} />
-                      Date of Event:{" "}
-                      {new Date(museum.dateOfEvent).toLocaleDateString("en-US", {
-                        year: "numeric",
-                        month: "long",
-                        day: "numeric",
-                      })}
-                    </Typography>
-                    <Typography variant="body2" sx={styles.info}>
-                      <AccessTimeIcon fontSize="small" sx={{ mr: 1 }} />
-                      Opening Hours: {museum.openingHours}
-                    </Typography>
-                    <Typography variant="body2" sx={styles.info}>
-                      <ImageIcon fontSize="small" sx={{ mr: 1 }} />
-                      Pictures: {museum.pictures ? museum.pictures.length : 0} available
-                    </Typography>
-                    <Typography variant="body2" sx={styles.info}>
-                      <TagIcon fontSize="small" sx={{ mr: 1 }} />
-                      Tags: {museum.HistoricalTags.join(", ")}
-                    </Typography>
-                  </Box>
-  
-                  {/* Divider Line */}
-                  <Divider orientation="horizontal" flexItem sx={styles.horizontalDivider} />
-  
-                  {/* Description Section */}
-                  <Box sx={styles.descriptionSection}>
-                    <Typography
-                      variant="body2"
+                      key={tagIndex}
                       sx={{
-                        fontSize: "16px",
-                        fontWeight: "400",
-                        wordBreak: "break-word",
-                        color: "#33416b",
-                        marginTop: "10px",
+                        ...styles.tag,
+                        backgroundColor: '#cccfda',
+                        color: '#192959',
                       }}
                     >
-                      <strong>Description:</strong> {museum.description || "No description provided."}
+                      {tag}
                     </Typography>
-                  </Box>
+                  ))}
                 </Box>
-  
-                {/* Edit/Delete Buttons */}
-                <Box sx={styles.museumActions}>
+              </Box>
+
+                
+          </Box>
+
+          {/* Divider Line */}
+          <Divider orientation="vertical" flexItem sx={styles.verticalDivider} />
+
+          {/* Right Side */}
+          <Box sx={styles.activityRight}>
+          <Typography variant="body2" sx={{ display: 'flex', fontSize: '18px', alignItems: 'right' }}>
+              <AttachMoneyIcon fontSize="small" sx={{ mr: 1 }} />
+              Foreigner  ${museum.ticketPrices.foreigner}, Native  $
+                      {museum.ticketPrices.native}, Student  ${museum.ticketPrices.student}
+            </Typography>
+            <Typography variant="body2" sx={{ display: 'flex', fontSize: '18px', alignItems: 'right' }}>
+              <CalendarTodayIcon fontSize="small" sx={{ mr: 1 }} />
+              {new Date(museum.dateOfEvent).toLocaleDateString()}
+            </Typography>
+            <Typography variant="body2" sx={{ fontSize: '16px'}}>
+            <strong>Description:</strong> {museum.description || "No description provided."}
+            </Typography>
+            <Typography variant="body2" sx={styles.info}>
+                      <ImageIcon fontSize="small" sx={{ mr: 1 }} />
+                      Pictures: {museum.pictures ? museum.pictures.length : 0} available
+            </Typography>
+            {/* <Typography variant="body2" sx={{ fontSize: '16px' }}>
+              <strong>Booking Open:</strong> {activity.isBooked ? 'Yes' : 'No'}
+            </Typography> */}
+          </Box>
+          {/* Edit/Delete Buttons */}
+          <Box sx={styles.museumActions}>
                   <IconButton
                     onClick={() =>
                       (window.location.href = `/editMuseum?name=${encodeURIComponent(
@@ -225,15 +244,26 @@ const MuseumTG = () => {
                     <DeleteIcon />
                   </IconButton>
                 </Box>
-              </Box>
-            ))
-          )}
         </Box>
+
+      
       </Box>
+
+      
+    </Box>
+  ))}
+</Box>
+
+
+
+
+      
+
+      
+      
     </Box>
   );
-  
-}  
+}
 
 const styles = {
   container: {
@@ -243,142 +273,344 @@ const styles = {
     backgroundColor: '#e6e7ed',
     color: '#192959',
   },
+  overlay: {
+    position: 'fixed',
+    top: 0,
+    left: 0,
+    width: '100%',
+    height: '100%',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    zIndex: 1,
+  },
+  topMenu: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: '10px 20px',
+    backgroundColor: '#192959',
+    color: '#e6e7ed',
+    position: 'sticky',
+    top: 0,             // Sticks to the top of the viewport
+    zIndex: 2,
+  },
+  menuIconContainer: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '18px',
+  },
+  logo: {
+    fontWeight: 'bold',
+    color: '#e6e7ed',
+  },
+  topMenuRight: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 2,
+  },
+  iconButton: {
+    color: '#e6e7ed',  // Initial color
+    '&:hover': {
+      backgroundColor: '#e6e7ed', // Background color on hover
+      color: '#192959',           // Text color on hover
+    },
+  },
+  menuButton: {
+    color: '#e6e7ed',
+    fontWeight: 'bold',
+    '&:hover': {
+      backgroundColor: '#e6e7ed', // Set background color on hover
+      color: '#192959',           // Set text color on hover
+    },
+  },  
   sidebar: {
-    backgroundColor: "#4d587e",
-    color: "#e6e7ed",
-    height: "100%",
-    position: "fixed",
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    transition: "width 0.3s ease",
-  },
-  sidebarHeader: {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    padding: "20px",
-  },
-  sidebarTitle: {
-    fontWeight: "bold",
-    marginLeft: "10px",
+    backgroundColor: '#4d587e',
+    color: '#e6e7ed',
+    display: 'flex',
+    flexDirection: 'column',
+    position: 'fixed',
+    left: 0,
+    top: 60,
+    height: 'calc(100vh - 60px)',
+    width: '60px',
+    transition: 'width 0.3s ease',
+    overflowX: 'hidden',
+    padding: '10px',
+    zIndex: 2,
   },
   sidebarButton: {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "flex-start",
-    width: "100%",
-    padding: "10px 20px",
-    color: "#e6e7ed",
-    fontSize: "16px",
-    "&:hover": {
-      backgroundColor: "#192959",
+    color: '#e6e7ed',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'flex-start',
+    textAlign: 'left',
+    width: '100%',
+    padding: '10px 20px',
+    fontSize: '16px',
+    '&:hover': {
+      backgroundColor: '#192959',
     },
   },
   icon: {
-    marginRight: "10px",
+    marginRight: '10px',
+    fontSize: '20px',
   },
-  mainContent: {
+  activitiesContainer: {
     flex: 1,
-    display: "flex",
-    flexDirection: "column",
-    transition: "margin-left 0.3s ease",
-    padding: "20px",
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '20px',
+    padding: '20px 70px 20px 90px',
+    marginLeft: '60px',
+    transition: 'margin-left 0.3s ease',
   },
-  topMenu: {
-    width: "100%",
-    backgroundColor: "#192959",
-    color: "#e6e7ed",
-    padding: "10px 20px",
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
+  languageContainer: {
+    position: 'absolute',
+    bottom: '190px',
+    right: '50px',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '10px',
   },
-  logo: {
-    fontWeight: "bold",
+  accessibilityContainer: {
+    position: 'absolute',
+    bottom: '150px',
+    right: '50px',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '10px',
   },
-  menuButton: {
-    color: "#e6e7ed",
-    fontWeight: "bold",
-    "&:hover": {
-      backgroundColor: "#e6e7ed",
-      color: "#192959",
+  pickupLocationContainer: {
+    position: 'absolute',
+    bottom: '110px',
+    right: '50px',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '10px',
+  },
+  dropoffLocationContainer: {
+    position: 'absolute',
+    bottom: '70px',
+    right: '50px',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '10px',
+  },
+  bookingOpenContainer: {
+    position: 'absolute',
+    bottom: '30px',
+    right: '50px',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '10px',
+  },
+  activityCard: {
+    display: 'flex',
+    position: 'relative',
+    justifyContent: 'space-between',
+    padding: '50px 50px', // Increase padding for top/bottom and left/right
+    borderRadius: '10px',
+    boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.2)',
+  },  
+  activityInfo: {
+    flex: 2,
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 1,
+  },
+  quickFacts: {
+    display: 'flex',
+    flexDirection: 'row',
+    gap: '10px',
+    marginTop: '10px',
+  },
+  infoContainer: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    backgroundColor: '#f3f4f6',
+    borderRadius: '16px',
+    padding: '5px 10px',
+    marginRight: '10px', // Add spacing between containers if needed
+  },
+  activityRating: {
+    position: 'absolute', // Fix the position of the rating section
+    top: '250px', // Adjust this value to set the vertical position
+    right: '50px', // Adjust this value to set the horizontal position
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '10px',
+  },
+  flagButton: {
+    position: 'absolute',
+    top: '40px',
+    right: '50px',
+    backgroundColor: '#ff5722',
+    color: 'white',
+    '&:hover': { backgroundColor: '#ff8a50' },
+  },
+  activityInfoLeft: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '5px',
+  },
+  
+  activityInfoRight: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '5px',
+    alignItems: 'flex-end',
+  },
+  commentsSection: {
+    display: 'flex',
+    alignItems: 'center',
+    marginTop: '10px', // Add space between itinerary and comments
+    overflow: 'hidden',
+    width: '100%',
+  },
+  commentsContainer: {
+    display: 'flex',
+    overflowX: 'auto',
+    scrollBehavior: 'smooth',
+    width: '100%',
+    padding: '10px',
+    '&::-webkit-scrollbar': {
+      display: 'none', // Hide scrollbar for a cleaner look
     },
   },
-  iconButton: {
-    color: "#e6e7ed",
-    "&:hover": {
-      backgroundColor: "#4d587e",
+  scrollButton: {
+    color: '#192959',
+    backgroundColor: '#e6e7ed',
+    '&:hover': {
+      backgroundColor: '#d1d5db',
+    },
+  },
+  commentCard: {
+    minWidth: '400px',
+    backgroundColor: '#f3f4f6',
+    borderRadius: '8px',
+    padding: '10px',
+    marginRight: '10px',
+    boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.1)',
+    display: 'flex',
+    flexDirection: 'column',
+    textAlign: 'left', // Align comments text to the left
+  },
+  backToTop: {
+    position: 'fixed',
+    bottom: '20px',
+    right: '70px',
+    backgroundColor: '#192959',
+    color: '#e6e7ed',
+    '&:hover': {
+      backgroundColor: '#e6e7ed',
+      color: '#192959',
+    },
+    padding: '5px 50px',
+    borderRadius: '30px',
+    boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.2)',
+  },
+  modalContent: {
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    transform: 'translate(-50%, -50%)',
+    width: 500,
+    maxHeight: '80vh',
+    overflowY: 'auto',
+    bgcolor: 'background.paper',
+    p: 4,
+    borderRadius: 2,
+    boxShadow: 24,
+    display: 'flex',
+    flexDirection: 'column',
+  },
+  modalHeader: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    mb: 2,
+  },
+  addButton: {
+    color: '#192959',
+  },
+  listContainer: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 2,
+    maxHeight: 400,
+    overflowY: 'auto',
+  },
+  categoryItem: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: '10px',
+    backgroundColor: '#f3f4f6',
+    borderRadius: '8px',
+    boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.1)',
+  },
+  inputContainer: {
+    display: 'flex',
+    gap: 2,
+    mt: 2,
+  },
+  actionButton: {
+    backgroundColor: '#e6e7ed', // Background color on hover
+    color: '#192959',           // Text color on hover
+    '&:hover': {
+      backgroundColor: '#192959', // Background color on hover
+      color: '#e6e7ed',           // Text color on hover
     },
   },
   activityCard: {
-    backgroundColor: "#fff",
-    padding: "20px",
-    margin: "10px 0",
-    borderRadius: "10px",
-    boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.1)",
+    display: 'flex',
+    flexDirection: 'column',
+    position: 'relative',
+    padding: '30px',
+    borderRadius: '10px',
+    boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.2)',
   },
-  museumActions: {
-    display: "flex",
-    justifyContent: "flex-end",
-    marginTop: "10px",
-    gap: "10px",
+  activityContent: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    gap: '20px', // Adjust spacing between left and right sections
   },
-  actionButton: {
-    color: "#192959",
-    "&:hover": {
-      color: "#4CAF50",
-    },
+  activityLeft: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '10px',
+    width: '45%', // Adjust as necessary
+    paddingRight: '10px',
+    textAlign: 'left', // Align text to the left
   },
-  deleteButton: {
-    color: "#dc3545",
-    "&:hover": {
-      color: "#a71d2a",
-    },
+  verticalDivider: {
+    backgroundColor: '#d1d5db',
+    width: '1px',
+    margin: '40px 15px 0 15px', // Adjust the top margin to position the start
   },
-  commentsSection: {
-    marginTop: "20px",
-  },
-  commentHeader: {
-    fontWeight: "bold",
-  },
-  noComments: {
-    color: "gray",
-  },
-  info: {
-    marginBottom: "5px",
-  },
-  activityRating: {
-    marginTop: "10px",
-    display: "flex",
-    alignItems: "center",
-    gap: "10px",
+  activityRight: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '10px',
+    width: '55%', // Adjust as necessary
+    paddingTop: '50px',
+    textAlign: 'left', // Align text to the left
   },
   tagContainer: {
-    display: "flex",
-    gap: "10px",
-    flexWrap: "wrap",
+    display: 'flex',
+    gap: '10px',
+    flexWrap: 'wrap',
+    textAlign: 'left', // Align text within tags to the left
   },
   tag: {
-    borderRadius: "16px",
-    padding: "5px 10px",
-    fontSize: "14px",
-    textAlign: "center",
-    boxShadow: "0px 2px 4px rgba(0, 0, 0, 0.1)",
+    borderRadius: '16px',
+    padding: '5px 10px',
+    fontSize: '14px',
+    textAlign: 'center',
+    boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.1)',
   },
-  divider: {
-    margin: "20px 0",
-    backgroundColor: "#d1d5db",
-  },
-  horizontalDivider: {
-    backgroundColor: "#d1d5db",
-    margin: "20px 0",
-    height: "1px", // Adjust thickness
-  },
-  descriptionSection: {
-    paddingTop: "10px",
-    textAlign: "left",
-  },
+  
 };
 
 export default MuseumTG;
+
+
