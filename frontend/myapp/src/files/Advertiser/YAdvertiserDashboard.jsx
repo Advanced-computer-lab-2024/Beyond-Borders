@@ -807,7 +807,7 @@ const styles = {
     //width: '500px',
     flex: 1,
     marginRight: '0px',
-    padding: '120px 20px',
+    padding: '140px 0px 20px 20px',
     // backgroundColor: '#f8f9fa',
     // borderRadius: '15px',
     // boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.2)',

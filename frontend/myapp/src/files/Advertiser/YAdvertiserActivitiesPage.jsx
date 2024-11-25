@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import Select from 'react-select';
 import { Box, Button, Typography, IconButton, Dialog, DialogActions, DialogContent, DialogContentText, Modal, TextField  } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import MenuIcon from '@mui/icons-material/Menu';
@@ -22,6 +23,7 @@ import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import CheckIcon from '@mui/icons-material/Check';
+import SaveIcon from '@mui/icons-material/Save';
 import Tooltip from '@mui/material/Tooltip';
 
 import axios from 'axios';
@@ -57,14 +59,16 @@ function YAdminActivitiesPage() {
   const [activityToDelete, setActivityToDelete] = useState(null);
   const [tagToDelete, setTagToDelete] = useState(null);
 
+  const [editableFields, setEditableFields] = useState({});
+
 
   const username = localStorage.getItem('username') || 'User'; // Retrieve username from localStorage
   const navigate = useNavigate();
 
   useEffect(() => {
     fetchActivities();
-    //fetchCategories();
-    //fetchTags();
+    fetchCategories();
+    fetchTags();
     const handleScroll = () => {
       // Check if the user is near the bottom of the page
       if (window.innerHeight + window.scrollY >= document.body.scrollHeight - 100) {
@@ -80,14 +84,28 @@ function YAdminActivitiesPage() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const fetchActivities = async () => {
+//   const fetchActivities = async () => {
+//     try {
+//       const response = await axios.get('/api/readAllActivities', { params: { AuthorUsername: username } });
+//       setActivities(response.data);
+//     } catch (error) {
+//       console.error('Error fetching activities:', error);
+//     }
+//   };
+
+const fetchActivities = async () => {
     try {
       const response = await axios.get('/api/readAllActivities', { params: { AuthorUsername: username } });
-      setActivities(response.data);
+      const activitiesWithTags = response.data.map((activity) => ({
+        ...activity,
+        Tags: activity.Tags || [], // Ensure Tags is always an array
+      }));
+      setActivities(activitiesWithTags);
     } catch (error) {
       console.error('Error fetching activities:', error);
     }
   };
+  
 
   // Fetch categories from backend
   const fetchCategories = async () => {
@@ -307,6 +325,183 @@ function YAdminActivitiesPage() {
       setTagToDelete(null); // Reset the category to delete
     }
   };
+
+//   const toggleEditMode = (activity) => {
+//     setActivities((prevActivities) =>
+//       prevActivities.map((a) =>
+//         a.Name === activity.Name ? { ...a, editMode: !a.editMode } : a
+//       )
+//     );
+//   };
+
+// const toggleEditMode = (activity) => {
+//     if (!activity.editMode) {
+//       setEditableFields((prev) => ({
+//         ...prev,
+//         [activity.Name]: {
+//           Date: activity.Date,
+//           Time: activity.Time,
+//           SpecialDiscount: activity.SpecialDiscount,
+//           BookingOpen: activity.BookingOpen,
+//           Price: activity.Price,
+//           Location: activity.Location?.address || '',
+//           Category: activity.Category,
+//           Tags: activity.Tags.join(', '),
+//         },
+//       }));
+//     }
+//     setActivities((prevActivities) =>
+//       prevActivities.map((a) =>
+//         a.Name === activity.Name ? { ...a, editMode: !a.editMode } : a
+//       )
+//     );
+//   };
+  
+const toggleEditMode = (activity) => {
+    if (!activity.editMode) {
+      setEditableFields((prev) => ({
+        ...prev,
+        [activity.Name]: {
+          Date: activity.Date,
+          Time: activity.Time,
+          SpecialDiscount: activity.SpecialDiscount,
+          BookingOpen: activity.BookingOpen,
+          Price: activity.Price,
+          Location: activity.Location?.address || '',
+          Category: activity.Category,
+          Tags: activity.Tags || [], // Ensure Tags is initialized as an array
+        },
+      }));
+    }
+    setActivities((prevActivities) =>
+      prevActivities.map((a) =>
+        a.Name === activity.Name ? { ...a, editMode: !a.editMode } : a
+      )
+    );
+  };
+  
+
+//   const handleFieldChange = (activity, field, value) => {
+//     setActivities((prevActivities) =>
+//       prevActivities.map((a) =>
+//         a.Name === activity.Name ? { ...a, [`edit${field}`]: value } : a
+//       )
+//     );
+//   };
+
+// const handleFieldChange = (field, value, activityName) => {
+//     setEditableFields((prev) => ({
+//       ...prev,
+//       [activityName]: {
+//         ...prev[activityName],
+//         [field]: value,
+//       },
+//     }));
+//   };
+  
+const handleFieldChange = (field, value, activityName) => {
+    setEditableFields((prev) => {
+      // Ensure activityName exists in the state
+      const updatedFields = prev[activityName] || {};
+  
+      return {
+        ...prev,
+        [activityName]: {
+          ...updatedFields,
+          [field]: field === 'Tags' ? [...value] : value, // If 'Tags', ensure value is stored as an array
+        },
+      };
+    });
+  };
+  
+  
+
+//   const saveActivity = async (activity) => {
+//     const updatedFields = {
+//       AdvertiserName: username,
+//       Name: activity.Name,
+//       Date: activity.editDate || activity.Date,
+//       Time: activity.editTime || activity.Time,
+//       SpecialDiscount: activity.editSpecialDiscount || activity.SpecialDiscount,
+//       BookingOpen: activity.editBookingOpen ?? activity.BookingOpen,
+//       Price: activity.editPrice || activity.Price,
+//       Location: activity.editLocation || activity.Location,
+//       Category: activity.editCategory || activity.Category,
+//       Tags: activity.editTags || activity.Tags,
+//     };
+  
+//     try {
+//       const response = await axios.put('/api/updateActivity', updatedFields);
+//       if (response.status === 200) {
+//         alert(response.data.msg);
+//         fetchActivities(); // Refresh activities
+//       }
+//     } catch (error) {
+//       console.error('Error updating activity:', error);
+//       alert('Failed to save activity changes.');
+//     }
+  
+//     toggleEditMode(activity); // Exit edit mode
+//   };
+
+// const saveActivity = async (activity) => {
+//     const fields = editableFields[activity.Name];
+//     const updatedFields = {
+//       AdvertiserName: username,
+//       Name: activity.Name,
+//       Date: fields.Date,
+//       Time: fields.Time,
+//       SpecialDiscount: fields.SpecialDiscount,
+//       BookingOpen: fields.BookingOpen,
+//       Price: fields.Price,
+//       Location: fields.Location,
+//       Category: fields.Category,
+//       Tags: fields.Tags.split(',').map((tag) => tag.trim()), // Split tags into an array
+//     };
+  
+//     try {
+//       const response = await axios.put('/api/updateActivity', updatedFields);
+//       if (response.status === 200) {
+//         alert(response.data.msg);
+//         fetchActivities(); // Refresh activities
+//       }
+//     } catch (error) {
+//       console.error('Error updating activity:', error);
+//       alert('Failed to save activity changes.');
+//     }
+  
+//     toggleEditMode(activity); // Exit edit mode
+//   };
+  
+const saveActivity = async (activity) => {
+    const fields = editableFields[activity.Name];
+    const updatedFields = {
+      AdvertiserName: username,
+      Name: activity.Name,
+      Date: fields.Date,
+      Time: fields.Time,
+      SpecialDiscount: fields.SpecialDiscount,
+      BookingOpen: fields.BookingOpen,
+      Price: fields.Price,
+      Location: fields.Location,
+      Category: fields.Category,
+      Tags: fields.Tags, // Already an array from multi-select
+    };
+  
+    try {
+      const response = await axios.put('/api/updateActivity', updatedFields);
+      if (response.status === 200) {
+        alert(response.data.msg);
+        fetchActivities(); // Refresh activities
+      }
+    } catch (error) {
+      console.error('Error updating activity:', error);
+      alert('Failed to save activity changes.');
+    }
+  
+    toggleEditMode(activity); // Exit edit mode
+  };
+  
   
   return (
     <Box sx={styles.container}>
@@ -482,54 +677,370 @@ function YAdminActivitiesPage() {
                 FLAGGED BY ADMIN
               </Button>
             )}
-            {!activity.flagged && (
-              <Tooltip title="Delete" arrow>
-              <IconButton
-                onClick={() => handleDeleteActivity(activity.Name)}
-                sx={{
-                  color: '#192959', // Icon color
-                  backgroundColor: '#f0f0f0', // Greyish background
-                  '&:hover': {
-                    backgroundColor: '#e6e7ed', // Lighter hover background
-                  },
-                  width: '40px', // Ensure square icon button
-                  height: '40px',
-                }}
-              >
-                <DeleteIcon />
-              </IconButton>
-            </Tooltip>
-            )}
               <Box sx={styles.activityInfo}>
-                <Typography variant="h6" sx={{ fontWeight: 'bold',fontSize: '24px', marginBottom: '5px', display: 'flex', alignItems: 'center' }}>{activity.Name}</Typography>
-                <Typography variant="body2" sx={{ display: 'flex', fontSize: '18px', alignItems: 'center' }}>
+                <Box sx={styles.activityHeader}>
+                    <Typography variant="h6" sx={{ fontWeight: 'bold', fontSize: '24px' }}>
+                        {activity.Name}
+                    </Typography>
+                    {!activity.flagged && (
+                    <Box sx={{ display: 'flex', gap: '8px' }}>
+                    <Tooltip title={activity.editMode ? 'Save' : 'Edit'} arrow>
+                      <IconButton
+                        onClick={() => {
+                          if (activity.editMode) {
+                            saveActivity(activity);
+                          } else {
+                            toggleEditMode(activity);
+                          }
+                        }}
+                        sx={{
+                          color: '#192959',
+                          backgroundColor: '#f0f0f0',
+                          '&:hover': { backgroundColor: '#e6e7ed' },
+                        }}
+                      >
+                        {activity.editMode ? <SaveIcon /> : <EditIcon />}
+                      </IconButton>
+                    </Tooltip>
+                    <Tooltip title="Delete" arrow>
+                      <IconButton
+                        onClick={() => handleDeleteActivity(activity.Name)}
+                        sx={{
+                          color: '#192959',
+                          backgroundColor: '#f0f0f0',
+                          '&:hover': { backgroundColor: '#e6e7ed' },
+                        }}
+                      >
+                        <DeleteIcon />
+                      </IconButton>
+                    </Tooltip>
+                  </Box>
+                    )}
+                </Box>
+                {/* <Typography variant="body2" sx={{ display: 'flex', fontSize: '18px', alignItems: 'center' }}>
                   <LocationOnIcon fontSize="small" sx={{ mr: 1 }} />
                   {activity.Location?.address || 'N/A'}
+                </Typography> */}
+                {/* <Typography variant="body2" sx={{ display: 'flex', fontSize: '18px', alignItems: 'center' }}>
+                    <LocationOnIcon fontSize="small" sx={{ mr: 1 }} />
+                    {activity.editMode ? (
+                        <TextField
+                        value={activity.editLocation || activity.Location?.address || ''}
+                        onChange={(e) => handleFieldChange(activity, 'Location', e.target.value)}
+                        size="small"
+                        />
+                    ) : (
+                        activity.Location?.address || 'N/A'
+                    )}
+                </Typography> */}
+                <Typography variant="body2" sx={{ display: 'flex', fontSize: '18px', alignItems: 'center' }}>
+                    <LocationOnIcon fontSize="small" sx={{ mr: 1 }} />
+                    {activity.editMode ? (
+                        <TextField
+                        value={editableFields[activity.Name]?.Location || ''}
+                        onChange={(e) => handleFieldChange('Location', e.target.value, activity.Name)}
+                        size="small"
+                        />
+                    ) : (
+                        activity.Location?.address || 'N/A'
+                    )}
                 </Typography>
                 <Typography variant="body2" sx={{ display: 'flex', fontSize: '18px', alignItems: 'center' }}>
                   <PersonIcon fontSize="small" sx={{ mr: 1 }} />
                   {activity.AdvertiserName}
                 </Typography>
-                <Typography variant="body2" sx={{ display: 'flex', fontSize: '18px', alignItems: 'center' }}>
+                {/* <Typography variant="body2" sx={{ display: 'flex', fontSize: '18px', alignItems: 'center' }}>
                   <AttachMoneyIcon fontSize="small" sx={{ mr: 1 }} />
                   {activity.Price}
-                </Typography>
+                </Typography> */}
+                {/* <Typography variant="body2" sx={{ display: 'flex', fontSize: '18px', alignItems: 'center' }}>
+                    <AttachMoneyIcon fontSize="small" sx={{ mr: 1 }} />
+                    {activity.editMode ? (
+                        <TextField
+                        type="number"
+                        value={activity.editPrice || activity.Price}
+                        onChange={(e) => handleFieldChange(activity, 'Price', e.target.value)}
+                        size="small"
+                        />
+                    ) : (
+                        `$${activity.Price}`
+                    )}
+                </Typography> */}
                 <Typography variant="body2" sx={{ display: 'flex', fontSize: '18px', alignItems: 'center' }}>
+                    <AttachMoneyIcon fontSize="small" sx={{ mr: 1 }} />
+                    {activity.editMode ? (
+                        <TextField
+                        type="number"
+                        value={editableFields[activity.Name]?.Price || ''}
+                        onChange={(e) => handleFieldChange('Price', e.target.value, activity.Name)}
+                        size="small"
+                        />
+                    ) : (
+                        `$${activity.Price}`
+                    )}
+                </Typography>
+                {/* <Typography variant="body2" sx={{ display: 'flex', fontSize: '18px', alignItems: 'center' }}>
                   <CalendarTodayIcon fontSize="small" sx={{ mr: 1 }} />
                   {new Date(activity.Date).toLocaleDateString()}
-                </Typography>
+                </Typography> */}
+                {/* <Typography variant="body2" sx={{ display: 'flex', fontSize: '18px', alignItems: 'center' }}>
+                    <CalendarTodayIcon fontSize="small" sx={{ mr: 1 }} />
+                    {activity.editMode ? (
+                        <TextField
+                        type="date"
+                        value={activity.editDate || activity.Date}
+                        onChange={(e) => handleFieldChange(activity, 'Date', e.target.value)}
+                        size="small"
+                        />
+                    ) : (
+                        new Date(activity.Date).toLocaleDateString()
+                    )}
+                </Typography> */}
                 <Typography variant="body2" sx={{ display: 'flex', fontSize: '18px', alignItems: 'center' }}>
+                    <CalendarTodayIcon fontSize="small" sx={{ mr: 1 }} />
+                    {activity.editMode ? (
+                        <TextField
+                        type="date"
+                        value={editableFields[activity.Name]?.Date || ''}
+                        onChange={(e) => handleFieldChange('Date', e.target.value, activity.Name)}
+                        size="small"
+                        />
+                    ) : (
+                        new Date(activity.Date).toLocaleDateString()
+                    )}
+                </Typography>
+                {/* <Typography variant="body2" sx={{ display: 'flex', fontSize: '18px', alignItems: 'center' }}>
                   <AccessTimeIcon fontSize="small" sx={{ mr: 1 }} />
                   {activity.Time}
+                </Typography> */}
+                {/* <Typography variant="body2" sx={{ display: 'flex', fontSize: '18px', alignItems: 'center' }}>
+                    <AccessTimeIcon fontSize="small" sx={{ mr: 1 }} />
+                    {activity.editMode ? (
+                        <TextField
+                        type="time"
+                        value={activity.editTime || activity.Time}
+                        onChange={(e) => handleFieldChange(activity, 'Time', e.target.value)}
+                        size="small"
+                        />
+                    ) : (
+                        activity.Time
+                    )}
+                </Typography> */}
+                <Typography variant="body2" sx={{ display: 'flex', fontSize: '18px', alignItems: 'center' }}>
+                    <AccessTimeIcon fontSize="small" sx={{ mr: 1 }} />
+                    {activity.editMode ? (
+                        <TextField
+                        type="time"
+                        value={editableFields[activity.Name]?.Time || ''}
+                        onChange={(e) => handleFieldChange('Time', e.target.value, activity.Name)}
+                        size="small"
+                        />
+                    ) : (
+                        activity.Time
+                    )}
                 </Typography>
                 <Box sx={styles.quickFacts}>
                   <Box sx={{ ...styles.infoContainer, backgroundColor: activity.flagged ? '#b3b8c8' : '#f3f4f6' }}>
-                    <Typography variant="body2" sx={{ fontWeight: 'bold' }}>Category:</Typography>
-                    <Typography variant="body2">{activity.Category}</Typography>
+                    {/* <Typography variant="body2" sx={{ fontWeight: 'bold' }}>Category:</Typography>
+                    <Typography variant="body2">{activity.Category}</Typography> */}
+                    {/* <Typography variant="body2" sx={{ display: 'flex', fontSize: '18px', alignItems: 'center' }}>
+                    <Typography sx={{ fontWeight: 'bold', mr: 1 }}>Category:</Typography>
+                    {activity.editMode ? (
+                        <TextField
+                        value={activity.editCategory || activity.Category}
+                        onChange={(e) => handleFieldChange(activity, 'Category', e.target.value)}
+                        size="small"
+                        />
+                    ) : (
+                        activity.Category
+                    )}
+                    </Typography> */}
+                    {/* <Typography variant="body2" sx={{ display: 'flex', fontSize: '18px', alignItems: 'center' }}>
+                    <Typography sx={{ fontWeight: 'bold', mr: 1 }}>Category:</Typography>
+                    {activity.editMode ? (
+                    <TextField
+                        value={editableFields[activity.Name]?.Category || ''}
+                        onChange={(e) => handleFieldChange('Category', e.target.value, activity.Name)}
+                        size="small"
+                    />
+                    ) : (
+                    activity.Category
+                    )}
+                    </Typography> */}
+                    {/* <Typography variant="body2" sx={{ display: 'flex', fontSize: '18px', alignItems: 'center' }}>
+                    <Typography sx={{ fontWeight: 'bold', mr: 1 }}>Category:</Typography>
+                    {activity.editMode ? (
+                        <select
+                        value={editableFields[activity.Name]?.Category || ''}
+                        onChange={(e) => handleFieldChange('Category', e.target.value, activity.Name)}
+                        style={{ padding: '4px', fontSize: '14px' }}
+                        >
+                        <option value="">Select a category</option>
+                        {categories.map((category) => (
+                            <option key={category._id} value={category.NameOfCategory}>
+                            {category.NameOfCategory}
+                            </option>
+                        ))}
+                        </select>
+                    ) : (
+                        activity.Category
+                    )}
+                    </Typography> */}
+
+                    {/* <Typography variant="body2" sx={{ display: 'flex', fontSize: '18px', alignItems: 'center' }}>
+                    <Typography sx={{ fontWeight: 'bold', mr: 1 }}>Category:</Typography>
+                    {activity.editMode ? (
+                        <Select
+                        value={categories.find((cat) => cat.NameOfCategory === editableFields[activity.Name]?.Category) || null}
+                        onChange={(selectedOption) => handleFieldChange('Category', selectedOption?.NameOfCategory || '', activity.Name)}
+                        options={categories.map((cat) => ({
+                            value: cat.NameOfCategory,
+                            label: cat.NameOfCategory,
+                        }))}
+                        placeholder="Select a category"
+                        />
+                    ) : (
+                        activity.Category || 'None'
+                    )}
+                    </Typography> */}
+                    <Typography variant="body2" sx={{ display: 'flex', fontSize: '18px', alignItems: 'center' }}>
+                    <Typography sx={{ fontWeight: 'bold', mr: 1 }}>Category:</Typography>
+                    {activity.editMode ? (
+                        <select
+                        value={editableFields[activity.Name]?.Category || ''}
+                        onChange={(e) => handleFieldChange('Category', e.target.value, activity.Name)}
+                        style={{
+                            padding: '4px',
+                            fontSize: '14px',
+                            width: '150px', // Adjust the width here
+                        }}
+                        >
+                        <option value="">Select a category</option>
+                        {categories.map((category) => (
+                            <option key={category._id} value={category.NameOfCategory}>
+                            {category.NameOfCategory}
+                            </option>
+                        ))}
+                        </select>
+                    ) : (
+                        activity.Category
+                    )}
+                    </Typography>
+
                   </Box>
                   <Box sx={{ ...styles.infoContainer, backgroundColor: activity.flagged ? '#b3b8c8' : '#f3f4f6' }}>
-                    <Typography variant="body2" sx={{ fontWeight: 'bold' }}>Tags:</Typography>
-                    <Typography variant="body2">{activity.Tags.join(', ')}</Typography>
+                    {/* <Typography variant="body2" sx={{ fontWeight: 'bold' }}>Tags:</Typography>
+                    <Typography variant="body2">{activity.Tags.join(', ')}</Typography> */}
+                    {/* <Typography variant="body2" sx={{ display: 'flex', fontSize: '18px', alignItems: 'center' }}>
+                    <Typography sx={{ fontWeight: 'bold', mr: 1 }}>Tags:</Typography>
+                    {activity.editMode ? (
+                        <TextField
+                        value={activity.editTags || activity.Tags.join(', ')}
+                        onChange={(e) => handleFieldChange(activity, 'Tags', e.target.value.split(',').map((tag) => tag.trim()))}
+                        size="small"
+                        />
+                    ) : (
+                        activity.Tags.join(', ') || 'None'
+                    )}
+                    </Typography> */}
+                    {/* <Typography variant="body2" sx={{ display: 'flex', fontSize: '18px', alignItems: 'center' }}>
+                    <Typography sx={{ fontWeight: 'bold', mr: 1 }}>Tags:</Typography>
+                    {activity.editMode ? (
+                    <TextField
+                        value={editableFields[activity.Name]?.Tags || ''}
+                        onChange={(e) => handleFieldChange('Tags', e.target.value, activity.Name)}
+                        size="small"
+                    />
+                    ) : (
+                    activity.Tags.join(', ') || 'None'
+                    )}
+                    </Typography> */}
+                    {/* <Typography variant="body2" sx={{ display: 'flex', fontSize: '18px', alignItems: 'center' }}>
+                    <Typography sx={{ fontWeight: 'bold', mr: 1 }}>Tags:</Typography>
+                    {activity.editMode ? (
+                        <select
+                        multiple
+                        value={editableFields[activity.Name]?.Tags || []}
+                        onChange={(e) => {
+                            const selectedOptions = Array.from(e.target.selectedOptions, (option) => option.value);
+                            handleFieldChange('Tags', selectedOptions, activity.Name);
+                        }}
+                        style={{ padding: '4px', fontSize: '14px', height: 'auto' }}
+                        >
+                        {tags.map((tag) => (
+                            <option key={tag._id} value={tag.NameOfTags}>
+                            {tag.NameOfTags}
+                            </option>
+                        ))}
+                        </select>
+                    ) : (
+                        activity.Tags.join(', ') || 'None'
+                    )}
+                    </Typography> */}
+                    {/* <Typography variant="body2" sx={{ display: 'flex', fontSize: '18px', alignItems: 'center' }}>
+                    <Typography sx={{ fontWeight: 'bold', mr: 1 }}>Tags:</Typography>
+                    {activity.editMode ? (
+                        <select
+                        multiple
+                        value={editableFields[activity.Name]?.Tags || []}
+                        onChange={(e) => {
+                            const selectedOptions = Array.from(e.target.selectedOptions, (option) => option.value);
+                            handleFieldChange('Tags', selectedOptions, activity.Name);
+                        }}
+                        style={{
+                            padding: '4px',
+                            fontSize: '14px',
+                            height: 'auto',
+                            minWidth: '200px', // Ensure it's wide enough for multiple selection visibility
+                        }}
+                        >
+                        {tags.map((tag) => (
+                            <option key={tag._id} value={tag.NameOfTags}>
+                            {tag.NameOfTags}
+                            </option>
+                        ))}
+                        </select>
+                    ) : (
+                        activity.Tags.join(', ') || 'None'
+                    )}
+                    </Typography> */}
+                    {/* <Typography variant="body2" sx={{ display: 'flex', fontSize: '18px', alignItems: 'center' }}>
+  <Typography sx={{ fontWeight: 'bold', mr: 1 }}>Tags:</Typography>
+  {activity.editMode ? (
+    <Select
+      isMulti
+      value={(editableFields[activity.Name]?.Tags || []).map((tag) => ({ value: tag, label: tag }))}
+      onChange={(selectedOptions) => {
+        const selectedTags = selectedOptions.map((option) => option.value);
+        handleFieldChange('Tags', selectedTags, activity.Name);
+      }}
+      options={tags.map((tag) => ({ value: tag.NameOfTags, label: tag.NameOfTags }))}
+      placeholder="Select tags"
+    />
+  ) : (
+    activity.Tags.join(', ') || 'None'
+  )}
+</Typography> */}
+
+
+<Typography variant="body2" sx={{ display: 'flex', fontSize: '18px', alignItems: 'center' }}>
+  <Typography sx={{ fontWeight: 'bold', mr: 1 }}>Tags:</Typography>
+  {activity.editMode ? (
+    <Select
+      isMulti
+      value={(editableFields[activity.Name]?.Tags || []).map((tag) => ({ value: tag, label: tag }))}
+      onChange={(selectedOptions) => {
+        const selectedTags = selectedOptions.map((option) => option.value);
+        handleFieldChange('Tags', selectedTags, activity.Name);
+      }}
+      options={tags.map((tag) => ({ value: tag.NameOfTags, label: tag.NameOfTags }))}
+      placeholder="Select tags"
+    />
+  ) : (
+    activity.Tags.join(', ') || 'None'
+  )}
+</Typography>
+
                   </Box>
                 </Box>
               </Box>
@@ -538,14 +1049,70 @@ function YAdminActivitiesPage() {
               </Box>
               <Box sx={styles.discountContainer}>
                 <Box sx={{...styles.infoContainer, backgroundColor: activity.flagged ? '#b3b8c8' : '#f3f4f6'}}>
-                  <Typography variant="body2" sx={{ fontWeight: 'bold' }}>Special Discount:</Typography>
-                  <Typography variant="body2">{activity.SpecialDiscount}</Typography>
+                  {/* <Typography variant="body2" sx={{ fontWeight: 'bold' }}>Special Discount:</Typography>
+                  <Typography variant="body2">{activity.SpecialDiscount}</Typography> */}
+                    {/* <Typography variant="body2" sx={{ display: 'flex', fontSize: '18px', alignItems: 'center' }}>
+                    <Typography sx={{ fontWeight: 'bold', mr: 1 }}>Special Discount:</Typography>
+                    {activity.editMode ? (
+                        <TextField
+                        value={activity.editSpecialDiscount || activity.SpecialDiscount}
+                        onChange={(e) => handleFieldChange(activity, 'SpecialDiscount', e.target.value)}
+                        size="small"
+                        />
+                    ) : (
+                        activity.SpecialDiscount || 'None'
+                    )}
+                    </Typography> */}
+                    <Typography variant="body2" sx={{ display: 'flex', fontSize: '18px', alignItems: 'center' }}>
+                    <Typography sx={{ fontWeight: 'bold', mr: 1 }}>Special Discount:</Typography>
+                    {activity.editMode ? (
+                    <TextField
+                        value={editableFields[activity.Name]?.SpecialDiscount || ''}
+                        onChange={(e) => handleFieldChange('SpecialDiscount', e.target.value, activity.Name)}
+                        size="small"
+                    />
+                    ) : (
+                    activity.SpecialDiscount || 'None'
+                    )}
+                    </Typography>
                 </Box>
               </Box>
               <Box sx={styles.bookingOpenContainer}>
                 <Box sx={{...styles.infoContainer, backgroundColor: activity.flagged ? '#b3b8c8' : '#f3f4f6'}}>
-                  <Typography variant="body2" sx={{ fontWeight: 'bold' }}>Booking Open:</Typography>
-                  <Typography variant="body2">{activity.BookingOpen ? 'Yes' : 'No'}</Typography>
+                  {/* <Typography variant="body2" sx={{ fontWeight: 'bold' }}>Booking Open:</Typography>
+                  <Typography variant="body2">{activity.BookingOpen ? 'Yes' : 'No'}</Typography> */}
+                    {/* <Typography variant="body2" sx={{ display: 'flex', fontSize: '18px', alignItems: 'center' }}>
+                    <Typography sx={{ fontWeight: 'bold', mr: 1 }}>Booking Open:</Typography>
+                    {activity.editMode ? (
+                        <select
+                        value={activity.editBookingOpen ?? activity.BookingOpen}
+                        onChange={(e) => handleFieldChange(activity, 'BookingOpen', e.target.value === 'true')}
+                        style={{ padding: '4px', fontSize: '14px' }}
+                        >
+                        <option value="true">Yes</option>
+                        <option value="false">No</option>
+                        </select>
+                    ) : (
+                        activity.BookingOpen ? 'Yes' : 'No'
+                    )}
+                    </Typography> */}
+                    <Typography variant="body2" sx={{ display: 'flex', fontSize: '18px', alignItems: 'center' }}>
+                    <Typography sx={{ fontWeight: 'bold', mr: 1 }}>Booking Open:</Typography>
+                    {activity.editMode ? (
+                    <select
+                        value={editableFields[activity.Name]?.BookingOpen || activity.BookingOpen}
+                        onChange={(e) =>
+                        handleFieldChange('BookingOpen', e.target.value === 'true', activity.Name)
+                        }
+                        style={{ padding: '4px', fontSize: '14px' }}
+                    >
+                        <option value="true">Yes</option>
+                        <option value="false">No</option>
+                    </select>
+                    ) : (
+                    activity.BookingOpen ? 'Yes' : 'No'
+                    )}
+                    </Typography>
                 </Box>
               </Box>
             </Box>
@@ -884,7 +1451,7 @@ const styles = {
   },
   activityRating: {
     position: 'absolute',
-    bottom: '140px',
+    bottom: '150px',
     right: '60px',
     display: 'flex',
     flexDirection: 'column',
@@ -1011,6 +1578,13 @@ const styles = {
       color: '#e6e7ed',           // Text color on hover
     },
   },
+  activityHeader: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: '10px',
+  },
+  
 };
 
 export default YAdminActivitiesPage;
