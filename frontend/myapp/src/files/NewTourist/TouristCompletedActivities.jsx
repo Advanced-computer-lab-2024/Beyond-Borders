@@ -45,9 +45,11 @@ import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import IosShareIcon from '@mui/icons-material/IosShare';
 import ShareIcon from '@mui/icons-material/Share';
 import LanguageIcon from '@mui/icons-material/Language';
+import StarHalfIcon from '@mui/icons-material/StarHalf';
+
 import axios from 'axios';
 
-function TouristUpcomingActivities() {
+function TouristCompletedActivities() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activities, setActivities] = useState([]);
   const [scrollPositions, setScrollPositions] = useState({});
@@ -85,6 +87,11 @@ const [sharedLink, setSharedLink] = useState(''); // Shared link state
 const [currentActivityName, setCurrentActivityName] = useState(''); // Trac
 const [convertedPrices, setConvertedPrices] = useState({});
 const [currency, setCurrency] = useState('EGP'); // Default currency is EGP
+
+const [commentModalOpen, setCommentModalOpen] = useState(false);
+const [currentActivityId, setCurrentActivityId] = useState(null);
+const [commentText, setCommentText] = useState('');
+
 
   const navigate = useNavigate();
 
@@ -150,7 +157,20 @@ const [currency, setCurrency] = useState('EGP'); // Default currency is EGP
 
   const fetchActivities = async () => {
     try {
-      const response = await axios.get('/api/ViewAllUpcomingActivities');
+      // Retrieve the Username from localStorage or any other source
+      const Username = localStorage.getItem('username');
+  
+      if (!Username) {
+        console.error('Username not found. Please log in.');
+        return;
+      }
+  
+      // Make a GET request with the Username as a query parameter
+      const response = await axios.get(`/api/viewMyCompletedActivities`, {
+        params: { Username }, // Pass the Username as query parameters
+      });
+  
+      // Update the state with the fetched activities
       setActivities(response.data);
     } catch (error) {
       console.error('Error fetching activities:', error);
@@ -325,29 +345,128 @@ const [currency, setCurrency] = useState('EGP'); // Default currency is EGP
   
   
 
-  const renderRating = (rating) => {
-    const roundedRating = Math.round(rating * 10) / 10;
-    const fullStars = Math.floor(rating);
-    const halfStars = roundedRating > fullStars ? 1 : 0;
+  const renderRating = (activityId, userRating, averageRating, handleRatingClick) => {
+    const displayRating = userRating || averageRating || 0; // Use user rating first, then average
+    const fullStars = Math.floor(displayRating);
+    const halfStars = displayRating > fullStars ? 1 : 0;
     const emptyStars = 5 - fullStars - halfStars;
   
     return (
-      <Box sx={styles.ratingContainer}>
-        <Typography variant="body2" sx={{ fontSize: '24px', position: 'absolute', right: '170px', bottom: '2px' }}>
-          {roundedRating}
+      <Box sx={styles.ratingContainer} display="flex" alignItems="center">
+        {/* Display Rating Number */}
+        <Typography
+          variant="body2"
+          sx={{
+            fontSize: '18px',
+            fontWeight: 'bold',
+            marginRight: '10px', // Spacing between number and stars
+          }}
+        >
+          {displayRating.toFixed(2)}
         </Typography>
+  
+        {/* Render Full Stars */}
         {[...Array(fullStars)].map((_, index) => (
-          <StarIcon key={`full-${index}`} sx={{ fontSize: '32px' }} />
+          <StarIcon
+            key={`full-${index}`}
+            sx={{ fontSize: '32px', cursor: 'pointer', color: '#192959' }}
+            onClick={() => handleRatingClick(activityId, index + 1)}
+          />
         ))}
+  
+        {/* Render Half Stars */}
         {[...Array(halfStars)].map((_, index) => (
-          <StarIcon key={`half-${index}`} sx={{ fontSize: '32px' }} />
+          <StarHalfIcon
+            key={`half-${index}`}
+            sx={{ fontSize: '32px', cursor: 'pointer', color: '#192959' }}
+            onClick={() => handleRatingClick(activityId, fullStars + 1)}
+          />
         ))}
+  
+        {/* Render Empty Stars */}
         {[...Array(emptyStars)].map((_, index) => (
-          <StarBorderIcon key={`empty-${index}`} sx={{ fontSize: '32px' }} />
+          <StarBorderIcon
+            key={`empty-${index}`}
+            sx={{ fontSize: '32px', cursor: 'pointer', color: '#192959' }}
+            onClick={() => handleRatingClick(activityId, fullStars + index + 1)}
+          />
         ))}
       </Box>
     );
   };
+  
+  
+
+  const handleRatingClick = async (activityId, rating) => {
+    const username = localStorage.getItem('username');
+    const activity = activities.find((activity) => activity._id === activityId);
+  
+    if (!username || !activity) {
+      alert('User not logged in or activity not found.');
+      return;
+    }
+  
+    try {
+      const response = await axios.put('/rateCompletedActivity', {
+        touristUsername: username,
+        activityName: activity.Name,
+        rating,
+      });
+  
+      const { newAverageRating } = response.data;
+  
+      // Update state: show user rating and "Add Comment" button
+      setActivities((prevActivities) =>
+        prevActivities.map((act) =>
+          act._id === activityId
+            ? { ...act, userRating: rating, averageRating: newAverageRating, showCommentButton: true }
+            : act
+        )
+      );
+    } catch (error) {
+      console.error('Error submitting rating:', error);
+      alert(error.response?.data?.msg || 'Failed to submit rating.');
+    }
+  };
+  
+
+  const handleCommentSubmit = async () => {
+    const username = localStorage.getItem('username');
+    const activity = activities.find((activity) => activity._id === currentActivityId);
+  
+    if (!username || !activity) {
+      alert('User not logged in or activity not found.');
+      return;
+    }
+  
+    try {
+      const response = await axios.put('/commentOnActivity', {
+        touristUsername: username,
+        activityName: activity.Name,
+        comment: commentText,
+      });
+  
+      const { comments } = response.data;
+  
+      // Update the comments in the activity state
+      setActivities((prevActivities) =>
+        prevActivities.map((act) =>
+          act._id === currentActivityId ? { ...act, Comments: comments, showCommentButton: true } : act
+        )
+      );
+  
+      setCommentModalOpen(false); // Close the modal
+      setCommentText(''); // Clear the comment input
+    } catch (error) {
+      console.error('Error submitting comment:', error);
+      alert(error.response?.data?.msg || 'Failed to submit comment.');
+    }
+  };
+  
+  
+  
+  
+  
   
 
   const scrollCommentsLeft = (index) => {
@@ -577,7 +696,7 @@ const [currency, setCurrency] = useState('EGP'); // Default currency is EGP
             </Button>
 
             <Button
-                onClick={() => navigate('/TouristCompletedActivities')}
+                onClick={() => navigate('/completed-activities')}
                 sx={{
                     ...styles.sidebarButton,
                     fontSize: '14px',
@@ -898,102 +1017,16 @@ const [currency, setCurrency] = useState('EGP'); // Default currency is EGP
   sx={{
     display: 'flex',
     justifyContent: 'space-between', // Ensure space between search bar and the rest
-    alignItems: 'center',           // Align items vertically in the center
+    alignItems: 'right',           // Align items vertically in the center
     marginBottom: '20px',
     marginTop: '20px',
-    marginLeft: '150px',
-    marginRight: '60px',           // Add margin to the right for consistent spacing
+    marginLeft: '1570px',         // Add margin to the right for consistent spacing
   }}
 >
-  {/* Search Bar */}
-  <TextField
-    label="Search"
-    variant="outlined"
-    value={searchQuery}
-    onChange={handleSearchChange}
-    sx={{
-      width: '30%',
-      '& .MuiOutlinedInput-root': {
-        '& fieldset': {
-          borderColor: '#192959', // Default outline color
-          borderWidth: '2px',
-        },
-        '&:hover fieldset': {
-          borderColor: '#192959', // Hover outline color
-          borderWidth: '2.5px',
-        },
-        '&.Mui-focused fieldset': {
-          borderColor: '#192959', // Focused outline color
-          borderWidth: '2.5px',
-        },
-      },
-      '& .MuiInputLabel-root': {
-        color: '#192959', // Label color
-        fontSize: '18px',
-      },
-    }}
-    InputProps={{
-      startAdornment: (
-        <Box sx={{ display: 'flex', alignItems: 'center', color: '#192959', paddingLeft: '5px' }}>
-          <SearchIcon />
-        </Box>
-      ),
-    }}
-  />
+
 
   {/* Sort Dropdown and Filter Icon */}
-  <Box sx={{ display: 'flex', alignItems: 'right', gap: '10px', marginLeft: '100px'}}>
-    <TextField
-      select
-      label={
-        <Box sx={{ display: 'flex', alignItems: 'right', gap: '8px' }}>
-          Sort By
-        </Box>
-      }
-      variant="outlined"
-      value={sortOption}
-      onChange={handleSortChange}
-      sx={{
-        width: '80%',
-        '& .MuiOutlinedInput-root': {
-          '& fieldset': {
-            borderColor: '#192959', // Default border color
-            borderWidth: '2px',
-          },
-          '&:hover fieldset': {
-            borderColor: '#33416b', // Hover border color
-            borderWidth: '2.5px',
-          },
-          '&.Mui-focused fieldset': {
-            borderColor: '#192959', // Focused border color
-            borderWidth: '2.5px',
-          },
-        },
-        '& .MuiInputLabel-root': {
-          color: '#192959', // Label color
-          fontSize: '18px',
-        },
-      }}
-      InputProps={{
-        startAdornment: (
-          <Box
-            sx={{
-              display: 'flex',
-              alignItems: 'center',
-              color: '#192959',
-              paddingLeft: '5px',
-            }}
-          >
-            <SwapVertIcon />
-          </Box>
-        ),
-      }}
-    >
-      <MenuItem value="priceAsc">Price: Low to High</MenuItem>
-      <MenuItem value="priceDesc">Price: High to Low</MenuItem>
-      <MenuItem value="ratingAsc">Rating: Low to High</MenuItem>
-      <MenuItem value="ratingDesc">Rating: High to Low</MenuItem>
-    </TextField>
+  <Box sx={{ display: 'flex', alignItems: 'right', gap: '10px', marginLeft: '150px',marginRight: '10px'}}>
 
     <TextField
   select
@@ -1002,7 +1035,7 @@ const [currency, setCurrency] = useState('EGP'); // Default currency is EGP
   onChange={(e) => setCurrency(e.target.value)}
   variant="outlined"
   sx={{
-    width: '210px',
+    width: '120px',
     '& .MuiOutlinedInput-root': {
       '& fieldset': {
         borderColor: '#192959', // Default border color
@@ -1045,26 +1078,9 @@ const [currency, setCurrency] = useState('EGP'); // Default currency is EGP
 </TextField>
 
 
-    {/* Filter Icon */}
-    <Tooltip title="Filter" placement="bottom" arrow>
-      <IconButton
-        onClick={() => setFilterModalOpen(true)}
-        sx={{
-          color: '#192959',
-          '&:hover': { backgroundColor: '#e6e7ed', color: '#33416b' },
-        }}
-      >
-        <FilterAltIcon fontSize="large" />
-      </IconButton>
-    </Tooltip>
   </Box>
 </Box>
-
-
-
-
-
-      
+  
       {/* Main Content Area with Activities */}
       <Box sx={styles.activitiesContainer}>
         {activities.map((activity, index) => (
@@ -1072,7 +1088,7 @@ const [currency, setCurrency] = useState('EGP'); // Default currency is EGP
             <Box
               sx={{
                 ...styles.activityCard,
-                backgroundColor: activity.flagged ? '#cccfda' : 'white',
+                backgroundColor: 'white',
               }}
             >
               <Box sx={styles.activityInfo}>
@@ -1112,62 +1128,53 @@ const [currency, setCurrency] = useState('EGP'); // Default currency is EGP
                 </Box>
               </Box>
               <Box sx={styles.activityRating}>
-                {renderRating(activity.Rating)}
-              </Box>
-              <Box sx={styles.discountContainer}>
-                <Box sx={{...styles.infoContainer, backgroundColor: activity.flagged ? '#b3b8c8' : '#f3f4f6'}}>
-                  <Typography variant="body2" sx={{ fontWeight: 'bold' }}>Special Discount:</Typography>
-                  <Typography variant="body2">{activity.SpecialDiscount}</Typography>
-                </Box>
-              </Box>
-              <Box sx={styles.bookingOpenContainer}>
-                <Box sx={{...styles.infoContainer, backgroundColor: activity.flagged ? '#b3b8c8' : '#f3f4f6'}}>
-                  <Typography variant="body2" sx={{ fontWeight: 'bold' }}>Booking Open:</Typography>
-                  <Typography variant="body2">{activity.BookingOpen ? 'Yes' : 'No'}</Typography>
-                </Box>
-              </Box>
+  {renderRating(
+    activity._id,
+    activity.userRating,
+    activity.Rating,
+    handleRatingClick
+  )}
 
-              
-
-              <Button
-          variant="contained"
-          disabled={!activity.BookingOpen} // Disable button if booking is not open
-          onClick={() => handleBookActivity(activity.Name)}
-          sx={{
-            position: 'absolute',
-            top: '60px', // Position at the top
-            right: '60px', // Position at the right
-            
-            backgroundColor: '#192959',
-
-            color: '#fff',
-            '&:hover': { backgroundColor: '#33416b' },
-          }}
-        >
-          Book
-        </Button>
-        <Tooltip title="Share" arrow>
-
-        <IconButton
-    onClick={() => handleOpenShareModal(activity.Name)} // Pass activity name
+  {/* Reserve space for the Add Comment button */}
+  <Box
     sx={{
-      position: 'absolute',
-      top: '60px',
-      right: '140px',
-      color: '#192959', // Icon color
-      '&:hover': {
-        color: '#33416b', // Hover color for the icon
-      },
+      height: '24px', // Fixed height to prevent shifting
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'flex-start',
+      //marginTop: '20px', // Adjust spacing below stars
     }}
   >
-    <IosShareIcon />
-  </IconButton>
-  
-</Tooltip>
+    {activity.showCommentButton && (
+      <Button
+        variant="text"
+        onClick={() => {
+          setCurrentActivityId(activity._id);
+          setCommentModalOpen(true);
+        }}
+        startIcon={<AddIcon />}
+        sx={{
+          fontSize: '14px', // Smaller font size
+          padding: '2px 6px', // Compact padding
+          color: '#192959',
+          textTransform: 'none', // Keep the case unchanged
+          '&:hover': {
+            backgroundColor: 'rgba(25, 41, 89, 0.1)', // Hover background
+          },
+        }}
+      >
+        Add Comment
+      </Button>
+    )}
+  </Box>
+</Box>
 
 
 
+        
             </Box>
+
+
             <Box sx={styles.commentsSection}>
   {activity.Comments && activity.Comments.length > 0 ? (
     <>
@@ -1217,17 +1224,16 @@ const [currency, setCurrency] = useState('EGP'); // Default currency is EGP
     ))
   ) : (
     <Typography variant="h6" sx={{ textAlign: 'center', color: '#192959', marginTop: '20px' }}>
-      No Activities Found Matching Your Criteria.
+      No Activities Found.
     </Typography>
   )}
 </Box>
 
-
 <Modal
-  open={isShareModalOpen}
-  onClose={() => setShareModalOpen(false)}
-  aria-labelledby="share-modal-title"
-  aria-describedby="share-modal-description"
+  open={commentModalOpen}
+  onClose={() => setCommentModalOpen(false)}
+  aria-labelledby="add-comment-title"
+  aria-describedby="add-comment-description"
 >
   <Box
     sx={{
@@ -1240,165 +1246,45 @@ const [currency, setCurrency] = useState('EGP'); // Default currency is EGP
       boxShadow: 24,
       p: 4,
       borderRadius: '10px',
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      gap: '10px',
     }}
   >
-    <Typography id="share-modal-title" variant="h6" component="h2">
-      Share Activity
+    <Typography id="add-comment-title" variant="h6" component="h2" sx={{ marginBottom: '20px' }}>
+      Add Comment
     </Typography>
-
-    {/* Copy to Clipboard Button */}
-    <Button
-      variant="contained"
-      onClick={handleCopyToClipboard}
-      sx={{
-        backgroundColor: '#192959',
-        color: '#fff',
-        '&:hover': { backgroundColor: '#33416b' },
-        display: 'flex',
-        alignItems: 'center',
-        gap: '8px',
-        width: '100%',
-      }}
-    >
-      <ContentCopyIcon />
-      Copy to Clipboard
-    </Button>
-
-    {/* Share via Email and Send Buttons */}
-    {!showEmailField ? (
+    <TextField
+      fullWidth
+      multiline
+      rows={4}
+      placeholder="Write your comment here..."
+      value={commentText}
+      onChange={(e) => setCommentText(e.target.value)}
+      variant="outlined"
+    />
+    <Box sx={{ display: 'flex', justifyContent: 'flex-end', marginTop: '20px' }}>
       <Button
-        variant="contained"
-        onClick={() => setShowEmailField(true)} // Toggle to show email input and "Send" button
+        variant="outlined"
+        onClick={() => setCommentModalOpen(false)}
         sx={{
-          backgroundColor: '#192959',
-          color: '#fff',
-          '&:hover': { backgroundColor: '#33416b' },
-          display: 'flex',
-          alignItems: 'center',
-          gap: '8px',
-          width: '100%',
+          color: '#192959',
+          borderColor: '#192959',
+          '&:hover': { backgroundColor: 'rgba(25, 41, 89, 0.1)', borderColor: '#192959' },
+          marginRight: '10px',
         }}
       >
-        <ShareIcon />
-        Share via Email
+        Cancel
       </Button>
-    ) : (
-      <>
-        <TextField
-          fullWidth
-          label="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-        />
-        <Button
-          variant="contained"
-          onClick={() => handleSendEmail(currentActivityName)} // Pass activityName
-          sx={{
-            backgroundColor: '#192959',
-            color: '#fff',
-            '&:hover': { backgroundColor: '#33416b' },
-            width: '100%',
-          }}
-        >
-          Send
-        </Button>
-      </>
-    )}
-  </Box>
-</Modal>
-
-
-
-      <Modal
-  open={filterModalOpen}
-  onClose={() => setFilterModalOpen(false)}
-  aria-labelledby="filter-modal-title"
-  aria-describedby="filter-modal-description"
->
-  <Box
-    sx={{
-      position: 'absolute',
-      top: '50%',
-      left: '50%',
-      transform: 'translate(-50%, -50%)',
-      width: 400,
-      bgcolor: 'background.paper',
-      boxShadow: 24,
-      p: 4,
-      borderRadius: '10px',
-    }}
-  >
-    <Typography id="filter-modal-title" variant="h6" component="h2" sx={{ marginBottom: '20px' }}>
-      Filter Activities
-    </Typography>
-    <Box sx={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-      <TextField
-        label="Category"
-        name="Category"
-        variant="outlined"
-        value={filterInputs.Category || ""}
-        onChange={handleFilterInputChange}
-      />
-      <TextField
-        label="Min Price"
-        name="minPrice"
-        type="number"
-        variant="outlined"
-        value={filterInputs.minPrice || ""}
-        onChange={handleFilterInputChange}
-      />
-      <TextField
-        label="Max Price"
-        name="maxPrice"
-        type="number"
-        variant="outlined"
-        value={filterInputs.maxPrice || ""}
-        onChange={handleFilterInputChange}
-      />
-      <TextField
-        label="Date"
-        name="InputDate"
-        type="date"
-        variant="outlined"
-        InputLabelProps={{ shrink: true }}
-        value={filterInputs.InputDate || ""}
-        onChange={handleFilterInputChange}
-      />
-      <TextField
-        label="Rating"
-        name="Rating"
-        type="number"
-        variant="outlined"
-        value={filterInputs.Rating || ""}
-        onChange={handleFilterInputChange}
-      />
-    </Box>
-    <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '20px' }}>
-    <Button
-  variant="outlined"
-  onClick={() => setFilterModalOpen(false)}
-  sx={{
-    color: '#192959', // Text color
-    borderColor: '#192959', // Outline color
-    '&:hover': {
-      backgroundColor: 'rgba(25, 41, 89, 0.1)', // Slight background highlight on hover
-      borderColor: '#192959', // Outline color on hover
-    },
-  }}
->
-  Cancel
-</Button>
-
-      <Button variant="contained" onClick={handleFilterSubmit} sx={{ backgroundColor: '#192959', color: '#fff' }}>
-        Apply
+      <Button
+        variant="contained"
+        onClick={handleCommentSubmit}
+        sx={{ backgroundColor: '#192959', color: '#fff' }}
+      >
+        Submit
       </Button>
     </Box>
   </Box>
 </Modal>
+
+
 
       {/* Back to Top Button */}
       {showBackToTop && (
@@ -1556,7 +1442,7 @@ const styles = {
   },
   activityRating: {
     position: 'absolute',
-    bottom: '140px',
+    bottom: '40px',
     right: '60px',
     display: 'flex',
     flexDirection: 'column',
@@ -1685,4 +1571,4 @@ const styles = {
   },
 };
 
-export default TouristUpcomingActivities;
+export default TouristCompletedActivities;
