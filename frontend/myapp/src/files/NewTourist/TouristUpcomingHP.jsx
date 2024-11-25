@@ -130,24 +130,55 @@ const [expanded, setExpanded] = React.useState({});
     if (currency !== 'EGP') {
       convertActivityPrices();
     }
-  }, [currency, activities]);
+  }, [currency, HPs]);
+
+  // const convertActivityPrices = async () => {
+  //   const newConvertedPrices = {};
+  //   await Promise.all(
+  //     activities.map(async (activity) => {
+  //       try {
+  //         const response = await axios.post('/convertCurr', {
+  //           priceEgp: activity.Price,
+  //           targetCurrency: currency,
+  //         });
+  //         // Use a unique key for each activity
+  //         newConvertedPrices[activity._id] = response.data.convertedPrice;
+  //       } catch (error) {
+  //         console.error(`Error converting price for activity ${activity.Name}:`, error);
+  //       }
+  //     })
+  //   );
+  //   setConvertedPrices(newConvertedPrices);
+  // };
 
   const convertActivityPrices = async () => {
     const newConvertedPrices = {};
+  
     await Promise.all(
-      activities.map(async (activity) => {
+      HPs.map(async (hp) => {
         try {
-          const response = await axios.post('/convertCurr', {
-            priceEgp: activity.Price,
-            targetCurrency: currency,
-          });
-          // Use a unique key for each activity
-          newConvertedPrices[activity._id] = response.data.convertedPrice;
+          // Convert ticket prices for each category: foreigner, native, and student
+          const responses = await Promise.all(
+            Object.entries(hp.ticketPrices).map(async ([category, priceEgp]) => {
+              const response = await axios.post('/convertCurr', {
+                priceEgp,
+                targetCurrency: currency,
+              });
+              return { category, convertedPrice: response.data.convertedPrice };
+            })
+          );
+  
+          // Organize the converted prices by category
+          newConvertedPrices[hp._id] = responses.reduce((acc, { category, convertedPrice }) => {
+            acc[category] = convertedPrice;
+            return acc;
+          }, {});
         } catch (error) {
-          console.error(`Error converting price for activity ${activity.Name}:`, error);
+          console.error(`Error converting prices for museum ${hp.name}:`, error);
         }
       })
     );
+  
     setConvertedPrices(newConvertedPrices);
   };
   
@@ -207,65 +238,69 @@ const [expanded, setExpanded] = React.useState({});
   
     setFilterInputs((prev) => ({
       ...prev,
-      [name]: name === "minPrice" || name === "maxPrice" || name === "Rating" // Ensure numerical values are parsed
-        ? parseFloat(value) || "" // Keep empty string if value is invalid
-        : value,
+      [name]: value, // Update the corresponding field in the state
     }));
   };
   
+  
   const handleFilterSubmit = async () => {
     try {
-      // Remove empty or invalid fields before sending to backend
-      const sanitizedInputs = Object.fromEntries(
-        Object.entries(filterInputs).filter(([_, value]) => value !== "" && value !== null)
-      );
+      // Format the tags input into an array
+      const sanitizedInputs = {
+        tags: filterInputs.Tags ? filterInputs.Tags.split(',').map(tag => tag.trim()) : [], // Split by commas and trim spaces
+      };
   
-      const response = await axios.post('/api/filterActivities', sanitizedInputs);
-      setActivities(response.data); // Update activities with the filtered results
-      setFilterModalOpen(false); // Close the modal after applying filters
+      // Send the request to the backend
+      const response = await axios.post('/getHistoricalPlacesByTagTourist', sanitizedInputs);
+  
+      // Update the hps state with the filtered results
+      setHPs(response.data);
+      setFilterModalOpen(false); // Close the modal
     } catch (error) {
       if (error.response && error.response.status === 404) {
-        // No activities found
-        setActivities([]); // Clear activities list
-        setFilterModalOpen(false); // Close the modal
+        // No hps found
+        setHPs([]); 
       } else {
-        console.error('Error filtering activities:', error);
+        console.error('Error filtering hps:', error);
       }
+      setFilterModalOpen(false);
     }
   };
 
 
-  const handleSortChange = async (event) => {
-    const selectedOption = event.target.value;
-    setSortOption(selectedOption);
+  // const handleSortChange = async (event) => {
+  //   const selectedOption = event.target.value;
+  //   setSortOption(selectedOption);
 
-    try {
-      let response;
-      switch (selectedOption) {
-        case "priceAsc":
-          response = await axios.get("/sortActivitiesPriceAscendingTourist");
-          break;
-        case "priceDesc":
-          response = await axios.get("/sortActivitiesPriceDescendingTourist");
-          break;
-        case "ratingAsc":
-          response = await axios.get("/sortActivitiesRatingAscendingTourist");
-          break;
-        case "ratingDesc":
-          response = await axios.get("/sortActivitiesRatingDescendingTourist");
-          break;
-        default:
-          return; // Do nothing if no valid option is selected
-      }
+  //   try {
+  //     let response;
+  //     switch (selectedOption) {
+  //       case "priceAsc":
+  //         response = await axios.get("/sortActivitiesPriceAscendingTourist");
+  //         break;
+  //       case "priceDesc":
+  //         response = await axios.get("/sortActivitiesPriceDescendingTourist");
+  //         break;
+  //       case "ratingAsc":
+  //         response = await axios.get("/sortActivitiesRatingAscendingTourist");
+  //         break;
+  //       case "ratingDesc":
+  //         response = await axios.get("/sortActivitiesRatingDescendingTourist");
+  //         break;
+  //       default:
+  //         return; // Do nothing if no valid option is selected
+  //     }
 
-      if (response && response.data) {
-        setActivities(response.data); // Update the activities with the sorted data
-      }
-    } catch (error) {
-      console.error("Error sorting activities:", error);
-    }
-  };
+  //     if (response && response.data) {
+  //       setActivities(response.data); // Update the activities with the sorted data
+  //     }
+  //   } catch (error) {
+  //     console.error("Error sorting activities:", error);
+  //   }
+  // };
   //book
+
+
   const handleBookActivity = async (activityName) => {
     const touristUsername = localStorage.getItem('username'); // Assuming username is stored in localStorage
   
@@ -282,11 +317,23 @@ const [expanded, setExpanded] = React.useState({});
     }
   };
 
-  const handleBookHistoricalPlace = (name) => {
-    console.log(`Booking historical place: ${name}`);
-    // Implement your booking logic here
-  };
 
+  //book
+  const handleBookHistoricalPlace = async (historicalPlaceName) => {
+    const touristUsername = localStorage.getItem('username'); // Assuming username is stored in localStorage
+  
+    if (!touristUsername) {
+      alert('Please log in to book hps.');
+      return;
+    }
+  
+    try {
+      const response = await axios.put('/bookHistoricalPlace', { touristUsername, historicalPlaceName });
+      navigate('/TouristPaymentPage');
+    } catch (error) {
+      alert(error.response?.data?.msg || 'An error occurred while booking the HP.');
+    }
+  };
   //share
 
   const handleOpenShareModal = async (activityName) => {
@@ -313,7 +360,7 @@ const [expanded, setExpanded] = React.useState({});
   
     try {
       const response = await axios.post('/getCopyLink', {
-        entityType: 'activity',
+        entityType: 'historicalPlace',
         entityName: activityName,
         email,
       });
@@ -969,7 +1016,7 @@ const [expanded, setExpanded] = React.useState({});
 
   {/* Sort Dropdown and Filter Icon */}
   <Box sx={{ display: 'flex', alignItems: 'right', gap: '10px', marginLeft: '100px'}}>
-    <TextField
+    {/* <TextField
       select
       label={
         <Box sx={{ display: 'flex', alignItems: 'right', gap: '8px' }}>
@@ -1019,7 +1066,7 @@ const [expanded, setExpanded] = React.useState({});
       <MenuItem value="priceDesc">Price: High to Low</MenuItem>
       <MenuItem value="ratingAsc">Rating: Low to High</MenuItem>
       <MenuItem value="ratingDesc">Rating: High to Low</MenuItem>
-    </TextField>
+    </TextField> */}
 
     <TextField
   select
@@ -1028,7 +1075,7 @@ const [expanded, setExpanded] = React.useState({});
   onChange={(e) => setCurrency(e.target.value)}
   variant="outlined"
   sx={{
-    width: '210px',
+    width: '150px',
     '& .MuiOutlinedInput-root': {
       '& fieldset': {
         borderColor: '#192959', // Default border color
@@ -1441,7 +1488,7 @@ const [expanded, setExpanded] = React.useState({});
 
 
 
-      <Modal
+<Modal
   open={filterModalOpen}
   onClose={() => setFilterModalOpen(false)}
   aria-labelledby="filter-modal-title"
@@ -1460,68 +1507,40 @@ const [expanded, setExpanded] = React.useState({});
       borderRadius: '10px',
     }}
   >
-    <Typography id="filter-modal-title" variant="h6" component="h2" sx={{ marginBottom: '20px' }}>
-      Filter Activities
+    <Typography id="filter-modal-title" variant="h6" sx={{ marginBottom: '20px' }}>
+      Filter HIstorical Places
     </Typography>
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
       <TextField
-        label="Category"
-        name="Category"
+        label="Tags"
+        name="Tags" // This must match the key in filterInputs
         variant="outlined"
-        value={filterInputs.Category || ""}
+        value={filterInputs.Tags || ""} // Ensure the Tags field exists in filterInputs
         onChange={handleFilterInputChange}
-      />
-      <TextField
-        label="Min Price"
-        name="minPrice"
-        type="number"
-        variant="outlined"
-        value={filterInputs.minPrice || ""}
-        onChange={handleFilterInputChange}
-      />
-      <TextField
-        label="Max Price"
-        name="maxPrice"
-        type="number"
-        variant="outlined"
-        value={filterInputs.maxPrice || ""}
-        onChange={handleFilterInputChange}
-      />
-      <TextField
-        label="Date"
-        name="InputDate"
-        type="date"
-        variant="outlined"
-        InputLabelProps={{ shrink: true }}
-        value={filterInputs.InputDate || ""}
-        onChange={handleFilterInputChange}
-      />
-      <TextField
-        label="Rating"
-        name="Rating"
-        type="number"
-        variant="outlined"
-        value={filterInputs.Rating || ""}
-        onChange={handleFilterInputChange}
+        helperText="Enter tags separated by commas"
       />
     </Box>
     <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '20px' }}>
-    <Button
-  variant="outlined"
-  onClick={() => setFilterModalOpen(false)}
-  sx={{
-    color: '#192959', // Text color
-    borderColor: '#192959', // Outline color
-    '&:hover': {
-      backgroundColor: 'rgba(25, 41, 89, 0.1)', // Slight background highlight on hover
-      borderColor: '#192959', // Outline color on hover
-    },
-  }}
->
-  Cancel
-</Button>
+      <Button
+        variant="outlined"
+        onClick={() => setFilterModalOpen(false)}
+        sx={{
+          color: '#192959',
+          borderColor: '#192959',
+          '&:hover': {
+            backgroundColor: 'rgba(25, 41, 89, 0.1)',
+            borderColor: '#192959',
+          },
+        }}
+      >
+        Cancel
+      </Button>
 
-      <Button variant="contained" onClick={handleFilterSubmit} sx={{ backgroundColor: '#192959', color: '#fff' }}>
+      <Button
+        variant="contained"
+        onClick={handleFilterSubmit} // Call the submit handler
+        sx={{ backgroundColor: '#192959', color: '#fff' }}
+      >
         Apply
       </Button>
     </Box>

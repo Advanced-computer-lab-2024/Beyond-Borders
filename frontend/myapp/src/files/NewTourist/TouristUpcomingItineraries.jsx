@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Button, Typography, IconButton,Tooltip, TextField, InputAdornment, Modal,MenuItem,Select,FormControl,InputLabel,} from '@mui/material';
+import { Box, Button, Typography, IconButton,Tooltip,Divider,TextField, InputAdornment, Modal,MenuItem,Select,FormControl,InputLabel,} from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import MenuIcon from '@mui/icons-material/Menu';
 import NotificationsIcon from '@mui/icons-material/Notifications';
@@ -90,17 +90,17 @@ const [currency, setCurrency] = useState('EGP'); // Default currency is EGP
 
   useEffect(() => {
     // Function to handle fetching or searching activities
-    const fetchOrSearchActivities = async () => {
+    const fetchOrSearchItineraries = async () => {
       if (!searchQuery) {
         // Fetch all activities when there's no search query
-        await fetchActivities();
+         await fetchItineraries();
       } else {
         // Perform search when there's a query
-        await searchActivities(searchQuery);
+        await searchItineraries(searchQuery);
       }
     };
   
-    fetchOrSearchActivities(); // Call the fetch or search logic
+    fetchOrSearchItineraries(); // Call the fetch or search logic
     fetchCategories(); // Fetch categories
     fetchTags(); // Fetch tags
   
@@ -148,28 +148,45 @@ const [currency, setCurrency] = useState('EGP'); // Default currency is EGP
   
   
 
-  const fetchActivities = async () => {
+  const fetchItineraries = async () => {
     try {
-      const response = await axios.get('/api/ViewAllUpcomingActivities');
-      setActivities(response.data);
+      const response = await axios.get('/api/ViewAllUpcomingItinerariesTourist');
+      setActivities(response.data); // Assuming you're using `setActivities` to populate the UI
     } catch (error) {
-      console.error('Error fetching activities:', error);
+      console.error('Error fetching itineraries:', error);
     }
   };
 
-  const searchActivities = async (query) => {
+  const searchItineraries = async (query) => {
     try {
-      const response = await axios.post('/api/ActivitiesSearchAll', { searchString: query });
-      setActivities(response.data);
+      // Send the search query to the backend
+      const response = await axios.post('/api/ItinerarySearchAll', { searchString: query });
+  
+      // Update the activities state with the fetched itineraries
+      if (response.data.length > 0) {
+        setActivities(response.data); // Update state if itineraries are found
+      } else {
+        setActivities([]); // Clear activities if no itineraries found
+      }
     } catch (error) {
-      console.error('Error searching activities:', error);
-      setActivities([]); // Clear activities if no results or error
+      console.error('Error searching itineraries:', error);
+  
+      // Handle 404 error when no itineraries are found
+      if (error.response?.status === 404) {
+        setActivities([]); // Clear activities list
+      } else {
+        alert(error.response?.data?.msg || 'An error occurred while searching itineraries.'); // Show error message for other errors
+      }
     }
   };
-
+  
+  // Handle search input change
   const handleSearchChange = (event) => {
-    setSearchQuery(event.target.value); // Update search query state
+    const query = event.target.value; // Get the input value
+    setSearchQuery(query); // Update search query state
+    searchItineraries(query); // Trigger the search functionality
   };
+  
 
   // Fetch categories from backend
   const fetchCategories = async () => {
@@ -194,24 +211,34 @@ const [currency, setCurrency] = useState('EGP'); // Default currency is EGP
   
   const handleFilterSubmit = async () => {
     try {
-      // Remove empty or invalid fields before sending to backend
+      // Remove empty or invalid fields before sending to the backend
       const sanitizedInputs = Object.fromEntries(
-        Object.entries(filterInputs).filter(([_, value]) => value !== "" && value !== null)
+        Object.entries(filterInputs).filter(
+          ([_, value]) => value !== "" && value !== null && value !== undefined
+        )
       );
   
-      const response = await axios.post('/api/filterActivities', sanitizedInputs);
-      setActivities(response.data); // Update activities with the filtered results
-      setFilterModalOpen(false); // Close the modal after applying filters
+      // Send the sanitized inputs to the backend for filtering itineraries
+      const response = await axios.post('/api/filterItinerariesTourist', sanitizedInputs);
+  
+      // Update activities with the filtered results
+      setActivities(response.data);
+  
+      // Close the modal after applying filters
+      setFilterModalOpen(false);
     } catch (error) {
       if (error.response && error.response.status === 404) {
-        // No activities found
-        setActivities([]); // Clear activities list
+        // If no itineraries are found, clear the activities list
+        setActivities([]);
         setFilterModalOpen(false); // Close the modal
+        alert(error.response.data.msg); // Show user-friendly message
       } else {
-        console.error('Error filtering activities:', error);
+        console.error('Error filtering itineraries:', error);
+        alert('An error occurred while filtering itineraries. Please try again.');
       }
     }
   };
+  
 
 
   const handleSortChange = async (event) => {
@@ -245,21 +272,25 @@ const [currency, setCurrency] = useState('EGP'); // Default currency is EGP
     }
   };
   //book
-  const handleBookActivity = async (activityName) => {
+  const handleBookItinerary = async (itineraryName) => {
     const touristUsername = localStorage.getItem('username'); // Assuming username is stored in localStorage
-  
+    
     if (!touristUsername) {
-      alert('Please log in to book activities.');
+      alert('Please log in to book an itinerary.');
       return;
     }
   
     try {
-      const response = await axios.put('/bookActivity', { touristUsername, activityName });
+      // Make a POST request to book the itinerary
+      const response = await axios.put('/bookItinerary', { touristUsername, itineraryName });
+  
+      // Navigate to the payment page on success
       navigate('/TouristPaymentPage');
     } catch (error) {
-      alert(error.response?.data?.msg || 'An error occurred while booking the activity.');
+      alert(error.response?.data?.msg || 'An error occurred while booking the itinerary.');
     }
   };
+  
 
   //share
 
@@ -326,6 +357,15 @@ const [currency, setCurrency] = useState('EGP'); // Default currency is EGP
   
 
   const renderRating = (rating) => {
+    if (typeof rating !== 'number' || rating < 0 || rating > 5) {
+      // Handle invalid rating gracefully
+      return (
+        <Typography variant="body2" sx={{ fontSize: '24px', position: 'absolute', right: '170px', bottom: '2px' }}>
+          N/A
+        </Typography>
+      );
+    }
+  
     const roundedRating = Math.round(rating * 10) / 10;
     const fullStars = Math.floor(rating);
     const halfStars = roundedRating > fullStars ? 1 : 0;
@@ -348,6 +388,7 @@ const [currency, setCurrency] = useState('EGP'); // Default currency is EGP
       </Box>
     );
   };
+  
   
 
   const scrollCommentsLeft = (index) => {
@@ -1076,14 +1117,14 @@ const [currency, setCurrency] = useState('EGP'); // Default currency is EGP
               }}
             >
               <Box sx={styles.activityInfo}>
-                <Typography variant="h6" sx={{ fontWeight: 'bold',fontSize: '24px', marginBottom: '5px', display: 'flex', alignItems: 'center' }}>{activity.Name}</Typography>
+                <Typography variant="h6" sx={{ fontWeight: 'bold',fontSize: '24px', marginBottom: '5px', display: 'flex', alignItems: 'center' }}>{activity.Title}</Typography>
                 <Typography variant="body2" sx={{ display: 'flex', fontSize: '18px', alignItems: 'center' }}>
                   <LocationOnIcon fontSize="small" sx={{ mr: 1 }} />
-                  {activity.Location?.address || 'N/A'}
+                  {activity.Locations|| 'N/A'}
                 </Typography>
                 <Typography variant="body2" sx={{ display: 'flex', fontSize: '18px', alignItems: 'center' }}>
                   <PersonIcon fontSize="small" sx={{ mr: 1 }} />
-                  {activity.AdvertiserName}
+                  {activity.AuthorUsername}
                 </Typography>
                 <Typography variant="body2" sx={{ display: 'flex', fontSize: '18px', alignItems: 'center' }}>
                 <PaymentIcon fontSize="small" sx={{ mr: 1 }} />
@@ -1098,32 +1139,194 @@ const [currency, setCurrency] = useState('EGP'); // Default currency is EGP
                 </Typography>
                 <Typography variant="body2" sx={{ display: 'flex', fontSize: '18px', alignItems: 'center' }}>
                   <AccessTimeIcon fontSize="small" sx={{ mr: 1 }} />
-                  {activity.Time}
+                  {activity.Timeline}
                 </Typography>
                 <Box sx={styles.quickFacts}>
-                  <Box sx={{ ...styles.infoContainer, backgroundColor: activity.flagged ? '#b3b8c8' : '#f3f4f6' }}>
-                    <Typography variant="body2" sx={{ fontWeight: 'bold' }}>Category:</Typography>
-                    <Typography variant="body2">{activity.Category}</Typography>
-                  </Box>
-                  <Box sx={{ ...styles.infoContainer, backgroundColor: activity.flagged ? '#b3b8c8' : '#f3f4f6' }}>
-                    <Typography variant="body2" sx={{ fontWeight: 'bold' }}>Tags:</Typography>
-                    <Typography variant="body2">{activity.Tags.join(', ')}</Typography>
-                  </Box>
+                  
+                <Box sx={styles.quickFacts}>
+  <Box
+    sx={{
+      ...styles.infoContainer,
+      backgroundColor: activity.flagged ? '#b3b8c8' : '#f3f4f6',
+    }}
+  >
+    <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
+      Tags:
+    </Typography>
+    <Typography variant="body2">
+      {activity.Tags?.join(', ') || 'No Tags'}
+    </Typography>
+  </Box>
+</Box>
+
                 </Box>
               </Box>
               <Box sx={styles.activityRating}>
-                {renderRating(activity.Rating)}
+                {renderRating(activity.Ratings)}
               </Box>
-              <Box sx={styles.discountContainer}>
-                <Box sx={{...styles.infoContainer, backgroundColor: activity.flagged ? '#b3b8c8' : '#f3f4f6'}}>
-                  <Typography variant="body2" sx={{ fontWeight: 'bold' }}>Special Discount:</Typography>
-                  <Typography variant="body2">{activity.SpecialDiscount}</Typography>
+
+               {/* Divider Line */}
+               <Divider orientation="vertical" flexItem sx={{ marginRight: '10px', borderColor: '#ccc' }} />
+
+               <Box
+                    sx={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'flex-start',
+                        gap: '5px',
+                        marginBottom: '60px',
+                        marginRight: '450px',
+                        marginTop: '40px', // Adjust this value to lower the entire section
+                    }}
+                    >
+                    <Typography
+                        variant="body2"
+                        sx={{
+                        fontWeight: 'bold', // Bold for "Activities:"
+                        fontSize: '16px', // Font size
+                        color: '#192959', // Color for the label
+                        marginBottom: '5px', // Spacing between items
+                        }}
+                    >
+                        Activities:{' '}
+                        <span
+                        style={{
+                            fontWeight: 'normal', // Normal weight for the value
+                            color: '#33416b', // Different color for the value
+                        }}
+                        >
+                        {activity.Activities || 'N/A'}
+                        </span>
+                    </Typography>
+
+
+
+                    <Box
+                        sx={{
+                            display: 'flex',
+                            alignItems: 'center', // Vertically aligns items
+                            gap: '5px', // Space between "Language:" and the value
+                        }}
+                        >
+                        <Typography
+                            variant="body2"
+                            sx={{
+                            fontWeight: 'bold', // Bold for "Language:"
+                            fontSize: '16px', // Font size
+                            }}
+                        >
+                            Language:
+                        </Typography>
+                        <Typography
+                            variant="body2"
+                            sx={{
+                            fontSize: '16px', // Font size for value
+                            color: '#192959', // Color for value
+                            }}
+                        >
+                            {activity.Language || 'N/A'}
+                        </Typography>
+                        </Box>
+
+
+
+                        <Box
+                        sx={{
+                            display: 'flex',
+                            alignItems: 'center', // Vertically aligns items
+                            gap: '5px', // Space between "Language:" and the value
+                        }}
+                        >
+                        <Typography
+                            variant="body2"
+                            sx={{
+                            fontWeight: 'bold', // Bold for "Language:"
+                            fontSize: '16px', // Font size
+                            }}
+                        >
+                            Accessibility:
+                        </Typography>
+                        <Typography
+                    variant="body2"
+                    sx={{
+                        fontSize: '18px',
+                        color: '#192959',
+                    }}
+                >
+                    {activity.accessibility === true
+                        ? 'Accessible'
+                        : activity.accessibility === false
+                        ? 'Not Accessible'
+                        : 'N/A'}
+                </Typography>
+
+                        </Box>
+
+
+                        <Box
+                        sx={{
+                            display: 'flex',
+                            alignItems: 'center', // Vertically aligns items
+                            gap: '5px', // Space between "Language:" and the value
+                        }}
+                        >
+                        <Typography
+                            variant="body2"
+                            sx={{
+                            fontWeight: 'bold', // Bold for "Language:"
+                            fontSize: '16px', // Font size
+                            }}
+                        >
+                            Pickup Location:
+                        </Typography>
+                        <Typography
+                            variant="body2"
+                            sx={{
+                            fontSize: '16px', // Font size for value
+                            color: '#192959', // Color for value
+                            }}
+                        >
+                            {activity.pickupLocation || 'N/A'}
+                        </Typography>
+                        </Box>
+
+
+
+
+
+                        <Box
+                        sx={{
+                            display: 'flex',
+                            alignItems: 'center', // Vertically aligns items
+                            gap: '5px', // Space between "Language:" and the value
+                        }}
+                        >
+                        <Typography
+                            variant="body2"
+                            sx={{
+                            fontWeight: 'bold', // Bold for "Language:"
+                            fontSize: '16px', // Font size
+                            }}
+                        >
+                            Drop-Off Location:
+                        </Typography>
+                        <Typography
+                            variant="body2"
+                            sx={{
+                            fontSize: '18px', // Font size for value
+                            color: '#192959', // Color for value
+                            }}
+                        >
+                            {activity.dropoffLocation || 'N/A'}
+                        </Typography>
+                        </Box>
+
                 </Box>
-              </Box>
+
               <Box sx={styles.bookingOpenContainer}>
                 <Box sx={{...styles.infoContainer, backgroundColor: activity.flagged ? '#b3b8c8' : '#f3f4f6'}}>
                   <Typography variant="body2" sx={{ fontWeight: 'bold' }}>Booking Open:</Typography>
-                  <Typography variant="body2">{activity.BookingOpen ? 'Yes' : 'No'}</Typography>
+                  <Typography variant="body2">{activity.isBooked ? 'Yes' : 'No'}</Typography>
                 </Box>
               </Box>
 
@@ -1131,8 +1334,9 @@ const [currency, setCurrency] = useState('EGP'); // Default currency is EGP
 
               <Button
           variant="contained"
-          disabled={!activity.BookingOpen} // Disable button if booking is not open
-          onClick={() => handleBookActivity(activity.Name)}
+          disabled={!activity.isBooked} // Disable button if booking is not open
+          onClick={() => handleBookItinerary(activity.Title)}
+
           sx={{
             position: 'absolute',
             top: '60px', // Position at the top
@@ -1313,7 +1517,7 @@ const [currency, setCurrency] = useState('EGP'); // Default currency is EGP
 
 
 
-      <Modal
+<Modal
   open={filterModalOpen}
   onClose={() => setFilterModalOpen(false)}
   aria-labelledby="filter-modal-title"
@@ -1325,31 +1529,42 @@ const [currency, setCurrency] = useState('EGP'); // Default currency is EGP
       top: '50%',
       left: '50%',
       transform: 'translate(-50%, -50%)',
-      width: 400,
+      width: 500, // Increased width for better layout
       bgcolor: 'background.paper',
       boxShadow: 24,
       p: 4,
       borderRadius: '10px',
     }}
   >
-    <Typography id="filter-modal-title" variant="h6" component="h2" sx={{ marginBottom: '20px' }}>
-      Filter Activities
+    <Typography
+      id="filter-modal-title"
+      variant="h6"
+      component="h2"
+      sx={{
+        marginBottom: '20px',
+        textAlign: 'center',
+        color: '#192959', // Matches the theme
+      }}
+    >
+      Filter Itineraries
     </Typography>
-    <Box sx={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-      <TextField
-        label="Category"
-        name="Category"
-        variant="outlined"
-        value={filterInputs.Category || ""}
-        onChange={handleFilterInputChange}
-      />
+    <Box
+      sx={{
+        display: 'grid',
+        gridTemplateColumns: '1fr 1fr', // Two columns for better layout
+        gap: '15px',
+      }}
+    >
       <TextField
         label="Min Price"
-        name="minPrice"
+        name="MinPrice"
         type="number"
         variant="outlined"
-        value={filterInputs.minPrice || ""}
+        value={filterInputs.MinPrice || ""}
         onChange={handleFilterInputChange}
+        sx={{
+          gridColumn: '1 / span 1', // Place in first column
+        }}
       />
       <TextField
         label="Max Price"
@@ -1358,6 +1573,9 @@ const [currency, setCurrency] = useState('EGP'); // Default currency is EGP
         variant="outlined"
         value={filterInputs.maxPrice || ""}
         onChange={handleFilterInputChange}
+        sx={{
+          gridColumn: '2 / span 1', // Place in second column
+        }}
       />
       <TextField
         label="Date"
@@ -1367,38 +1585,63 @@ const [currency, setCurrency] = useState('EGP'); // Default currency is EGP
         InputLabelProps={{ shrink: true }}
         value={filterInputs.InputDate || ""}
         onChange={handleFilterInputChange}
+        sx={{
+          gridColumn: '1 / span 1', // Place in first column
+        }}
       />
       <TextField
-        label="Rating"
-        name="Rating"
-        type="number"
+        label="Language"
+        name="Language"
         variant="outlined"
-        value={filterInputs.Rating || ""}
+        value={filterInputs.Language || ""}
         onChange={handleFilterInputChange}
+        sx={{
+          gridColumn: '2 / span 1', // Place in second column
+        }}
+      />
+      <TextField
+        label="Tags (Comma-separated)"
+        name="Tags"
+        variant="outlined"
+        value={filterInputs.Tags || ""}
+        onChange={handleFilterInputChange}
+        sx={{
+          gridColumn: '1 / span 2', // Spans across both columns
+        }}
       />
     </Box>
     <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '20px' }}>
-    <Button
-  variant="outlined"
-  onClick={() => setFilterModalOpen(false)}
-  sx={{
-    color: '#192959', // Text color
-    borderColor: '#192959', // Outline color
-    '&:hover': {
-      backgroundColor: 'rgba(25, 41, 89, 0.1)', // Slight background highlight on hover
-      borderColor: '#192959', // Outline color on hover
-    },
-  }}
->
-  Cancel
-</Button>
-
-      <Button variant="contained" onClick={handleFilterSubmit} sx={{ backgroundColor: '#192959', color: '#fff' }}>
+      <Button
+        variant="outlined"
+        onClick={() => setFilterModalOpen(false)}
+        sx={{
+          color: '#192959',
+          borderColor: '#192959',
+          '&:hover': {
+            backgroundColor: 'rgba(25, 41, 89, 0.1)',
+            borderColor: '#192959',
+          },
+        }}
+      >
+        Cancel
+      </Button>
+      <Button
+        variant="contained"
+        onClick={handleFilterSubmit}
+        sx={{
+          backgroundColor: '#192959',
+          color: '#fff',
+          '&:hover': {
+            backgroundColor: '#33416b', // Slightly darker color on hover
+          },
+        }}
+      >
         Apply
       </Button>
     </Box>
   </Box>
 </Modal>
+
 
       {/* Back to Top Button */}
       {showBackToTop && (
@@ -1556,7 +1799,7 @@ const styles = {
   },
   activityRating: {
     position: 'absolute',
-    bottom: '140px',
+    bottom: '100px',
     right: '60px',
     display: 'flex',
     flexDirection: 'column',
@@ -1574,6 +1817,11 @@ const styles = {
     display: 'flex',
     flexDirection: 'column',
     gap: '5px',
+  },
+  verticalDivider: {
+    backgroundColor: '#d1d5db',
+    width: '1px',
+    margin: '20px 15px 0 15px', // Adjust the top margin to position the start
   },
   
   activityInfoRight: {
