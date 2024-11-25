@@ -66,7 +66,17 @@ function TouristCompletedMuseums() {
   const [complaintsOpen, setComplaintsOpen] = useState(false);
   //search bar
   const [searchQuery, setSearchQuery] = useState(''); // Search query state
-  
+  //filter activities
+  const [filterModalOpen, setFilterModalOpen] = useState(false);
+  const [filterInputs, setFilterInputs] = useState({
+  Category: '',
+  minPrice: '',
+  maxPrice: '',
+  InputDate: '',
+  Rating: '',
+});
+//sort activties
+const [sortOption, setSortOption] = useState(""); // State for the selected sorting option
 //share
 const [isShareModalOpen, setShareModalOpen] = useState(false); // Modal state
 const [email, setEmail] = useState(''); // Email input state
@@ -150,21 +160,38 @@ const [expanded, setExpanded] = useState({});
   
   
 
-  const fetchMuseums = async () => {
+  // Fetch completed museums
+const fetchMuseums = async () => {
     try {
-      const response = await axios.get('/api/ViewAllUpcomingMuseumEventsTourist');
+      const username = localStorage.getItem('username'); // Assuming username is stored in localStorage
+      if (!username) {
+        console.error('User not logged in');
+        return;
+      }
+  
+      // Make the API call with the username as a query parameter
+      const response = await axios.get('/api/viewMyCompletedMuseums', {
+        params: { Username: username },
+      });
+  
+      // Update the museums state with the fetched data
       setMuseums(response.data);
     } catch (error) {
-      console.error('Error fetching museums:', error);
+      console.error('Error fetching completed museums:', error);
     }
   };
-
+  
+  // Toggle "Read More" functionality
   const toggleReadMore = (index) => {
     setExpanded((prev) => ({
       ...prev,
       [index]: !prev[index], // Toggle the state for the specific index
     }));
   };
+  
+  
+
+  
   
 
   const searchMuseums = async (query) => {
@@ -869,51 +896,17 @@ const [expanded, setExpanded] = useState({});
   sx={{
     display: 'flex',
     justifyContent: 'space-between', // Ensure space between search bar and the rest
-    alignItems: 'center',           // Align items vertically in the center
+    alignItems: 'right',           // Align items vertically in the center
     marginBottom: '20px',
     marginTop: '20px',
-    marginLeft: '150px',
-    marginRight: '60px',           // Add margin to the right for consistent spacing
+    marginLeft: '1555px',         // Add margin to the right for consistent spacing
   }}
 >
-  {/* Search Bar */}
-  <TextField
-    label="Search"
-    variant="outlined"
-    value={searchQuery}
-    onChange={handleSearchChange}
-    sx={{
-      width: '30%',
-      '& .MuiOutlinedInput-root': {
-        '& fieldset': {
-          borderColor: '#192959', // Default outline color
-          borderWidth: '2px',
-        },
-        '&:hover fieldset': {
-          borderColor: '#192959', // Hover outline color
-          borderWidth: '2.5px',
-        },
-        '&.Mui-focused fieldset': {
-          borderColor: '#192959', // Focused outline color
-          borderWidth: '2.5px',
-        },
-      },
-      '& .MuiInputLabel-root': {
-        color: '#192959', // Label color
-        fontSize: '18px',
-      },
-    }}
-    InputProps={{
-      startAdornment: (
-        <Box sx={{ display: 'flex', alignItems: 'center', color: '#192959', paddingLeft: '5px' }}>
-          <SearchIcon />
-        </Box>
-      ),
-    }}
-  />
+
 
   {/* Sort Dropdown and Filter Icon */}
-  <Box sx={{ display: 'flex', alignItems: 'right', gap: '10px', marginLeft: '100px'}}>
+  <Box sx={{ display: 'flex', alignItems: 'right', gap: '10px', marginLeft: '150px',marginRight: '10px'}}>
+
     <TextField
   select
   label="Currency"
@@ -964,18 +957,6 @@ const [expanded, setExpanded] = useState({});
 </TextField>
 
 
-    {/* Filter Icon */}
-    <Tooltip title="Filter" placement="bottom" arrow>
-      <IconButton
-        onClick={() => setFilterModalOpen(true)}
-        sx={{
-          color: '#192959',
-          '&:hover': { backgroundColor: '#e6e7ed', color: '#33416b' },
-        }}
-      >
-        <FilterAltIcon fontSize="large" />
-      </IconButton>
-    </Tooltip>
   </Box>
 </Box>
 
@@ -1141,40 +1122,6 @@ const [expanded, setExpanded] = useState({});
         <Box sx={styles.museumRating}>
           {renderRating(museum.Ratings || 0)}
         </Box>
-
-        {/* Book Button */}
-        <Button
-          variant="contained"
-          onClick={() => handleBookMuseum(museum.name)}
-          sx={{
-            position: 'absolute',
-            top: '60px', // Position at the top
-            right: '60px', // Position at the right
-            backgroundColor: '#192959',
-            color: '#fff',
-            '&:hover': { backgroundColor: '#33416b' },
-          }}
-        >
-          Book
-        </Button>
-
-        {/* Share Button */}
-        <Tooltip title="Share" arrow>
-          <IconButton
-            onClick={() => handleOpenShareModal(museum.name)}
-            sx={{
-              position: 'absolute',
-              top: '60px',
-              right: '140px',
-              color: '#192959',
-              '&:hover': {
-                color: '#33416b',
-              },
-            }}
-          >
-            <IosShareIcon />
-          </IconButton>
-        </Tooltip>
       </Box>
 
       {/* Comments Section */}
