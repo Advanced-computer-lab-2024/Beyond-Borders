@@ -36,7 +36,7 @@ const LoginAdvertiser = () => {
           setShowTermsModal(true);
         } else {
           setTimeout(() => {
-            window.location.href = '/homePageAdvertiser';
+            window.location.href = '/YAdvertiserDashboard';
           }, 2000);
         }
       } else {
@@ -56,7 +56,7 @@ const LoginAdvertiser = () => {
   const handleAcceptTerms = () => {
     setShowTermsModal(false);
     setTimeout(() => {
-      window.location.href = '/homePageAdvertiser';
+      window.location.href = '/YAdvertiserDashboard';
     }, 2000);
   };
 
