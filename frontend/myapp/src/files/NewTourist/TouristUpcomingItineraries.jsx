@@ -618,7 +618,7 @@ const [currency, setCurrency] = useState('EGP'); // Default currency is EGP
             </Button>
 
             <Button
-                onClick={() => navigate('/completed-activities')}
+                onClick={() => navigate('/TouristCompletedActivities')}
                 sx={{
                     ...styles.sidebarButton,
                     fontSize: '14px',

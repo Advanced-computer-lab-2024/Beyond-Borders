@@ -79,12 +79,17 @@ import TouristUpcomingActivities from './files/NewTourist/TouristUpcomingActivit
 import TouristUpcomingItineraries from './files/NewTourist/TouristUpcomingItineraries';
 import TouristUpcomingHP from './files/NewTourist/TouristUpcomingHP';
 import TouristUpcomingMuseums from './files/NewTourist/TouristUpcomingMuseums';
+import TouristBookedActivities from './files/NewTourist/TouristBookedActivities';
+import TouristCompletedActivities from './files/NewTourist/TouristCompletedActivities';
 
 //YASSIN AND AMINA DASHBOARD
 import YAdminDashboard from './files/Admin/YAdminDashboard';
 import YAdminActivitiesPage from './files/Admin/YAdminActivitiesPage';
 import YAdminComplaintsPage from './files/Admin/YAdminComplaintsPage';
 import YAdminItinerariesPage from './files/Admin/YAdminItinerariesPage';
+import YAdvertiserDashboard from './files/Advertiser/YAdvertiserDashboard';
+import YAdvertiserActivitiesPage from './files/Advertiser/YAdvertiserActivitiesPage';
+import YAdvertiserSalesPage from './files/Advertiser/YAdvertiserSalesPage';
 
 
 import GuestItinerariesPage from './files/GuestItinerariesPage';
@@ -126,7 +131,9 @@ function App() {
           <Route path="/TouristUpcomingItineraries" element={<TouristUpcomingItineraries/>}/>
           <Route path="/TouristUpcomingHP" element={<TouristUpcomingHP/>}/>
           <Route path="/TouristUpcomingMuseums" element={<TouristUpcomingMuseums/>}/>
-
+          <Route path="/TouristBookedActivities" element={<TouristBookedActivities/>}/>
+          <Route path="/TouristCompletedActivities" element={<TouristCompletedActivities/>}/>
+          
           
           
 
@@ -207,7 +214,9 @@ function App() {
           <Route path="/YAdminActivitiesPage" element={<YAdminActivitiesPage />} /> 
           <Route path="/YAdminComplaintsPage" element={<YAdminComplaintsPage />} /> 
           <Route path="/YAdminItinerariesPage" element={<YAdminItinerariesPage />} />
-
+          <Route path="/YAdvertiserDashboard" element={<YAdvertiserDashboard />} /> 
+          <Route path="/YAdvertiserActivitiesPage" element={<YAdvertiserActivitiesPage />} /> 
+          <Route path="/YAdvertiserSalesPage" element={<YAdvertiserSalesPage />} />
          
          
 

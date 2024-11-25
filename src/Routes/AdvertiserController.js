@@ -197,23 +197,21 @@ const { default: mongoose } = require('mongoose');
     };
     
     const deleteActivity = async (req, res) => {
-      // Destructure fields from the request body
-      const { AdvertiserName, Name} = req.body;
-      
+      const { AdvertiserName, Name } = req.body;
+  
       try {
-          // Check if the activity exists with the provided name and advertiser name
           const existingActivity = await ActivityModel.findOne({ Name: Name, AdvertiserName: AdvertiserName });
           if (!existingActivity) {
               return res.status(404).json({ error: "Activity not found for the given advertiser." });
           }
-          else{
-              await ActivityModel.findOneAndDelete({ Name: Name});
-          }
+  
+          await ActivityModel.findOneAndDelete({ Name: Name });
+          res.status(200).json({ message: "Activity deleted successfully!" }); // Send a success response
       } catch (error) {
-          // If an error occurs, send a 400 Bad Request status with the error message
           res.status(400).json({ error: error.message });
       }
   };
+  
 
   const getActivitiesByAuthor = async (req, res) => {
     try {

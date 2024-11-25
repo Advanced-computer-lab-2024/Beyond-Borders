@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Button, Typography,Menu, MenuItem,Tooltip, IconButton, Modal, TextField, InputAdornment, Dialog, DialogActions, DialogContent, DialogContentText } from '@mui/material';
+import { Box, Button, Typography, IconButton, Modal, TextField, InputAdornment, Dialog, DialogActions, DialogContent, DialogContentText } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import MenuIcon from '@mui/icons-material/Menu';
 import NotificationsIcon from '@mui/icons-material/Notifications';
@@ -8,37 +8,16 @@ import AssignmentIcon from '@mui/icons-material/Assignment';
 import LocalActivityIcon from '@mui/icons-material/LocalActivity';
 import StorefrontIcon from '@mui/icons-material/Storefront';
 import MapIcon from '@mui/icons-material/Map';
+import DashboardIcon from '@mui/icons-material/Dashboard';
 import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import CheckIcon from '@mui/icons-material/Check';
+import ClearIcon from '@mui/icons-material/Clear';
 import CloseIcon from '@mui/icons-material/Clear';
 import PersonIcon from '@mui/icons-material/Person'; // Icon for generic user type
-import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
-import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
-import ChecklistIcon from '@mui/icons-material/Checklist';
-import EventAvailableIcon from '@mui/icons-material/EventAvailable';
-import ScheduleIcon from '@mui/icons-material/Schedule';
-import AccountBalanceIcon from '@mui/icons-material/AccountBalance';
-import ChurchIcon from '@mui/icons-material/Church';
-import DirectionsBusIcon from '@mui/icons-material/DirectionsBus';
-import CommuteIcon from '@mui/icons-material/Commute';
-import FlightIcon from '@mui/icons-material/Flight';
-import BedIcon from '@mui/icons-material/Bed';
-import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
-import InventoryIcon from '@mui/icons-material/Inventory';
-import AddIcon from '@mui/icons-material/Add';
-import  FeedbackIcon  from '@mui/icons-material/Feedback';
-import ShoppingCartOutlinedIcon from '@mui/icons-material/ShoppingCartOutlined';
-import NotificationsNoneOutlinedIcon from '@mui/icons-material/NotificationsNoneOutlined';
-import AccountCircleIcon from '@mui/icons-material/AccountCircleRounded';
-import BookmarkBorderOutlinedIcon from '@mui/icons-material/BookmarkBorderOutlined';
-
-
-
-
 import axios from 'axios';
 
-function NewTouristHomePage() {
+function YAdvertiserDashboard() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [changePasswordModal, setChangePasswordModal] = useState(false);
   const [currentPassword, setCurrentPassword] = useState('');
@@ -69,107 +48,9 @@ function NewTouristHomePage() {
   const [confirmDeleteDialog, setConfirmDeleteDialog] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
   const [requestToDelete, setRequestToDelete] = useState(null); // For confirmation dialog
-  const [activitiesAnchorEl, setActivitiesAnchorEl] = useState(null);
-  const [activitiesOpen, setActivitiesOpen] = useState(false);
-  const [itinerariesOpen, setItinerariesOpen] = useState(false);
-  const [historicalPlacesOpen, setHistoricalPlacesOpen] = useState(false);
-  const [museumsOpen, setMuseumsOpen] = useState(false);
-  const [transportationOpen, setTransportationOpen] = useState(false);
-  const [productsOpen, setProductsOpen] = useState(false);
-  const [complaintsOpen, setComplaintsOpen] = useState(false);
-  const [isModalOpen, setIsModalOpen] = useState(false); // Modal state
-  
-  const [itineraryData, setItineraryData] = useState({
-    title: '',
-    activities: '',
-    locations: '',
-    timeline: '',
-    language: '',
-    price: '',
-    date: '',
-    accessibility: false,
-    pickupLocation: '',
-    dropoffLocation: '',
-    tags: '',
-  });
 
 
-
-
-  // Method to handle opening the modal
-  const handleModalOpen = () => {
-    setIsModalOpen(true);
-  };
-
-  // Method to handle closing the modal
-  const handleModalClose = () => {
-    setIsModalOpen(false);
-  };
-
-  const handleChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    setItineraryData((prevData) => ({
-      ...prevData,
-      [name]: type === 'checkbox' ? checked : value,
-    }));
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    const AuthorUsername = localStorage.getItem('username');
-    if (!AuthorUsername) {
-      alert('You need to log in first.');
-      return;
-    }
-
-    const tagsArray = itineraryData.tags.split(',').map((tag) => tag.trim());
-    const dataToSubmit = {
-      AuthorUsername,
-      Title: itineraryData.title,
-      Date: itineraryData.date,
-      Timeline: itineraryData.timeline,
-      Price: itineraryData.price,
-      Locations: itineraryData.locations,
-      Activities: itineraryData.activities,
-      accessibility: itineraryData.accessibility,
-      pickupLocation: itineraryData.pickupLocation,
-      dropoffLocation: itineraryData.dropoffLocation,
-      Tags: tagsArray,
-      Language: itineraryData.language,
-    };
-
-    try {
-      const response = await axios.post('/api/createItinerary', dataToSubmit);
-      alert('Itinerary created successfully!');
-      handleModalClose(); // Close modal on success
-
-      // Clear form data
-      setItineraryData({
-        title: '',
-        activities: '',
-        locations: '',
-        timeline: '',
-        language: '',
-        price: '',
-        date: '',
-        accessibility: false,
-        pickupLocation: '',
-        dropoffLocation: '',
-        tags: '',
-      });
-    } catch (error) {
-      setErrorMessage(error.response?.data?.error || 'An error occurred. Please try again.');
-    }
-  };
-
-
-
-
-
-  
-  
-
+  const username = localStorage.getItem('username') || 'User'; // Retrieve username from localStorage
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -190,14 +71,6 @@ function NewTouristHomePage() {
       console.error('Error fetching current password:', error);
       setErrorMessage('Error fetching current password');
     }
-  };
-
-  const handleActivitiesMenuClick = (event) => {
-    setActivitiesAnchorEl(event.currentTarget); // Open the dropdown menu
-  };
-  
-  const handleActivitiesMenuClose = () => {
-    setActivitiesAnchorEl(null); // Close the dropdown menu
   };
 
   const handlePasswordChange = async () => {
@@ -403,94 +276,30 @@ const closeDeleteRequestsModal = () => {
           {/* <Button onClick={() => setChangePasswordModal(true)} sx={styles.menuButton}>
             Change My Password
           </Button> */}
-          <Button
-  sx={{
-    ...styles.menuButton,
-    '&:hover': {
-      backgroundColor: '#e6e7ed', // Background color on hover
-      color: '#192959',           // Text color on hover
-    },
-  }}
-  startIcon={<AccountCircleIcon />}
->
-  My Profile
-</Button>
+          {/* <Box
+            onMouseEnter={() => setShowManageAccessDropdown(true)}
+            onMouseLeave={() => setShowManageAccessDropdown(false)}
+            sx={styles.manageAccessContainer}
+          >
+            <Button sx={styles.menuButton}>Manage Access</Button>
+            {showManageAccessDropdown && (
+              <Box sx={styles.dropdown}>
+                <Button onClick={() => setAddAdminModal(true)} sx={styles.dropdownItem}>Add Admin</Button>
+                <Button onClick={() => setAddTourismGovModal(true)} sx={styles.dropdownItem}>Add Tourism Governor</Button>
+                <Button onClick={() => navigate('/requests')} sx={styles.dropdownItem}>Requests</Button>
+                <Button onClick={() => setDeleteRequestsModal(true)} sx={styles.dropdownItem}>
+                  Delete Requests
+                </Button>
 
-<Tooltip title="Notifications" arrow>
-  <IconButton
-    sx={{
-      ...styles.menuButton,
-      
-      '&:hover': {
-        backgroundColor: '#e6e7ed', // Lighter hover background
-      color: '#192959',           // Text color on hover
-
-      },
-      width: '40px', // Ensure square icon button
-      height: '40px',
-    }}
-  >
-    <NotificationsNoneOutlinedIcon />
-  </IconButton>
-</Tooltip>
-
-         
-        
-          <Tooltip title="Shopping Cart" arrow>
-  <IconButton
-    sx={{
-      ...styles.menuButton,
-      
-      '&:hover': {
-        backgroundColor: '#e6e7ed', // Lighter hover background
-      color: '#192959',           // Text color on hover
-
-      },
-      width: '40px', // Ensure square icon button
-      height: '40px',
-    }}
-  >
-    <ShoppingCartOutlinedIcon />
-  </IconButton>
-</Tooltip>
-
-<Tooltip title="Wishlist" arrow>
-            <IconButton
-                sx={{
-                ...styles.menuButton,
-                
-                '&:hover': {
-                    backgroundColor: '#e6e7ed', // Lighter hover background
-                color: '#192959',           // Text color on hover
-
-                },
-                width: '40px', // Ensure square icon button
-                height: '40px',
-                }}
-            >
-    <BookmarkBorderOutlinedIcon/>
-  </IconButton>
-</Tooltip>
-
-
-          <Tooltip title="Logout" arrow>
-            <IconButton
-                sx={{
-                ...styles.menuButton,
-                
-                '&:hover': {
-                    backgroundColor: '#e6e7ed', // Lighter hover background
-                color: '#192959',           // Text color on hover
-
-                },
-                width: '40px', // Ensure square icon button
-                height: '40px',
-                }}
-            >
-    <LogoutIcon />
-  </IconButton>
-</Tooltip>
-
+              </Box>
+            )}
+          </Box> */}
+          <IconButton sx={styles.iconButton}>
+            <NotificationsIcon />
+          </IconButton>
+          <IconButton onClick={() => navigate('/')}sx={styles.iconButton}>
+            <LogoutIcon />
+          </IconButton>
         </Box>
       </Box>
 
@@ -503,469 +312,59 @@ const closeDeleteRequestsModal = () => {
         onMouseEnter={() => setSidebarOpen(true)}
         onMouseLeave={() => setSidebarOpen(false)}
       >
-        <Button onClick={() => navigate('/TouristFlights')} sx={styles.sidebarButton}>
-          <FlightIcon sx={styles.icon} />
-          {sidebarOpen && 'Flights'}
+        {/* <Button onClick={() => navigate('/products')} sx={styles.sidebarButton}>
+          <StorefrontIcon sx={styles.icon} />
+          {sidebarOpen && 'Products'}
+        </Button> */}
+        <Button onClick={() => navigate('/YAdvertiserActivitiesPage')} sx={styles.sidebarButton}>
+          <LocalActivityIcon sx={styles.icon} />
+          {sidebarOpen && ' My Activities'}
         </Button>
-
-        <Button onClick={() => navigate('/TouristHotels')} sx={styles.sidebarButton}>
-          <BedIcon sx={styles.icon} />
-          {sidebarOpen && 'Hotels'}
+        <Button onClick={() => navigate('/YAdvertiserSalesPage')} sx={styles.sidebarButton}>
+          <AssignmentIcon sx={styles.icon} />
+          {sidebarOpen && 'Sales Reports'}
         </Button>
-
-       
-        <Box>
-  <Button
-    onClick={() => setProductsOpen(!productsOpen)} // Toggle dropdown for products
-    sx={styles.sidebarButton}
-  >
-    <StorefrontIcon sx={styles.icon} /> {/* Products Icon */}
-    {sidebarOpen && (
-      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
-        Products
-        {productsOpen ? (
-          <KeyboardArrowUpIcon sx={{ fontSize: '18px', marginLeft: '5px' }} />
-        ) : (
-          <KeyboardArrowDownIcon sx={{ fontSize: '18px', marginLeft: '5px' }} />
-        )}
-      </Box>
-    )}
-  </Button>
-  {productsOpen && (
-    <Box sx={{ display: 'flex', flexDirection: 'column', marginLeft: sidebarOpen ? '20px' : '0px' }}>
-      {/* My Purchased Products */}
-      <Button
-        onClick={() => navigate('/my-purchased-products')}
-        sx={{
-          ...styles.sidebarButton,
-          fontSize: '14px',
-          paddingLeft: sidebarOpen ? '20px' : '10px',
-          padding: '5px 20px',
-        }}
-      >
-        <ShoppingCartIcon sx={{ fontSize: '18px', marginRight: '10px' }} /> {/* Shopping Cart Icon */}
-        {sidebarOpen && 'My Purchased Products'}
-      </Button>
-      
-      {/* View All Products */}
-      <Button
-        onClick={() => navigate('/view-all-products')}
-        sx={{
-          ...styles.sidebarButton,
-          fontSize: '14px',
-          paddingLeft: sidebarOpen ? '20px' : '10px',
-          padding: '5px 20px',
-        }}
-      >
-        <InventoryIcon sx={{ fontSize: '18px', marginRight: '10px' }} /> {/* Storefront Icon */}
-        {sidebarOpen && 'All Products'}
-      </Button>
-    </Box>
-  )}
-</Box>
-
-         {/* Activities Dropdown */}
-        <Box>
-        <Button
-            onClick={() => setActivitiesOpen(!activitiesOpen)}
-            sx={styles.sidebarButton}
-        >
-            <LocalActivityIcon sx={styles.icon} />
-            {sidebarOpen && (
-            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
-                Activities
-                {activitiesOpen ? (
-                <KeyboardArrowUpIcon sx={{ fontSize: '18px', marginLeft: '5px' }} />
-                ) : (
-                <KeyboardArrowDownIcon sx={{ fontSize: '18px', marginLeft: '5px' }} />
-                )}
-            </Box>
-            )}
-        </Button>
-        {activitiesOpen && (
-            <Box sx={{ display: 'flex', flexDirection: 'column', marginLeft: sidebarOpen ? '20px' : '0px' }}>
-            <Button
-            onClick={() => navigate('/TouristUpcomingActivities')}
-            sx={{
-                ...styles.sidebarButton,
-                fontSize: '14px',
-                paddingLeft: sidebarOpen ? '20px' : '10px',
-                padding: '5px 20px',
-            }}
-            >
-            <ScheduleIcon sx={{ fontSize: '18px', marginRight: '10px' }} />
-            {sidebarOpen && 'Upcoming '}
-            </Button>
-
-            <Button
-                onClick={() => navigate('/TouristCompletedActivities')}
-                sx={{
-                    ...styles.sidebarButton,
-                    fontSize: '14px',
-                    paddingLeft: sidebarOpen ? '20px' : '10px',
-                    padding: '5px 20px',
-                }}
-                >
-                <ChecklistIcon sx={{ fontSize: '18px', marginRight: '10px' }} /> {/* Add the icon here */}
-                {sidebarOpen && 'Completed '}
-                </Button>
-
-                <Button
-                onClick={() => navigate('/my-booked-activities')}
-                sx={{
-                    ...styles.sidebarButton,
-                    fontSize: '14px',
-                    paddingLeft: sidebarOpen ? '20px' : '10px',
-                    padding: '5px 20px',
-                }}
-                >
-                <EventAvailableIcon sx={{ fontSize: '18px', marginRight: '10px' }} />
-                {sidebarOpen && 'Booked '}
-                </Button>
-
-            </Box>
-        )}
-        </Box>
-
-       {/* Itineraries Dropdown */}
-<Box>
-  <Button
-    onClick={() => setItinerariesOpen(!itinerariesOpen)} // Toggle dropdown for itineraries
-    sx={styles.sidebarButton}
-  >
-    <MapIcon sx={styles.icon} />
-    {sidebarOpen && (
-      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
-        Itineraries
-        {itinerariesOpen ? (
-          <KeyboardArrowUpIcon sx={{ fontSize: '18px', marginLeft: '5px' }} />
-        ) : (
-          <KeyboardArrowDownIcon sx={{ fontSize: '18px', marginLeft: '5px' }} />
-        )}
-      </Box>
-    )}
-  </Button>
-  {itinerariesOpen && (
-    <Box sx={{ display: 'flex', flexDirection: 'column', marginLeft: sidebarOpen ? '20px' : '0px' }}>
-      <Button
-        onClick={() => navigate('/TouristUpcomingItineraries')}
-        sx={{
-          ...styles.sidebarButton,
-          fontSize: '14px',
-          paddingLeft: sidebarOpen ? '20px' : '10px',
-          padding: '5px 20px',
-        }}
-      >
-        <ScheduleIcon sx={{ fontSize: '18px', marginRight: '10px' }} />
-        {sidebarOpen && 'Upcoming '}
-      </Button>
-      <Button
-        onClick={() => navigate('/completed-itineraries')}
-        sx={{
-          ...styles.sidebarButton,
-          fontSize: '14px',
-          paddingLeft: sidebarOpen ? '20px' : '10px',
-          padding: '5px 20px',
-        }}
-      >
-        <ChecklistIcon sx={{ fontSize: '18px', marginRight: '10px' }} />
-        {sidebarOpen && 'Completed '}
-      </Button>
-      <Button
-        onClick={() => navigate('/my-booked-itineraries')}
-        sx={{
-          ...styles.sidebarButton,
-          fontSize: '14px',
-          paddingLeft: sidebarOpen ? '20px' : '10px',
-          padding: '5px 20px',
-        }}
-      >
-        <EventAvailableIcon sx={{ fontSize: '18px', marginRight: '10px' }} />
-        {sidebarOpen && ' Booked '}
-      </Button>
-    </Box>
-  )}
-</Box>
-{/* Historical Places Dropdown */}
-<Box>
-  <Button
-    onClick={() => setHistoricalPlacesOpen(!historicalPlacesOpen)} // Toggle dropdown for historical places
-    sx={styles.sidebarButton}
-  >
-    <ChurchIcon sx={styles.icon} />
-    {sidebarOpen && (
-      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
-        Historical Places
-        {historicalPlacesOpen ? (
-          <KeyboardArrowUpIcon sx={{ fontSize: '18px', marginLeft: '5px' }} />
-        ) : (
-          <KeyboardArrowDownIcon sx={{ fontSize: '18px', marginLeft: '5px' }} />
-        )}
-      </Box>
-    )}
-  </Button>
-  {historicalPlacesOpen && (
-    <Box sx={{ display: 'flex', flexDirection: 'column', marginLeft: sidebarOpen ? '20px' : '0px' }}>
-      <Button
-        onClick={() => navigate('/TouristUpcomingHP')}
-        sx={{
-          ...styles.sidebarButton,
-          fontSize: '14px',
-          paddingLeft: sidebarOpen ? '20px' : '10px',
-          padding: '5px 20px',
-        }}
-      >
-        <ScheduleIcon sx={{ fontSize: '18px', marginRight: '10px' }} />
-        {sidebarOpen && 'Upcoming '}
-      </Button>
-      <Button
-        onClick={() => navigate('/visited-historical-places')}
-        sx={{
-          ...styles.sidebarButton,
-          fontSize: '14px',
-          paddingLeft: sidebarOpen ? '20px' : '10px',
-          padding: '5px 20px',
-        }}
-      >
-        <ChecklistIcon sx={{ fontSize: '18px', marginRight: '10px' }} />
-        {sidebarOpen && 'Visited '}
-      </Button>
-      <Button
-        onClick={() => navigate('/saved-historical-places')}
-        sx={{
-          ...styles.sidebarButton,
-          fontSize: '14px',
-          paddingLeft: sidebarOpen ? '20px' : '10px',
-          padding: '5px 20px',
-        }}
-      >
-        <EventAvailableIcon sx={{ fontSize: '18px', marginRight: '10px' }} />
-        {sidebarOpen && 'Booked '}
-      </Button>
-    </Box>
-  )}
-</Box>
-
-
-<Box>
-  <Button
-    onClick={() => setMuseumsOpen(!museumsOpen)} // Toggle dropdown for museums
-    sx={styles.sidebarButton}
-  >
-    <AccountBalanceIcon sx={styles.icon} /> {/* Suitable icon for Museums */}
-    {sidebarOpen && (
-      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
-        Museums
-        {museumsOpen ? (
-          <KeyboardArrowUpIcon sx={{ fontSize: '18px', marginLeft: '5px' }} />
-        ) : (
-          <KeyboardArrowDownIcon sx={{ fontSize: '18px', marginLeft: '5px' }} />
-        )}
-      </Box>
-    )}
-  </Button>
-  {museumsOpen && (
-    <Box sx={{ display: 'flex', flexDirection: 'column', marginLeft: sidebarOpen ? '20px' : '0px' }}>
-      {/* Upcoming Museums */}
-      <Button
-        onClick={() => navigate('/TouristUpcomingMuseums')}
-        sx={{
-          ...styles.sidebarButton,
-          fontSize: '14px',
-          paddingLeft: sidebarOpen ? '20px' : '10px',
-          padding: '5px 20px',
-        }}
-      >
-        <ScheduleIcon sx={{ fontSize: '18px', marginRight: '10px' }} />
-        {sidebarOpen && 'Upcoming '}
-      </Button>
-      
-      {/* Visited Museums */}
-      <Button
-        onClick={() => navigate('/visited-museums')}
-        sx={{
-          ...styles.sidebarButton,
-          fontSize: '14px',
-          paddingLeft: sidebarOpen ? '20px' : '10px',
-          padding: '5px 20px',
-        }}
-      >
-        <ChecklistIcon sx={{ fontSize: '18px', marginRight: '10px' }} />
-        {sidebarOpen && 'Visited '}
-      </Button>
-      
-      {/* Saved Museums */}
-      <Button
-        onClick={() => navigate('/saved-museums')}
-        sx={{
-          ...styles.sidebarButton,
-          fontSize: '14px',
-          paddingLeft: sidebarOpen ? '20px' : '10px',
-          padding: '5px 20px',
-        }}
-      >
-        <EventAvailableIcon sx={{ fontSize: '18px', marginRight: '10px' }} />
-        {sidebarOpen && 'Booked '}
-      </Button>
-    </Box>
-  )}
-</Box>
-
-
-
-<Box>
-  <Button
-    onClick={() => setTransportationOpen(!transportationOpen)} // Toggle dropdown for transportation
-    sx={styles.sidebarButton}
-  >
-    <DirectionsBusIcon sx={styles.icon} /> {/* Transportation Icon */}
-    {sidebarOpen && (
-      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
-        Transportation
-        {transportationOpen ? (
-          <KeyboardArrowUpIcon sx={{ fontSize: '18px', marginLeft: '5px' }} />
-        ) : (
-          <KeyboardArrowDownIcon sx={{ fontSize: '18px', marginLeft: '5px' }} />
-        )}
-      </Box>
-    )}
-  </Button>
-  {transportationOpen && (
-    <Box sx={{ display: 'flex', flexDirection: 'column', marginLeft: sidebarOpen ? '20px' : '0px' }}>
-      {/* Available Transportation */}
-      <Button
-        onClick={() => navigate('/available-transportation')}
-        sx={{
-          ...styles.sidebarButton,
-          fontSize: '14px',
-          paddingLeft: sidebarOpen ? '20px' : '10px',
-          padding: '5px 20px',
-        }}
-      >
-        <CommuteIcon sx={{ fontSize: '18px', marginRight: '10px' }} /> {/* Commute Icon */}
-        {sidebarOpen && 'Available Transportation'}
-      </Button>
-      
-      {/* Booked Transportation */}
-      <Button
-        onClick={() => navigate('/booked-transportation')}
-        sx={{
-          ...styles.sidebarButton,
-          fontSize: '14px',
-          paddingLeft: sidebarOpen ? '20px' : '10px',
-          padding: '5px 20px',
-        }}
-      >
-        <EventAvailableIcon sx={{ fontSize: '18px', marginRight: '10px' }} /> {/* Booked Icon */}
-        {sidebarOpen && 'Booked '}
-      </Button>
-    </Box>
-  )}
-</Box>
-<Box>
-  <Button
-    onClick={() => setComplaintsOpen(!complaintsOpen)} // Toggle dropdown for complaints
-    sx={styles.sidebarButton}
-  >
-    <AssignmentIcon sx={styles.icon} /> {/* Complaints Icon */}
-    {sidebarOpen && (
-      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
-        Complaints
-        {complaintsOpen ? (
-          <KeyboardArrowUpIcon sx={{ fontSize: '18px', marginLeft: '5px' }} />
-        ) : (
-          <KeyboardArrowDownIcon sx={{ fontSize: '18px', marginLeft: '5px' }} />
-        )}
-      </Box>
-    )}
-  </Button>
-  {complaintsOpen && (
-    <Box sx={{ display: 'flex', flexDirection: 'column', marginLeft: sidebarOpen ? '20px' : '0px' }}>
-      {/* View All Complaints */}
-      <Button
-        onClick={() => navigate('/view-all-complaints')}
-        sx={{
-          ...styles.sidebarButton,
-          fontSize: '14px',
-          paddingLeft: sidebarOpen ? '20px' : '10px',
-          padding: '5px 20px',
-        }}
-      >
-        <AddIcon sx={{ fontSize: '18px', marginRight: '10px' }} />
-        {sidebarOpen && 'File Complaint'}
-      </Button>
-      
-      {/* My Submitted Complaints */}
-      <Button
-        onClick={() => navigate('/my-submitted-complaints')}
-        sx={{
-          ...styles.sidebarButton,
-          fontSize: '14px',
-          paddingLeft: sidebarOpen ? '20px' : '10px',
-          padding: '5px 20px',
-        }}
-      >
-        <FeedbackIcon sx={{ fontSize: '18px', marginRight: '10px' }} /> {/* Feedback Icon */}
-        {sidebarOpen && 'My Complaints'}
-      </Button>
-    </Box>
-  )}
-</Box>
-
-
+        {/* <Button onClick={() => navigate('/YAdminItinerariesPage')} sx={styles.sidebarButton}>
+          <MapIcon sx={styles.icon} />
+          {sidebarOpen && 'Itineraries'}
+        </Button> */}
         {/* <Button onClick={() => navigate('/YAdminDashboard')} sx={styles.sidebarButton}>
           <DashboardIcon sx={styles.icon} />
           {sidebarOpen && 'Back to Dashboard'}
         </Button> */}
       </Box>
+
+      {/* Main Content Area with Boxes */}
       <Box sx={{ ...styles.content, filter: sidebarOpen ? 'brightness(0.5)' : 'none' }}>
-  <Box sx={styles.infoBox} onClick={() => navigate('/products')}>
-    <img src="/images/products.jpg" alt="Products" style={styles.image} />
-    <Typography variant="h6" sx={styles.text} className="text">
-      Products
-    </Typography>
-  </Box>
-  <Box sx={styles.infoBox} onClick={() => navigate('/YAdminActivitiesPage')}>
-    <img src="/images/activity.jpg" alt="Activities" style={styles.image} />
-    <Typography variant="h6" sx={styles.text} className="text">
-      Activities
-    </Typography>
-  </Box>
-  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-    {/* Third Image */}
-    <Box sx={styles.infoBox} onClick={() => navigate('/YAdminItinerariesPage')}>
-      <img src="/images/itinerary.jpg" alt="Itineraries" style={styles.image} />
-      <Typography variant="h6" sx={styles.text} className="text">
-        Itineraries
-      </Typography>
-    </Box>
-    
-    
-  </Box>
-  {/* Right Arrow Button */}
-  <Button
-      sx={{
-        backgroundColor: '#99a0b5',
-        color: '#e6e7ed',
-        height: '30px', // Smaller height
-        width: '30px', // Smaller width
-        borderRadius: '50%',
-        marginLeft: '10px',
-        marginRight:'10px',
-        minWidth: '30px', // Ensures consistent size
-        padding: 0,
-        '&:hover': {
-          backgroundColor: '#192959',
-        },
-      }}
-      onClick={() => console.log('Right Arrow Clicked')}
-    >
-      ➡️
-    </Button>
-  
-</Box>
+        {/* <Box sx={styles.infoBox} onClick={() => navigate('/products')}>
+          <img src="/images/products.jpg" alt="Products" style={styles.image} />
+          <Typography variant="h6" sx={styles.text} className="text">Products</Typography>
+        </Box> */}
 
+        {/* Left Section: Welcome Message */}
+        <Box sx={styles.welcomeSection}>
+            <Typography variant="h4" sx={{ fontWeight: 'bold', mb: 2, color: '#192959', textAlign: 'left' }}>
+            Welcome back, {username}!
+            </Typography>
+            <Typography variant="body1" sx={{ fontSize: '18px', lineHeight: '1.8', color: '#192959', textAlign: 'left' }}>
+            Thank you for choosing Beyond Borders. Use your dashboard to track your activities,
+            explore new opportunities, and stay connected with the vibrant tourism ecosystem.
+            Let's create unforgettable experiences together!
+            </Typography>
+        </Box>
 
+        {/* Right Section: My Activities */}
+        <Box sx={styles.infoBox} onClick={() => navigate('/YAdvertiserActivitiesPage')}>
+            <img src="/images/activity.jpg" alt="Activities" style={styles.image} />
+            <Typography variant="h6" sx={styles.text} className="text">
+            My Activities
+            </Typography>
+        </Box>
+        <Box sx={styles.infoBox} onClick={() => navigate('/YAdvertiserSalesPage')}>
+          <img src="/images/sales.jpg" alt="Itineraries" style={styles.image} />
+          <Typography variant="h6" sx={styles.text} className="text">Sales Reports</Typography>
+        </Box>
+      </Box>
 
       {/* Change Password Modal */}
       <Modal open={changePasswordModal} onClose={() => setChangePasswordModal(false)}>
@@ -1302,26 +701,11 @@ const styles = {
     justifyContent: 'flex-start',
     textAlign: 'left',
     width: '100%',
-    padding: '5px 20px',
-    fontSize: '16px',
-    '&:hover': {
-      backgroundColor: '#192959',
-    },
-  },
-
-  dropdownButton: {
-    color: '#e6e7ed',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'flex-start',
-    textAlign: 'left',
-    width: '100%',
     padding: '10px 20px',
     fontSize: '16px',
     '&:hover': {
       backgroundColor: '#192959',
     },
-    gap:'10px'
   },
   icon: {
     marginRight: '10px',
@@ -1342,8 +726,8 @@ const styles = {
     borderRadius: '15px',
     display: 'flex',
     flexDirection: 'column',
-    alignItems: 'left',
-    justifyContent: 'left',
+    alignItems: 'center',
+    justifyContent: 'center',
     padding: '20px',
     boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.2)',
     transition: 'transform 0.2s',
@@ -1419,6 +803,15 @@ const styles = {
     mt: 2,
     "&:hover": { backgroundColor: "#D32F2F" },
   },
+  welcomeSection: {
+    //width: '500px',
+    flex: 1,
+    marginRight: '0px',
+    padding: '120px 20px',
+    // backgroundColor: '#f8f9fa',
+    // borderRadius: '15px',
+    // boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.2)',
+  },
 };
 
-export default NewTouristHomePage;
+export default YAdvertiserDashboard;

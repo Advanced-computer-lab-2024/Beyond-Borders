@@ -558,7 +558,7 @@ const [expanded, setExpanded] = useState({});
             </Button>
 
             <Button
-                onClick={() => navigate('/completed-activities')}
+                onClick={() => navigate('/TouristCompletedActivities')}
                 sx={{
                     ...styles.sidebarButton,
                     fontSize: '14px',

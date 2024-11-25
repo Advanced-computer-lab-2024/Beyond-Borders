@@ -47,7 +47,7 @@ import ShareIcon from '@mui/icons-material/Share';
 import LanguageIcon from '@mui/icons-material/Language';
 import axios from 'axios';
 
-function TouristUpcomingActivities() {
+function TouristBookedActivities() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activities, setActivities] = useState([]);
   const [scrollPositions, setScrollPositions] = useState({});
@@ -1685,4 +1685,4 @@ const styles = {
   },
 };
 
-export default TouristUpcomingActivities;
+export default TouristBookedActivities;
