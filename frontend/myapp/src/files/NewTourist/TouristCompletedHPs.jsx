@@ -1027,7 +1027,7 @@ function TouristCompletedHPs() {
         alignItems: 'right',           // Align items vertically in the center
         marginBottom: '20px',
         marginTop: '20px',
-        marginLeft: '1570px',      // Add margin to the right for consistent spacing
+        marginLeft: '1620px',      // Add margin to the right for consistent spacing
     }}
   >
    
@@ -1093,7 +1093,7 @@ function TouristCompletedHPs() {
     onChange={(e) => setCurrency(e.target.value)}
     variant="outlined"
     sx={{
-      width: '150px',
+      width: '130px',
       '& .MuiOutlinedInput-root': {
         '& fieldset': {
           borderColor: '#192959', // Default border color
@@ -1235,24 +1235,10 @@ function TouristCompletedHPs() {
         {hp.dateOfEvent ? new Date(hp.dateOfEvent).toLocaleDateString() : 'N/A'}
       </Typography>
       <Box sx={{ ...styles.quickFacts, marginTop: '10px' /* Added spacing above quick facts */ }}>
-        <Box
-          sx={{
-            ...styles.infoContainer,
-            backgroundColor: hp.flagged ? '#b3b8c8' : '#f3f4f6',
-            padding: '10px', // Optional padding for better layout
-          }}
-        >
-          <Typography
-            variant="body2"
-            sx={{
-              fontWeight: 'bold',
-              marginBottom: '5px', // Added spacing between label and tags
-            }}
-          >
-            Tags:
-          </Typography>
-          <Typography variant="body2">{hp.Tags?.join(', ') || 'N/A'}</Typography>
-        </Box>
+      <Box sx={{ ...styles.infoContainer, backgroundColor: '#b3b8c8'  }}>
+                    <Typography variant="body2" sx={{ fontWeight: 'bold' }}>Tags:</Typography>
+                    <Typography variant="body2">{hp.Tags.join(', ')}</Typography>
+                  </Box>
       </Box>
     </Box>
   
