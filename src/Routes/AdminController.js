@@ -23,7 +23,11 @@ const ArchivedProductsModel = require('../Models/ArchivedProducts.js');
 const DeleteRequestsModel = require('../Models/DeleteRequests.js');
 const DeactivatedItineraries = require('../Models/DeactivatedItineraries.js');
 const DeactivatedActivitiesModel = require('../Models/DeactivatedActivities.js');
+
+
 const { default: mongoose } = require('mongoose');
+const path = require('path');
+const fs = require('fs');
 
 const createNewAdmin = async(req,res) => {
    //Destructure Name, Email, Age from the request body
@@ -208,29 +212,39 @@ const acceptTourGuide = async (req, res) => {
  };
 
 
-const rejectSeller = async (req, res) => {
-   const { UnregisteredSellerID } = req.body;
-
-   try {
-       // Find the unregistered seller by ID
-       const existingUser = await NewUnregisteredSellerModel.findById(UnregisteredSellerID);
-       
-       if (existingUser) {
+ const rejectSeller = async (req, res) => {
+    const { SellerUsername } = req.body;
+ 
+    if (!SellerUsername) {
+        return res.status(400).json({ error: "SellerUsername is required." });
+    }
+ 
+    try {
+        // Find the unregistered seller by Username
+        const existingUser = await NewUnregisteredSellerModel.findOne({ Username: SellerUsername });
+ 
+        if (existingUser) {
             // Extract Username
-            const {Username, Email, Password} = existingUser;
-            await AllUsernamesModel.findOneAndDelete({Username});
-           // Delete the unregistered seller
-           await NewUnregisteredSellerModel.findByIdAndDelete(UnregisteredSellerID);
-           // Respond with success message
-           res.status(200).json({ msg: "Seller has been rejected!" });
-       } else {
-           res.status(404).json({ error: "Unregistered seller not found." });
-       }
-   } catch (error) {
-       // Handle any errors that occur during the process
-       res.status(400).json({ error: error.message });
-   }
-};
+            const { Username } = existingUser;
+ 
+            // Delete from AllUsernamesModel
+            await AllUsernamesModel.findOneAndDelete({ Username });
+ 
+            // Delete the unregistered seller
+            await NewUnregisteredSellerModel.findOneAndDelete({ Username: SellerUsername });
+ 
+            // Respond with success message
+            res.status(200).json({ msg: "Seller has been rejected!" });
+        } else {
+            res.status(404).json({ error: "Unregistered seller not found." });
+        }
+    } catch (error) {
+        // Handle any errors that occur during the process
+        console.error("Error rejecting seller:", error.message);
+        res.status(400).json({ error: error.message });
+    }
+ };
+ 
 
 const rejectTourGuide = async (req, res) => {
     const {TourGuideUsername} = req.body;
@@ -1194,6 +1208,195 @@ const getAdminPassword = async (req, res) => {
  };
 
 
+ 
+ const viewAdvertiserDocument = async (req, res) => {
+    try {
+      const { Username } = req.query;
+  
+      // Fetch the advertiser from the database
+      const advertiser = await NewUnregisteredAdvertiserModel.findOne({ Username });
+  
+      if (!advertiser) {
+        return res.status(404).json({ error: 'Advertiser not found!' });
+      }
+  
+      // Use the absolute path directly from the database
+      const documentPath = advertiser.AdvertiserDocument;
+  
+      // Check if the file exists
+      if (!fs.existsSync(documentPath)) {
+        return res.status(404).json({ error: 'Document not found on the server!' });
+      }
+  
+      // Serve the PDF file
+      res.setHeader('Content-Type', 'application/pdf');
+      res.sendFile(documentPath);
+    } catch (error) {
+      console.error('Error fetching document:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  };
+  const viewTourGuideDocuments = async (req, res) => {
+    try {
+      const { username, docType } = req.query; // Extract username and document type from query string
+  
+      if (!username || !docType) {
+        return res.status(400).json({ error: "Username and docType are required!" });
+      }
+  
+      // Fetch the tour guide details using the username
+      const tourGuide = await NewUnregisteredTourGuideModel.findOne({ Username: username });
+  
+      if (!tourGuide) {
+        return res.status(404).json({ error: "Tour Guide not found!" });
+      }
+  
+      // Determine the document path based on docType
+      let documentPath;
+      if (docType === 'ID') {
+        documentPath = tourGuide.IDDocument;
+      } else if (docType === 'Certificate') {
+        documentPath = tourGuide.CertificateDocument;
+      } else {
+        return res.status(400).json({ error: "Invalid docType! Use 'ID' or 'Certificate'." });
+      }
+  
+      // Check if the document exists
+      if (!documentPath || !fs.existsSync(documentPath)) {
+        return res.status(404).json({ error: "Requested document not found!" });
+      }
+  
+      // Serve the PDF file
+      res.setHeader('Content-Type', 'application/pdf');
+      res.sendFile(documentPath);
+    } catch (error) {
+      console.error("Error fetching document:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  };
+  const viewSellerDocument = async (req, res) => {
+    try {
+      const { Username } = req.query; // Extract Username from the query string
+  
+      if (!Username) {
+        return res.status(400).json({ error: 'Username is required!' });
+      }
+  
+      // Fetch the seller details using the Username
+      const seller = await NewUnregisteredSellerModel.findOne({ Username });
+  
+      if (!seller) {
+        return res.status(404).json({ error: 'Seller not found!' });
+      }
+  
+      // Use the absolute path directly from the database
+      const documentPath = seller.Documents;
+  
+      if (!documentPath) {
+        return res.status(404).json({ error: 'Document not found for this Seller!' });
+      }
+  
+      // Check if the file exists on the server
+      if (!fs.existsSync(documentPath)) {
+        return res.status(404).json({ error: 'Document not found on the server!' });
+      }
+  
+      // Serve the PDF file
+      res.setHeader('Content-Type', 'application/pdf');
+      res.sendFile(documentPath, (err) => {
+        if (err) {
+          console.error('Error sending file:', err);
+          res.status(500).json({ error: 'Failed to retrieve the document.' });
+        }
+      });
+    } catch (error) {
+      console.error('Error fetching document:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  };
+  
+  const getAllUnregisteredAdvertisers = async (req, res) => {
+    try {
+      // Fetch all unregistered advertisers from the database
+      const advertisers = await NewUnregisteredAdvertiserModel.find();
+  
+      if (advertisers.length === 0) {
+        return res.status(404).json({ msg: "No unregistered advertisers found!" });
+      }
+  
+      // Respond with the list of advertisers
+      res.status(200).json({
+        msg: "Unregistered advertisers fetched successfully!",
+        advertisers,
+      });
+    } catch (error) {
+      // Handle any errors
+      res.status(500).json({ error: error.message });
+    }
+  };
+
+  const getAllUnregisteredTourGuides = async (req, res) => {
+    try {
+      // Fetch all unregistered tour guides from the database
+      const tourGuides = await NewUnregisteredTourGuideModel.find();
+  
+      if (tourGuides.length === 0) {
+        return res.status(404).json({ msg: "No unregistered tour guides found!" });
+      }
+  
+      // Respond with the list of tour guides
+      res.status(200).json({
+        msg: "Unregistered tour guides fetched successfully!",
+        tourGuides,
+      });
+    } catch (error) {
+      // Handle any errors
+      res.status(500).json({ error: error.message });
+    }
+};
+
+    const getAllUnregisteredSellers = async (req, res) => {
+        try {
+          // Fetch all unregistered sellers from the database
+          const sellers = await NewUnregisteredSellerModel.find();
+      
+          if (sellers.length === 0) {
+            return res.status(404).json({ msg: "No unregistered sellers found!" });
+          }
+      
+          // Respond with the list of sellers
+          res.status(200).json({
+            msg: "Unregistered sellers fetched successfully!",
+            sellers,
+          });
+        } catch (error) {
+          // Handle any errors
+          res.status(500).json({ error: error.message });
+        }
+      };
+
+      const getAllUnregisteredTransportationAdvertisers = async (req, res) => {
+        try {
+          // Fetch all unregistered transportation advertisers from the database
+          const transportationAdvertisers = await NewUnregisteredTransportationAdvertiserModel.find().sort({ createdAt: -1 });
+      
+          if (transportationAdvertisers.length === 0) {
+            return res.status(404).json({ msg: "No unregistered transportation advertisers found!" });
+          }
+      
+          // Respond with the list of transportation advertisers
+          res.status(200).json({
+            msg: "Unregistered transportation advertisers fetched successfully!",
+            transportationAdvertisers,
+          });
+        } catch (error) {
+          // Handle any errors
+          res.status(500).json({ error: error.message });
+        }
+      };
+
+
 module.exports = {createNewAdmin, createNewTourismGoverner, createNewProduct, editProduct, acceptSeller, rejectSeller, createNewCategory, readAllActivityCategories, updateCategory, deleteActivityCategory, deleteAccount, searchProductAdmin, createNewTag, readAllTags, updateTag, deleteTag, 
     acceptTourGuide, rejectTourGuide, acceptAdvertiser, rejectAdvertiser, filterProductByPriceAdmin, sortProductsDescendingAdmin, sortProductsAscendingAdmin,viewProducts, loginAdmin, viewAllProductsAdmin, updateAdminPassword, getAllComplaints, updateComplaintStatus, replyToComplaint, getComplaintDetails, 
-    filterComplaintsByStatus, sortComplaintsByRecent, sortComplaintsByOldest, archiveProduct, unarchiveProduct, flagItinerary, flagActivity, viewArchivedProductsAdmin , viewAllActivitiesAdmin ,viewAllItinerariesAdmin,acceptTranspAdvertiser,rejectTranspAdvertiser, readAllDeleteRequests,rejectRequestDeleteAccout, getAdminPassword};
+    filterComplaintsByStatus, sortComplaintsByRecent, sortComplaintsByOldest, archiveProduct, unarchiveProduct, flagItinerary, flagActivity, viewArchivedProductsAdmin , viewAllActivitiesAdmin ,viewAllItinerariesAdmin,acceptTranspAdvertiser,rejectTranspAdvertiser, readAllDeleteRequests,rejectRequestDeleteAccout,
+    getAdminPassword,viewAdvertiserDocument,viewTourGuideDocuments,viewSellerDocument,getAllUnregisteredAdvertisers,getAllUnregisteredTourGuides,getAllUnregisteredSellers,getAllUnregisteredTransportationAdvertisers};

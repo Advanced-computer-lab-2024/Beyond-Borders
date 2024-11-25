@@ -18,7 +18,7 @@ const {loginTransportationAdvertiser,ReadTransportationAdvertiserProfile,createN
 
 const {createUnregisteredTourGuide} = require("./Routes/UnregisteredTourGuideController");
 const {createUnregisteredSeller} = require("./Routes/UnregisteredSellerController");
-const {createNewTourismGoverner, createNewAdmin, createNewProduct, editProduct, acceptSeller, rejectSeller, createNewCategory, readAllActivityCategories,updateCategory, deleteActivityCategory, deleteAccount, searchProductAdmin, createNewTag, readAllTags, updateTag, deleteTag, acceptTourGuide, rejectTourGuide, acceptAdvertiser, rejectAdvertiser, filterProductByPriceAdmin, sortProductsAscendingAdmin, sortProductsDescendingAdmin,viewProducts,loginAdmin, viewAllProductsAdmin, updateAdminPassword, getAllComplaints, updateComplaintStatus, replyToComplaint, getComplaintDetails, filterComplaintsByStatus, sortComplaintsByRecent, sortComplaintsByOldest, archiveProduct, unarchiveProduct, flagItinerary, viewArchivedProductsAdmin, flagActivity ,viewAllActivitiesAdmin , viewAllItinerariesAdmin, acceptTranspAdvertiser,rejectTranspAdvertiser, readAllDeleteRequests,rejectRequestDeleteAccout, getAdminPassword} = require("./Routes/AdminController");
+const {createNewTourismGoverner, createNewAdmin, createNewProduct, editProduct, acceptSeller, rejectSeller, createNewCategory, readAllActivityCategories,updateCategory, deleteActivityCategory, deleteAccount, searchProductAdmin, createNewTag, readAllTags, updateTag, deleteTag, acceptTourGuide, rejectTourGuide, acceptAdvertiser, rejectAdvertiser, filterProductByPriceAdmin, sortProductsAscendingAdmin, sortProductsDescendingAdmin,viewProducts,loginAdmin, viewAllProductsAdmin, updateAdminPassword, getAllComplaints, updateComplaintStatus, replyToComplaint, getComplaintDetails, filterComplaintsByStatus, sortComplaintsByRecent, sortComplaintsByOldest, archiveProduct, unarchiveProduct, flagItinerary, viewArchivedProductsAdmin, flagActivity ,viewAllActivitiesAdmin , viewAllItinerariesAdmin, acceptTranspAdvertiser,rejectTranspAdvertiser, readAllDeleteRequests,rejectRequestDeleteAccout, getAdminPassword,viewAdvertiserDocument,viewTourGuideDocuments,viewSellerDocument,getAllUnregisteredAdvertisers,getAllUnregisteredTourGuides,getAllUnregisteredSellers,getAllUnregisteredTransportationAdvertisers} = require("./Routes/AdminController");
 const {readSellerProfile, updateSeller, editProductSeller, createNewProductSeller, searchProductSeller,filterProductByPriceSeller, sortProductsAscendingSeller, sortProductsDescendingSeller,viewProductsSeller,loginSeller,viewAllProductsSeller,getProductsBySeller, viewMyArchivedProductsSeller, requestDeleteAccountSeller, decrementLoginCount} = require("./Routes/AcceptedSellerController");
 const {createNewHistoricalTag,createMuseumsAsTourismGoverner,getMuseumsByAuthorAsTourismGoverner
   ,createHistoricalPlaceAsTourismGoverner , getHistoricalPlaceByNameAsTourismGoverner , updateHistoricalPlaceAsTourismGoverner , deletePlaceAsTourismGoverner , getHistoricalByAuthorAsTourismGoverner, getMuseumByNameAsTourismGoverner, updateMuseumByNameAsTourismGoverner, deleteMuseumByNameAsTourismGoverner,
@@ -72,51 +72,72 @@ app.get("/home", (req, res) => {
 ///////////////////////Multer////////////
 const multer = require("multer");
 
-// Configure storage for Multer
-const storage = multer.diskStorage({
+
+// Configure storage for images
+const imageStorage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, path.join(__dirname, "/uploads/logos")); // Destination folder
+    cb(null, path.join(__dirname, "/uploads/logos")); // Destination for images
   },
   filename: function (req, file, cb) {
     cb(null, Date.now() + path.extname(file.originalname)); // Unique file name
-  }
+  },
 });
 
-// File filter to allow only images
-const fileFilter = (req, file, cb) => {
+// Configure storage for PDFs
+const pdfStorage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, path.join(__dirname, "/uploads/documents")); // Destination for PDFs
+  },
+  filename: function (req, file, cb) {
+    cb(null, Date.now() + path.extname(file.originalname)); // Unique file name
+  },
+});
+
+// File filter for images
+const imageFileFilter = (req, file, cb) => {
   if (file.mimetype.startsWith("image/")) {
-    cb(null, true);
+    cb(null, true); // Accept images
   } else {
-    cb(new Error("Only image files are allowed!"), false);
+    cb(new Error("Only image files are allowed!"), false); // Reject non-images
   }
 };
 
-// Initialize Multer
-const upload = multer({ storage, fileFilter });
+// File filter for PDFs
+const pdfFileFilter = (req, file, cb) => {
+  if (file.mimetype === "application/pdf") {
+    cb(null, true); // Accept PDFs
+  } else {
+    cb(new Error("Only PDF files are allowed!"), false); // Reject non-PDFs
+  }
+};
+
+// Multer instances
+const uploadImage = multer({ storage: imageStorage, fileFilter: imageFileFilter });
+const uploadPDF = multer({ storage: pdfStorage, fileFilter: pdfFileFilter });
 
 app.use(cors());
 app.use(express.json())
 app.post("/addTourist", createTourist);
-app.post("/addUnregisteredTourGuide", createUnregisteredTourGuide);
-app.post("/addUnregisteredSeller", createUnregisteredSeller);
-app.post("/addUnregisteredAdvertiser", createUnregisteredAdvertiser);
+app.post('/addUnregisteredTourGuide',uploadPDF.fields([{ name: 'IDDocument', maxCount: 1 }, { name: 'CertificateDocument', maxCount: 1 }]),createUnregisteredTourGuide);
+app.post("/addUnregisteredSeller",uploadPDF.single("CombinedDocument"),createUnregisteredSeller);
+app.post("/addUnregisteredAdvertiser",uploadPDF.single("AdvertiserDocument"),createUnregisteredAdvertiser);
 app.post("/addTourismGovernor", createNewTourismGoverner);
 app.post("/addAdmin", createNewAdmin);
 app.post("/addProduct", createNewProduct);
 app.post("/api/addProductSeller", createNewProductSeller);
 app.put("/editProduct", editProduct);
 app.put("/api/editProductSeller", editProductSeller);
-app.post("/acceptSeller", acceptSeller);
-app.post("/acceptTourGuide", acceptTourGuide);
-app.post("/acceptAdvertiser", acceptAdvertiser);
-app.post("/rejectSeller", rejectSeller);
-app.post("/rejectTourGuide", rejectTourGuide);
-app.post("/rejectAdvertiser", rejectAdvertiser);
+app.post("/api/acceptSeller", acceptSeller);
+app.post("/api/acceptTourGuide", acceptTourGuide);
+app.post("/api/acceptAdvertiser", acceptAdvertiser);
+app.post("/api/rejectSeller", rejectSeller);
+app.post("/api/rejectTourGuide", rejectTourGuide);
+app.post("/api/rejectAdvertiser", rejectAdvertiser);
 app.get("/api/viewTourist", getTourist);
 app.post("/api/filterActivities", filterActivities);
 app.put("/api/updateTourist", updateTourist);
 app.get("/api/readSellerProfile", readSellerProfile);
-app.put("/api/updateSeller", upload.single("Logo"), updateSeller);
+app.put("/api/updateSeller", uploadImage.single("Logo"), updateSeller);
 app.post("/api/createNewCategory", createNewCategory);
 app.post("/api/createNewTag", createNewTag);
 app.get("/api/readAllActivityCategories", readAllActivityCategories);
@@ -129,7 +150,7 @@ app.post("/deleteAccount", deleteAccount);
 app.get("/searchProductAdmin", searchProductAdmin);
 app.get("/searchProductSeller", searchProductSeller);
 app.get("/searchProductTourist", searchProductTourist);
-app.put("/api/updateTourGuideProfile",upload.single("Logo"), updateTourGuideProfile);
+app.put("/api/updateTourGuideProfile",uploadImage.single("Logo"), updateTourGuideProfile);
 app.get("/filterProductByPriceAdmin", filterProductByPriceAdmin);
 app.post("/api/filterProductByPriceTourist", filterProductByPriceTourist);
 app.post("/api/filterProductByPriceSeller", filterProductByPriceSeller);
@@ -144,9 +165,9 @@ app.get("/api/sortProductsDescendingTourist", sortProductsDescendingTourist);
 app.get("/api/sortProductsAscendingTourist", sortProductsAscendingTourist);
 app.get("/filterActivitiesGuest", filterActivitiesGuest);
 app.post("/api/getMuseumsByTagGuest", getMuseumsByTagGuest);
-app.get("/getMuseumsByTagTourist", getMuseumsByTagTourist);
+app.post("/api/getMuseumsByTagTourist", getMuseumsByTagTourist);
 app.post("/api/getHistoricalPlacesByTagGuest", getHistoricalPlacesByTagGuest);
-app.get("/getHistoricalPlacesByTagTourist", getHistoricalPlacesByTagTourist);
+app.post("/getHistoricalPlacesByTagTourist", getHistoricalPlacesByTagTourist);
 
 app.get("/api/ViewAllUpcomingActivities", ViewAllUpcomingActivities);
 app.get("/api/ViewAllUpcomingActivitiesGuest", ViewAllUpcomingActivitiesGuest);
@@ -214,7 +235,13 @@ app.post("/api/requestDeleteAccountTourGuide" , requestDeleteAccountTourGuide);
 app.post("/api/rejectRequestDeleteAccout" , rejectRequestDeleteAccout);
 app.get("/api/viewBookedActivities" , viewBookedActivities);
 app.get("/api/getAdminPassword" , getAdminPassword);
- 
+app.get("/api/viewAdvertiserDocument", viewAdvertiserDocument);
+app.get("/api/viewTourGuideDocuments", viewTourGuideDocuments);
+app.get("/api/viewSellerDocument", viewSellerDocument);
+app.get("/api/getAllUnregisteredAdvertisers", getAllUnregisteredAdvertisers);
+app.get("/api/getAllUnregisteredTourGuides", getAllUnregisteredTourGuides);
+app.get("/api/getAllUnregisteredSellers", getAllUnregisteredSellers);
+app.get("/api/getAllUnregisteredTransportationAdvertisers", getAllUnregisteredTransportationAdvertisers);
 //SPRINT 2 MALAK AND JANA
 app.get("/ChooseActivitiesByCategoryTourist",ChooseActivitiesByCategoryTourist);
 app.get("/ChooseActivitiesByCategoryGuest",ChooseActivitiesByCategoryGuest);
@@ -279,8 +306,8 @@ app.post('/getCopyLink', GetCopyLink);
 app.get('/api/itinerary/details/:itineraryName', getItineraryDetails);
 app.post('/createUnregisteredTranspAdvertiser', createUnregisteredTranspAdvertiser);
 app.post('/loginTransportationAdvertiser', loginTransportationAdvertiser);
-app.post('/rejectTranspAdvertiser', rejectTranspAdvertiser);
-app.post('/acceptTranspAdvertiser', acceptTranspAdvertiser);
+app.post('/api/rejectTranspAdvertiser', rejectTranspAdvertiser);
+app.post('/api/acceptTranspAdvertiser', acceptTranspAdvertiser);
 app.post('/createNewTransportation', createNewTransportation);
 app.get("/ReadTransportationAdvertiserProfile",ReadTransportationAdvertiserProfile);
 app.get("/viewPreferenceTags",viewPreferenceTags);

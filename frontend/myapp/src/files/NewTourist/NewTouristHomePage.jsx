@@ -508,7 +508,7 @@ const closeDeleteRequestsModal = () => {
           {sidebarOpen && 'Flights'}
         </Button>
 
-        <Button onClick={() => navigate('/products')} sx={styles.sidebarButton}>
+        <Button onClick={() => navigate('/TouristHotels')} sx={styles.sidebarButton}>
           <BedIcon sx={styles.icon} />
           {sidebarOpen && 'Hotels'}
         </Button>
@@ -585,7 +585,7 @@ const closeDeleteRequestsModal = () => {
         {activitiesOpen && (
             <Box sx={{ display: 'flex', flexDirection: 'column', marginLeft: sidebarOpen ? '20px' : '0px' }}>
             <Button
-            onClick={() => navigate('/upcoming-activities')}
+            onClick={() => navigate('/TouristUpcomingActivities')}
             sx={{
                 ...styles.sidebarButton,
                 fontSize: '14px',
@@ -598,7 +598,7 @@ const closeDeleteRequestsModal = () => {
             </Button>
 
             <Button
-                onClick={() => navigate('/completed-activities')}
+                onClick={() => navigate('/TouristCompletedActivities')}
                 sx={{
                     ...styles.sidebarButton,
                     fontSize: '14px',
@@ -648,7 +648,7 @@ const closeDeleteRequestsModal = () => {
   {itinerariesOpen && (
     <Box sx={{ display: 'flex', flexDirection: 'column', marginLeft: sidebarOpen ? '20px' : '0px' }}>
       <Button
-        onClick={() => navigate('/upcoming-itineraries')}
+        onClick={() => navigate('/TouristUpcomingItineraries')}
         sx={{
           ...styles.sidebarButton,
           fontSize: '14px',
@@ -707,7 +707,7 @@ const closeDeleteRequestsModal = () => {
   {historicalPlacesOpen && (
     <Box sx={{ display: 'flex', flexDirection: 'column', marginLeft: sidebarOpen ? '20px' : '0px' }}>
       <Button
-        onClick={() => navigate('/upcoming-historical-places')}
+        onClick={() => navigate('/TouristUpcomingHP')}
         sx={{
           ...styles.sidebarButton,
           fontSize: '14px',
@@ -768,7 +768,7 @@ const closeDeleteRequestsModal = () => {
     <Box sx={{ display: 'flex', flexDirection: 'column', marginLeft: sidebarOpen ? '20px' : '0px' }}>
       {/* Upcoming Museums */}
       <Button
-        onClick={() => navigate('/upcoming-museums')}
+        onClick={() => navigate('/TouristUpcomingMuseums')}
         sx={{
           ...styles.sidebarButton,
           fontSize: '14px',
