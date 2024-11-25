@@ -87,6 +87,9 @@ import YAdminDashboard from './files/Admin/YAdminDashboard';
 import YAdminActivitiesPage from './files/Admin/YAdminActivitiesPage';
 import YAdminComplaintsPage from './files/Admin/YAdminComplaintsPage';
 import YAdminItinerariesPage from './files/Admin/YAdminItinerariesPage';
+import YAdvertiserDashboard from './files/Advertiser/YAdvertiserDashboard';
+import YAdvertiserActivitiesPage from './files/Advertiser/YAdvertiserActivitiesPage';
+import YAdvertiserSalesPage from './files/Advertiser/YAdvertiserSalesPage';
 
 
 import GuestItinerariesPage from './files/GuestItinerariesPage';
@@ -211,7 +214,9 @@ function App() {
           <Route path="/YAdminActivitiesPage" element={<YAdminActivitiesPage />} /> 
           <Route path="/YAdminComplaintsPage" element={<YAdminComplaintsPage />} /> 
           <Route path="/YAdminItinerariesPage" element={<YAdminItinerariesPage />} />
-
+          <Route path="/YAdvertiserDashboard" element={<YAdvertiserDashboard />} /> 
+          <Route path="/YAdvertiserActivitiesPage" element={<YAdvertiserActivitiesPage />} /> 
+          <Route path="/YAdvertiserSalesPage" element={<YAdvertiserSalesPage />} />
          
          
 
