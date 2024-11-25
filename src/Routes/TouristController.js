@@ -650,20 +650,27 @@ const createTourist = async (req, res) => {
     try {
         // Extract the tags array from the request body
         const { tags } = req.body; // Expecting an array of tags
-
-        // Find museums with any of the specified tags
-        const historicalPlaces = await HistoricalPlacesModel.find({ Tags: { $in: tags } });
-
-        // Check if any museums were found
+  
+        // Get the current date
+        const currentDate = new Date();
+  
+        // Find historical places with the specified tags and upcoming events
+        const historicalPlaces = await HistoricalPlacesModel.find({
+            Tags: { $in: tags },
+            dateOfEvent: { $gte: currentDate } // Filter for upcoming events
+        });
+  
+        // Check if any historical places were found
         if (historicalPlaces.length > 0) {
             res.status(200).json(historicalPlaces);
         } else {
-            res.status(404).json({ error: "No Historical Places found with the specified tags." });
+            res.status(404).json({ error: "No upcoming Historical Places found with the specified tags." });
         }
     } catch (error) {
+        console.error("Error fetching Historical Places by tag:", error);
         res.status(400).json({ error: error.message });
     }
-};
+  };
 
 const viewProductsTourist = async (req, res) => {
   try {
