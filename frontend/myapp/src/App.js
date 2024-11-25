@@ -92,6 +92,9 @@ import YAdvertiserActivitiesPage from './files/Advertiser/YAdvertiserActivitiesP
 import YAdvertiserSalesPage from './files/Advertiser/YAdvertiserSalesPage';
 
 
+import YAdminProductsPage from './files/Admin/YAdminProductsPage';
+import AddProductModal from './files/Admin/AddProductModal';
+
 import GuestItinerariesPage from './files/GuestItinerariesPage';
 
 
@@ -217,7 +220,8 @@ function App() {
           <Route path="/YAdvertiserDashboard" element={<YAdvertiserDashboard />} /> 
           <Route path="/YAdvertiserActivitiesPage" element={<YAdvertiserActivitiesPage />} /> 
           <Route path="/YAdvertiserSalesPage" element={<YAdvertiserSalesPage />} />
-         
+          <Route path="/YAdminProductsPage" element={<YAdminProductsPage />} />
+          <Route path="/AddProductModal" element={<AddProductModal />} />
          
 
 
