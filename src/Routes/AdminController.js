@@ -75,45 +75,94 @@ const createNewTourismGoverner = async(req,res) => {
     }
  }
 
- const createNewProduct = async(req,res) => {
-   //Destructure Name, Email, Age from the request body
-   const{Name,Description,Price,Quantity, Seller,Picture} = req.body;
-   try{
-      const existingSeller = await NewAcceptedSellerModel.findOne({ Username: Seller });
-       if (existingSeller) {
-         //add a new user to the database with Name, Email and Age
-         const user = await NewProduct.create({Name,Description,Price,Quantity, Seller,Picture, Reviews: "",Ratings: 0,Sales: 0,TotalPriceOfSales: 0});
-         //Send the created use as a JSON response with a 200 OK status 
-         res.status(200).json({msg:"New Product is created!"});
-         //res.status(200).json(user);
-       }
-      else{
-         res.status(400).json({msg:"This seller does not exist!"});
+//  const createNewProduct = async(req,res) => {
+//    //Destructure Name, Email, Age from the request body
+//    const{Name,Description,Price,Quantity, Seller,Picture} = req.body;
+//    try{
+//       const existingSeller = await NewAcceptedSellerModel.findOne({ Username: Seller });
+//        if (existingSeller) {
+//          //add a new user to the database with Name, Email and Age
+//          const user = await NewProduct.create({Name,Description,Price,Quantity, Seller,Picture, Reviews: "",Ratings: 0,Sales: 0,TotalPriceOfSales: 0});
+//          //Send the created use as a JSON response with a 200 OK status 
+//          res.status(200).json({msg:"New Product is created!"});
+//          //res.status(200).json(user);
+//        }
+//       else{
+//          res.status(400).json({msg:"This seller does not exist!"});
+//       }
+//    } catch (error){
+//       //If an error occurs, send a 400 Bad Request status with the error message
+//       res.status(400).json({ error: error.message});
+//    }
+// }
+
+const createNewProduct = async (req, res) => {
+    const { Name, Description, Price, Quantity, Seller, Picture } = req.body;
+    try {
+      if (!Name || !Description || !Price || !Quantity || !Seller || !Picture) {
+        return res.status(400).json({ error: "All fields are required" });
       }
-   } catch (error){
-      //If an error occurs, send a 400 Bad Request status with the error message
-      res.status(400).json({ error: error.message});
-   }
-}
+      const existingSeller = await NewAcceptedSellerModel.findOne({ Username: Seller });
+      if (!existingSeller) {
+        return res.status(400).json({ error: "Seller does not exist" });
+      }
+      const newProduct = await NewProduct.create({
+        Name,
+        Description,
+        Price,
+        Quantity,
+        Seller,
+        Picture,
+        Reviews: [],
+        Ratings: 0,
+        Sales: 0,
+        TotalPriceOfSales: 0,
+      });
+      res.status(201).json(newProduct);
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  };
+  
 
 const editProduct = async (req, res) => {
-   const {ProductID} = req.body;  // Extract the _id from the request body
-   //update a user in the database
-   try{
+    const { Name } = req.body; // Extract the Name from the request body
+  
+    try {
+      // Ensure Seller cannot be updated
       if (req.body.Seller) {
-         delete req.body.Seller;
-         return res.status(404).json({ msg: "Cannot update seller" });
+        delete req.body.Seller;
+        return res.status(404).json({ msg: "Cannot update seller" });
       }
-       const updatedProduct = await NewProduct.findByIdAndUpdate(ProductID, req.body, {
-         new: true,            // Return the updated document
-         runValidators: true,  // Ensure the updates respect schema validation rules
-       });
-       res.status(200).json(updatedProduct);
-     } catch (error) {
-       // Send a 400 error with the error message if something goes wrong
-       res.status(400).json({ error: error.message });
-     }
-   };
+  
+      // Check if Name is provided
+      if (!Name) {
+        return res.status(400).json({ msg: "Product Name is required" });
+      }
+  
+      // Find and update the product by Name
+      const updatedProduct = await NewProduct.findOneAndUpdate(
+        { Name }, // Query by Name
+        req.body, // Update with request body
+        {
+          new: true, // Return the updated document
+          runValidators: true, // Validate the updates
+        }
+      );
+  
+      // If no product is found, send a 404 response
+      if (!updatedProduct) {
+        return res.status(404).json({ msg: "Product not found" });
+      }
+  
+      // Return the updated product
+      res.status(200).json(updatedProduct);
+    } catch (error) {
+      // Send a 400 error with the error message if something goes wrong
+      res.status(400).json({ error: error.message });
+    }
+  };
+  
 
 const acceptSeller = async (req, res) => {
    const {SellerUsername} = req.body;
