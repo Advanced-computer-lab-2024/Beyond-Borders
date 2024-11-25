@@ -985,7 +985,7 @@ const [errorMessage, setErrorMessage] = useState('');
         {activitiesOpen && (
             <Box sx={{ display: 'flex', flexDirection: 'column', marginLeft: sidebarOpen ? '20px' : '0px' }}>
             <Button
-            onClick={() => navigate('/upcoming-activities')}
+            onClick={() => navigate('/TouristUpcomingActivities')}
             sx={{
                 ...styles.sidebarButton,
                 fontSize: '14px',
@@ -1047,7 +1047,7 @@ const [errorMessage, setErrorMessage] = useState('');
   {itinerariesOpen && (
     <Box sx={{ display: 'flex', flexDirection: 'column', marginLeft: sidebarOpen ? '20px' : '0px' }}>
       <Button
-        onClick={() => navigate('/upcoming-itineraries')}
+        onClick={() => navigate('/TouristUpcomingItineraries')}
         sx={{
           ...styles.sidebarButton,
           fontSize: '14px',
@@ -1106,7 +1106,7 @@ const [errorMessage, setErrorMessage] = useState('');
   {historicalPlacesOpen && (
     <Box sx={{ display: 'flex', flexDirection: 'column', marginLeft: sidebarOpen ? '20px' : '0px' }}>
       <Button
-        onClick={() => navigate('/upcoming-historical-places')}
+        onClick={() => navigate('/TouristUpcomingHP')}
         sx={{
           ...styles.sidebarButton,
           fontSize: '14px',
@@ -1167,7 +1167,7 @@ const [errorMessage, setErrorMessage] = useState('');
     <Box sx={{ display: 'flex', flexDirection: 'column', marginLeft: sidebarOpen ? '20px' : '0px' }}>
       {/* Upcoming Museums */}
       <Button
-        onClick={() => navigate('/upcoming-museums')}
+        onClick={() => navigate('/TouristUpcomingMuseums')}
         sx={{
           ...styles.sidebarButton,
           fontSize: '14px',
