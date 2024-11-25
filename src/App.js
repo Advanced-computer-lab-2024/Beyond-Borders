@@ -167,7 +167,7 @@ app.get("/filterActivitiesGuest", filterActivitiesGuest);
 app.post("/api/getMuseumsByTagGuest", getMuseumsByTagGuest);
 app.post("/api/getMuseumsByTagTourist", getMuseumsByTagTourist);
 app.post("/api/getHistoricalPlacesByTagGuest", getHistoricalPlacesByTagGuest);
-app.get("/getHistoricalPlacesByTagTourist", getHistoricalPlacesByTagTourist);
+app.post("/getHistoricalPlacesByTagTourist", getHistoricalPlacesByTagTourist);
 
 app.get("/api/ViewAllUpcomingActivities", ViewAllUpcomingActivities);
 app.get("/api/ViewAllUpcomingActivitiesGuest", ViewAllUpcomingActivitiesGuest);
