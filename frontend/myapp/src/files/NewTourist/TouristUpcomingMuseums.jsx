@@ -607,7 +607,7 @@ const [expanded, setExpanded] = useState({});
   {itinerariesOpen && (
     <Box sx={{ display: 'flex', flexDirection: 'column', marginLeft: sidebarOpen ? '20px' : '0px' }}>
       <Button
-        onClick={() => navigate('/upcoming-itineraries')}
+        onClick={() => navigate('/TouristUpcomingItineraries')}
         sx={{
           ...styles.sidebarButton,
           fontSize: '14px',
@@ -666,7 +666,7 @@ const [expanded, setExpanded] = useState({});
   {historicalPlacesOpen && (
     <Box sx={{ display: 'flex', flexDirection: 'column', marginLeft: sidebarOpen ? '20px' : '0px' }}>
       <Button
-        onClick={() => navigate('/upcoming-historical-places')}
+        onClick={() => navigate('/TouristUpcomingHP')}
         sx={{
           ...styles.sidebarButton,
           fontSize: '14px',
@@ -1113,7 +1113,8 @@ const [expanded, setExpanded] = useState({});
               marginTop: '30px',
               fontWeight: "bold",
               marginRight: "8px",
-              fontSize: "16px",
+              marginLeft: "20px",
+              fontSize: "18px",
             }}
           >
             Description:
@@ -1123,8 +1124,9 @@ const [expanded, setExpanded] = useState({});
           <Typography
             variant="body2"
             sx={{
-              fontSize: '16px',
+              fontSize: '18px',
               textAlign: 'left',
+              marginLeft: "20px",
             }}
           >
             {museum.description?.length > 50
@@ -1135,7 +1137,7 @@ const [expanded, setExpanded] = useState({});
                     variant="text"
                     size="small"
                     onClick={() => toggleReadMore(index)}
-                    sx={{ fontSize: '14px', textTransform: 'none', padding: 0, marginLeft: 1 , color: '#8088a3' }}
+                    sx={{ fontSize: '18px', textTransform: 'none', padding: 0, marginLeft: 1 , color: '#8088a3', fontWeight: 'bold', }}
                   >
                     {expanded[index] ? 'Read Less' : 'Read More'}
                   </Button>
