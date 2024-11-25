@@ -1027,7 +1027,7 @@ function TouristCompletedHPs() {
         alignItems: 'right',           // Align items vertically in the center
         marginBottom: '20px',
         marginTop: '20px',
-        marginLeft: '1600px',      // Add margin to the right for consistent spacing
+        marginLeft: '1620px',      // Add margin to the right for consistent spacing
     }}
   >
    
@@ -1093,7 +1093,7 @@ function TouristCompletedHPs() {
     onChange={(e) => setCurrency(e.target.value)}
     variant="outlined"
     sx={{
-      width: '150px',
+      width: '130px',
       '& .MuiOutlinedInput-root': {
         '& fieldset': {
           borderColor: '#192959', // Default border color
