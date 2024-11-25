@@ -45,6 +45,7 @@ import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import IosShareIcon from '@mui/icons-material/IosShare';
 import ShareIcon from '@mui/icons-material/Share';
 import LanguageIcon from '@mui/icons-material/Language';
+import StarHalfIcon from '@mui/icons-material/StarHalf';
 import axios from 'axios';
 
 function TouristCompletedMuseums() {
@@ -86,6 +87,10 @@ const [currentMuseumName, setCurrentMuseumName] = useState(''); // Trac
 const [convertedPrices, setConvertedPrices] = useState({});
 const [currency, setCurrency] = useState('EGP'); // Default currency is EGP
 const [expanded, setExpanded] = useState({});
+
+const [commentModalOpen, setCommentModalOpen] = useState(false);
+const [currentMuseumId, setCurrentMuseumId] = useState(null);
+const [commentText, setCommentText] = useState('');
 
   const navigate = useNavigate();
 
@@ -323,28 +328,122 @@ const fetchMuseums = async () => {
   
   
 
-  const renderRating = (rating) => {
-    const roundedRating = Math.round(rating * 10) / 10;
-    const fullStars = Math.floor(rating);
-    const halfStars = roundedRating > fullStars ? 1 : 0;
+  const renderRating = (museumId, userRating, averageRating, handleRatingClick) => {
+    const displayRating = userRating || averageRating || 0; // Use user rating first, then average
+    const fullStars = Math.floor(displayRating);
+    const halfStars = displayRating > fullStars ? 1 : 0;
     const emptyStars = 5 - fullStars - halfStars;
   
     return (
-      <Box sx={styles.ratingContainer}>
-        <Typography variant="body2" sx={{ fontSize: '24px', position: 'absolute', right: '170px', bottom: '2px' }}>
-          {roundedRating}
+      <Box sx={styles.ratingContainer} display="flex" alignItems="center">
+        {/* Display Rating Number */}
+        <Typography
+          variant="body2"
+          sx={{
+            fontSize: '18px',
+            fontWeight: 'bold',
+            marginRight: '10px', // Spacing between number and stars
+          }}
+        >
+          {displayRating.toFixed(2)}
         </Typography>
+  
+        {/* Render Full Stars */}
         {[...Array(fullStars)].map((_, index) => (
-          <StarIcon key={`full-${index}`} sx={{ fontSize: '32px' }} />
+          <StarIcon
+            key={`full-${index}`}
+            sx={{ fontSize: '32px', cursor: 'pointer', color: '#192959' }}
+            onClick={() => handleRatingClick(museumId, index + 1)}
+          />
         ))}
+  
+        {/* Render Half Stars */}
         {[...Array(halfStars)].map((_, index) => (
-          <StarIcon key={`half-${index}`} sx={{ fontSize: '32px' }} />
+          <StarHalfIcon
+            key={`half-${index}`}
+            sx={{ fontSize: '32px', cursor: 'pointer', color: '#192959' }}
+            onClick={() => handleRatingClick(museumId, fullStars + 1)}
+          />
         ))}
+  
+        {/* Render Empty Stars */}
         {[...Array(emptyStars)].map((_, index) => (
-          <StarBorderIcon key={`empty-${index}`} sx={{ fontSize: '32px' }} />
+          <StarBorderIcon
+            key={`empty-${index}`}
+            sx={{ fontSize: '32px', cursor: 'pointer', color: '#192959' }}
+            onClick={() => handleRatingClick(museumId, fullStars + index + 1)}
+          />
         ))}
       </Box>
     );
+  };
+  
+  
+
+  const handleRatingClick = async (museumId, rating) => {
+    const username = localStorage.getItem('username');
+    const museum = museums.find((museum) => museum._id === museumId);
+  
+    if (!username || !museum) {
+      alert('User not logged in or museum not found.');
+      return;
+    }
+  
+    try {
+      const response = await axios.put('/rateCompletedMuseum', {
+        touristUsername: username,
+        museumName: museum.name,
+        rating,
+      });
+  
+      const { newAverageRating } = response.data;
+  
+      // Update state: show user rating and "Add Comment" button
+      setMuseums((prevMuseums) =>
+        prevMuseums.map((mus) =>
+            mus._id === museumId
+            ? { ...mus, userRating: rating, averageRating: newAverageRating, showCommentButton: true }
+            : mus
+        )
+      );
+    } catch (error) {
+      console.error('Error submitting rating:', error);
+      alert(error.response?.data?.msg || 'Failed to submit rating.');
+    }
+  };
+  
+
+  const handleCommentSubmit = async () => {
+    const username = localStorage.getItem('username');
+    const museum = museums.find((museum) => museum._id === currentMuseumId);
+  
+    if (!username || !museum) {
+      alert('User not logged in or museum not found.');
+      return;
+    }
+  
+    try {
+      const response = await axios.put('/commentOnMuseum', {
+        touristUsername: username,
+        museumName: museum.name,
+        comment: commentText,
+      });
+  
+      const { comments } = response.data;
+  
+      // Update the comments in the activity state
+      setMuseums((prevMuseums) =>
+        prevMuseums.map((mus) =>
+          mus._id === currentMuseumId ? { ...mus, Comments: comments, showCommentButton: true } : mus
+        )
+      );
+  
+      setCommentModalOpen(false); // Close the modal
+      setCommentText(''); // Clear the comment input
+    } catch (error) {
+      console.error('Error submitting comment:', error);
+      alert(error.response?.data?.msg || 'Failed to submit comment.');
+    }
   };
   
 
@@ -973,6 +1072,7 @@ const fetchMuseums = async () => {
         sx={{
           ...styles.museumCard,
           position: 'relative',
+          backgroundColor: 'white',
         }}
       >
         {/* Left Column: Museum Details */}
@@ -1073,11 +1173,11 @@ const fetchMuseums = async () => {
             display: 'flex',
             flexDirection: 'column',
             gap: '10px',
-            paddingRight: '100px', // Add padding to avoid overlap with buttons
+            paddingRight: '100px',
             alignItems: 'flex-start',
           }}
         >
-          {/* Description Label */}
+          {/* Description */}
           <Typography
             variant="body2"
             sx={{
@@ -1091,7 +1191,6 @@ const fetchMuseums = async () => {
             Description:
           </Typography>
 
-          {/* Description Content */}
           <Typography
             variant="body2"
             sx={{
@@ -1118,9 +1217,46 @@ const fetchMuseums = async () => {
           </Typography>
         </Box>
 
-        {/* Ratings */}
+        {/* Ratings and Add Comment */}
         <Box sx={styles.museumRating}>
-          {renderRating(museum.Ratings || 0)}
+          {renderRating(
+            museum._id,
+            museum.userRating,
+            museum.Ratings,
+            handleRatingClick
+          )}
+
+          {/* Reserve space for the Add Comment button */}
+          <Box
+            sx={{
+              height: '24px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'flex-start',
+            }}
+          >
+            {museum.showCommentButton && (
+              <Button
+                variant="text"
+                onClick={() => {
+                  setCurrentMuseumId(museum._id);
+                  setCommentModalOpen(true);
+                }}
+                startIcon={<AddIcon />}
+                sx={{
+                  fontSize: '14px',
+                  padding: '2px 6px',
+                  color: '#192959',
+                  textTransform: 'none',
+                  '&:hover': {
+                    backgroundColor: 'rgba(25, 41, 89, 0.1)',
+                  },
+                }}
+              >
+                Add Comment
+              </Button>
+            )}
+          </Box>
         </Box>
       </Box>
 
@@ -1128,7 +1264,6 @@ const fetchMuseums = async () => {
       <Box sx={styles.commentsSection}>
         {museum.Comments && museum.Comments.length > 0 ? (
           <>
-            {/* Show the scroll left button only if there's content to scroll back */}
             {scrollPositions[index] > 0 && (
               <IconButton
                 sx={styles.scrollButton}
@@ -1155,7 +1290,6 @@ const fetchMuseums = async () => {
               ))}
             </Box>
 
-            {/* Show the scroll right button only if there are 3 or more comments */}
             {museum.Comments.length >= 3 && (
               <IconButton
                 sx={styles.scrollButton}
@@ -1172,6 +1306,7 @@ const fetchMuseums = async () => {
     </Box>
   ))}
 </Box>;
+
 
 
       <Box sx={styles.activitiesContainer}>
@@ -1333,6 +1468,61 @@ const fetchMuseums = async () => {
         sx={{ backgroundColor: '#192959', color: '#fff' }}
       >
         Apply
+      </Button>
+    </Box>
+  </Box>
+</Modal>
+
+<Modal
+  open={commentModalOpen}
+  onClose={() => setCommentModalOpen(false)}
+  aria-labelledby="add-comment-title"
+  aria-describedby="add-comment-description"
+>
+  <Box
+    sx={{
+      position: 'absolute',
+      top: '50%',
+      left: '50%',
+      transform: 'translate(-50%, -50%)',
+      width: 400,
+      bgcolor: 'background.paper',
+      boxShadow: 24,
+      p: 4,
+      borderRadius: '10px',
+    }}
+  >
+    <Typography id="add-comment-title" variant="h6" component="h2" sx={{ marginBottom: '20px' }}>
+      Add Comment
+    </Typography>
+    <TextField
+      fullWidth
+      multiline
+      rows={4}
+      placeholder="Write your comment here..."
+      value={commentText}
+      onChange={(e) => setCommentText(e.target.value)}
+      variant="outlined"
+    />
+    <Box sx={{ display: 'flex', justifyContent: 'flex-end', marginTop: '20px' }}>
+      <Button
+        variant="outlined"
+        onClick={() => setCommentModalOpen(false)}
+        sx={{
+          color: '#192959',
+          borderColor: '#192959',
+          '&:hover': { backgroundColor: 'rgba(25, 41, 89, 0.1)', borderColor: '#192959' },
+          marginRight: '10px',
+        }}
+      >
+        Cancel
+      </Button>
+      <Button
+        variant="contained"
+        onClick={handleCommentSubmit}
+        sx={{ backgroundColor: '#192959', color: '#fff' }}
+      >
+        Submit
       </Button>
     </Box>
   </Box>

@@ -1183,7 +1183,7 @@ const [errorMessage, setErrorMessage] = useState('');
       
       {/* Visited Museums */}
       <Button
-        onClick={() => navigate('/visited-museums')}
+        onClick={() => navigate('/TouristCompletedMuseums')}
         sx={{
           ...styles.sidebarButton,
           fontSize: '14px',

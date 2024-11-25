@@ -831,7 +831,7 @@ const [expanded, setExpanded] = React.useState({});
       
       {/* Visited Museums */}
       <Button
-        onClick={() => navigate('/visited-museums')}
+        onClick={() => navigate('/TouristCompletedMuseums')}
         sx={{
           ...styles.sidebarButton,
           fontSize: '14px',

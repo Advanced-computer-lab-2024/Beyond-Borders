@@ -863,7 +863,7 @@ const [commentText, setCommentText] = useState('');
     <Box sx={{ display: 'flex', flexDirection: 'column', marginLeft: sidebarOpen ? '20px' : '0px' }}>
       {/* Upcoming Museums */}
       <Button
-        onClick={() => navigate('/upcoming-museums')}
+        onClick={() => navigate('/TouristUpcomingMuseums')}
         sx={{
           ...styles.sidebarButton,
           fontSize: '14px',
@@ -877,7 +877,7 @@ const [commentText, setCommentText] = useState('');
       
       {/* Visited Museums */}
       <Button
-        onClick={() => navigate('/visited-museums')}
+        onClick={() => navigate('/TouristCompletedMuseums')}
         sx={{
           ...styles.sidebarButton,
           fontSize: '14px',
