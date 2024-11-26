@@ -239,7 +239,7 @@ const createTourist = async (req, res) => {
     }*/
 
       
-      const searchProductTourist = async (req, res) => {
+      /*const searchProductTourist = async (req, res) => {
          const {ProductName} = req.body;
          try {
              const fetchedProduct = await NewProduct.findOne({Name: ProductName}); //Fetch all categories
@@ -247,7 +247,37 @@ const createTourist = async (req, res) => {
          } catch (error) {
             res.status(200).json({ msg: "There is no product with this name!" });
          }
-      };
+      };*/
+
+      const searchProductTourist = async (req, res) => {
+        const { ProductName } = req.body; // Extract the product name from the request body
+    
+        // Validate the input
+        if (!ProductName) {
+            return res.status(400).json({ msg: "Product name is required." });
+        }
+    
+        try {
+            // Create a case-insensitive regex for product name matching
+            const regex = new RegExp(ProductName, 'i'); // 'i' for case-insensitive matching
+    
+            // Construct the query to search for the product by name
+            const query = { Name: regex };
+    
+            // Fetch the product based on the constructed query
+            const fetchedProduct = await NewProduct.find(query);
+    
+            if (fetchedProduct.length === 0) {
+                return res.status(404).json({ msg: "No product found for the given name!" });
+            }
+    
+            res.status(200).json(fetchedProduct); // Respond with the fetched product(s)
+        } catch (error) {
+            console.error("Error fetching product:", error);
+            res.status(500).json({ msg: "An error occurred while fetching the product." });
+        }
+    };
+    
 
       /*const filterUpcomingActivities = async (req, res) => {
         const { category, price, date } = req.query; // Get filters from the request query
@@ -5451,6 +5481,31 @@ const addToWishList = async (req, res) => {
   }
 };
 
+const checkIfInWishlist = async (req, res) => {
+  const { touristUsername, productName } = req.query; // Retrieve parameters from the query
+
+  try {
+    // Find the tourist by username
+    const tourist = await TouristModel.findOne({ Username: touristUsername });
+
+    if (!tourist) {
+      return res.status(404).json({ error: "Tourist not found" });
+    }
+
+    // Check if the product is in the wishlist
+    const isInWishlist = tourist.WishList.some(
+      (item) => item.productName === productName
+    );
+
+    // Return the result
+    res.status(200).json({ inWishlist: isInWishlist });
+  } catch (error) {
+    console.error("Error checking wishlist:", error);
+    res.status(500).json({ error: "Failed to check wishlist status" });
+  }
+};
+
+
 const viewMyWishlist = async (req, res) => {
   const { touristUsername } = req.query;
 
@@ -6567,4 +6622,4 @@ const sendUpcomingEventNotifications = async () => {
 module.exports = {createTourist, getTourist, updateTourist, searchProductTourist, filterActivities, filterProductByPriceTourist, ActivityRating, sortProductsDescendingTourist, sortProductsAscendingTourist, ViewAllUpcomingActivities, ViewAllUpcomingMuseumEventsTourist, getMuseumsByTagTourist, getHistoricalPlacesByTagTourist, ViewAllUpcomingHistoricalPlacesEventsTourist,viewProductsTourist, sortActivitiesPriceAscendingTourist, sortActivitiesPriceDescendingTourist, sortActivitiesRatingAscendingTourist, sortActivitiesRatingDescendingTourist, loginTourist, ViewAllUpcomingItinerariesTourist, sortItinerariesPriceAscendingTourist, sortItinerariesPriceDescendingTourist, filterItinerariesTourist, ActivitiesSearchAll, ItinerarySearchAll, MuseumSearchAll, HistoricalPlacesSearchAll, ProductRating, createComplaint, getComplaintsByTouristUsername,ChooseActivitiesByCategoryTourist,bookActivity,bookItinerary,bookMuseum,bookHistoricalPlace, ratePurchasedProduct, addPurchasedProducts, reviewPurchasedProduct, addCompletedItinerary, rateTourGuide, commentOnTourGuide, rateCompletedItinerary, commentOnItinerary, addCompletedActivities, addCompletedMuseumEvents, addCompletedHPEvents, rateCompletedActivity, rateCompletedMuseum, rateCompletedHP, commentOnActivity, commentOnMuseum, commentOnHP,deleteBookedActivity,deleteBookedItinerary,deleteBookedMuseum,deleteBookedHP,payActivity,updateWallet,updatepoints,payItinerary,payMuseum,payHP,redeemPoints, convertEgp, fetchFlights,viewBookedItineraries, requestDeleteAccountTourist,convertCurr,getActivityDetails,getHistoricalPlaceDetails,getMuseumDetails,GetCopyLink, bookFlight
   ,fetchHotelsByCity, fetchHotels, bookHotel,bookTransportation,addPreferences, viewMyCompletedActivities, viewMyCompletedItineraries, viewMyCompletedMuseums, viewMyCompletedHistoricalPlaces,viewMyBookedActivities,viewMyBookedItineraries,viewMyBookedMuseums,viewMyBookedHistoricalPlaces,viewTourGuidesCompleted,viewAllTransportation, getItineraryDetails, viewPreferenceTags,viewPurchasedProducts,viewBookedActivities,viewMyBookedTransportation,addBookmark
 , payActivityByCard, payItineraryByCard, payMuseumByCard, payHPByCard, sendOtp, loginTouristOTP,viewBookmarks, addToWishList, viewMyWishlist, removeFromWishlist, addToCartFromWishlist, addToCart, removeFromCart, changeProductQuantityInCart, checkout, addDeliveryAddress, viewDeliveryAddresses,chooseDeliveryAddress,payOrderWallet,payOrderCash,viewOrderDetails,cancelOrder,cancelOrder,markOrdersAsDelivered,viewAllOrders,sendUpcomingEventNotifications,payOrderStripe
-,payItineraryStripe,payActivityStripe,payMuseumStripe,payHPStripe, fetchCityCode};
+,payItineraryStripe,payActivityStripe,payMuseumStripe,payHPStripe, fetchCityCode, checkIfInWishlist};

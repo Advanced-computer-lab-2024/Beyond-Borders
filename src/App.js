@@ -10,7 +10,7 @@ require("dotenv").config(); //load enviironment variables
 //const {createUser,getUsers, updateUser, deleteUser} = require("./Routes/userController");
 const {createTourist,getTourist, updateTourist, searchProductTourist, filterActivities, filterProductByPriceTourist, ActivityRating, sortProductsDescendingTourist, sortProductsAscendingTourist, ViewAllUpcomingActivities, ViewAllUpcomingMuseumEventsTourist, getMuseumsByTagTourist, getHistoricalPlacesByTagTourist, ViewAllUpcomingHistoricalPlacesEventsTourist,viewProductsTourist, sortActivitiesPriceAscendingTourist, sortActivitiesPriceDescendingTourist, sortActivitiesRatingAscendingTourist, sortActivitiesRatingDescendingTourist, loginTourist, ViewAllUpcomingItinerariesTourist, sortItinerariesPriceAscendingTourist, sortItinerariesPriceDescendingTourist, filterItinerariesTourist,ActivitiesSearchAll, ItinerarySearchAll, MuseumSearchAll, HistoricalPlacesSearchAll, ProductRating, createComplaint, getComplaintsByTouristUsername,ChooseActivitiesByCategoryTourist,bookActivity,bookItinerary,bookMuseum,bookHistoricalPlace, ratePurchasedProduct, addPurchasedProducts, reviewPurchasedProduct, addCompletedItinerary, rateTourGuide, commentOnTourGuide, rateCompletedItinerary, commentOnItinerary, addCompletedActivities, addCompletedMuseumEvents, addCompletedHPEvents, rateCompletedActivity, rateCompletedMuseum, rateCompletedHP, commentOnActivity, commentOnMuseum, commentOnHP,deleteBookedActivity,deleteBookedItinerary,deleteBookedMuseum,deleteBookedHP,payActivity,updateWallet,updatepoints,payItinerary,payMuseum,payHP,redeemPoints, convertEgp, fetchFlights,viewBookedItineraries, requestDeleteAccountTourist,convertCurr,getActivityDetails,getHistoricalPlaceDetails,getMuseumDetails,GetCopyLink, bookFlight, fetchHotelsByCity, fetchHotels, 
   bookHotel,bookTransportation,addPreferences, viewMyCompletedActivities, viewMyCompletedItineraries, viewMyCompletedMuseums, viewMyCompletedHistoricalPlaces,viewMyBookedActivities,viewMyBookedItineraries,viewMyBookedMuseums,viewMyBookedHistoricalPlaces,viewTourGuidesCompleted,viewAllTransportation, getItineraryDetails, viewPreferenceTags,viewPurchasedProducts,viewBookedActivities,viewMyBookedTransportation, payActivityByCard, payItineraryByCard, payMuseumByCard, payHPByCard, sendOtp, loginTouristOTP,addBookmark,viewBookmarks, addToWishList, viewMyWishlist, removeFromWishlist, addToCartFromWishlist, addToCart, removeFromCart, changeProductQuantityInCart, checkout,
-  addDeliveryAddress, viewDeliveryAddresses,chooseDeliveryAddress,payOrderWallet,payOrderCash,viewOrderDetails,cancelOrder,markOrdersAsDelivered,viewAllOrders,sendUpcomingEventNotifications,payOrderStripe,payItineraryStripe,payActivityStripe,payMuseumStripe,payHPStripe, fetchCityCode} = require("./Routes/TouristController");
+  addDeliveryAddress, viewDeliveryAddresses,checkIfInWishlist, chooseDeliveryAddress,payOrderWallet,payOrderCash,viewOrderDetails,cancelOrder,markOrdersAsDelivered,viewAllOrders,sendUpcomingEventNotifications,payOrderStripe,payItineraryStripe,payActivityStripe,payMuseumStripe,payHPStripe, fetchCityCode} = require("./Routes/TouristController");
 const {createUnregisteredAdvertiser} = require("./Routes/UnregisteredAdvertiserController");
 
 const {createUnregisteredTranspAdvertiser} = require("./Routes/UnregisteredTranspAdvertiserController");
@@ -149,7 +149,7 @@ app.post("/api/deleteTag", deleteTag);
 app.post("/deleteAccount", deleteAccount);
 app.get("/api/searchProductAdmin", searchProductAdmin);
 app.get("/searchProductSeller", searchProductSeller);
-app.get("/searchProductTourist", searchProductTourist);
+app.post("/api/searchProductTourist", searchProductTourist);
 app.put("/api/updateTourGuideProfile",uploadImage.single("Logo"), updateTourGuideProfile);
 app.get("/filterProductByPriceAdmin", filterProductByPriceAdmin);
 app.post("/api/filterProductByPriceTourist", filterProductByPriceTourist);
@@ -391,6 +391,8 @@ app.post("/addToWishList",addToWishList);
 app.get("/viewMyWishlist",viewMyWishlist);
 app.post("/removeFromWishlist",removeFromWishlist);
 app.post("/addToCartFromWishlist",addToCartFromWishlist);
+app.get("/api/checkIfInWishlist",checkIfInWishlist);
+
 app.post("/addToCart",addToCart);
 app.post("/removeFromCart",removeFromCart);
 app.post("/changeProductQuantityInCart",changeProductQuantityInCart);
