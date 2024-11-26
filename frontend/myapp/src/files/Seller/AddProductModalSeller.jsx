@@ -10,6 +10,8 @@ import {
 } from "@mui/material";
 import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
+const username = localStorage.getItem('username') || 'User'; // Retrieve username from localStorage
+
 
 const styles = {
   modalContent: {
@@ -38,7 +40,7 @@ function AddProductModalSeller({ open, handleClose, handleCreateProduct }) {
     Description: "",
     Price: "",
     Quantity: "",
-    Seller: "",
+    Seller: username,
     Picture: "",
   });
   const [errorMessage, setErrorMessage] = useState("");
@@ -49,7 +51,7 @@ function AddProductModalSeller({ open, handleClose, handleCreateProduct }) {
   };
 
   const handleSubmit = () => {
-    if (!newProduct.Name || !newProduct.Description || !newProduct.Price || !newProduct.Quantity || !newProduct.Seller) {
+    if (!newProduct.Name || !newProduct.Description || !newProduct.Price || !newProduct.Quantity ) {
       setErrorMessage("All fields are required!");
       return;
     }
@@ -59,7 +61,7 @@ function AddProductModalSeller({ open, handleClose, handleCreateProduct }) {
       Description: "",
       Price: "",
       Quantity: "",
-      Seller: "",
+      Seller: username,
       Picture: "",
     });
     setErrorMessage("");
@@ -111,14 +113,14 @@ function AddProductModalSeller({ open, handleClose, handleCreateProduct }) {
           onChange={handleInputChange}
           sx={{ mb: 2 }}
         />
-        <TextField
+        {/* <TextField
           name="Seller"
           label="Seller Username"
           fullWidth
           value={newProduct.Seller}
           onChange={handleInputChange}
           sx={{ mb: 2 }}
-        />
+        /> */}
         <TextField
           name="Picture"
           label="Picture URL"

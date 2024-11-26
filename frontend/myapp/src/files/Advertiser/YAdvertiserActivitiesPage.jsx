@@ -482,8 +482,9 @@ const saveActivity = async (activity) => {
   onClick={() => setIsActivityModalOpen(true)}
   sx={{
     backgroundColor: "#192959",
-    color: "#fff",
-    "&:hover": { backgroundColor: "#4b5a86" },
+    color: "#e6e7ed",
+    fontWeight:"bold",
+    "&:hover": { color: "#192959",backgroundColor: "#e6e7ed" },
   }}
   startIcon={<AddIcon />}
 >

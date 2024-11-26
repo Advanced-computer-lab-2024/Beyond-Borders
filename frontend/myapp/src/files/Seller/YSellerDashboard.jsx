@@ -17,6 +17,8 @@ import CloseIcon from '@mui/icons-material/Clear';
 import EditIcon from '@mui/icons-material/Edit';
 import SaveIcon from '@mui/icons-material/Save';
 import PersonIcon from '@mui/icons-material/Person'; // Icon for generic user type
+import LocalOfferIcon from '@mui/icons-material/LocalOffer'; // Icon for generic user type
+
 import axios from 'axios';
 import { Description } from '@mui/icons-material';
 
@@ -424,8 +426,12 @@ const handleAccountDeletion = async () => {
           {sidebarOpen && 'Products'}
         </Button> */}
         <Button onClick={() => navigate('/YSellerProductsPage')} sx={styles.sidebarButton}>
-          <LocalActivityIcon sx={styles.icon} />
+          <StorefrontIcon sx={styles.icon} />
           {sidebarOpen && ' My Products'}
+        </Button>
+        <Button onClick={() => navigate('/YSellerAllProductsPage')} sx={styles.sidebarButton}>
+          <LocalOfferIcon sx={styles.icon} />
+          {sidebarOpen && ' All Products'}
         </Button>
         <Button onClick={() => navigate('/YSellerSalesPage')} sx={styles.sidebarButton}>
           <AssignmentIcon sx={styles.icon} />

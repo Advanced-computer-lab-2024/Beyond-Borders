@@ -104,6 +104,7 @@ import YSellerDashboard from './files/Seller/YSellerDashboard';
 import YSellerProductsPage from './files/Seller/YSellerProductsPage';
 import YSellerSalesPage from './files/Seller/YSellerSalesPage';
 import AddProductModalSeller from './files/Seller/AddProductModalSeller';
+import YSellerAllProductsPage from './files/Seller/YSellerAllProductsPage';
 
 function App() {
   return (
@@ -234,6 +235,7 @@ function App() {
           <Route path="/YSellerProductsPage" element={<YSellerProductsPage />} />
           <Route path="/YSellerSalesPage" element={<YSellerSalesPage />} />
           <Route path="/AddProductModalSeller" element={<AddProductModalSeller />} />
+          <Route path="/YSellerAllProductsPage" element={<YSellerAllProductsPage />} />
 
         </Routes>
       </BrowserRouter>
