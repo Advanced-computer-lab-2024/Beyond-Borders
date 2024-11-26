@@ -744,7 +744,7 @@ const [currency, setCurrency] = useState('EGP'); // Default currency is EGP
     <Box sx={{ display: 'flex', flexDirection: 'column', marginLeft: sidebarOpen ? '20px' : '0px' }}>
       {/* Upcoming Museums */}
       <Button
-        onClick={() => navigate('/upcoming-museums')}
+        onClick={() => navigate('/TouristUpcomingMuseums')}
         sx={{
           ...styles.sidebarButton,
           fontSize: '14px',
@@ -758,7 +758,7 @@ const [currency, setCurrency] = useState('EGP'); // Default currency is EGP
       
       {/* Visited Museums */}
       <Button
-        onClick={() => navigate('/visited-museums')}
+        onClick={() => navigate('/TouristCompletedMuseums')}
         sx={{
           ...styles.sidebarButton,
           fontSize: '14px',

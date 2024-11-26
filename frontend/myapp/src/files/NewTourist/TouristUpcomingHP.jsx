@@ -831,7 +831,7 @@ const [expanded, setExpanded] = React.useState({});
       
       {/* Visited Museums */}
       <Button
-        onClick={() => navigate('/visited-museums')}
+        onClick={() => navigate('/TouristCompletedMuseums')}
         sx={{
           ...styles.sidebarButton,
           fontSize: '14px',
@@ -1228,24 +1228,10 @@ const [expanded, setExpanded] = React.useState({});
       {hp.dateOfEvent ? new Date(hp.dateOfEvent).toLocaleDateString() : 'N/A'}
     </Typography>
     <Box sx={{ ...styles.quickFacts, marginTop: '10px' /* Added spacing above quick facts */ }}>
-      <Box
-        sx={{
-          ...styles.infoContainer,
-          backgroundColor: hp.flagged ? '#b3b8c8' : '#f3f4f6',
-          padding: '10px', // Optional padding for better layout
-        }}
-      >
-        <Typography
-          variant="body2"
-          sx={{
-            fontWeight: 'bold',
-            marginBottom: '5px', // Added spacing between label and tags
-          }}
-        >
-          Tags:
-        </Typography>
-        <Typography variant="body2">{hp.Tags?.join(', ') || 'N/A'}</Typography>
-      </Box>
+    <Box sx={{ ...styles.infoContainer, backgroundColor: '#b3b8c8'  }}>
+                    <Typography variant="body2" sx={{ fontWeight: 'bold' }}>Tags:</Typography>
+                    <Typography variant="body2">{hp.Tags.join(', ')}</Typography>
+                  </Box>
     </Box>
   </Box>
 
