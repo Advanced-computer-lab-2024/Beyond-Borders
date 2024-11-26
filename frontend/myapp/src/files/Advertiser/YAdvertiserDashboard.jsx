@@ -14,6 +14,8 @@ import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import CheckIcon from '@mui/icons-material/Check';
 import ClearIcon from '@mui/icons-material/Clear';
 import CloseIcon from '@mui/icons-material/Clear';
+import EditIcon from '@mui/icons-material/Edit';
+import SaveIcon from '@mui/icons-material/Save';
 import PersonIcon from '@mui/icons-material/Person'; // Icon for generic user type
 import axios from 'axios';
 
@@ -49,6 +51,21 @@ function YAdvertiserDashboard() {
   const [selectedUser, setSelectedUser] = useState(null);
   const [requestToDelete, setRequestToDelete] = useState(null); // For confirmation dialog
 
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+
+
+  //MY PROFILE
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+  const [profileData, setProfileData] = useState({
+    username: '',
+    email: '',
+    password: '',
+    CompanyProfile: '',
+    Hotline: '',
+    Website: '',
+  });
+  const [isEditable, setIsEditable] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const username = localStorage.getItem('username') || 'User'; // Retrieve username from localStorage
   const navigate = useNavigate();
@@ -61,6 +78,74 @@ function YAdvertiserDashboard() {
       fetchDeleteRequests();
     }
   }, [changePasswordModal, deleteRequestsModal]);
+
+  // Fetch profile data
+  const readMyProfile = async () => {
+    const username = localStorage.getItem('username');
+    if (!username) {
+      alert('You need to log in first.');
+      return;
+    }
+
+    try {
+      const response = await axios.get(`/api/AdvertiserProfile`, {
+        params: { username },
+      });
+      const data = response.data.Advertiser;
+
+      setProfileData({
+        username: data.Username || '',
+        email: data.Email || '',
+        password: data.Password || '',
+        CompanyProfile: data.CompanyProfile || '',
+        Hotline: data.Hotline || '',
+        Website: data.Website || '',
+      });
+
+      setIsProfileModalOpen(true);
+    } catch (error) {
+      console.error('Error fetching profile:', error);
+      alert('An error occurred while loading the profile.');
+    }
+  };
+
+  // Save profile data
+//   const saveProfile = async () => {
+//     try {
+//       const response = await axios.put(`/api/updateAdvertiserProfile`, profileData);
+//       if (response.status === 200) {
+//         alert('Profile updated successfully!');
+//         setIsEditable(false);
+//       }
+//     } catch (error) {
+//       console.error('Error updating profile:', error);
+//       alert('Failed to update profile.');
+//     }
+//   };
+
+const saveProfile = async () => {
+    try {
+        const response = await axios.put('/api/updateAdvertiserProfile', {
+            Username: profileData.username, // Ensure this is correct
+            Password: profileData.password,
+            Email: profileData.email,
+            Hotline: profileData.hotline, // Add this if applicable
+            CompanyProfile: profileData.companyProfile, // Add this if applicable
+            Website: profileData.Website, // Add this if applicable
+        });
+
+        if (response.status === 200) {
+            alert('Profile updated successfully!');
+            setIsEditable(false);
+        } else {
+            alert('Failed to update profile.');
+        }
+    } catch (error) {
+        console.error('Error updating profile:', error);
+        alert('Failed to update profile.');
+    }
+};
+
 
   const fetchCurrentPassword = async () => {
     const username = localStorage.getItem('username');
@@ -258,6 +343,27 @@ const closeDeleteRequestsModal = () => {
   setRequestToDelete(null);
 };
 
+const handleAccountDeletion = async () => {
+    const username = localStorage.getItem('username');
+    if (!username) {
+      alert('No username found in local storage.');
+      return;
+    }
+    try {
+      const response = await axios.post('/api/requestDeleteAccountAdvertiser', {Username: username });
+      if (response.status === 200) {
+        alert('Your request for account deletion has been submitted successfully.');
+        //navigate('/'); // Redirect after deletion, if required
+      } else {
+        alert('Failed to submit deletion request.');
+      }
+    } catch (error) {
+      console.error('Error deleting account:', error);
+      alert('An error occurred while submitting your deletion request.');
+    }
+  };
+  
+
   return (
     <Box sx={styles.container}>
       {sidebarOpen && <Box sx={styles.overlay} onClick={() => setSidebarOpen(false)} />}
@@ -273,8 +379,11 @@ const closeDeleteRequestsModal = () => {
           </Typography>
         </Box>
         <Box sx={styles.topMenuRight}>
+          <Button onClick={readMyProfile} sx={styles.menuButton}>
+            My Profile
+          </Button>
           {/* <Button onClick={() => setChangePasswordModal(true)} sx={styles.menuButton}>
-            Change My Password
+            Request Account Deletion
           </Button> */}
           {/* <Box
             onMouseEnter={() => setShowManageAccessDropdown(true)}
@@ -365,6 +474,147 @@ const closeDeleteRequestsModal = () => {
           <Typography variant="h6" sx={styles.text} className="text">Sales Reports</Typography>
         </Box>
       </Box>
+
+      {/* Profile Modal */}
+      <Modal open={isProfileModalOpen} onClose={() => setIsProfileModalOpen(false)}>
+        <Box
+          sx={{
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            width: 400,
+            bgcolor: 'background.paper',
+            p: 4,
+            borderRadius: 1,
+            boxShadow: 24,
+          }}
+        >
+          <Box
+  sx={{
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    mb: 2,
+  }}
+>
+        <Typography variant="h6" component="h2">
+            My Profile
+        </Typography>
+        <Button
+            variant="outlined"
+            onClick={() => {
+            if (isEditable) {
+                saveProfile();
+            }
+            setIsEditable(!isEditable);
+            }}
+            sx={{
+            borderColor: '#192959',
+            color: '#192959',
+            backgroundColor: 'white',
+            '&:hover': {
+                backgroundColor: '#192959',
+                borderColor: 'white',
+                color: 'white',
+            },
+            }}
+            startIcon={isEditable ? <SaveIcon /> : <EditIcon />}
+        >
+            {isEditable ? 'Save Changes' : 'Edit'}
+        </Button>
+        </Box>
+
+          <Box component="form">
+            <TextField
+              fullWidth
+              label="Username"
+              id="username"
+              value={profileData.username}
+              InputProps={{ readOnly: true }}
+              margin="dense"
+            />
+            <TextField
+              fullWidth
+              label="Email Address"
+              id="email"
+              type="email"
+              value={profileData.email}
+              onChange={(e) => setProfileData({ ...profileData, email: e.target.value })}
+              InputProps={{ readOnly: !isEditable }}
+              margin="dense"
+            />
+            <TextField
+              fullWidth
+              label="Password"
+              id="password"
+              type={showPassword ? 'text' : 'password'}
+              value={profileData.password}
+              onChange={(e) => setProfileData({ ...profileData, password: e.target.value })}
+              InputProps={{
+                readOnly: !isEditable,
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton onClick={() => setShowPassword(!showPassword)} edge="end">
+                      {showPassword ? <VisibilityOff /> : <Visibility />}
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              }}
+              margin="dense"
+            />
+            <TextField
+              fullWidth
+              label="Company Profile"
+              id="CompanyProfile"
+              value={profileData.CompanyProfile}
+              onChange={(e) => setProfileData({ ...profileData, CompanyProfile: e.target.value })}
+              InputProps={{ readOnly: !isEditable }}
+              margin="dense"
+            />
+            <TextField
+              fullWidth
+              label="Hotline"
+              id="Hotline"
+              value={profileData.Hotline}
+              onChange={(e) => setProfileData({ ...profileData, Hotline: e.target.value })}
+              InputProps={{ readOnly: !isEditable }}
+              margin="dense"
+            />
+            <TextField
+              fullWidth
+              label="Website"
+              id="Website"
+              value={profileData.Website}
+              onChange={(e) => setProfileData({ ...profileData, Website: e.target.value })}
+              InputProps={{ readOnly: !isEditable }}
+              margin="dense"
+            />
+
+            {/* <Button
+              variant="outlined"
+              onClick={() => {
+                if (isEditable) {
+                  saveProfile();
+                }
+                setIsEditable(!isEditable);
+              }}
+              sx={styles.reqDeleteButton}
+              //startIcon={isEditable ? <SaveIcon /> : <EditIcon />}
+            >
+              {isEditable ? 'Save Changes' : 'REQUEST TO DELET ACCOUNT'}
+            </Button> */}
+            <Button
+                variant="outlined"
+                onClick={() => setIsDeleteDialogOpen(true)}
+                sx={styles.reqDeleteButton}
+                >
+                REQUEST TO DELETE ACCOUNT
+            </Button>
+
+          </Box>
+        </Box>
+      </Modal>
 
       {/* Change Password Modal */}
       <Modal open={changePasswordModal} onClose={() => setChangePasswordModal(false)}>
@@ -574,6 +824,35 @@ const closeDeleteRequestsModal = () => {
   </Box>
 </Modal>
 
+        {/* Delete ACcount Dialog*/}
+        <Dialog open={isDeleteDialogOpen} onClose={() => setIsDeleteDialogOpen(false)}>
+        <DialogContent>
+            <Typography variant="h6" sx={{ fontWeight: 'bold', color: '#192959', mb: 2 }}>
+            Are you sure you want to request the deletion of your account?
+            </Typography>
+            <Typography variant="body2" sx={{ color: '#555' }}>
+            This action cannot be reversed! If you decide to continue, our admins will review your profile and decide whether to proceed with your request.
+            </Typography>
+        </DialogContent>
+        <DialogActions>
+            <Button
+            onClick={() => setIsDeleteDialogOpen(false)}
+            sx={styles.dialogCancelButton}
+            >
+            Cancel
+            </Button>
+            <Button
+            onClick={async () => {
+                await handleAccountDeletion();
+                setIsDeleteDialogOpen(false);
+            }}
+            sx={styles.dialogCancelButton}
+            >
+            Confirm
+            </Button>
+        </DialogActions>
+        </Dialog>
+
 
       {/* Confirm Deletion Dialog */}
       <Dialog open={confirmDeleteDialog} onClose={() => setConfirmDeleteDialog(false)}>
@@ -656,6 +935,16 @@ const styles = {
       color: '#192959',           // Set text color on hover
     },
   },  
+  reqDeleteButton: {
+    marginTop: "10px",
+    backgroundColor: '#ff7b7b',
+    color: '#a70000',
+    fontWeight: 'bold',
+    '&:hover': {
+      backgroundColor: '#a70000', // Set background color on hover
+      color: '#ff7b7b',           // Set text color on hover
+    },
+  }, 
   manageAccessContainer: {
     position: 'relative',
   },
@@ -811,6 +1100,15 @@ const styles = {
     // backgroundColor: '#f8f9fa',
     // borderRadius: '15px',
     // boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.2)',
+  },
+  dialogCancelButton: {
+    color: '#192959',
+    backgroundColor: '#ffffff',
+    //fontWeight: 'bold',
+    '&:hover': {
+      backgroundColor: '#192959',
+      color: '#ffffff',
+    },
   },
 };
 
