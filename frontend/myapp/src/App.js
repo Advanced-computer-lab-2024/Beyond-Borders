@@ -100,7 +100,10 @@ import YAdminProductsPage from './files/Admin/YAdminProductsPage';
 import AddProductModal from './files/Admin/AddProductModal';
 
 import GuestItinerariesPage from './files/GuestItinerariesPage';
-
+import YSellerDashboard from './files/Seller/YSellerDashboard';
+import YSellerProductsPage from './files/Seller/YSellerProductsPage';
+import YSellerSalesPage from './files/Seller/YSellerSalesPage';
+import AddProductModalSeller from './files/Seller/AddProductModalSeller';
 
 function App() {
   return (
@@ -227,10 +230,10 @@ function App() {
           <Route path="/YAdvertiserSalesPage" element={<YAdvertiserSalesPage />} />
           <Route path="/YAdminProductsPage" element={<YAdminProductsPage />} />
           <Route path="/AddProductModal" element={<AddProductModal />} />
-         
-
-
-
+          <Route path="/YSellerDashboard" element={<YSellerDashboard />} />
+          <Route path="/YSellerProductsPage" element={<YSellerProductsPage />} />
+          <Route path="/YSellerSalesPage" element={<YSellerSalesPage />} />
+          <Route path="/AddProductModalSeller" element={<AddProductModalSeller />} />
 
         </Routes>
       </BrowserRouter>
