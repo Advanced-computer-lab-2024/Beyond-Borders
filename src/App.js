@@ -152,7 +152,7 @@ app.get("/searchProductSeller", searchProductSeller);
 app.post("/api/searchProductTourist", searchProductTourist);
 app.put("/api/updateTourGuideProfile",uploadImage.single("Logo"), updateTourGuideProfile);
 app.get("/filterProductByPriceAdmin", filterProductByPriceAdmin);
-app.post("/api/filterProductByPriceTourist", filterProductByPriceTourist);
+app.post("/filterProductByPriceTourist", filterProductByPriceTourist);
 app.post("/api/filterProductByPriceSeller", filterProductByPriceSeller);
 app.post("/ActivityRating", ActivityRating);
 app.post("/ProductRating", ProductRating);

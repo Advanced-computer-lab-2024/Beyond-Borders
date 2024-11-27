@@ -265,7 +265,7 @@ const createTourist = async (req, res) => {
             const query = { Name: regex };
     
             // Fetch the product based on the constructed query
-            const fetchedProduct = await NewProduct.find(query);
+            const fetchedProduct = await ProductModel.find(query);
     
             if (fetchedProduct.length === 0) {
                 return res.status(404).json({ msg: "No product found for the given name!" });
