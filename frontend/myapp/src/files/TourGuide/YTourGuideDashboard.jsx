@@ -16,13 +16,12 @@ import ClearIcon from '@mui/icons-material/Clear';
 import CloseIcon from '@mui/icons-material/Clear';
 import EditIcon from '@mui/icons-material/Edit';
 import SaveIcon from '@mui/icons-material/Save';
+import AccountCircleIcon from '@mui/icons-material/AccountCircle';
+
 import PersonIcon from '@mui/icons-material/Person'; // Icon for generic user type
-import LocalOfferIcon from '@mui/icons-material/LocalOffer'; // Icon for generic user type
-
 import axios from 'axios';
-import { Description } from '@mui/icons-material';
 
-function YSellerDashboard() {
+function YTourGuideDashboard() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [changePasswordModal, setChangePasswordModal] = useState(false);
   const [currentPassword, setCurrentPassword] = useState('');
@@ -63,52 +62,79 @@ function YSellerDashboard() {
     username: '',
     email: '',
     password: '',
-    Name: '',
-    Description:'',
+    CompanyProfile: '',
+    Hotline: '',
+    Website: '',
   });
   const [isEditable, setIsEditable] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
   const username = localStorage.getItem('username') || 'User'; // Retrieve username from localStorage
+
+  const handleTogglePassword = () => {
+    setShowPassword((prev) => !prev);
+  };
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (changePasswordModal) {
-      fetchCurrentPassword();
-    }
-    if (deleteRequestsModal) {
-      fetchDeleteRequests();
-    }
-  }, [changePasswordModal, deleteRequestsModal]);
+    const fetchProfileData = async () => {
+      const username = localStorage.getItem('username');
+      if (!username) return;
+  
+      try {
+        const response = await axios.get(`/api/TourGuideProfile`, {
+          params: { username },
+        });
+        const data = response.data.TourGuide;
+  
+        setProfileData({
+          username: data.Username || '',
+          email: data.Email || '',
+          password: data.Password || '',
+          mobileNum: data.MobileNum || '',
+          yearsOfExperience: data.YearsOfExperience || '',
+          previousWork: data.PreviousWork || '',
+          logo: data.Logo ? `${window.location.origin}${data.Logo}` : '', // Set full logo path
+        });
+      } catch (error) {
+        console.error('Error fetching profile:', error);
+      }
+    };
+  
+    fetchProfileData();
+  }, []);
 
-  // Fetch profile data
+  // Open and fetch profile data
   const readMyProfile = async () => {
     const username = localStorage.getItem('username');
     if (!username) {
       alert('You need to log in first.');
       return;
     }
-
+  
     try {
-      const response = await axios.get(`/api/readSellerProfile`, {
-        params: { Username: username },
+      const response = await axios.get(`/api/TourGuideProfile`, {
+        params: { username },
       });
-      const data = response.data;
-
+      const data = response.data.TourGuide;
+  
       setProfileData({
         username: data.Username || '',
         email: data.Email || '',
         password: data.Password || '',
-        Name: data.Name || '',
-        Description: data.Description || '',
+        mobileNum: data.MobileNum || '',
+        yearsOfExperience: data.YearsOfExperience || '',
+        previousWork: data.PreviousWork || '',
+        logo: data.Logo ? `${window.location.origin}${data.Logo}` : '', // Full path to display image
       });
-
+  
       setIsProfileModalOpen(true);
     } catch (error) {
       console.error('Error fetching profile:', error);
       alert('An error occurred while loading the profile.');
     }
   };
+  
 
   // Save profile data
 //   const saveProfile = async () => {
@@ -124,27 +150,35 @@ function YSellerDashboard() {
 //     }
 //   };
 
+// Save profile data to the backend
 const saveProfile = async () => {
+    const { username, password, email, mobileNum, yearsOfExperience, previousWork, logoFile } = profileData;
+  
     try {
-        const response = await axios.put('/api/updateSeller', {
-            Username: profileData.username, // Ensure this is correct
-            Password: profileData.password,
-            Email: profileData.email,
-            Name: profileData.Name, // Add this if applicable
-            Description: profileData.Description, // Add this if applicable
-        });
-
-        if (response.status === 200) {
-            alert('Profile updated successfully!');
-            setIsEditable(false);
-        } else {
-            alert('Failed to update profile.');
-        }
+      const formData = new FormData();
+      formData.append('Username', username);
+      formData.append('Password', password || '');
+      formData.append('Email', email || '');
+      formData.append('MobileNum', mobileNum || '');
+      formData.append('YearsOfExperience', yearsOfExperience || '');
+      formData.append('PreviousWork', previousWork || '');
+  
+      if (logoFile) {
+        formData.append('Logo', logoFile); // Append the selected file
+      }
+  
+      const response = await axios.put('/api/updateTourGuideProfile', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+  
+      alert('Profile updated successfully!');
+      //setIsProfileModalOpen(false);
+      readMyProfile(); // Reload the profile to display the updated picture
     } catch (error) {
-        console.error('Error updating profile:', error);
-        alert('Failed to update profile.');
+      console.error('Error updating profile:', error);
+      alert('Failed to update profile: ' + error.message);
     }
-};
+  };
 
 
   const fetchCurrentPassword = async () => {
@@ -350,7 +384,7 @@ const handleAccountDeletion = async () => {
       return;
     }
     try {
-      const response = await axios.post('/api/requestDeleteAccountSeller', {Username: username });
+      const response = await axios.post('/api/requestDeleteAccountTourGuide', {Username: username });
       if (response.status === 200) {
         alert('Your request for account deletion has been submitted successfully.');
         //navigate('/'); // Redirect after deletion, if required
@@ -379,9 +413,38 @@ const handleAccountDeletion = async () => {
           </Typography>
         </Box>
         <Box sx={styles.topMenuRight}>
-          <Button onClick={readMyProfile} sx={styles.menuButton}>
+          {/* <Button onClick={readMyProfile} sx={styles.menuButton}>
             My Profile
-          </Button>
+          </Button> */}
+          <Button
+  sx={{
+    ...styles.menuButton,
+    '&:hover': {
+      backgroundColor: '#e6e7ed', // Lighter hover background
+      color: '#192959',           // Text color on hover
+    },
+  }}
+  startIcon={
+    profileData.logo ? (
+      <img
+        src={profileData.logo}
+        alt="Profile"
+        style={{
+          width: '30px',
+          height: '30px',
+          borderRadius: '50%',
+          objectFit: 'cover',
+          border: '2px solid #e6e7ed',
+        }}
+      />
+    ) : (
+      <AccountCircleIcon />
+    )
+  }
+  onClick={readMyProfile}
+>
+  My Profile
+</Button>
           {/* <Button onClick={() => setChangePasswordModal(true)} sx={styles.menuButton}>
             Request Account Deletion
           </Button> */}
@@ -425,15 +488,11 @@ const handleAccountDeletion = async () => {
           <StorefrontIcon sx={styles.icon} />
           {sidebarOpen && 'Products'}
         </Button> */}
-        <Button onClick={() => navigate('/YSellerProductsPage')} sx={styles.sidebarButton}>
-          <StorefrontIcon sx={styles.icon} />
-          {sidebarOpen && ' My Products'}
+        <Button onClick={() => navigate('/YAdvertiserActivitiesPage')} sx={styles.sidebarButton}>
+          <MapIcon sx={styles.icon} />
+          {sidebarOpen && ' My Itineraries'}
         </Button>
-        <Button onClick={() => navigate('/YSellerAllProductsPage')} sx={styles.sidebarButton}>
-          <LocalOfferIcon sx={styles.icon} />
-          {sidebarOpen && ' All Products'}
-        </Button>
-        <Button onClick={() => navigate('/YSellerSalesPage')} sx={styles.sidebarButton}>
+        <Button onClick={() => navigate('/YAdvertiserSalesPage')} sx={styles.sidebarButton}>
           <AssignmentIcon sx={styles.icon} />
           {sidebarOpen && 'Sales Reports'}
         </Button>
@@ -460,17 +519,17 @@ const handleAccountDeletion = async () => {
             Welcome back, {username}!
             </Typography>
             <Typography variant="body1" sx={{ fontSize: '18px', lineHeight: '1.8', color: '#192959', textAlign: 'left' }}>
-            Thank you for choosing Beyond Borders. Use your dashboard to track your products,
+            Thank you for choosing Beyond Borders. Use your dashboard to track your itineraries,
             explore new opportunities, and stay connected with the vibrant tourism ecosystem.
             Let's create unforgettable experiences together!
             </Typography>
         </Box>
 
         {/* Right Section: My Activities */}
-        <Box sx={styles.infoBox} onClick={() => navigate('/YSellerProductsPage')}>
-            <img src="/images/products.jpg" alt="Activities" style={styles.image} />
+        <Box sx={styles.infoBox} onClick={() => navigate('/YAdvertiserActivitiesPage')}>
+            <img src="/images/itinerary.jpg" alt="Activities" style={styles.image} />
             <Typography variant="h6" sx={styles.text} className="text">
-            My Products
+            My Itineraries
             </Typography>
         </Box>
         <Box sx={styles.infoBox} onClick={() => navigate('/YAdvertiserSalesPage')}>
@@ -479,22 +538,24 @@ const handleAccountDeletion = async () => {
         </Box>
       </Box>
 
-      {/* Profile Modal */}
       <Modal open={isProfileModalOpen} onClose={() => setIsProfileModalOpen(false)}>
-        <Box
-          sx={{
-            position: 'absolute',
-            top: '50%',
-            left: '50%',
-            transform: 'translate(-50%, -50%)',
-            width: 400,
-            bgcolor: 'background.paper',
-            p: 4,
-            borderRadius: 1,
-            boxShadow: 24,
-          }}
-        >
-          <Box
+  <Box
+    sx={{
+      position: "absolute",
+      top: "50%",
+      left: "50%",
+      transform: "translate(-50%, -50%)",
+      width: 400,
+      bgcolor: "background.paper",
+      p: 4,
+      borderRadius: 1,
+      boxShadow: 24,
+    }}
+  >
+    {/* <Typography variant="h6" component="h2" sx={{ mb: 2 }}>
+      My Profile
+    </Typography> */}
+    <Box
   sx={{
     display: 'flex',
     justifyContent: 'space-between',
@@ -529,76 +590,155 @@ const handleAccountDeletion = async () => {
         </Button>
         </Box>
 
-          <Box component="form">
-            <TextField
-              fullWidth
-              label="Username"
-              id="username"
-              value={profileData.username}
-              InputProps={{ readOnly: true }}
-              margin="dense"
-            />
-            <TextField
-              fullWidth
-              label="Email Address"
-              id="email"
-              type="email"
-              value={profileData.email}
-              onChange={(e) => setProfileData({ ...profileData, email: e.target.value })}
-              InputProps={{ readOnly: !isEditable }}
-              margin="dense"
-            />
-            <TextField
-              fullWidth
-              label="Password"
-              id="password"
-              type={showPassword ? 'text' : 'password'}
-              value={profileData.password}
-              onChange={(e) => setProfileData({ ...profileData, password: e.target.value })}
-              InputProps={{
-                readOnly: !isEditable,
-                endAdornment: (
-                  <InputAdornment position="end">
-                    <IconButton onClick={() => setShowPassword(!showPassword)} edge="end">
-                      {showPassword ? <VisibilityOff /> : <Visibility />}
-                    </IconButton>
-                  </InputAdornment>
-                ),
-              }}
-              margin="dense"
-            />
-            <TextField
-              fullWidth
-              label="Name"
-              id="Name"
-              value={profileData.Name}
-              onChange={(e) => setProfileData({ ...profileData, Name: e.target.value })}
-              InputProps={{ readOnly: !isEditable }}
-              margin="dense"
-            />
-            <TextField
-              fullWidth
-              label="Description"
-              id="Description"
-              value={profileData.Description}
-              onChange={(e) => setProfileData({ ...profileData, Description: e.target.value })}
-              InputProps={{ readOnly: !isEditable }}
-              margin="dense"
-            />
+    {/* Profile Picture Circle with Edit Icon */}
+    <Box
+      sx={{
+        position: "relative",
+        width: "80px",
+        height: "80px",
+        margin: "0 auto 20px",
+      }}
+    >
+      {profileData.logo ? (
+        <img
+          src={profileData.logo}
+          alt="Profile"
+          style={{
+            width: "100%",
+            height: "100%",
+            borderRadius: "50%",
+            border: "2px solid #192959",
+            objectFit: "cover",
+          }}
+        />
+      ) : (
+        <Box
+          sx={{
+            width: "100%",
+            height: "100%",
+            borderRadius: "50%",
+            backgroundColor: "#e6e7ed",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            border: "2px solid #192959",
+          }}
+        >
+          <Typography variant="body2" color="text.secondary">
+            Profile Picture
+          </Typography>
+        </Box>
+      )}
 
-            {/* <Button
-              variant="outlined"
-              onClick={() => {
-                if (isEditable) {
-                  saveProfile();
-                }
-                setIsEditable(!isEditable);
-              }}
-              sx={styles.reqDeleteButton}
-              //startIcon={isEditable ? <SaveIcon /> : <EditIcon />}
-            >
-              {isEditable ? 'Save Changes' : 'REQUEST TO DELET ACCOUNT'}
-            </Button> */}
+      {/* Edit Icon Overlay */}
+      {isEditable && (
+      <IconButton
+        sx={{
+          position: "absolute",
+          bottom: "5px",
+          right: "-10px",
+          backgroundColor: "#192959",
+          color: "#fff",
+          padding: "5px", // Adjust the padding to make the button smaller
+          fontSize: "14px", // Smaller font size for the icon
+          "&:hover": {
+            backgroundColor: "#3a4a90",
+          },
+        }}
+        component="label"
+      >
+        <input
+          type="file"
+          hidden
+          accept="image/*"
+          onChange={(e) => {
+            const file = e.target.files[0];
+            if (file) {
+              setProfileData({ ...profileData, logoFile: file });
+            }
+          }}
+        />
+        <Typography
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            fontSize: "12px", // Reduce font size for the text/icon inside
+          }}
+        >
+          ✎
+        </Typography>
+      </IconButton>
+      )}
+    </Box>
+
+    {/* Form Inputs */}
+    <Box component="form">
+      <TextField
+        fullWidth
+        label="Username"
+        id="username"
+        value={profileData.username}
+        InputProps={{ readOnly: !isEditable }}
+        margin="dense"
+      />
+      <TextField
+        fullWidth
+        label="Email Address"
+        id="email"
+        type="email"
+        value={profileData.email}
+        onChange={(e) => setProfileData({ ...profileData, email: e.target.value })}
+        InputProps={{ readOnly: !isEditable }}
+        margin="dense"
+      />
+      <TextField
+        fullWidth
+        label="Password"
+        id="password"
+        type={showPassword ? "text" : "password"}
+        value={profileData.password}
+        onChange={(e) => setProfileData({ ...profileData, password: e.target.value })}
+        InputProps={{
+          readOnly: !isEditable,
+          endAdornment: (
+            <InputAdornment position="end">
+              <IconButton onClick={handleTogglePassword} edge="end">
+                {showPassword ? <VisibilityOff /> : <Visibility />}
+              </IconButton>
+            </InputAdornment>
+          ),
+        }}
+        margin="dense"
+      />
+      <TextField
+        fullWidth
+        label="Mobile Number"
+        id="mobileNum"
+        value={profileData.mobileNum}
+        onChange={(e) => setProfileData({ ...profileData, mobileNum: e.target.value })}
+        InputProps={{ readOnly: !isEditable }}
+        margin="dense"
+      />
+      <TextField
+        fullWidth
+        label="Years of Experience"
+        id="yearsOfExperience"
+        value={profileData.yearsOfExperience}
+        onChange={(e) => setProfileData({ ...profileData, yearsOfExperience: e.target.value })}
+        InputProps={{ readOnly: !isEditable }}
+        margin="dense"
+      />
+      <TextField
+        fullWidth
+        label="Previous Work"
+        id="previousWork"
+        value={profileData.previousWork}
+        onChange={(e) => setProfileData({ ...profileData, previousWork: e.target.value })}
+        InputProps={{ readOnly: !isEditable }}
+        margin="dense"
+      />
+
             <Button
                 variant="outlined"
                 onClick={() => setIsDeleteDialogOpen(true)}
@@ -607,9 +747,37 @@ const handleAccountDeletion = async () => {
                 REQUEST TO DELETE ACCOUNT
             </Button>
 
-          </Box>
-        </Box>
-      </Modal>
+      {/* Toggle Edit and Save Button
+      <Button
+        variant="outlined"
+        onClick={() => {
+          if (isEditable) {
+            saveProfile(); // Save changes when editable
+          }
+          setIsEditable(!isEditable); // Toggle editable state
+        }}
+        sx={{
+          mt: 2,
+          borderColor: "#192959",
+          color: "#192959",
+          backgroundColor: "white",
+          borderRadius: "20px",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          "&:hover": {
+            backgroundColor: "#192959",
+            borderColor: "white",
+            color: "white",
+          },
+        }}
+        startIcon={isEditable ? <SaveIcon /> : <EditIcon />}
+      >
+        {isEditable ? "Save Changes" : "Edit"}
+      </Button> */}
+    </Box>
+  </Box>
+</Modal>
 
       {/* Change Password Modal */}
       <Modal open={changePasswordModal} onClose={() => setChangePasswordModal(false)}>
@@ -899,7 +1067,7 @@ const styles = {
     backgroundColor: '#192959',
     color: '#e6e7ed',
     position: 'relative',
-    zIndex: 2,
+    zIndex: 3,
   },
   menuIconContainer: {
     display: 'flex',
@@ -1107,4 +1275,4 @@ const styles = {
   },
 };
 
-export default YSellerDashboard;
+export default YTourGuideDashboard;
