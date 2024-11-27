@@ -85,6 +85,7 @@ const [sharedLink, setSharedLink] = useState(''); // Shared link state
 const [currentActivityName, setCurrentActivityName] = useState(''); // Trac
 const [convertedPrices, setConvertedPrices] = useState({});
 const [currency, setCurrency] = useState('EGP'); // Default currency is EGP
+const [expanded, setExpanded] = useState(false);
 
   const navigate = useNavigate();
 
@@ -383,6 +384,13 @@ const [currency, setCurrency] = useState('EGP'); // Default currency is EGP
       </Box>
     );
   };
+
+  const handleToggleDescription = (index) => {
+    setExpanded((prev) => ({
+      ...prev,
+      [index]: !prev[index], // Toggle expanded state for the specific index
+    }));
+  };
   
   
 
@@ -551,7 +559,7 @@ const [currency, setCurrency] = useState('EGP'); // Default currency is EGP
     <Box sx={{ display: 'flex', flexDirection: 'column', marginLeft: sidebarOpen ? '20px' : '0px' }}>
       {/* My Purchased Products */}
       <Button
-        onClick={() => navigate('/my-purchased-products')}
+        onClick={() => navigate('/TouristPurchasedProducts')}
         sx={{
           ...styles.sidebarButton,
           fontSize: '14px',
@@ -565,7 +573,7 @@ const [currency, setCurrency] = useState('EGP'); // Default currency is EGP
       
       {/* View All Products */}
       <Button
-        onClick={() => navigate('/view-all-products')}
+        onClick={() => navigate('/TouristAllProducts')}
         sx={{
           ...styles.sidebarButton,
           fontSize: '14px',
@@ -626,7 +634,7 @@ const [currency, setCurrency] = useState('EGP'); // Default currency is EGP
                 </Button>
 
                 <Button
-                onClick={() => navigate('/my-booked-activities')}
+                onClick={() => navigate('/TouristBookedActivities')}
                 sx={{
                     ...styles.sidebarButton,
                     fontSize: '14px',
@@ -662,7 +670,7 @@ const [currency, setCurrency] = useState('EGP'); // Default currency is EGP
   {itinerariesOpen && (
     <Box sx={{ display: 'flex', flexDirection: 'column', marginLeft: sidebarOpen ? '20px' : '0px' }}>
       <Button
-        onClick={() => navigate('/upcoming-itineraries')}
+        onClick={() => navigate('/TouristUpcomingItineraries')}
         sx={{
           ...styles.sidebarButton,
           fontSize: '14px',
@@ -674,7 +682,7 @@ const [currency, setCurrency] = useState('EGP'); // Default currency is EGP
         {sidebarOpen && 'Upcoming '}
       </Button>
       <Button
-        onClick={() => navigate('/completed-itineraries')}
+        onClick={() => navigate('/TouristCompletedItineraries')}
         sx={{
           ...styles.sidebarButton,
           fontSize: '14px',
@@ -721,7 +729,7 @@ const [currency, setCurrency] = useState('EGP'); // Default currency is EGP
   {historicalPlacesOpen && (
     <Box sx={{ display: 'flex', flexDirection: 'column', marginLeft: sidebarOpen ? '20px' : '0px' }}>
       <Button
-        onClick={() => navigate('/upcoming-historical-places')}
+        onClick={() => navigate('/TouristUpcomingHP')}
         sx={{
           ...styles.sidebarButton,
           fontSize: '14px',
@@ -733,7 +741,7 @@ const [currency, setCurrency] = useState('EGP'); // Default currency is EGP
         {sidebarOpen && 'Upcoming '}
       </Button>
       <Button
-        onClick={() => navigate('/visited-historical-places')}
+        onClick={() => navigate('/TouristCompletedHPs')}
         sx={{
           ...styles.sidebarButton,
           fontSize: '14px',
@@ -745,7 +753,7 @@ const [currency, setCurrency] = useState('EGP'); // Default currency is EGP
         {sidebarOpen && 'Visited '}
       </Button>
       <Button
-        onClick={() => navigate('/saved-historical-places')}
+        onClick={() => navigate('/TouristBookedHP')}
         sx={{
           ...styles.sidebarButton,
           fontSize: '14px',
@@ -808,7 +816,7 @@ const [currency, setCurrency] = useState('EGP'); // Default currency is EGP
       
       {/* Saved Museums */}
       <Button
-        onClick={() => navigate('/saved-museums')}
+        onClick={() => navigate('/TouristBookedMuseum')}
         sx={{
           ...styles.sidebarButton,
           fontSize: '14px',
@@ -1131,10 +1139,55 @@ const [currency, setCurrency] = useState('EGP'); // Default currency is EGP
                   <CalendarTodayIcon fontSize="small" sx={{ mr: 1 }} />
                   {new Date(activity.Date).toLocaleDateString()}
                 </Typography>
-                <Typography variant="body2" sx={{ display: 'flex', fontSize: '18px', alignItems: 'center' }}>
-                  <AccessTimeIcon fontSize="small" sx={{ mr: 1 }} />
-                  {activity.Timeline}
-                </Typography>
+                <Box sx={{ flex: 1, textAlign: 'left' }}>
+  <Typography
+    variant="body2"
+    sx={{
+      fontSize: '18px',
+      wordWrap: 'break-word', // Break long words
+      whiteSpace: 'normal',  // Wrap text normally
+      maxWidth: '550px',     // Ensure width consistency
+      cursor: activity.Timeline.length > 15 ? 'pointer' : 'default', // Make clickable only if necessary
+      marginTop: '10px',
+    }}
+  >
+    <AccessTimeIcon fontSize="small" sx={{ mr: 1, color: '#8088a3' }} />
+    {expanded[index] || activity.Timeline.length <= 15 ? (
+      <span>
+        {activity.Timeline}
+        {activity.Timeline.length > 15 && (
+          <span
+            style={{
+              color: '#8088a3',
+             
+              fontWeight: 'bold',
+              cursor: 'pointer',
+            }}
+            onClick={() => handleToggleDescription(index)} // Trigger toggle
+          >
+            {" "}Read Less
+          </span>
+        )}
+      </span>
+    ) : (
+      <span>
+        {activity.Timeline.substring(0, 15)}... {/* Truncate timeline */}
+        <span
+          style={{
+            color: '#8088a3',
+            marginLeft: '5px',
+            fontWeight: 'bold',
+            cursor: 'pointer'
+          }}
+          onClick={() => handleToggleDescription(index)} // Trigger toggle
+        >
+          {" "}Read More
+        </span>
+      </span>
+    )}
+  </Typography>
+</Box>
+
                 <Box sx={styles.quickFacts}>
                   
                 <Box sx={styles.quickFacts}>
