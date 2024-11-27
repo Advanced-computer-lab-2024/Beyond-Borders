@@ -97,22 +97,24 @@ const createNewTourismGoverner = async(req,res) => {
 // }
 
 const createNewProduct = async (req, res) => {
-    const { Name, Description, Price, Quantity, Seller, Picture } = req.body;
+    const { Name, Description, Price, Quantity, Seller } = req.body;
     try {
-      if (!Name || !Description || !Price || !Quantity || !Seller || !Picture) {
+      if (!Name || !Description || !Price || !Quantity || !Seller || !req.file) {
         return res.status(400).json({ error: "All fields are required" });
       }
+  
       const existingSeller = await NewAcceptedSellerModel.findOne({ Username: Seller });
       if (!existingSeller) {
         return res.status(400).json({ error: "Seller does not exist" });
       }
+  
       const newProduct = await NewProduct.create({
         Name,
         Description,
         Price,
         Quantity,
         Seller,
-        Picture,
+        Picture: `/uploads/${req.file.filename}`, // Save the file path
         Reviews: [],
         Ratings: 0,
         Sales: 0,
@@ -125,43 +127,47 @@ const createNewProduct = async (req, res) => {
   };
   
 
-const editProduct = async (req, res) => {
-    const { Name } = req.body; // Extract the Name from the request body
-  
+  const editProduct = async (req, res) => {
     try {
-      // Ensure Seller cannot be updated
-      if (req.body.Seller) {
-        delete req.body.Seller;
-        return res.status(404).json({ msg: "Cannot update seller" });
-      }
+      const { Name, Price, Quantity, Description } = req.body;
   
-      // Check if Name is provided
       if (!Name) {
-        return res.status(400).json({ msg: "Product Name is required" });
+        return res.status(400).json({ message: 'Product name is required' });
       }
   
-      // Find and update the product by Name
-      const updatedProduct = await NewProduct.findOneAndUpdate(
-        { Name }, // Query by Name
-        req.body, // Update with request body
-        {
-          new: true, // Return the updated document
-          runValidators: true, // Validate the updates
+      // Find the product by name
+      const product = await NewProduct.findOne({ Name: Name.trim() });
+  
+      if (!product) {
+        return res.status(404).json({ message: 'Product not found' });
+      }
+  
+      // Prepare updated fields
+      const updateFields = { Price, Quantity, Description };
+  
+      // Replace the picture if a new one is uploaded
+      if (req.file) {
+        const oldPicturePath = path.join(__dirname, '..', product.Picture);
+        if (fs.existsSync(oldPicturePath)) {
+          fs.unlinkSync(oldPicturePath); // Delete the old file
         }
+        updateFields.Picture = `/uploads/${req.file.filename}`;
+      }
+  
+      // Update the product in the database
+      const updatedProduct = await NewProduct.findOneAndUpdate(
+        { Name },
+        { $set: updateFields },
+        { new: true }
       );
   
-      // If no product is found, send a 404 response
-      if (!updatedProduct) {
-        return res.status(404).json({ msg: "Product not found" });
-      }
-  
-      // Return the updated product
       res.status(200).json(updatedProduct);
     } catch (error) {
-      // Send a 400 error with the error message if something goes wrong
-      res.status(400).json({ error: error.message });
+      console.error('Error editing product:', error);
+      res.status(500).json({ message: 'Failed to edit product', error });
     }
   };
+  
   
 
 const acceptSeller = async (req, res) => {

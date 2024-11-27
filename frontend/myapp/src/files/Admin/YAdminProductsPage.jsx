@@ -212,41 +212,58 @@ function YAdminProductsPage() {
   };
   
 
-  const handleSaveClick = async (productName) => {
+  const handleSaveClick = async (Name) => {
     try {
-      const updatePayload = { ...editedProduct };
-      delete updatePayload.Seller; // Remove Seller before sending
+      const formData = new FormData();
+      formData.append('Name', editedProduct.Name);
+      if (editedProduct.Price) formData.append('Price', editedProduct.Price);
+      if (editedProduct.Quantity) formData.append('Quantity', editedProduct.Quantity);
+      if (editedProduct.Description) formData.append('Description', editedProduct.Description);
+      if (editedProduct.Picture instanceof File) {
+        formData.append('Picture', editedProduct.Picture);
+      }
   
-      await axios.put('/api/editProduct', {
-        Name: productName,
-        ...updatePayload, // Send only allowed fields
+      console.log('FormData being sent:', [...formData.entries()]);
+  
+      await axios.put(`http://localhost:8000/api/editProduct`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
       });
+  
       alert('Product updated successfully!');
-      setEditMode((prev) => ({ ...prev, [productName]: false }));
+      setEditMode((prev) => ({ ...prev, [Name]: false }));
+      setEditedProduct({});
       fetchProducts();
     } catch (error) {
       console.error('Error updating product:', error);
-      alert('Failed to update product.');
+      alert(error.response?.data?.message || 'Failed to update product.');
     }
   };
+  
+  
+  
+  
 
 
-  const handleCreateProduct = async (newProduct) => {
+  const handleCreateProduct = async (formData) => {
     try {
-      const response = await axios.post('/api/addProduct', newProduct);
+      const response = await axios.post("/api/addProduct", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+  
       console.log("Product created:", response.data);
       alert("Product created successfully!");
+      fetchProducts(); // Refresh the product list
       setAddProductModal(false);
     } catch (error) {
-      if (error.response) {
-        console.error("Server Error:", error.response.data);
-        alert(`Error: ${error.response.data.error}`);
-      } else {
-        console.error("Unexpected Error:", error.message);
-        alert(`Unexpected Error: ${error.message}`);
-      }
+      console.error("Error creating product:", error);
+      alert(`Error: ${error.response?.data?.error || error.message}`);
     }
   };
+  
   
   
   
@@ -483,6 +500,25 @@ function YAdminProductsPage() {
                     </Typography>
                     </Box>
 
+                    <img
+                    src={`http://localhost:8000${product.Picture}`}
+                    alt="Product"
+                    style={styles.productImage}
+                    />
+
+
+                    {editMode[product._id] && (
+                    <TextField
+                    name="Picture"
+                    type="file"
+                    fullWidth
+                    onChange={(e) => setEditedProduct((prev) => ({ ...prev, Picture: e.target.files[0] }))}
+                    inputProps={{ accept: "image/*" }}
+                  />
+                  
+                    )}
+
+
                {/* Product Description */}
                     <Box sx={styles.productDetail}>
                     <Typography variant="body2" sx={{ display: 'flex', alignItems: 'center' }}>
@@ -528,6 +564,7 @@ function YAdminProductsPage() {
                         </>
                         )}
                     </Typography>
+
              
               {/* Edit/Save Button */}
                     <Box sx={styles.productActions}>
@@ -822,6 +859,15 @@ const styles = {
       color: "#192959", // Text changes to #192959
     },
   },
+  productImage: {
+    width: '150px', // Increase the width
+    height: '150px', // Increase the height
+    objectFit: 'cover',
+    borderRadius: '8px',
+    marginBottom: '10px',
+    marginLeft: '20px', // Move the image to the right
+  },
+  
   
 };
 
