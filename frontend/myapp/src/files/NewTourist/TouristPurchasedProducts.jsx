@@ -47,6 +47,7 @@ import ShareIcon from '@mui/icons-material/Share';
 import LanguageIcon from '@mui/icons-material/Language';
 import AddShoppingCartIcon from '@mui/icons-material/AddShoppingCart'; // For the shopping cart icon
 import BookmarkIcon from '@mui/icons-material/Bookmark';
+import StarHalfIcon from '@mui/icons-material/StarHalf';
 
 import axios from 'axios';
 
@@ -93,6 +94,9 @@ const [expanded, setExpanded] = React.useState({});
 const [wishlistStatus, setWishlistStatus] = useState({});
 const [wishlist, setWishlist] = useState([]); 
 
+const [commentModalOpen, setCommentModalOpen] = useState(false);
+const [currentActivityId, setCurrentActivityId] = useState(null);
+const [commentText, setCommentText] = useState('');
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -240,22 +244,25 @@ const [wishlist, setWishlist] = useState([]);
 
 const fetchProducts = async () => {
     try {
-      const response = await axios.get('/api/viewAllProductsSeller');
-      const fetchedProducts = response.data;
+      const username = localStorage.getItem('username'); // Retrieve the logged-in username
   
-      // Fetch wishlist status for each product
-      const wishlistStatuses = {};
-      for (const product of fetchedProducts) {
-        const isInWishlist = await checkWishlistStatus(product.Name);
-        wishlistStatuses[product._id] = isInWishlist;
+      if (!username) {
+        console.error('User not logged in.');
+        return;
       }
   
-      setWishlist(wishlistStatuses); // Update wishlist state
-      setProducts(fetchedProducts); // Set products state
+      // Fetch purchased products using the username
+      const response = await axios.get('/api/viewPurchasedProducts', {
+        params: { Username: username }, // Send the username as a query parameter
+      });
+  
+      const purchasedProducts = response.data; // Response contains the product details
+      setProducts(purchasedProducts); // Set the products state with the fetched data
     } catch (error) {
-      console.error('Error fetching products:', error);
+      console.error('Error fetching purchased products:', error);
     }
   };
+  
   
 
   const searchProducts = async (query) => {
@@ -427,29 +434,134 @@ const fetchProducts = async () => {
   
   
 
-  const renderRating = (rating) => {
-    const roundedRating = Math.round(rating * 10) / 10;
-    const fullStars = Math.floor(rating);
-    const halfStars = roundedRating > fullStars ? 1 : 0;
+  const renderRating = (activityId, userRating, averageRating, handleRatingClick) => {
+    const displayRating = userRating || averageRating || 0; // Use user rating first, then average
+    const fullStars = Math.floor(displayRating);
+    const halfStars = displayRating > fullStars ? 1 : 0;
     const emptyStars = 5 - fullStars - halfStars;
   
     return (
-      <Box sx={styles.ratingContainer}>
-        <Typography variant="body2" sx={{ fontSize: '24px', position: 'absolute', right: '170px', bottom: '2px' }}>
-          {roundedRating}
+      <Box sx={styles.ratingContainer} display="flex" alignItems="center">
+        {/* Display Rating Number */}
+        <Typography
+          variant="body2"
+          sx={{
+            fontSize: '18px',
+            fontWeight: 'bold',
+            marginRight: '10px', // Spacing between number and stars
+          }}
+        >
+          {displayRating.toFixed(2)}
         </Typography>
+  
+        {/* Render Full Stars */}
         {[...Array(fullStars)].map((_, index) => (
-          <StarIcon key={`full-${index}`} sx={{ fontSize: '32px' }} />
+          <StarIcon
+            key={`full-${index}`}
+            sx={{ fontSize: '32px', cursor: 'pointer', color: '#192959' }}
+            onClick={() => handleRatingClick(activityId, index + 1)}
+          />
         ))}
+  
+        {/* Render Half Stars */}
         {[...Array(halfStars)].map((_, index) => (
-          <StarIcon key={`half-${index}`} sx={{ fontSize: '32px' }} />
+          <StarHalfIcon
+            key={`half-${index}`}
+            sx={{ fontSize: '32px', cursor: 'pointer', color: '#192959' }}
+            onClick={() => handleRatingClick(activityId, fullStars + 1)}
+          />
         ))}
+  
+        {/* Render Empty Stars */}
         {[...Array(emptyStars)].map((_, index) => (
-          <StarBorderIcon key={`empty-${index}`} sx={{ fontSize: '32px' }} />
+          <StarBorderIcon
+            key={`empty-${index}`}
+            sx={{ fontSize: '32px', cursor: 'pointer', color: '#192959' }}
+            onClick={() => handleRatingClick(activityId, fullStars + index + 1)}
+          />
         ))}
       </Box>
     );
   };
+  
+  
+
+  const handleRatingClick = async (productId, rating) => {
+    const username = localStorage.getItem('username');
+    const product = products.find((product) => product._id === productId); // Find the product by ID
+  
+    if (!username || !product) {
+      alert('User not logged in or product not found.');
+      return;
+    }
+  
+    try {
+      const response = await axios.put('/ratePurchasedProduct', {
+        touristUsername: username,
+        productName: product.Name, // Use the product name as expected by the backend
+        rating,
+      });
+  
+      const { newAverageRating } = response.data;
+  
+      // Update state: show user rating and "Add Comment" button
+      setProducts((prevProducts) =>
+        prevProducts.map((prod) =>
+          prod._id === productId
+            ? {
+                ...prod,
+                userRating: rating,
+                Ratings: newAverageRating,
+                showCommentButton: true, // Explicitly set this to true
+              }
+            : prod
+        )
+      );
+    } catch (error) {
+      console.error('Error submitting product rating:', error);
+      alert(error.response?.data?.msg || 'Failed to submit rating.');
+    }
+  };
+  
+  
+  
+
+  const handleCommentSubmit = async () => {
+    const username = localStorage.getItem('username');
+    const product = products.find((product) => product._id === currentActivityId); // Find the product by ID
+  
+    if (!username || !product) {
+      alert('User not logged in or product not found.');
+      return;
+    }
+  
+    try {
+      const response = await axios.put('/reviewPurchasedProduct', {
+        touristUsername: username,
+        productName: product.Name, // Use the product name as expected by the backend
+        review: commentText,      // Pass the comment text as the review
+      });
+  
+      const { review } = response.data;
+  
+      // Update the reviews in the product state
+      setProducts((prevProducts) =>
+        prevProducts.map((prod) =>
+          prod._id === currentActivityId
+            ? { ...prod, Reviews: [...(prod.Reviews || []), { touristUsername: username, Review: commentText }] }
+            : prod
+        )
+      );
+  
+      setCommentModalOpen(false); // Close the modal
+      setCommentText('');         // Clear the comment input
+    } catch (error) {
+      console.error('Error submitting review:', error);
+      alert(error.response?.data?.msg || 'Failed to submit review.');
+    }
+  };
+  
+  
   
 
   const scrollCommentsLeft = (index) => {
@@ -1028,93 +1140,11 @@ const fetchProducts = async () => {
     marginRight: '60px',           // Add margin to the right for consistent spacing
   }}
 >
-  {/* Search Bar */}
-  <TextField
-    label="Search"
-    variant="outlined"
-    value={searchQuery}
-    onChange={handleSearchChange}
-    sx={{
-      width: '30%',
-      '& .MuiOutlinedInput-root': {
-        '& fieldset': {
-          borderColor: '#192959', // Default outline color
-          borderWidth: '2px',
-        },
-        '&:hover fieldset': {
-          borderColor: '#192959', // Hover outline color
-          borderWidth: '2.5px',
-        },
-        '&.Mui-focused fieldset': {
-          borderColor: '#192959', // Focused outline color
-          borderWidth: '2.5px',
-        },
-      },
-      '& .MuiInputLabel-root': {
-        color: '#192959', // Label color
-        fontSize: '18px',
-      },
-    }}
-    InputProps={{
-      startAdornment: (
-        <Box sx={{ display: 'flex', alignItems: 'center', color: '#192959', paddingLeft: '5px' }}>
-          <SearchIcon />
-        </Box>
-      ),
-    }}
-  />
+  
 
   {/* Sort Dropdown and Filter Icon */}
-  <Box sx={{ display: 'flex', alignItems: 'right', gap: '10px', marginLeft: '100px'}}>
-    <TextField
-      select
-      label={
-        <Box sx={{ display: 'flex', alignItems: 'right', gap: '8px' }}>
-          Sort By
-        </Box>
-      }
-      variant="outlined"
-      value={sortOption}
-      onChange={handleSortChange}
-      sx={{
-        width: '80%',
-        '& .MuiOutlinedInput-root': {
-          '& fieldset': {
-            borderColor: '#192959', // Default border color
-            borderWidth: '2px',
-          },
-          '&:hover fieldset': {
-            borderColor: '#33416b', // Hover border color
-            borderWidth: '2.5px',
-          },
-          '&.Mui-focused fieldset': {
-            borderColor: '#192959', // Focused border color
-            borderWidth: '2.5px',
-          },
-        },
-        '& .MuiInputLabel-root': {
-          color: '#192959', // Label color
-          fontSize: '18px',
-        },
-      }}
-      InputProps={{
-        startAdornment: (
-          <Box
-            sx={{
-              display: 'flex',
-              alignItems: 'center',
-              color: '#192959',
-              paddingLeft: '5px',
-            }}
-          >
-            <SwapVertIcon />
-          </Box>
-        ),
-      }}
-    >
-      <MenuItem value="ratingAsc">Rating: Low to High</MenuItem>
-      <MenuItem value="ratingDesc">Rating: High to Low</MenuItem>
-    </TextField>
+  <Box sx={{ display: 'flex', alignItems: 'right', gap: '10px', marginLeft: '1550px',marginRight: '10px'}}>
+   
 
     <TextField
   select
@@ -1123,7 +1153,7 @@ const fetchProducts = async () => {
   onChange={(e) => setCurrency(e.target.value)}
   variant="outlined"
   sx={{
-    width: '210px',
+    width: '130px',
     '& .MuiOutlinedInput-root': {
       '& fieldset': {
         borderColor: '#192959', // Default border color
@@ -1165,19 +1195,6 @@ const fetchProducts = async () => {
   <MenuItem value="JPY">JPY </MenuItem>
 </TextField>
 
-
-    {/* Filter Icon */}
-    <Tooltip title="Filter" placement="bottom" arrow>
-      <IconButton
-        onClick={() => setFilterModalOpen(true)}
-        sx={{
-          color: '#192959',
-          '&:hover': { backgroundColor: '#e6e7ed', color: '#33416b' },
-        }}
-      >
-        <FilterAltIcon fontSize="large" />
-      </IconButton>
-    </Tooltip>
   </Box>
 </Box>
 
@@ -1197,53 +1214,7 @@ const fetchProducts = async () => {
         }}
       >
          {/* Icons for Add to Cart and Add to Wishlist */}
-<Box
-  sx={{
-    position: 'absolute',
-    top: '40px', // Align to top
-    right: '55px', // Align to right
-    display: 'flex'
-  }}
->
-  {/* Add to Cart Icon */}
-  <Tooltip title="Add to Cart" arrow>
-    <IconButton
-      onClick={() => handleAddToCart(product.Name)}
-      sx={{
-        color: '#192959', // Icon color
-        '&:hover': {
-          color: '#33416b', // Hover color
-        },
-      }}
-    >
-      <AddShoppingCartIcon />
-    </IconButton>
-  </Tooltip>
 
-  {/* Wishlist Icon */}
-  <Tooltip
-    title={
-      wishlist[product._id]
-        ? "Remove from Wishlist"
-        : "Add to Wishlist"
-    }
-    arrow
-  >
-    <IconButton
-      onClick={() => handleToggleWishlist(product.Name, product._id)}
-      sx={{
-        color: '#192959', // Icon color
-        '&:hover': { color: '#33416b' }, // Hover color
-      }}
-    >
-      {wishlist[product._id] ? (
-        <BookmarkIcon />
-      ) : (
-        <BookmarkBorderOutlinedIcon />
-      )}
-    </IconButton>
-  </Tooltip>
-</Box>
 
         {/* Product Info */}
         <Box sx={styles.activityInfo}>
@@ -1333,7 +1304,48 @@ const fetchProducts = async () => {
         </Box>
 
         {/* Product Ratings */}
-        <Box sx={styles.activityRating}>{renderRating(product.Ratings)}</Box>
+        <Box sx={styles.activityRating}>
+  {renderRating(
+    product._id,        // Pass activity._id for the activity
+    product.userRating, // Use userRating for the user-specific rating
+    product.Ratings,    // Overall rating for the activity
+    handleRatingClick    // Rating click handler
+  )}
+
+  {/* Reserve space for the Add Comment button */}
+  <Box
+    sx={{
+      height: '24px', // Fixed height to prevent shifting
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'flex-start',
+      //marginTop: '20px', // Adjust spacing below stars
+    }}
+  >
+    {product.showCommentButton && (
+      <Button
+        variant="text"
+        onClick={() => {
+          setCurrentActivityId(product._id); // Use activity._id for activity identification
+          setCommentModalOpen(true);         // Open the comment modal
+        }}
+        startIcon={<AddIcon />}
+        sx={{
+          fontSize: '14px',  // Smaller font size
+          padding: '2px 6px', // Compact padding
+          color: '#192959',
+          textTransform: 'none', // Keep the case unchanged
+          '&:hover': {
+            backgroundColor: 'rgba(25, 41, 89, 0.1)', // Hover background
+          },
+        }}
+      >
+        Add Comment
+      </Button>
+    )}
+  </Box>
+</Box>
+
       </Box>
 
       {/* Reviews Section */}
@@ -1564,6 +1576,61 @@ const fetchProducts = async () => {
 
       <Button variant="contained" onClick={handleFilterSubmit} sx={{ backgroundColor: '#192959', color: '#fff' }}>
         Apply
+      </Button>
+    </Box>
+  </Box>
+</Modal>
+
+<Modal
+  open={commentModalOpen}
+  onClose={() => setCommentModalOpen(false)}
+  aria-labelledby="add-comment-title"
+  aria-describedby="add-comment-description"
+>
+  <Box
+    sx={{
+      position: 'absolute',
+      top: '50%',
+      left: '50%',
+      transform: 'translate(-50%, -50%)',
+      width: 400,
+      bgcolor: 'background.paper',
+      boxShadow: 24,
+      p: 4,
+      borderRadius: '10px',
+    }}
+  >
+    <Typography id="add-comment-title" variant="h6" component="h2" sx={{ marginBottom: '20px' }}>
+      Add Comment
+    </Typography>
+    <TextField
+      fullWidth
+      multiline
+      rows={4}
+      placeholder="Write your comment here..."
+      value={commentText}
+      onChange={(e) => setCommentText(e.target.value)}
+      variant="outlined"
+    />
+    <Box sx={{ display: 'flex', justifyContent: 'flex-end', marginTop: '20px' }}>
+      <Button
+        variant="outlined"
+        onClick={() => setCommentModalOpen(false)}
+        sx={{
+          color: '#192959',
+          borderColor: '#192959',
+          '&:hover': { backgroundColor: 'rgba(25, 41, 89, 0.1)', borderColor: '#192959' },
+          marginRight: '10px',
+        }}
+      >
+        Cancel
+      </Button>
+      <Button
+        variant="contained"
+        onClick={handleCommentSubmit}
+        sx={{ backgroundColor: '#192959', color: '#fff' }}
+      >
+        Submit
       </Button>
     </Box>
   </Box>
