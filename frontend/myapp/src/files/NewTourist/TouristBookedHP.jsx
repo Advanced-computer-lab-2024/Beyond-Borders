@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Button, Typography, Divider,IconButton,Tooltip, TextField, InputAdornment, Modal,MenuItem,Select,FormControl,InputLabel,} from '@mui/material';
+import { Box, Button, Typography, Dialog ,DialogContent ,DialogContentText, DialogActions ,Divider,IconButton,Tooltip, TextField, InputAdornment, Modal,MenuItem,Select,FormControl,InputLabel,} from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import MenuIcon from '@mui/icons-material/Menu';
 import NotificationsIcon from '@mui/icons-material/Notifications';
@@ -45,6 +45,8 @@ import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import IosShareIcon from '@mui/icons-material/IosShare';
 import ShareIcon from '@mui/icons-material/Share';
 import LanguageIcon from '@mui/icons-material/Language';
+import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined';
+
 import axios from 'axios';
 
 function TouristBookedHP() {
@@ -85,7 +87,8 @@ const [sharedLink, setSharedLink] = useState(''); // Shared link state
 const [currentActivityName, setCurrentActivityName] = useState(''); // Trac
 const [convertedPrices, setConvertedPrices] = useState({});
 const [currency, setCurrency] = useState('EGP'); // Default currency is EGP
-
+const [openDialog, setOpenDialog] = useState(false);
+const [selectedActivity, setSelectedActivity] = useState(null);
 //hps
 const [HPs, setHPs] = useState([]);
 const navigate = useNavigate();
@@ -184,13 +187,23 @@ const [expanded, setExpanded] = React.useState({});
   
   
   const fetchHistoricalPlaces = async () => {
+    const username = localStorage.getItem('username'); // Retrieve logged-in user's username
+  
+    if (!username) {
+      console.error('User not logged in.');
+      return;
+    }
+  
     try {
-      const response = await axios.get('/api/ViewAllUpcomingHistoricalPlacesEventsTourist');
-      setHPs(response.data);
+      const response = await axios.get('/api/viewMyBookedHistoricalPlaces', {
+        params: { Username: username }, // Send the username as a query parameter
+      });
+      setHPs(response.data); // Set state with the booked historical places
     } catch (error) {
-      console.error('Error fetching hps:', error);
+      console.error('Error fetching booked historical places:', error);
     }
   };
+  
 
   const handleToggleDescription = (index) => {
     setExpanded((prev) => ({
@@ -334,6 +347,32 @@ const [expanded, setExpanded] = React.useState({});
       alert(error.response?.data?.msg || 'An error occurred while booking the HP.');
     }
   };
+
+  const handleCancelBooking = async (HPName) => {
+    const username = localStorage.getItem('username'); // Retrieve logged-in user's username
+  
+    if (!username) {
+      alert('User not logged in.');
+      return;
+    }
+  
+    try {
+      // Call the backend API to delete the booked historical place
+      const response = await axios.put('/deleteBookedHP', {
+        touristUsername: username,
+        HPName,
+      });
+  
+      // Notify the user of successful cancellation
+  
+      // Update the state to remove the canceled event
+      setHPs((prevHPs) => prevHPs.filter((hp) => hp.name !== HPName));
+    } catch (error) {
+      console.error('Error canceling historical place event:', error);
+      alert(error.response?.data?.msg || 'Failed to cancel the event.');
+    }
+  };
+  
   //share
 
   const handleOpenShareModal = async (activityName) => {
@@ -383,7 +422,23 @@ const [expanded, setExpanded] = React.useState({});
   };
   
   
+  const handleOpenDialog = (activityName) => {
+    setSelectedActivity(activityName); // Set the selected activity
+    setOpenDialog(true);              // Open the dialog
+  };
   
+  const handleCloseDialog = () => {
+    setOpenDialog(false);             // Close the dialog
+    setSelectedActivity(null);        // Reset selected activity
+  };
+  
+  const handleConfirmDeletion = async () => {
+    if (selectedActivity) {
+      await handleCancelBooking(selectedActivity); // Call your existing cancel booking function
+    }
+    setOpenDialog(false); // Close the dialog
+    setSelectedActivity(null); // Reset selected activity
+  };
 
   // Fetch tags from backend
   const fetchTags = async () => {
@@ -978,44 +1033,10 @@ const [expanded, setExpanded] = React.useState({});
     marginRight: '60px',           // Add margin to the right for consistent spacing
   }}
 >
-  {/* Search Bar */}
-  <TextField
-    label="Search"
-    variant="outlined"
-    value={searchQuery}
-    onChange={handleSearchChange}
-    sx={{
-      width: '30%',
-      '& .MuiOutlinedInput-root': {
-        '& fieldset': {
-          borderColor: '#192959', // Default outline color
-          borderWidth: '2px',
-        },
-        '&:hover fieldset': {
-          borderColor: '#192959', // Hover outline color
-          borderWidth: '2.5px',
-        },
-        '&.Mui-focused fieldset': {
-          borderColor: '#192959', // Focused outline color
-          borderWidth: '2.5px',
-        },
-      },
-      '& .MuiInputLabel-root': {
-        color: '#192959', // Label color
-        fontSize: '18px',
-      },
-    }}
-    InputProps={{
-      startAdornment: (
-        <Box sx={{ display: 'flex', alignItems: 'center', color: '#192959', paddingLeft: '5px' }}>
-          <SearchIcon />
-        </Box>
-      ),
-    }}
-  />
+  
 
   {/* Sort Dropdown and Filter Icon */}
-  <Box sx={{ display: 'flex', alignItems: 'right', gap: '10px', marginLeft: '100px'}}>
+  <Box sx={{ display: 'flex', alignItems: 'right', gap: '10px', marginLeft: '1565px',marginRight: '10px'}}>
     {/* <TextField
       select
       label={
@@ -1075,7 +1096,7 @@ const [expanded, setExpanded] = React.useState({});
   onChange={(e) => setCurrency(e.target.value)}
   variant="outlined"
   sx={{
-    width: '150px',
+    width: '130px',
     '& .MuiOutlinedInput-root': {
       '& fieldset': {
         borderColor: '#192959', // Default border color
@@ -1119,17 +1140,7 @@ const [expanded, setExpanded] = React.useState({});
 
 
     {/* Filter Icon */}
-    <Tooltip title="Filter" placement="bottom" arrow>
-      <IconButton
-        onClick={() => setFilterModalOpen(true)}
-        sx={{
-          color: '#192959',
-          '&:hover': { backgroundColor: '#e6e7ed', color: '#33416b' },
-        }}
-      >
-        <FilterAltIcon fontSize="large" />
-      </IconButton>
-    </Tooltip>
+    
   </Box>
 </Box>
 
@@ -1145,7 +1156,7 @@ const [expanded, setExpanded] = React.useState({});
       <Box
         sx={{
           ...styles.activityCard,
-          backgroundColor: hp.flagged ? '#cccfda' : 'white',
+          backgroundColor: 'white',
           display: 'flex', // Ensures the children are laid out horizontally
         }}
       >
@@ -1297,34 +1308,23 @@ const [expanded, setExpanded] = React.useState({});
         </Box>
 
 
-        <Button
-          variant="contained"
-          onClick={() => handleBookHistoricalPlace(hp.name)}
-          sx={{
-            position: 'absolute',
-            top: '60px',
-            right: '60px',
-            backgroundColor: '#192959',
-            color: '#fff',
-            '&:hover': { backgroundColor: '#33416b' },
-          }}
-        >
-          Book
-        </Button>
-        <Tooltip title="Share" arrow>
-          <IconButton
-            onClick={() => handleOpenShareModal(hp.name)}
+       <Button
+            variant="contained"
+            onClick={() => handleOpenDialog(hp.name)}
+            startIcon={<CancelOutlinedIcon />} // Add the cancel icon before the text
             sx={{
-              position: 'absolute',
-              top: '60px',
-              right: '140px',
-              color: '#192959',
-              '&:hover': { color: '#33416b' },
+                position: 'absolute',
+                top: '50px', // Position at the top
+                right: '60px', // Position at the right
+                backgroundColor: '#192959', // Blue color for booking action
+                color: '#fff',
+                '&:hover': { backgroundColor: '#d32f2f' }, // Slightly lighter red on hover
             }}
-          >
-            <IosShareIcon />
-          </IconButton>
-        </Tooltip>
+            >
+            Cancel Booking
+            </Button>
+
+        
 
 
 
@@ -1532,6 +1532,31 @@ const [expanded, setExpanded] = React.useState({});
     </Box>
   </Box>
 </Modal>
+
+<Dialog open={openDialog} onClose={handleCloseDialog}>
+  <DialogContent>
+    <DialogContentText sx={{ fontWeight: 'bold', color: '#192959', fontSize: '20px' }}>
+      Do you want to confirm Event deletion?
+    </DialogContentText>
+    <DialogContentText sx={{ fontWeight: 'bold', color: '#33416b', marginTop: '10px' }}>
+      This action is non-reversible and the event booking will be canceled.
+    </DialogContentText>
+  </DialogContent>
+  <DialogActions>
+    <Button
+      onClick={handleCloseDialog}
+      sx={{ color: '#192959', '&:hover': { backgroundColor: '#192959', color: '#e6e7ed' } }}
+    >
+      Cancel
+    </Button>
+    <Button
+      onClick={handleConfirmDeletion}
+      sx={{ color: '#192959', '&:hover': { backgroundColor: '#192959', color: '#e6e7ed' } }}
+    >
+      Confirm
+    </Button>
+  </DialogActions>
+</Dialog>
 
       {/* Back to Top Button */}
       {showBackToTop && (
