@@ -24,6 +24,7 @@ const DeleteRequestsModel = require('../Models/DeleteRequests.js');
 const DeactivatedItineraries = require('../Models/DeactivatedItineraries.js');
 const DeactivatedActivitiesModel = require('../Models/DeactivatedActivities.js');
 
+const nodemailer = require('nodemailer'); 
 
 const { default: mongoose } = require('mongoose');
 const path = require('path');
@@ -204,7 +205,7 @@ const acceptTourGuide = async (req, res) => {
         if (existingUser) {
             // Create a new accepted seller with the existing user's details
             const { Username, Email, Password, MobileNum, YearsOfExperience, PreviousWork} = existingUser; // Destructure the relevant fields
-            const createdSeller = await NewAcceptedTourGuideModel.create({Username, Email, Password, MobileNum, YearsOfExperience, PreviousWork});
+            const createdSeller = await NewAcceptedTourGuideModel.create({Username, Email, Password, MobileNum, YearsOfExperience, PreviousWork, Notifications:[]});
             // Delete the unregistered seller
             await NewUnregisteredTourGuideModel.findOneAndDelete({Username: TourGuideUsername});
             // Respond with success message
@@ -228,7 +229,7 @@ const acceptTourGuide = async (req, res) => {
         if (existingUser) {
             // Create a new accepted seller with the existing user's details
             const {Username,Email,Password,Website,Hotline,CompanyProfile} = existingUser; // Destructure the relevant fields
-            const createdSeller = await NewAcceptedAdvertiserModel.create({Username,Email,Password,Website,Hotline,CompanyProfile});
+            const createdSeller = await NewAcceptedAdvertiserModel.create({Username,Email,Password,Website,Hotline,CompanyProfile, Notifications:[]});
             // Delete the unregistered seller
             await NewUnregisteredAdvertiserModel.findOneAndDelete({Username: AdvertiserUsername});
             // Respond with success message
@@ -1202,11 +1203,60 @@ const flagItinerary = async (req, res) => {
       }
   
       res.status(200).json({ message: "Itinerary has been flagged successfully!", itinerary });
+      const tourguide = await NewAcceptedTourGuideModel.findOne({Username: itinerary.AuthorUsername});
+      sendFlagItineraryEmail(tourguide.Email, title);
+      sendFlagItineraryNotification(tourguide.Username, title);
     } catch (error) {
       res.status(500).json({ error: error.message });
     }
   };
+
+  async function sendFlagItineraryEmail(email, itineraryName) {
+    const transporter = nodemailer.createTransport({
+      service: 'gmail', // Use your email provider
+      auth: {
+        user: 'malook25062003@gmail.com', // Your email
+        pass: 'sxvo feuu woie gpfn' // Your email password or app password
+      }
+    });
   
+    const mailOptions = {
+      from: 'malook25062003@gmail.com',
+      to: email,
+      subject: 'Itinerary has been flagged!',
+      text: `Your itinerary titled "${itineraryName}" has been flagged as inapppropriate by our admins! As a result it  is no longer visible to any tourists/guests.`
+    };
+  
+    await transporter.sendMail(mailOptions);
+  }
+  
+  async function sendFlagItineraryNotification(username, itineraryName) {
+    try {
+      const notificationText = `Your itinerary titled "${itineraryName}" has been flagged as inappropriate by our admins! As a result, it is no longer visible to any tourists/guests.`;
+      const updatedTourGuide = await NewAcceptedTourGuideModel.findOneAndUpdate(
+        { Username: username }, // Find the advertiser by username
+        {
+          $push: { 
+            Notifications: { 
+              NotificationText: notificationText, 
+              Read: false // Default to unread
+            }
+          }
+        },
+        { new: true } // Return the updated document
+      );
+  
+      // Check if the advertiser was found
+      if (!updatedTourGuide) {
+        console.error(`TourGuide with username "${username}" not found.`);
+        return;
+      }
+  
+      console.log(`Notification added to tourguide "${username}" successfully.`);
+    } catch (error) {
+      console.error(`Error adding notification: ${error.message}`);
+    }
+  }
 
   const flagActivity = async (req, res) => {
     try {
@@ -1222,10 +1272,61 @@ const flagItinerary = async (req, res) => {
       }
   
       res.status(200).json({ message: "Activity has been flagged successfully!", activity });
+      const advertiser = await NewAcceptedAdvertiserModel.findOne({Username: activity.AdvertiserName});
+      sendFlagActivityEmail(advertiser.Email, title);
+      sendFlagAvtivityNotification(advertiser.Username, title);
     } catch (error) {
       res.status(500).json({ error: error.message });
     }
   };
+
+  async function sendFlagActivityEmail(email, activityName) {
+    const transporter = nodemailer.createTransport({
+      service: 'gmail', // Use your email provider
+      auth: {
+        user: 'malook25062003@gmail.com', // Your email
+        pass: 'sxvo feuu woie gpfn' // Your email password or app password
+      }
+    });
+  
+    const mailOptions = {
+      from: 'malook25062003@gmail.com',
+      to: email,
+      subject: 'Activity has been flagged!',
+      text: `Your activity titled "${activityName}" has been flagged as inapppropriate by our admins! As a result it  is no longer visible to any tourists/guests.`
+    };
+  
+    await transporter.sendMail(mailOptions);
+  }
+
+  async function sendFlagAvtivityNotification(username, activityName) {
+    try {
+      const notificationText = `Your activity titled "${activityName}" has been flagged as inappropriate by our admins! As a result, it is no longer visible to any tourists/guests.`;
+      const updatedAdvertiser = await NewAcceptedAdvertiserModel.findOneAndUpdate(
+        { Username: username }, // Find the advertiser by username
+        {
+          $push: { 
+            Notifications: { 
+              NotificationText: notificationText, 
+              Read: false // Default to unread
+            }
+          }
+        },
+        { new: true } // Return the updated document
+      );
+  
+      // Check if the advertiser was found
+      if (!updatedAdvertiser) {
+        console.error(`Advertiser with username "${username}" not found.`);
+        return;
+      }
+  
+      console.log(`Notification added to advertiser "${username}" successfully.`);
+    } catch (error) {
+      console.error(`Error adding notification: ${error.message}`);
+    }
+  }
+  
   
   const readAllDeleteRequests = async (req, res) => {
     try {

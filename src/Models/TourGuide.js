@@ -56,6 +56,19 @@ const TourGuideSchema = new Schema({
       type: String, 
       required: false,
     },
+    Notifications: [
+      {
+        NotificationText: {
+          type: String,
+          required: true,
+        },
+        Read: {
+          type: Boolean,
+          default: false, // Default to unread
+          required: true,
+        },
+      }
+    ],
 }, { timestamps: true }); //adds 2 more field (Created At:) & (Updated At:)
 
 const TourGuide = mongoose.model('TourGuide', TourGuideSchema);
