@@ -92,7 +92,7 @@ const [currency, setCurrency] = useState('EGP'); // Default currency is EGP
 const [expanded, setExpanded] = React.useState({});
 const [wishlistStatus, setWishlistStatus] = useState({});
 const [wishlist, setWishlist] = useState([]); 
-
+const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -239,23 +239,26 @@ const [wishlist, setWishlist] = useState([]);
 
 
 const fetchProducts = async () => {
-    try {
-      const response = await axios.get('/api/viewAllProductsSeller');
-      const fetchedProducts = response.data;
-  
-      // Fetch wishlist status for each product
-      const wishlistStatuses = {};
-      for (const product of fetchedProducts) {
-        const isInWishlist = await checkWishlistStatus(product.Name);
-        wishlistStatuses[product._id] = isInWishlist;
-      }
-  
-      setWishlist(wishlistStatuses); // Update wishlist state
-      setProducts(fetchedProducts); // Set products state
-    } catch (error) {
-      console.error('Error fetching products:', error);
+  setLoading(true); // Set loading to true before starting the fetch
+  try {
+    const response = await axios.get('/api/viewAllProductsSeller');
+    const fetchedProducts = response.data;
+
+    // Fetch wishlist status for each product
+    const wishlistStatuses = {};
+    for (const product of fetchedProducts) {
+      const isInWishlist = await checkWishlistStatus(product.Name);
+      wishlistStatuses[product._id] = isInWishlist;
     }
-  };
+
+    setWishlist(wishlistStatuses); // Update wishlist state
+    setProducts(fetchedProducts); // Set products state
+  } catch (error) {
+    console.error('Error fetching products:', error);
+  } finally {
+    setLoading(false); // Set loading to false after the fetch
+  }
+};
   
 
   const searchProducts = async (query) => {
@@ -1398,19 +1401,29 @@ const fetchProducts = async () => {
 
 
 
-      <Box sx={styles.activitiesContainer}>
-  {products.length > 0 ? (
+<Box sx={styles.activitiesContainer}>
+  {loading ? (
+    <Typography
+      variant="h6"
+      sx={{ textAlign: 'center', color: '#192959', marginTop: '20px' }}
+    >
+      Loading...
+    </Typography>
+  ) : products.length > 0 ? (
     products.map((product, index) => (
-      <Box key={index} sx={{ marginBottom: '20px' }}>
-        {/* Your activity card code */}
+      <Box key={index} sx={{ marginBottom: '40px' }}>
+        {/* Your product card code */}
       </Box>
     ))
   ) : (
-    <Typography variant="h6" sx={{ textAlign: 'center', color: '#192959', marginTop: '20px' }}>
-      No Products Found .
+    <Typography
+      variant="h6"
+      sx={{ textAlign: 'center', color: '#192959', marginTop: '20px' }}
+    >
+      No Products available
     </Typography>
   )}
-</Box>
+</Box>;
 
 
 <Modal
