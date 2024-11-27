@@ -1048,7 +1048,7 @@ const closeDeleteRequestsModal = () => {
       
       {/* Booked Transportation */}
       <Button
-        onClick={() => navigate('/booked-transportation')}
+        onClick={() => navigate('/TouristBookedTransportation')}
         sx={{
           ...styles.sidebarButton,
           fontSize: '14px',

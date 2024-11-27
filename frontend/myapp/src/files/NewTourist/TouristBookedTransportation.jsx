@@ -161,15 +161,24 @@ const [transportation, setTransportation] = useState([]);
 
   const fetchTransportation = async () => {
     try {
-      // Call the backend API to fetch all transportation options
-      const response = await axios.get('/api/viewAllTransportation');
-      
-      // Update the state with the fetched transportation options
-      setTransportation(response.data); // Assuming `setTransportation` is used to manage the transportation state
+      const username = localStorage.getItem('username'); // Retrieve logged-in user's username
+      if (!username) {
+        alert('User not logged in.');
+        return;
+      }
+  
+      // Call the API to fetch booked transportation details for the logged-in user
+      const response = await axios.get('/api/viewMyBookedTransportation', {
+        params: { Username: username }, // Pass the username as a query parameter
+      });
+  
+      setTransportation(response.data); // Set the transportation state with the response data
     } catch (error) {
-      console.error('Error fetching transportation options:', error);
+      console.error('Error fetching booked transportation:', error);
+      alert(error.response?.data?.msg || 'Failed to fetch booked transportation.');
     }
   };
+  
   
 
   const searchActivities = async (query) => {
@@ -1074,21 +1083,8 @@ const [transportation, setTransportation] = useState([]);
           </Box>
         </Box>
 
-        <Button
-          variant="contained"
-          disabled={!transportation.available} // Disable button if not available
-          onClick={() => handleBookTransportation(transportation.serviceName)}
-          sx={{
-            position: 'absolute',
-            top: '60px', // Position at the top
-            right: '60px', // Position at the right
-            backgroundColor: '#192959',
-            color: '#fff',
-            '&:hover': { backgroundColor: '#33416b' },
-          }}
-        >
-          Book
-        </Button>
+       
+       
       </Box>
     </Box>
   ))}
