@@ -17,6 +17,8 @@ import CloseIcon from '@mui/icons-material/Clear';
 import EditIcon from '@mui/icons-material/Edit';
 import SaveIcon from '@mui/icons-material/Save';
 import PersonIcon from '@mui/icons-material/Person'; // Icon for generic user type
+import AccountCircleIcon from '@mui/icons-material/AccountCircle';
+
 import axios from 'axios';
 
 function YAdvertiserDashboard() {
@@ -60,34 +62,38 @@ function YAdvertiserDashboard() {
     username: '',
     email: '',
     password: '',
-    CompanyProfile: '',
     Hotline: '',
+    CompanyProfile: '',
     Website: '',
+    logo: '', // URL for displaying the uploaded logo
+    logoFile: null, // File to be uploaded
   });
   const [isEditable, setIsEditable] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
   const username = localStorage.getItem('username') || 'User'; // Retrieve username from localStorage
+  //const navigate = useNavigate();
+
+  // useEffect(() => {
+  //   if (changePasswordModal) {
+  //     fetchCurrentPassword();
+  //   }
+  //   if (deleteRequestsModal) {
+  //     fetchDeleteRequests();
+  //   }
+  // }, [changePasswordModal, deleteRequestsModal]);
+
+  const handleTogglePassword = () => {
+    setShowPassword((prev) => !prev);
+  };
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (changePasswordModal) {
-      fetchCurrentPassword();
-    }
-    if (deleteRequestsModal) {
-      fetchDeleteRequests();
-    }
-  }, [changePasswordModal, deleteRequestsModal]);
-
-  // Fetch profile data
-  const readMyProfile = async () => {
-    const username = localStorage.getItem('username');
-    if (!username) {
-      alert('You need to log in first.');
-      return;
-    }
-
-    try {
+    const fetchProfileData = async () => {
+      const username = localStorage.getItem('username');
+      if (!username) return;
+  
+       try {
       const response = await axios.get(`/api/AdvertiserProfile`, {
         params: { username },
       });
@@ -100,14 +106,75 @@ function YAdvertiserDashboard() {
         CompanyProfile: data.CompanyProfile || '',
         Hotline: data.Hotline || '',
         Website: data.Website || '',
-      });
+        logo: data.Logo ? `${window.location.origin}${data.Logo}` : '', // Set full logo path
+        });
+      } catch (error) {
+        console.error('Error fetching profile:', error);
+      }
+    };
+  
+    fetchProfileData();
+  }, []);
 
+  const readMyProfile = async () => {
+    const username = localStorage.getItem('username');
+    if (!username) {
+      alert('You need to log in first.');
+      return;
+    }
+  
+    try {
+      const response = await axios.get(`/api/AdvertiserProfile`, {
+        params: { username },
+      });
+      const data = response.data.Advertiser;
+  
+        setProfileData({
+        username: data.Username || '',
+        email: data.Email || '',
+        password: data.Password || '',
+        CompanyProfile: data.CompanyProfile || '',
+        Hotline: data.Hotline || '',
+        Website: data.Website || '',
+        logo: data.Logo ? `${window.location.origin}${data.Logo}` : '', // Full path to display image
+      });
+  
       setIsProfileModalOpen(true);
     } catch (error) {
       console.error('Error fetching profile:', error);
       alert('An error occurred while loading the profile.');
     }
   };
+
+  // Fetch profile data
+  // const readMyProfile = async () => {
+  //   const username = localStorage.getItem('username');
+  //   if (!username) {
+  //     alert('You need to log in first.');
+  //     return;
+  //   }
+
+  //   try {
+  //     const response = await axios.get(`/api/AdvertiserProfile`, {
+  //       params: { username },
+  //     });
+  //     const data = response.data.Advertiser;
+
+  //     setProfileData({
+  //       username: data.Username || '',
+  //       email: data.Email || '',
+  //       password: data.Password || '',
+  //       CompanyProfile: data.CompanyProfile || '',
+  //       Hotline: data.Hotline || '',
+  //       Website: data.Website || '',
+  //     });
+
+  //     setIsProfileModalOpen(true);
+  //   } catch (error) {
+  //     console.error('Error fetching profile:', error);
+  //     alert('An error occurred while loading the profile.');
+  //   }
+  // };
 
   // Save profile data
 //   const saveProfile = async () => {
@@ -124,28 +191,33 @@ function YAdvertiserDashboard() {
 //   };
 
 const saveProfile = async () => {
-    try {
-        const response = await axios.put('/api/updateAdvertiserProfile', {
-            Username: profileData.username, // Ensure this is correct
-            Password: profileData.password,
-            Email: profileData.email,
-            Hotline: profileData.hotline, // Add this if applicable
-            CompanyProfile: profileData.companyProfile, // Add this if applicable
-            Website: profileData.Website, // Add this if applicable
-        });
+  const { username, email, password, Hotline, CompanyProfile, Website, logoFile } = profileData;
 
-        if (response.status === 200) {
-            alert('Profile updated successfully!');
-            setIsEditable(false);
-        } else {
-            alert('Failed to update profile.');
-        }
-    } catch (error) {
-        console.error('Error updating profile:', error);
-        alert('Failed to update profile.');
+  try {
+    const formData = new FormData();
+    formData.append('Username', username);
+    formData.append('Password', password || '');
+    formData.append('Email', email || '');
+    formData.append('Hotline', Hotline || '');
+    formData.append('CompanyProfile', CompanyProfile || '');
+    formData.append('Website', Website || '');
+
+    if (logoFile) {
+      formData.append('Logo', logoFile); // Append the selected file
     }
-};
 
+    const response = await axios.put('/api/updateAdvertiserProfile', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+
+    alert('Profile updated successfully!');
+      //setIsProfileModalOpen(false);
+      readMyProfile(); // Reload the profile to display the updated picture
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      alert('Failed to update profile: ' + error.message);
+    }
+  };
 
   const fetchCurrentPassword = async () => {
     const username = localStorage.getItem('username');
@@ -379,9 +451,38 @@ const handleAccountDeletion = async () => {
           </Typography>
         </Box>
         <Box sx={styles.topMenuRight}>
-          <Button onClick={readMyProfile} sx={styles.menuButton}>
+          {/* <Button onClick={readMyProfile} sx={styles.menuButton}>
             My Profile
-          </Button>
+          </Button> */}
+          <Button
+  sx={{
+    ...styles.menuButton,
+    '&:hover': {
+      backgroundColor: '#e6e7ed', // Lighter hover background
+      color: '#192959', // Text color on hover
+    },
+  }}
+  startIcon={
+    profileData.logo ? (
+      <img
+        src={profileData.logo}
+        alt="Profile"
+        style={{
+          width: '30px',
+          height: '30px',
+          borderRadius: '50%',
+          objectFit: 'cover',
+          border: '2px solid #e6e7ed',
+        }}
+      />
+    ) : (
+      <AccountCircleIcon />
+    )
+  }
+  onClick={readMyProfile}
+>
+  My Profile
+</Button>
           {/* <Button onClick={() => setChangePasswordModal(true)} sx={styles.menuButton}>
             Request Account Deletion
           </Button> */}
@@ -498,6 +599,9 @@ const handleAccountDeletion = async () => {
     mb: 2,
   }}
 >
+        {/* <Typography variant="h6" component="h2">
+            My Profile
+        </Typography> */}
         <Typography variant="h6" component="h2">
             My Profile
         </Typography>
@@ -524,6 +628,89 @@ const handleAccountDeletion = async () => {
             {isEditable ? 'Save Changes' : 'Edit'}
         </Button>
         </Box>
+
+    {/* Profile Picture Circle with Edit Icon */}
+    <Box
+      sx={{
+        position: "relative",
+        width: "80px",
+        height: "80px",
+        margin: "0 auto 20px",
+      }}
+    >
+      {profileData.logo ? (
+        <img
+          src={profileData.logo}
+          alt="Profile"
+          style={{
+            width: "100%",
+            height: "100%",
+            borderRadius: "50%",
+            border: "2px solid #192959",
+            objectFit: "cover",
+          }}
+        />
+      ) : (
+        <Box
+          sx={{
+            width: "100%",
+            height: "100%",
+            borderRadius: "50%",
+            backgroundColor: "#e6e7ed",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            border: "2px solid #192959",
+          }}
+        >
+          <Typography variant="body2" color="text.secondary">
+            Profile Picture
+          </Typography>
+        </Box>
+      )}
+
+      {/* Edit Icon Overlay */}
+      {isEditable && (
+      <IconButton
+        sx={{
+          position: "absolute",
+          bottom: "5px",
+          right: "-10px",
+          backgroundColor: "#192959",
+          color: "#fff",
+          padding: "5px", // Adjust the padding to make the button smaller
+          fontSize: "14px", // Smaller font size for the icon
+          "&:hover": {
+            backgroundColor: "#3a4a90",
+          },
+        }}
+        component="label"
+      >
+        <input
+          type="file"
+          hidden
+          accept="image/*"
+          onChange={(e) => {
+            const file = e.target.files[0];
+            if (file) {
+              setProfileData({ ...profileData, logoFile: file });
+            }
+          }}
+        />
+        <Typography
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            fontSize: "12px", // Reduce font size for the text/icon inside
+          }}
+        >
+          ✎
+        </Typography>
+      </IconButton>
+      )}
+    </Box>
+
 
           <Box component="form">
             <TextField
