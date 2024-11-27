@@ -251,7 +251,7 @@ const [expanded, setExpanded] = React.useState({});
       };
   
       // Send the request to the backend    
-      const response = await axios.get('/api/getHistoricalPlacesByTagGuest', sanitizedInputs);
+      const response = await axios.post('/api/getHistoricalPlacesByTagGuest', sanitizedInputs);
   
       // Update the hps state with the filtered results
       setHPs(response.data);
