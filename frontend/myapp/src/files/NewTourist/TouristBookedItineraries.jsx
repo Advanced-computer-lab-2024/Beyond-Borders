@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Button, Typography, Dialog ,DialogContent ,DialogContentText, DialogActions ,IconButton,Tooltip, TextField, InputAdornment, Modal,MenuItem,Select,FormControl,InputLabel,} from '@mui/material';
+import { Box, Button, Typography, IconButton,Tooltip,Divider,TextField, InputAdornment, Modal,MenuItem,Select,FormControl,InputLabel,} from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import MenuIcon from '@mui/icons-material/Menu';
 import NotificationsIcon from '@mui/icons-material/Notifications';
@@ -45,13 +45,9 @@ import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import IosShareIcon from '@mui/icons-material/IosShare';
 import ShareIcon from '@mui/icons-material/Share';
 import LanguageIcon from '@mui/icons-material/Language';
-import CancelIcon from '@mui/icons-material/Cancel';
-import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined';
-
-
 import axios from 'axios';
 
-function TouristBookedActivities() {
+function TouristBookedItineraries() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activities, setActivities] = useState([]);
   const [scrollPositions, setScrollPositions] = useState({});
@@ -89,23 +85,22 @@ const [sharedLink, setSharedLink] = useState(''); // Shared link state
 const [currentActivityName, setCurrentActivityName] = useState(''); // Trac
 const [convertedPrices, setConvertedPrices] = useState({});
 const [currency, setCurrency] = useState('EGP'); // Default currency is EGP
-const [openDialog, setOpenDialog] = useState(false);
-const [selectedActivity, setSelectedActivity] = useState(null);
+
   const navigate = useNavigate();
 
   useEffect(() => {
     // Function to handle fetching or searching activities
-    const fetchOrSearchActivities = async () => {
+    const fetchOrSearchItineraries = async () => {
       if (!searchQuery) {
         // Fetch all activities when there's no search query
-        await fetchActivities();
+         await fetchItineraries();
       } else {
         // Perform search when there's a query
-        await searchActivities(searchQuery);
+        await searchItineraries(searchQuery);
       }
     };
   
-    fetchOrSearchActivities(); // Call the fetch or search logic
+    fetchOrSearchItineraries(); // Call the fetch or search logic
     fetchCategories(); // Fetch categories
     fetchTags(); // Fetch tags
   
@@ -153,40 +148,45 @@ const [selectedActivity, setSelectedActivity] = useState(null);
   
   
 
-  const fetchActivities = async () => {
+  const fetchItineraries = async () => {
     try {
-      const username = localStorage.getItem('username'); // Retrieve the logged-in username
+      const response = await axios.get('/api/ViewAllUpcomingItinerariesTourist');
+      setActivities(response.data); // Assuming you're using `setActivities` to populate the UI
+    } catch (error) {
+      console.error('Error fetching itineraries:', error);
+    }
+  };
+
+  const searchItineraries = async (query) => {
+    try {
+      // Send the search query to the backend
+      const response = await axios.post('/api/ItinerarySearchAll', { searchString: query });
   
-      if (!username) {
-        console.error('User not logged in.');
-        return;
+      // Update the activities state with the fetched itineraries
+      if (response.data.length > 0) {
+        setActivities(response.data); // Update state if itineraries are found
+      } else {
+        setActivities([]); // Clear activities if no itineraries found
       }
-  
-      // Fetch booked activities using the username
-      const response = await axios.get('/api/viewMyBookedActivities', {
-        params: { Username: username }, // Send the username as a query parameter
-      });
-  
-      setActivities(response.data); // Set the activities state with the fetched data
     } catch (error) {
-      console.error('Error fetching booked activities:', error);
+      console.error('Error searching itineraries:', error);
+  
+      // Handle 404 error when no itineraries are found
+      if (error.response?.status === 404) {
+        setActivities([]); // Clear activities list
+      } else {
+        alert(error.response?.data?.msg || 'An error occurred while searching itineraries.'); // Show error message for other errors
+      }
     }
   };
   
-
-  const searchActivities = async (query) => {
-    try {
-      const response = await axios.post('/api/ActivitiesSearchAll', { searchString: query });
-      setActivities(response.data);
-    } catch (error) {
-      console.error('Error searching activities:', error);
-      setActivities([]); // Clear activities if no results or error
-    }
-  };
-
+  // Handle search input change
   const handleSearchChange = (event) => {
-    setSearchQuery(event.target.value); // Update search query state
+    const query = event.target.value; // Get the input value
+    setSearchQuery(query); // Update search query state
+    searchItineraries(query); // Trigger the search functionality
   };
+  
 
   // Fetch categories from backend
   const fetchCategories = async () => {
@@ -211,24 +211,34 @@ const [selectedActivity, setSelectedActivity] = useState(null);
   
   const handleFilterSubmit = async () => {
     try {
-      // Remove empty or invalid fields before sending to backend
+      // Remove empty or invalid fields before sending to the backend
       const sanitizedInputs = Object.fromEntries(
-        Object.entries(filterInputs).filter(([_, value]) => value !== "" && value !== null)
+        Object.entries(filterInputs).filter(
+          ([_, value]) => value !== "" && value !== null && value !== undefined
+        )
       );
   
-      const response = await axios.post('/api/filterActivities', sanitizedInputs);
-      setActivities(response.data); // Update activities with the filtered results
-      setFilterModalOpen(false); // Close the modal after applying filters
+      // Send the sanitized inputs to the backend for filtering itineraries
+      const response = await axios.post('/api/filterItinerariesTourist', sanitizedInputs);
+  
+      // Update activities with the filtered results
+      setActivities(response.data);
+  
+      // Close the modal after applying filters
+      setFilterModalOpen(false);
     } catch (error) {
       if (error.response && error.response.status === 404) {
-        // No activities found
-        setActivities([]); // Clear activities list
+        // If no itineraries are found, clear the activities list
+        setActivities([]);
         setFilterModalOpen(false); // Close the modal
+        alert(error.response.data.msg); // Show user-friendly message
       } else {
-        console.error('Error filtering activities:', error);
+        console.error('Error filtering itineraries:', error);
+        alert('An error occurred while filtering itineraries. Please try again.');
       }
     }
   };
+  
 
 
   const handleSortChange = async (event) => {
@@ -239,17 +249,12 @@ const [selectedActivity, setSelectedActivity] = useState(null);
       let response;
       switch (selectedOption) {
         case "priceAsc":
-          response = await axios.get("/sortActivitiesPriceAscendingTourist");
+          response = await axios.get("/sortItinerariesPriceAscendingTourist");
           break;
         case "priceDesc":
-          response = await axios.get("/sortActivitiesPriceDescendingTourist");
+          response = await axios.get("/sortItinerariesPriceDescendingTourist");
           break;
-        case "ratingAsc":
-          response = await axios.get("/sortActivitiesRatingAscendingTourist");
-          break;
-        case "ratingDesc":
-          response = await axios.get("/sortActivitiesRatingDescendingTourist");
-          break;
+       
         default:
           return; // Do nothing if no valid option is selected
       }
@@ -262,62 +267,36 @@ const [selectedActivity, setSelectedActivity] = useState(null);
     }
   };
   //book
-  const handleBookActivity = async (activityName) => {
+  const handleBookItinerary = async (itineraryName) => {
     const touristUsername = localStorage.getItem('username'); // Assuming username is stored in localStorage
-  
+    
     if (!touristUsername) {
-      alert('Please log in to book activities.');
+      alert('Please log in to book an itinerary.');
       return;
     }
   
     try {
-      const response = await axios.put('/bookActivity', { touristUsername, activityName });
+      // Make a POST request to book the itinerary
+      const response = await axios.put('/bookItinerary', { touristUsername, itineraryName });
+  
+      // Navigate to the payment page on success
       navigate('/TouristPaymentPage');
     } catch (error) {
-      alert(error.response?.data?.msg || 'An error occurred while booking the activity.');
-    }
-  };
-
-
-  const handleCancelBooking = async (activityName) => {
-    const username = localStorage.getItem('username'); // Retrieve the logged-in username
-  
-    if (!username) {
-      alert('User not logged in.');
-      return;
-    }
-  
-    try {
-      const response = await axios.put('/deleteBookedActivity', {
-        touristUsername: username,
-        activityName,
-      });
-  
-      const { msg, refundedAmount, updatedWallet, updatedPoints, updatedBadgeLevel } = response.data;
-  
-      
-      console.log(`Refunded Amount: ${refundedAmount}, Updated Wallet: ${updatedWallet}`);
-  
-      // Update the activities list to remove the canceled activity
-      setActivities((prevActivities) =>
-        prevActivities.filter((activity) => activity.Name !== activityName)
-      );
-    } catch (error) {
-      console.error('Error canceling booking:', error);
-      alert(error.response?.data?.msg || 'Failed to cancel booking.');
+      alert(error.response?.data?.msg || 'An error occurred while booking the itinerary.');
     }
   };
   
+
   //share
 
-  const handleOpenShareModal = async (activityName) => {
+  const handleOpenShareModal = async (itineraryName) => {
     try {
       const response = await axios.post('/getCopyLink', {
-        entityType: 'activity',
-        entityName: activityName,
+        entityType: 'itinerary',
+        entityName: itineraryName,
       });
       setSharedLink(response.data.link); // Set the generated link
-      setCurrentActivityName(activityName); // Store the activity name in state
+      setCurrentActivityName(itineraryName); // Store the activity name in state
       setShareModalOpen(true); // Open the modal
     } catch (error) {
       console.error('Error generating link:', error);
@@ -326,7 +305,7 @@ const [selectedActivity, setSelectedActivity] = useState(null);
   };
   
   
-  const handleSendEmail = async (activityName) => {
+  const handleSendEmail = async (itineraryName) => {
     if (!email || !sharedLink) {
       alert('Please provide a valid email and ensure the link is generated.');
       return;
@@ -334,8 +313,8 @@ const [selectedActivity, setSelectedActivity] = useState(null);
   
     try {
       const response = await axios.post('/getCopyLink', {
-        entityType: 'activity',
-        entityName: activityName,
+        entityType: 'itinerary',
+        entityName: itineraryName,
         email,
       });
       alert(response.data.msg); // Show success message
@@ -357,23 +336,6 @@ const [selectedActivity, setSelectedActivity] = useState(null);
   };
   
   
-  const handleOpenDialog = (activityName) => {
-    setSelectedActivity(activityName); // Set the selected activity
-    setOpenDialog(true);              // Open the dialog
-  };
-  
-  const handleCloseDialog = () => {
-    setOpenDialog(false);             // Close the dialog
-    setSelectedActivity(null);        // Reset selected activity
-  };
-  
-  const handleConfirmDeletion = async () => {
-    if (selectedActivity) {
-      await handleCancelBooking(selectedActivity); // Call your existing cancel booking function
-    }
-    setOpenDialog(false); // Close the dialog
-    setSelectedActivity(null); // Reset selected activity
-  };
   
 
   // Fetch tags from backend
@@ -390,6 +352,15 @@ const [selectedActivity, setSelectedActivity] = useState(null);
   
 
   const renderRating = (rating) => {
+    if (typeof rating !== 'number' || rating < 0 || rating > 5) {
+      // Handle invalid rating gracefully
+      return (
+        <Typography variant="body2" sx={{ fontSize: '24px', position: 'absolute', right: '170px', bottom: '2px' }}>
+          N/A
+        </Typography>
+      );
+    }
+  
     const roundedRating = Math.round(rating * 10) / 10;
     const fullStars = Math.floor(rating);
     const halfStars = roundedRating > fullStars ? 1 : 0;
@@ -412,6 +383,7 @@ const [selectedActivity, setSelectedActivity] = useState(null);
       </Box>
     );
   };
+  
   
 
   const scrollCommentsLeft = (index) => {
@@ -690,7 +662,7 @@ const [selectedActivity, setSelectedActivity] = useState(null);
   {itinerariesOpen && (
     <Box sx={{ display: 'flex', flexDirection: 'column', marginLeft: sidebarOpen ? '20px' : '0px' }}>
       <Button
-        onClick={() => navigate('/TouristUpcomingItineraries')}
+        onClick={() => navigate('/upcoming-itineraries')}
         sx={{
           ...styles.sidebarButton,
           fontSize: '14px',
@@ -969,11 +941,94 @@ const [selectedActivity, setSelectedActivity] = useState(null);
     marginRight: '60px',           // Add margin to the right for consistent spacing
   }}
 >
- 
+  {/* Search Bar */}
+  <TextField
+    label="Search"
+    variant="outlined"
+    value={searchQuery}
+    onChange={handleSearchChange}
+    sx={{
+      width: '30%',
+      '& .MuiOutlinedInput-root': {
+        '& fieldset': {
+          borderColor: '#192959', // Default outline color
+          borderWidth: '2px',
+        },
+        '&:hover fieldset': {
+          borderColor: '#192959', // Hover outline color
+          borderWidth: '2.5px',
+        },
+        '&.Mui-focused fieldset': {
+          borderColor: '#192959', // Focused outline color
+          borderWidth: '2.5px',
+        },
+      },
+      '& .MuiInputLabel-root': {
+        color: '#192959', // Label color
+        fontSize: '18px',
+      },
+    }}
+    InputProps={{
+      startAdornment: (
+        <Box sx={{ display: 'flex', alignItems: 'center', color: '#192959', paddingLeft: '5px' }}>
+          <SearchIcon />
+        </Box>
+      ),
+    }}
+  />
 
   {/* Sort Dropdown and Filter Icon */}
-  <Box sx={{ display: 'flex', alignItems: 'right', gap: '10px', marginLeft: '1550px',marginRight: '10px'}}>
-    
+  <Box sx={{ display: 'flex', alignItems: 'right', gap: '10px', marginLeft: '100px'}}>
+    <TextField
+      select
+      label={
+        <Box sx={{ display: 'flex', alignItems: 'right', gap: '8px' }}>
+          Sort By
+        </Box>
+      }
+      variant="outlined"
+      value={sortOption}
+      onChange={handleSortChange}
+      sx={{
+        width: '80%',
+        '& .MuiOutlinedInput-root': {
+          '& fieldset': {
+            borderColor: '#192959', // Default border color
+            borderWidth: '2px',
+          },
+          '&:hover fieldset': {
+            borderColor: '#33416b', // Hover border color
+            borderWidth: '2.5px',
+          },
+          '&.Mui-focused fieldset': {
+            borderColor: '#192959', // Focused border color
+            borderWidth: '2.5px',
+          },
+        },
+        '& .MuiInputLabel-root': {
+          color: '#192959', // Label color
+          fontSize: '18px',
+        },
+      }}
+      InputProps={{
+        startAdornment: (
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              color: '#192959',
+              paddingLeft: '5px',
+            }}
+          >
+            <SwapVertIcon />
+          </Box>
+        ),
+      }}
+    >
+      <MenuItem value="priceAsc">Price: Low to High</MenuItem>
+      <MenuItem value="priceDesc">Price: High to Low</MenuItem>
+      
+    </TextField>
 
     <TextField
   select
@@ -982,7 +1037,7 @@ const [selectedActivity, setSelectedActivity] = useState(null);
   onChange={(e) => setCurrency(e.target.value)}
   variant="outlined"
   sx={{
-    width: '130px',
+    width: '210px',
     '& .MuiOutlinedInput-root': {
       '& fieldset': {
         borderColor: '#192959', // Default border color
@@ -1025,7 +1080,18 @@ const [selectedActivity, setSelectedActivity] = useState(null);
 </TextField>
 
 
-   
+    {/* Filter Icon */}
+    <Tooltip title="Filter" placement="bottom" arrow>
+      <IconButton
+        onClick={() => setFilterModalOpen(true)}
+        sx={{
+          color: '#192959',
+          '&:hover': { backgroundColor: '#e6e7ed', color: '#33416b' },
+        }}
+      >
+        <FilterAltIcon fontSize="large" />
+      </IconButton>
+    </Tooltip>
   </Box>
 </Box>
 
@@ -1041,18 +1107,18 @@ const [selectedActivity, setSelectedActivity] = useState(null);
             <Box
               sx={{
                 ...styles.activityCard,
-                backgroundColor: 'white',
+                backgroundColor: activity.flagged ? '#cccfda' : 'white',
               }}
             >
               <Box sx={styles.activityInfo}>
-                <Typography variant="h6" sx={{ fontWeight: 'bold',fontSize: '24px', marginBottom: '5px', display: 'flex', alignItems: 'center' }}>{activity.Name}</Typography>
+                <Typography variant="h6" sx={{ fontWeight: 'bold',fontSize: '24px', marginBottom: '5px', display: 'flex', alignItems: 'center' }}>{activity.Title}</Typography>
                 <Typography variant="body2" sx={{ display: 'flex', fontSize: '18px', alignItems: 'center' }}>
                   <LocationOnIcon fontSize="small" sx={{ mr: 1 }} />
-                  {activity.Location?.address || 'N/A'}
+                  {activity.Locations|| 'N/A'}
                 </Typography>
                 <Typography variant="body2" sx={{ display: 'flex', fontSize: '18px', alignItems: 'center' }}>
                   <PersonIcon fontSize="small" sx={{ mr: 1 }} />
-                  {activity.AdvertiserName}
+                  {activity.AuthorUsername}
                 </Typography>
                 <Typography variant="body2" sx={{ display: 'flex', fontSize: '18px', alignItems: 'center' }}>
                 <PaymentIcon fontSize="small" sx={{ mr: 1 }} />
@@ -1067,55 +1133,235 @@ const [selectedActivity, setSelectedActivity] = useState(null);
                 </Typography>
                 <Typography variant="body2" sx={{ display: 'flex', fontSize: '18px', alignItems: 'center' }}>
                   <AccessTimeIcon fontSize="small" sx={{ mr: 1 }} />
-                  {activity.Time}
+                  {activity.Timeline}
                 </Typography>
                 <Box sx={styles.quickFacts}>
-                  <Box sx={{ ...styles.infoContainer, backgroundColor:  '#f3f4f6' }}>
-                    <Typography variant="body2" sx={{ fontWeight: 'bold' }}>Category:</Typography>
-                    <Typography variant="body2">{activity.Category}</Typography>
-                  </Box>
-                  <Box sx={{ ...styles.infoContainer, backgroundColor: '#f3f4f6' }}>
-                    <Typography variant="body2" sx={{ fontWeight: 'bold' }}>Tags:</Typography>
-                    <Typography variant="body2">{activity.Tags.join(', ')}</Typography>
-                  </Box>
+                  
+                <Box sx={styles.quickFacts}>
+  <Box
+    sx={{
+      ...styles.infoContainer,
+      backgroundColor: activity.flagged ? '#b3b8c8' : '#f3f4f6',
+    }}
+  >
+    <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
+      Tags:
+    </Typography>
+    <Typography variant="body2">
+      {activity.Tags?.join(', ') || 'No Tags'}
+    </Typography>
+  </Box>
+</Box>
+
                 </Box>
               </Box>
               <Box sx={styles.activityRating}>
-                {renderRating(activity.Rating)}
+                {renderRating(activity.Ratings)}
               </Box>
-              <Box sx={styles.discountContainer}>
-                <Box sx={{...styles.infoContainer, backgroundColor:'#f3f4f6'}}>
-                  <Typography variant="body2" sx={{ fontWeight: 'bold' }}>Special Discount:</Typography>
-                  <Typography variant="body2">{activity.SpecialDiscount}</Typography>
+
+               {/* Divider Line */}
+               <Divider orientation="vertical" flexItem sx={{ marginRight: '10px', borderColor: '#ccc' }} />
+
+               <Box
+                    sx={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'flex-start',
+                        gap: '5px',
+                        marginBottom: '60px',
+                        marginRight: '450px',
+                        marginTop: '40px', // Adjust this value to lower the entire section
+                    }}
+                    >
+                    <Typography
+                        variant="body2"
+                        sx={{
+                        fontWeight: 'bold', // Bold for "Activities:"
+                        fontSize: '16px', // Font size
+                        color: '#192959', // Color for the label
+                        marginBottom: '5px', // Spacing between items
+                        }}
+                    >
+                        Activities:{' '}
+                        <span
+                        style={{
+                            fontWeight: 'normal', // Normal weight for the value
+                            color: '#33416b', // Different color for the value
+                        }}
+                        >
+                        {activity.Activities || 'N/A'}
+                        </span>
+                    </Typography>
+
+
+
+                    <Box
+                        sx={{
+                            display: 'flex',
+                            alignItems: 'center', // Vertically aligns items
+                            gap: '5px', // Space between "Language:" and the value
+                        }}
+                        >
+                        <Typography
+                            variant="body2"
+                            sx={{
+                            fontWeight: 'bold', // Bold for "Language:"
+                            fontSize: '16px', // Font size
+                            }}
+                        >
+                            Language:
+                        </Typography>
+                        <Typography
+                            variant="body2"
+                            sx={{
+                            fontSize: '16px', // Font size for value
+                            color: '#192959', // Color for value
+                            }}
+                        >
+                            {activity.Language || 'N/A'}
+                        </Typography>
+                        </Box>
+
+
+
+                        <Box
+                        sx={{
+                            display: 'flex',
+                            alignItems: 'center', // Vertically aligns items
+                            gap: '5px', // Space between "Language:" and the value
+                        }}
+                        >
+                        <Typography
+                            variant="body2"
+                            sx={{
+                            fontWeight: 'bold', // Bold for "Language:"
+                            fontSize: '16px', // Font size
+                            }}
+                        >
+                            Accessibility:
+                        </Typography>
+                        <Typography
+                    variant="body2"
+                    sx={{
+                        fontSize: '16px',
+                        color: '#192959',
+                    }}
+                >
+                    {activity.accessibility === true
+                        ? 'Accessible'
+                        : activity.accessibility === false
+                        ? 'Not Accessible'
+                        : 'N/A'}
+                </Typography>
+
+                        </Box>
+
+
+                        <Box
+                        sx={{
+                            display: 'flex',
+                            alignItems: 'center', // Vertically aligns items
+                            gap: '5px', // Space between "Language:" and the value
+                        }}
+                        >
+                        <Typography
+                            variant="body2"
+                            sx={{
+                            fontWeight: 'bold', // Bold for "Language:"
+                            fontSize: '16px', // Font size
+                            }}
+                        >
+                            Pickup Location:
+                        </Typography>
+                        <Typography
+                            variant="body2"
+                            sx={{
+                            fontSize: '16px', // Font size for value
+                            color: '#192959', // Color for value
+                            }}
+                        >
+                            {activity.pickupLocation || 'N/A'}
+                        </Typography>
+                        </Box>
+
+
+
+
+
+                        <Box
+                        sx={{
+                            display: 'flex',
+                            alignItems: 'center', // Vertically aligns items
+                            gap: '5px', // Space between "Language:" and the value
+                        }}
+                        >
+                        <Typography
+                            variant="body2"
+                            sx={{
+                            fontWeight: 'bold', // Bold for "Language:"
+                            fontSize: '16px', // Font size
+                            }}
+                        >
+                            Drop-Off Location:
+                        </Typography>
+                        <Typography
+                            variant="body2"
+                            sx={{
+                            fontSize: '18px', // Font size for value
+                            color: '#192959', // Color for value
+                            }}
+                        >
+                            {activity.dropoffLocation || 'N/A'}
+                        </Typography>
+                        </Box>
+
                 </Box>
-              </Box>
+
               <Box sx={styles.bookingOpenContainer}>
-                <Box sx={{...styles.infoContainer, backgroundColor: '#f3f4f6'}}>
+                <Box sx={{...styles.infoContainer, backgroundColor: activity.flagged ? '#b3b8c8' : '#f3f4f6'}}>
                   <Typography variant="body2" sx={{ fontWeight: 'bold' }}>Booking Open:</Typography>
-                  <Typography variant="body2">{activity.BookingOpen ? 'Yes' : 'No'}</Typography>
+                  <Typography variant="body2">{activity.isBooked ? 'Yes' : 'No'}</Typography>
                 </Box>
               </Box>
 
               
 
-
-        
               <Button
-  variant="contained"
-  disabled={!activity.BookingOpen} // Optionally disable based on booking status
-  onClick={() => handleOpenDialog(activity.Name)}
-  startIcon={<CancelOutlinedIcon />} // Add the cancel icon before the text
-  sx={{
-    position: 'absolute',
-    top: '60px', // Position at the top
-    right: '60px', // Position at the right
-    backgroundColor: '#192959', // Blue color for booking action
-    color: '#fff',
-    '&:hover': { backgroundColor: '#d32f2f' }, // Slightly lighter red on hover
-  }}
->
-  Cancel Booking
-</Button>
+          variant="contained"
+          disabled={!activity.isBooked} // Disable button if booking is not open
+          onClick={() => handleBookItinerary(activity.Title)}
+
+          sx={{
+            position: 'absolute',
+            top: '60px', // Position at the top
+            right: '60px', // Position at the right
+            
+            backgroundColor: '#192959',
+
+            color: '#fff',
+            '&:hover': { backgroundColor: '#33416b' },
+          }}
+        >
+          Book
+        </Button>
+        <Tooltip title="Share" arrow>
+
+        <IconButton
+    onClick={() => handleOpenShareModal(activity.Title)} // Pass activity name
+    sx={{
+      position: 'absolute',
+      top: '60px',
+      right: '140px',
+      color: '#192959', // Icon color
+      '&:hover': {
+        color: '#33416b', // Hover color for the icon
+      },
+    }}
+  >
+    <IosShareIcon />
+  </IconButton>
+  
+</Tooltip>
 
 
 
@@ -1265,7 +1511,7 @@ const [selectedActivity, setSelectedActivity] = useState(null);
 
 
 
-      <Modal
+<Modal
   open={filterModalOpen}
   onClose={() => setFilterModalOpen(false)}
   aria-labelledby="filter-modal-title"
@@ -1277,31 +1523,42 @@ const [selectedActivity, setSelectedActivity] = useState(null);
       top: '50%',
       left: '50%',
       transform: 'translate(-50%, -50%)',
-      width: 400,
+      width: 500, // Increased width for better layout
       bgcolor: 'background.paper',
       boxShadow: 24,
       p: 4,
       borderRadius: '10px',
     }}
   >
-    <Typography id="filter-modal-title" variant="h6" component="h2" sx={{ marginBottom: '20px' }}>
-      Filter Activities
+    <Typography
+      id="filter-modal-title"
+      variant="h6"
+      component="h2"
+      sx={{
+        marginBottom: '20px',
+        textAlign: 'center',
+        color: '#192959', // Matches the theme
+      }}
+    >
+      Filter Itineraries
     </Typography>
-    <Box sx={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-      <TextField
-        label="Category"
-        name="Category"
-        variant="outlined"
-        value={filterInputs.Category || ""}
-        onChange={handleFilterInputChange}
-      />
+    <Box
+      sx={{
+        display: 'grid',
+        gridTemplateColumns: '1fr 1fr', // Two columns for better layout
+        gap: '15px',
+      }}
+    >
       <TextField
         label="Min Price"
-        name="minPrice"
+        name="MinPrice"
         type="number"
         variant="outlined"
-        value={filterInputs.minPrice || ""}
+        value={filterInputs.MinPrice || ""}
         onChange={handleFilterInputChange}
+        sx={{
+          gridColumn: '1 / span 1', // Place in first column
+        }}
       />
       <TextField
         label="Max Price"
@@ -1310,6 +1567,9 @@ const [selectedActivity, setSelectedActivity] = useState(null);
         variant="outlined"
         value={filterInputs.maxPrice || ""}
         onChange={handleFilterInputChange}
+        sx={{
+          gridColumn: '2 / span 1', // Place in second column
+        }}
       />
       <TextField
         label="Date"
@@ -1319,63 +1579,62 @@ const [selectedActivity, setSelectedActivity] = useState(null);
         InputLabelProps={{ shrink: true }}
         value={filterInputs.InputDate || ""}
         onChange={handleFilterInputChange}
+        sx={{
+          gridColumn: '1 / span 1', // Place in first column
+        }}
       />
       <TextField
-        label="Rating"
-        name="Rating"
-        type="number"
+        label="Language"
+        name="Language"
         variant="outlined"
-        value={filterInputs.Rating || ""}
+        value={filterInputs.Language || ""}
         onChange={handleFilterInputChange}
+        sx={{
+          gridColumn: '2 / span 1', // Place in second column
+        }}
+      />
+      <TextField
+        label="Tags (Comma-separated)"
+        name="Tags"
+        variant="outlined"
+        value={filterInputs.Tags || ""}
+        onChange={handleFilterInputChange}
+        sx={{
+          gridColumn: '1 / span 2', // Spans across both columns
+        }}
       />
     </Box>
     <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '20px' }}>
-    <Button
-  variant="outlined"
-  onClick={() => setFilterModalOpen(false)}
-  sx={{
-    color: '#192959', // Text color
-    borderColor: '#192959', // Outline color
-    '&:hover': {
-      backgroundColor: 'rgba(25, 41, 89, 0.1)', // Slight background highlight on hover
-      borderColor: '#192959', // Outline color on hover
-    },
-  }}
->
-  Cancel
-</Button>
-
-      <Button variant="contained" onClick={handleFilterSubmit} sx={{ backgroundColor: '#192959', color: '#fff' }}>
+      <Button
+        variant="outlined"
+        onClick={() => setFilterModalOpen(false)}
+        sx={{
+          color: '#192959',
+          borderColor: '#192959',
+          '&:hover': {
+            backgroundColor: 'rgba(25, 41, 89, 0.1)',
+            borderColor: '#192959',
+          },
+        }}
+      >
+        Cancel
+      </Button>
+      <Button
+        variant="contained"
+        onClick={handleFilterSubmit}
+        sx={{
+          backgroundColor: '#192959',
+          color: '#fff',
+          '&:hover': {
+            backgroundColor: '#33416b', // Slightly darker color on hover
+          },
+        }}
+      >
         Apply
       </Button>
     </Box>
   </Box>
 </Modal>
-
-<Dialog open={openDialog} onClose={handleCloseDialog}>
-  <DialogContent>
-    <DialogContentText sx={{ fontWeight: 'bold', color: '#192959', fontSize: '20px' }}>
-      Do you want to confirm Event deletion?
-    </DialogContentText>
-    <DialogContentText sx={{ fontWeight: 'bold', color: '#33416b', marginTop: '10px' }}>
-      This action is non-reversible and the event booking will be canceled.
-    </DialogContentText>
-  </DialogContent>
-  <DialogActions>
-    <Button
-      onClick={handleCloseDialog}
-      sx={{ color: '#192959', '&:hover': { backgroundColor: '#192959', color: '#e6e7ed' } }}
-    >
-      Cancel
-    </Button>
-    <Button
-      onClick={handleConfirmDeletion}
-      sx={{ color: '#192959', '&:hover': { backgroundColor: '#192959', color: '#e6e7ed' } }}
-    >
-      Confirm
-    </Button>
-  </DialogActions>
-</Dialog>
 
 
       {/* Back to Top Button */}
@@ -1534,7 +1793,7 @@ const styles = {
   },
   activityRating: {
     position: 'absolute',
-    bottom: '140px',
+    bottom: '100px',
     right: '60px',
     display: 'flex',
     flexDirection: 'column',
@@ -1552,6 +1811,11 @@ const styles = {
     display: 'flex',
     flexDirection: 'column',
     gap: '5px',
+  },
+  verticalDivider: {
+    backgroundColor: '#d1d5db',
+    width: '1px',
+    margin: '20px 15px 0 15px', // Adjust the top margin to position the start
   },
   
   activityInfoRight: {
@@ -1663,4 +1927,4 @@ const styles = {
   },
 };
 
-export default TouristBookedActivities;
+export default TouristBookedItineraries;

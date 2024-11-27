@@ -221,42 +221,62 @@ function YSellerProductsPage() {
   };
   
 
-  const handleSaveClick = async (productName) => {
+  const handleSaveClick = async (productId) => {
     try {
-      const updatePayload = { ...editedProduct };
-      delete updatePayload.Seller; // Remove Seller before sending
+      const formData = new FormData();
+      formData.append("Name", editedProduct.Name);
+      formData.append("Seller", localStorage.getItem("username")); // Ensure the seller is logged in
   
-      await axios.put('/api/editProduct', {
-        Name: productName,
-        ...updatePayload, // Send only allowed fields
-      });
-      alert('Product updated successfully!');
-      setEditMode((prev) => ({ ...prev, [productName]: false }));
-      fetchProducts();
-    } catch (error) {
-      console.error('Error updating product:', error);
-      alert('Failed to update product.');
-    }
-  };
-
-
-  const handleCreateProduct = async (newProduct) => {
-    try {
-      const response = await axios.post('/api/addProductSeller', newProduct);
-      console.log("Product created:", response.data);
-      alert("Product created successfully!");
-      setAddProductModal(false);
-      fetchProducts();
-    } catch (error) {
-      if (error.response) {
-        console.error("Server Error:", error.response.data);
-        alert(`Error: ${error.response.data.error}`);
-      } else {
-        console.error("Unexpected Error:", error.message);
-        alert(`Unexpected Error: ${error.message}`);
+      if (editedProduct.Price) formData.append("Price", editedProduct.Price);
+      if (editedProduct.Quantity) formData.append("Quantity", editedProduct.Quantity);
+      if (editedProduct.Description) formData.append("Description", editedProduct.Description);
+      if (editedProduct.Picture instanceof File) {
+        formData.append("Picture", editedProduct.Picture);
       }
+  
+      await axios.put(`/api/editProductSeller`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+  
+      alert("Product updated successfully!");
+      fetchProducts(); // Refresh product list
+      setEditMode((prev) => ({ ...prev, [productId]: false }));
+      setEditedProduct({});
+    } catch (error) {
+      console.error("Error updating product:", error);
+      alert(error.response?.data?.error || "Failed to update product.");
     }
   };
+  
+
+
+  const handleCreateProduct = async (formData) => {
+    try {
+      const seller = localStorage.getItem("username"); // Fetch the logged-in seller's username
+      if (!seller) {
+        alert("Seller information is missing. Please log in.");
+        return;
+      }
+  
+      // Ensure Seller is appended only once and as a string
+      if (!formData.has("Seller")) {
+        formData.append("Seller", seller);
+      }
+  
+      const response = await axios.post("/api/addProductSeller", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+  
+      alert("Product created successfully!");
+      fetchProducts(); // Refresh product list
+      setAddProductModal(false);
+    } catch (error) {
+      console.error("Error creating product:", error);
+      alert(`Error: ${error.response?.data?.error || error.message}`);
+    }
+  };
+  
+  
   
   
   
@@ -494,6 +514,25 @@ function YSellerProductsPage() {
                         )}
                     </Typography>
                     </Box>
+
+                    <img
+                    src={`http://localhost:8000${product.Picture}`}
+                    alt="Product"
+                    style={styles.productImage}
+                    />
+
+
+                    {editMode[product._id] && (
+                    <TextField
+                    name="Picture"
+                    type="file"
+                    fullWidth
+                    onChange={(e) => setEditedProduct((prev) => ({ ...prev, Picture: e.target.files[0] }))}
+                    inputProps={{ accept: "image/*" }}
+                  />
+                  
+                    )}
+
 
                {/* Product Description */}
                     <Box sx={styles.productDetail}>
@@ -833,6 +872,14 @@ const styles = {
       backgroundColor: "#e6e7ed", // Background changes to white
       color: "#192959", // Text changes to #192959
     },
+  },
+  productImage: {
+    width: '150px', // Increase the width
+    height: '150px', // Increase the height
+    objectFit: 'cover',
+    borderRadius: '8px',
+    marginBottom: '10px',
+    marginLeft: '20px', // Move the image to the right
   },
   
 };

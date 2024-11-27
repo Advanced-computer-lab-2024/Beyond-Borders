@@ -51,19 +51,31 @@ function AddProductModalSeller({ open, handleClose, handleCreateProduct }) {
   };
 
   const handleSubmit = () => {
-    if (!newProduct.Name || !newProduct.Description || !newProduct.Price || !newProduct.Quantity ) {
-      setErrorMessage("All fields are required!");
+    // Validate required fields
+    if (!newProduct.Name || !newProduct.Description || !newProduct.Price || !newProduct.Quantity || !newProduct.Seller || !newProduct.Picture) {
+      setErrorMessage("All fields are required, including Picture!");
       return;
     }
-    handleCreateProduct(newProduct);
+  
+    // Create FormData object to send the file
+    const formData = new FormData();
+    Object.keys(newProduct).forEach((key) => {
+      formData.append(key, newProduct[key]);
+    });
+  
+    // Call the handler to create the product
+    handleCreateProduct(formData);
+  
+    // Reset the form
     setNewProduct({
       Name: "",
       Description: "",
       Price: "",
       Quantity: "",
-      Seller: username,
+      Seller: "",
       Picture: "",
     });
+  
     setErrorMessage("");
     handleClose();
   };
@@ -121,14 +133,15 @@ function AddProductModalSeller({ open, handleClose, handleCreateProduct }) {
           onChange={handleInputChange}
           sx={{ mb: 2 }}
         /> */}
-        <TextField
-          name="Picture"
-          label="Picture URL"
-          fullWidth
-          value={newProduct.Picture}
-          onChange={handleInputChange}
-          sx={{ mb: 2 }}
+         <TextField
+        name="Picture"
+        type="file"
+        fullWidth
+        onChange={(e) => setNewProduct((prev) => ({ ...prev, Picture: e.target.files[0] }))}
+        sx={{ mb: 2 }}
+        inputProps={{ accept: "image/*" }} // Restrict to image files
         />
+
         {errorMessage && (
           <Typography color="error" sx={{ mb: 2 }}>
             {errorMessage}
