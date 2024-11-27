@@ -55,33 +55,43 @@ const { default: mongoose } = require('mongoose');
     //   };
 
     const updateAdvertiser = async (req, res) => {
-      const { Username } = req.body;  // Extract username from the request body
+      const { Username } = req.body;
     
       try {
-          // Ensure username is present for the update
-          if (!Username) {
-              return res.status(400).json({ msg: "Username is required to update the profile" });
-          }
-  
-          // Check for other properties before proceeding
-          const { Password, Email, Hotline, CompanyProfile, Website } = req.body;
-  
-          // Perform the update while ensuring the username cannot be changed
-          const updatedAdvertiser = await AdvertiserModel.findOneAndUpdate(
-              { Username: Username },
-              { Password, Email, Hotline, CompanyProfile, Website },
-              { new: true, runValidators: true }
-          );
-  
-          if (!updatedAdvertiser) {
-              return res.status(404).json({ msg: "Advertiser not found" });
-          }
-  
-          res.status(200).json(updatedAdvertiser);
+        if (!Username) {
+          return res.status(400).json({ msg: "Username is required to update the profile" });
+        }
+    
+        // Prepare updates
+        const updates = {
+          Password: req.body.Password,
+          Email: req.body.Email,
+          Hotline: req.body.Hotline,
+          CompanyProfile: req.body.CompanyProfile,
+          Website: req.body.Website,
+        };
+    
+        // If a file is uploaded, add the file path
+        if (req.file) {
+          updates.Logo = `/uploads/${req.file.filename}`;
+        }
+    
+        const updatedAdvertiser = await AdvertiserModel.findOneAndUpdate(
+          { Username },
+          updates,
+          { new: true, runValidators: true }
+        );
+    
+        if (!updatedAdvertiser) {
+          return res.status(404).json({ msg: "Advertiser not found" });
+        }
+    
+        res.status(200).json(updatedAdvertiser);
       } catch (error) {
-          res.status(400).json({ error: error.message });
+        console.error("Error updating profile:", error);
+        res.status(400).json({ error: error.message });
       }
-  };
+    };
   
     
       const createNewActivity = async (req, res) => {
