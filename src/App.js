@@ -123,9 +123,9 @@ app.post("/addUnregisteredSeller",uploadPDF.single("CombinedDocument"),createUnr
 app.post("/addUnregisteredAdvertiser",uploadPDF.single("AdvertiserDocument"),createUnregisteredAdvertiser);
 app.post("/addTourismGovernor", createNewTourismGoverner);
 app.post("/addAdmin", createNewAdmin);
-app.post("/api/addProduct", createNewProduct);
+app.post("/api/addProduct", uploadImage.single("Picture"), createNewProduct);
 app.post("/api/addProductSeller", createNewProductSeller);
-app.put("/api/editProduct", editProduct);
+app.put("/api/editProduct", uploadImage.single("Picture"), editProduct);
 app.put("/api/editProductSeller", editProductSeller);
 app.post("/api/acceptSeller", acceptSeller);
 app.post("/api/acceptTourGuide", acceptTourGuide);
