@@ -54,7 +54,7 @@ import MuseumDetails from './files/Tourist/MuseumDetails';
 import HistoricalDetails from './files/Tourist/HistoricalDetails';
 import ItineraryDetails from './files/Tourist/ItineraryDetails';
 import ActivityDetails from './files/Tourist/ActivityDetails';
-import HomePageGuest from './files/HomePageGuest';
+import HomePageGuest from './files/Guest/HomePageGuest';
 import TouristComplaintsViewModal from './files/Tourist/TouristComplaintsViewModal'
 import TouristComplaintsModal from './files/Tourist/TouristComplaintsModal';
 import PaymentPage from './files/Tourist/PaymentPage';
@@ -99,13 +99,15 @@ import YAdvertiserSalesPage from './files/Advertiser/YAdvertiserSalesPage';
 import YAdminProductsPage from './files/Admin/YAdminProductsPage';
 import AddProductModal from './files/Admin/AddProductModal';
 
-import GuestItinerariesPage from './files/GuestItinerariesPage';
+import GuestItinerariesPage from './files/Guest/GuestItinerariesPage';
 import YSellerDashboard from './files/Seller/YSellerDashboard';
 import YSellerProductsPage from './files/Seller/YSellerProductsPage';
 import YSellerSalesPage from './files/Seller/YSellerSalesPage';
 import AddProductModalSeller from './files/Seller/AddProductModalSeller';
 import YSellerAllProductsPage from './files/Seller/YSellerAllProductsPage';
-
+import GuestActivityPage from './files/Guest/GuestActivityPage';
+import GuestMuseumPage from './files/Guest/GuestMuseumPage';
+import GuestHP from './files/Guest/GuestHP';
 function App() {
   return (
     <div className="App">
@@ -210,6 +212,10 @@ function App() {
 
           <Route path="/homeGuest" element={<HomePageGuest />} />
           <Route path="/GuestItinerary" element={<GuestItinerariesPage />} />
+          <Route path="/GuestActivity" element={<GuestActivityPage />} />
+          <Route path="/GuestMuseum" element={<GuestMuseumPage />} />
+          <Route path="/GuestHP" element={<GuestHP />} />
+
 
 
 
