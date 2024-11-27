@@ -811,7 +811,7 @@ const closeDeleteRequestsModal = () => {
                 </Button>
 
                 <Button
-                onClick={() => navigate('/my-booked-activities')}
+                onClick={() => navigate('/TouristBookedActivities')}
                 sx={{
                     ...styles.sidebarButton,
                     fontSize: '14px',
@@ -860,7 +860,7 @@ const closeDeleteRequestsModal = () => {
         {sidebarOpen && 'Upcoming '}
       </Button>
       <Button
-        onClick={() => navigate('/completed-itineraries')}
+        onClick={() => navigate('/TouristCompletedItineraries')}
         sx={{
           ...styles.sidebarButton,
           fontSize: '14px',
@@ -872,7 +872,7 @@ const closeDeleteRequestsModal = () => {
         {sidebarOpen && 'Completed '}
       </Button>
       <Button
-        onClick={() => navigate('/my-booked-itineraries')}
+        onClick={() => navigate('/TouristBookedItineraries')}
         sx={{
           ...styles.sidebarButton,
           fontSize: '14px',
@@ -931,7 +931,7 @@ const closeDeleteRequestsModal = () => {
         {sidebarOpen && 'Visited '}
       </Button>
       <Button
-        onClick={() => navigate('/saved-historical-places')}
+        onClick={() => navigate('/TouristBookedHP')}
         sx={{
           ...styles.sidebarButton,
           fontSize: '14px',
@@ -996,7 +996,7 @@ const closeDeleteRequestsModal = () => {
       
       {/* Saved Museums */}
       <Button
-        onClick={() => navigate('/saved-museums')}
+        onClick={() => navigate('/TouristBookedMuseum')}
         sx={{
           ...styles.sidebarButton,
           fontSize: '14px',
