@@ -59,20 +59,48 @@ const updateSeller = async (req, res) => {
 
 
 
-  const createNewProductSeller = async(req,res) => {
-    //Destructure Name, Email, Age from the request body
-    const{Name,Description,Price,Quantity, Seller,Picture} = req.body;
-    try{
-          //add a new user to the database with Name, Email and Age
-          const user = await NewProduct.create({Name,Description,Price,Quantity, Seller,Picture, Reviews: [] ,Ratings: 0, RatingCount : 0, Sales: 0,TotalPriceOfSales: 0});
-          //Send the created use as a JSON response with a 200 OK status 
-          res.status(200).json({msg:"New Product is created!"});
-          //res.status(200).json(user);
-    } catch (error){
-       //If an error occurs, send a 400 Bad Request status with the error message
-       res.status(400).json({ error: error.message});
+const createNewProductSeller = async (req, res) => {
+  const { Name, Description, Price, Quantity } = req.body;
+
+  try {
+    // Get the seller from localStorage or the authenticated session
+    const Seller = req.body.Seller; // Ensure the frontend passes this field correctly
+    if (!Seller) {
+      return res.status(400).json({ error: "Seller name is missing. Please log in." });
     }
- }
+
+    // Check if all required fields are provided
+    if (!Name || !Description || !Price || !Quantity || !req.file) {
+      return res.status(400).json({ error: "All fields, including an image, are required." });
+    }
+
+    // Verify the seller exists
+    const existingSeller = await AcceptedSellerModel.findOne({ Username: Seller });
+    if (!existingSeller) {
+      return res.status(404).json({ error: "Seller does not exist." });
+    }
+
+    // Create the product
+    const newProduct = await NewProduct.create({
+      Name,
+      Description,
+      Price,
+      Quantity,
+      Seller,
+      Picture: `/uploads/${req.file.filename}`,
+      Reviews: [],
+      Ratings: 0,
+      Sales: 0,
+      TotalPriceOfSales: 0,
+    });
+
+    res.status(201).json({ msg: "Product created successfully!", product: newProduct });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+
 
  
 
@@ -104,43 +132,46 @@ const updateSeller = async (req, res) => {
   //   };
 
   const editProductSeller = async (req, res) => {
-    // Destructure fields from the request body
-    const { Name, Description, Price, Quantity, Seller, Picture } = req.body;
-
+    const { Name, Description, Price, Quantity } = req.body;
+  
     try {
-        // Check if the activity exists with the provided name and advertiser name
-        const existingProduct = await NewProduct.findOne({ Name: Name, Seller: Seller });
-        if (!existingProduct) {
-            return res.status(404).json({ error: "Product not found for the given seller." });
+      // Validate seller information
+      const Seller = req.body.Seller;
+      if (!Seller) {
+        return res.status(400).json({ error: "Seller information is required." });
+      }
+  
+      // Check if the product exists and belongs to the seller
+      const existingProduct = await NewProduct.findOne({ Name: Name.trim(), Seller });
+      if (!existingProduct) {
+        return res.status(404).json({ error: "Product not found for the given seller." });
+      }
+  
+      // Prepare updated fields
+      const updateFields = { Description, Price, Quantity };
+  
+      // Replace the picture if a new one is uploaded
+      if (req.file) {
+        const oldPicturePath = path.join(__dirname, "..", existingProduct.Picture);
+        if (fs.existsSync(oldPicturePath)) {
+          fs.unlinkSync(oldPicturePath);
         }
-
-        // Prepare an object with the fields to update (excluding AdvertiserName and Name)
-        const updateFields = {
-          Description,
-          Price,
-          Quantity,
-          Picture,
-         
-            
-        };
-
-        // Filter out any undefined values to avoid updating fields with undefined
-        Object.keys(updateFields).forEach(key => updateFields[key] === undefined && delete updateFields[key]);
-
-        // Update the activity
-        const updatedProduct = await NewProduct.findOneAndUpdate(
-            { Name: Name, Seller: Seller }, // Find by Name and AdvertiserName
-            { $set: updateFields }, // Update only the specified fields
-            { new: true } // Return the updated document
-        );
-
-        // Send the updated activity as a JSON response with a 200 OK status
-        res.status(200).json({ msg: "Product updated successfully!", product: updatedProduct });
+        updateFields.Picture = `/uploads/${req.file.filename}`;
+      }
+  
+      // Update the product
+      const updatedProduct = await NewProduct.findOneAndUpdate(
+        { Name: Name.trim(), Seller },
+        { $set: updateFields },
+        { new: true }
+      );
+  
+      res.status(200).json({ msg: "Product updated successfully!", product: updatedProduct });
     } catch (error) {
-        // If an error occurs, send a 400 Bad Request status with the error message
-        res.status(400).json({ error: error.message });
+      res.status(500).json({ error: error.message });
     }
-};
+  };
+  
 
 const getProductsBySeller = async (req, res) => {
   try {

@@ -521,15 +521,44 @@ const handleOpenPreferencesModal = async () => {
 };
 
 
-const togglePreference = (tag) => {
-  setProfileData((prev) => {
-    const updatedPreferences = prev.preferences.includes(tag)
-      ? prev.preferences.filter((pref) => pref !== tag) // Remove preference
-      : [...prev.preferences, tag]; // Add preference
-
-    return { ...prev, preferences: updatedPreferences };
-  });
+const togglePreference = (preference) => {
+  if (profileData.preferences.includes(preference)) {
+    // Remove the preference
+    setProfileData((prev) => ({
+      ...prev,
+      preferences: prev.preferences.filter((pref) => pref !== preference),
+    }));
+  } else {
+    // Add the preference
+    setProfileData((prev) => ({
+      ...prev,
+      preferences: [...prev.preferences, preference],
+    }));
+  }
 };
+
+const savePreferences = async () => {
+  try {
+    const username = localStorage.getItem('username');
+    if (!username) {
+      alert('User not logged in.');
+      return;
+    }
+
+    const response = await axios.put('/addPreferences', {
+      touristUsername: username,
+      preferences: profileData.preferences,
+    });
+
+    alert(response.data.msg || 'Preferences saved successfully!');
+    setIsPreferencesModalOpen(false);
+  } catch (error) {
+    console.error('Error saving preferences:', error);
+    alert(error.response?.data?.msg || 'An error occurred while saving preferences.');
+  }
+};
+
+
 
 
 
@@ -1138,301 +1167,390 @@ const closeDeleteRequestsModal = () => {
 
 {/* Profile Modal */}
 <Modal open={isProfileModalOpen} onClose={() => setIsProfileModalOpen(false)}>
-        <Box
-          sx={{
-            position: 'absolute',
-            top: '50%',
-            left: '50%',
-            transform: 'translate(-50%, -50%)',
-            width: '90%',
-            maxWidth: 500,
-            bgcolor: 'background.paper',
-            borderRadius: 1,
-            boxShadow: 24,
-            overflow: 'hidden',
+  <Box
+    sx={{
+      position: 'absolute',
+      top: '50%',
+      left: '50%',
+      transform: 'translate(-50%, -50%)',
+      width: '90%',
+      maxWidth: 500,
+      bgcolor: 'background.paper',
+      borderRadius: 1,
+      boxShadow: 24,
+      overflow: 'hidden',
+    }}
+  >
+    <Box
+      sx={{
+        maxHeight: '90vh',
+        overflowY: 'auto',
+        p: 4,
+      }}
+    >
+      {/* Header with Edit/Save Button */}
+      <Box
+        sx={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          mb: 2,
+        }}
+      >
+        <Typography variant="h6" component="h2">
+          My Profile
+        </Typography>
+        <Button
+          variant="outlined"
+          onClick={() => {
+            if (isEditable) saveProfile();
+            setIsEditable(!isEditable);
           }}
+          sx={{
+            borderColor: '#192959',
+            color: '#192959',
+            backgroundColor: 'white',
+            '&:hover': {
+              backgroundColor: '#192959',
+              borderColor: 'white',
+              color: 'white',
+            },
+          }}
+          startIcon={isEditable ? <SaveIcon /> : <EditIcon />}
         >
-          <Box
-            sx={{
-              maxHeight: '90vh',
-              overflowY: 'auto',
-              p: 4,
-            }}
-          >
-            {/* Header with Edit/Save Button */}
+          {isEditable ? 'Save Changes' : 'Edit'}
+        </Button>
+      </Box>
+
+      {/* Profile Fields */}
+      <Box component="form">
+        <TextField
+          fullWidth
+          label="Username"
+          id="username"
+          value={profileData.username}
+          InputProps={{ readOnly: true }}
+          margin="dense"
+        />
+        <TextField
+          fullWidth
+          label="Email Address"
+          id="email"
+          type="email"
+          value={profileData.email}
+          onChange={(e) => setProfileData({ ...profileData, email: e.target.value })}
+          InputProps={{ readOnly: !isEditable }}
+          margin="dense"
+        />
+        <TextField
+          fullWidth
+          label="Password"
+          id="password"
+          type={showPassword ? 'text' : 'password'}
+          value={profileData.password}
+          onChange={(e) => setProfileData({ ...profileData, password: e.target.value })}
+          InputProps={{
+            readOnly: !isEditable,
+            endAdornment: (
+              <InputAdornment position="end">
+                <IconButton onClick={() => setShowPassword(!showPassword)} edge="end">
+                  {showPassword ? <VisibilityOff /> : <Visibility />}
+                </IconButton>
+              </InputAdornment>
+            ),
+          }}
+          margin="dense"
+        />
+        <TextField
+          fullWidth
+          label="Date of Birth"
+          id="dateOfBirth"
+          type="date"
+          value={profileData.dateOfBirth}
+          InputProps={{ readOnly: true }}
+          InputLabelProps={{
+            shrink: true,
+          }}
+          margin="dense"
+        />
+        <TextField
+          fullWidth
+          label="Mobile Number"
+          id="mobileNumber"
+          value={profileData.mobileNumber}
+          onChange={(e) => setProfileData({ ...profileData, mobileNumber: e.target.value })}
+          InputProps={{ readOnly: !isEditable }}
+          margin="dense"
+        />
+        <TextField
+          fullWidth
+          label="Nationality"
+          id="nationality"
+          value={profileData.nationality}
+          onChange={(e) => setProfileData({ ...profileData, nationality: e.target.value })}
+          InputProps={{ readOnly: !isEditable }}
+          margin="dense"
+        />
+        <TextField
+          fullWidth
+          label="Occupation"
+          id="occupation"
+          value={profileData.occupation}
+          onChange={(e) => setProfileData({ ...profileData, occupation: e.target.value })}
+          InputProps={{ readOnly: !isEditable }}
+          margin="dense"
+        />
+        <TextField
+          fullWidth
+          label="Wallet"
+          id="wallet"
+          value={`${profileData.wallet} EGP`}
+          InputProps={{ readOnly: true }}
+          margin="dense"
+        />
+        <TextField
+          fullWidth
+          label="Points"
+          id="points"
+          value={profileData.points}
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <StarsIcon sx={{ color: '#192959' }} />
+              </InputAdornment>
+            ),
+            readOnly: true,
+          }}
+          margin="dense"
+        />
+        <TextField
+          fullWidth
+          label="Badge Level"
+          id="badgeLevel"
+          value={profileData.badgeLevel}
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <MilitaryTechIcon sx={{ color: '#192959' }} />
+              </InputAdornment>
+            ),
+            readOnly: true,
+          }}
+          margin="dense"
+        />
+
+        {/* My Preferences Section */}
+        {profileData.preferences.length > 0 ? (
+          <Box sx={{ mt: 3 }}>
             <Box
               sx={{
                 display: 'flex',
                 justifyContent: 'space-between',
                 alignItems: 'center',
-                mb: 2,
+                mb: 1,
               }}
             >
-              <Typography variant="h6" component="h2">
-                My Profile
-              </Typography>
-              <Button
-                variant="outlined"
-                onClick={() => {
-                  if (isEditable) saveProfile();
-                  setIsEditable(!isEditable);
-                }}
-                sx={{
-                  borderColor: '#192959',
-                  color: '#192959',
-                  backgroundColor: 'white',
-                  '&:hover': {
-                    backgroundColor: '#192959',
-                    borderColor: 'white',
-                    color: 'white',
-                  },
-                }}
-                startIcon={isEditable ? <SaveIcon /> : <EditIcon />}
-              >
-                {isEditable ? 'Save Changes' : 'Edit'}
-              </Button>
-            </Box>
-
-            {/* Profile Fields */}
-            <Box component="form">
-              <TextField
-                fullWidth
-                label="Username"
-                id="username"
-                value={profileData.username}
-                InputProps={{ readOnly: true }}
-                margin="dense"
-              />
-              <TextField
-                fullWidth
-                label="Email Address"
-                id="email"
-                type="email"
-                value={profileData.email}
-                onChange={(e) => setProfileData({ ...profileData, email: e.target.value })}
-                InputProps={{ readOnly: !isEditable }}
-                margin="dense"
-              />
-              <TextField
-                fullWidth
-                label="Password"
-                id="password"
-                type={showPassword ? 'text' : 'password'}
-                value={profileData.password}
-                onChange={(e) => setProfileData({ ...profileData, password: e.target.value })}
-                InputProps={{
-                  readOnly: !isEditable,
-                  endAdornment: (
-                    <InputAdornment position="end">
-                      <IconButton onClick={() => setShowPassword(!showPassword)} edge="end">
-                        {showPassword ? <VisibilityOff /> : <Visibility />}
-                      </IconButton>
-                    </InputAdornment>
-                  ),
-                }}
-                margin="dense"
-              />
-              <TextField
-                fullWidth
-                label="Date of Birth"
-                id="dateOfBirth"
-                type="date"
-                value={profileData.dateOfBirth}
-                InputProps={{ readOnly: true }}
-                InputLabelProps={{
-                  shrink: true,
-                }}
-                margin="dense"
-              />
-              <TextField
-                fullWidth
-                label="Mobile Number"
-                id="mobileNumber"
-                value={profileData.mobileNumber}
-                onChange={(e) => setProfileData({ ...profileData, mobileNumber: e.target.value })}
-                InputProps={{ readOnly: !isEditable }}
-                margin="dense"
-              />
-              <TextField
-                fullWidth
-                label="Nationality"
-                id="nationality"
-                value={profileData.nationality}
-                onChange={(e) => setProfileData({ ...profileData, nationality: e.target.value })}
-                InputProps={{ readOnly: !isEditable }}
-                margin="dense"
-              />
-              <TextField
-                fullWidth
-                label="Occupation"
-                id="occupation"
-                value={profileData.occupation}
-                onChange={(e) => setProfileData({ ...profileData, occupation: e.target.value })}
-                InputProps={{ readOnly: !isEditable }}
-                margin="dense"
-              />
-              <TextField
-                fullWidth
-                label="Wallet"
-                id="wallet"
-                value={`${profileData.wallet} EGP`}
-                InputProps={{ readOnly: true }}
-                margin="dense"
-              />
-              <TextField
-                fullWidth
-                label="Points"
-                id="points"
-                value={profileData.points}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <StarsIcon sx={{ color: '#192959' }} />
-                    </InputAdornment>
-                  ),
-                  readOnly: true,
-                }}
-                margin="dense"
-              />
-              <TextField
-                fullWidth
-                label="Badge Level"
-                id="badgeLevel"
-                value={profileData.badgeLevel}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <MilitaryTechIcon sx={{ color: '#192959' }} />
-                    </InputAdornment>
-                  ),
-                  readOnly: true,
-                }}
-                margin="dense"
-              />
-              {/* Button to Open Preferences Modal */}
-              <Button
-                variant="outlined"
-                onClick={handleOpenPreferencesModal}
-                sx={{
-                  mt: 3,
-                  borderColor: '#192959',
-                  color: '#192959',
-                  width: '100%',
-                  '&:hover': {
-                    backgroundColor: '#192959',
-                    borderColor: 'white',
-                    color: 'white',
-                  },
-                }}
-                startIcon={<AddIcon />}
-              >
-                Select Preferences
-              </Button>
-            </Box>
-          </Box>
-        </Box>
-      </Modal>
-
-{/* Preferences Modal */}
-<Modal
-        open={isPreferencesModalOpen}
-        onClose={() => setIsPreferencesModalOpen(false)}
-        aria-labelledby="preferences-modal-title"
-        aria-describedby="preferences-modal-description"
-      >
-        <Box
-          sx={{
-            position: 'absolute',
-            top: '50%',
-            left: '50%',
-            transform: 'translate(-50%, -50%)',
-            width: '90%',
-            maxWidth: 500,
-            bgcolor: 'background.paper',
-            borderRadius: 1,
-            boxShadow: 24,
-            p: 4,
-          }}
-        >
-          <Typography
-            id="preferences-modal-title"
-            variant="h6"
-            sx={{ mb: 2, color: '#192959', textAlign: 'center' }}
-          >
-            Select Your Preferences
-          </Typography>
-          <Box
-            sx={{
-              display: 'flex',
-              flexWrap: 'wrap',
-              gap: '8px',
-              justifyContent: 'center',
-            }}
-          >
-            {availablePreferences.map((tag) => (
-              <Box
-                key={tag._id}
-                sx={{
-                  position: 'relative',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  padding: '8px 16px',
-                  borderRadius: '12px',
-                  backgroundColor: profileData.preferences.includes(tag.NameOfTags)
-                    ? '#3a4a90'
-                    : '#f0f0f0',
-                  color: profileData.preferences.includes(tag.NameOfTags)
-                    ? 'white'
-                    : '#192959',
-                  fontSize: '14px',
-                  border: '1px solid #192959',
-                  cursor: 'pointer',
-                }}
-                onClick={() => togglePreference(tag.NameOfTags)}
-              >
-                {tag.NameOfTags}
-                <Tooltip title="Add Preference" arrow>
+              <Typography variant="body1">My Preferences:</Typography>
+              {isEditable && (
+                <Tooltip title="Add Preferences">
                   <IconButton
+                    onClick={handleOpenPreferencesModal}
                     sx={{
-                      position: 'absolute',
-                      top: '-8px',
-                      right: '-8px',
-                      backgroundColor: profileData.preferences.includes(tag.NameOfTags)
-                        ? '#3a4a90'
-                        : '#192959',
+                      backgroundColor: '#192959',
                       color: 'white',
-                      width: '20px',
-                      height: '20px',
                       '&:hover': {
                         backgroundColor: '#3a4a90',
                       },
                     }}
-                    size="small"
                   >
-                    <AddIcon fontSize="small" />
+                    <AddIcon />
                   </IconButton>
                 </Tooltip>
-              </Box>
-            ))}
+              )}
+            </Box>
+            <Box
+              sx={{
+                display: 'flex',
+                flexWrap: 'wrap',
+                gap: '8px',
+              }}
+            >
+              {profileData.preferences.map((preference, index) => (
+                <Box
+                  key={index}
+                  sx={{
+                    padding: '5px 10px',
+                    borderRadius: '12px',
+                    backgroundColor: '#f0f0f0',
+                    color: '#192959',
+                    fontSize: '14px',
+                    border: '1px solid #192959',
+                  }}
+                >
+                  {preference}
+                </Box>
+              ))}
+            </Box>
           </Box>
+        ) : (
+          // If no preferences, show button to open preferences modal
           <Button
-            variant="contained"
-            onClick={() => setIsPreferencesModalOpen(false)}
+            variant="outlined"
+            onClick={handleOpenPreferencesModal}
             sx={{
               mt: 3,
-              backgroundColor: '#192959',
-              color: 'white',
+              borderColor: '#192959',
+              color: '#192959',
               width: '100%',
               '&:hover': {
-                backgroundColor: '#3a4a90',
+                backgroundColor: '#192959',
+                borderColor: 'white',
+                color: 'white',
               },
             }}
+            startIcon={<AddIcon />}
           >
-            Save Preferences
+            Select Preferences
           </Button>
+        )}
+      </Box>
+    </Box>
+  </Box>
+</Modal>
+
+<Modal
+  open={isPreferencesModalOpen}
+  onClose={() => setIsPreferencesModalOpen(false)}
+  aria-labelledby="preferences-modal-title"
+  aria-describedby="preferences-modal-description"
+>
+  <Box
+    sx={{
+      position: 'absolute',
+      top: '50%',
+      left: '50%',
+      transform: 'translate(-50%, -50%)',
+      width: '90%',
+      maxWidth: 500,
+      bgcolor: 'background.paper',
+      borderRadius: 1,
+      boxShadow: 24,
+      p: 4,
+    }}
+  >
+    <Typography
+      id="preferences-modal-title"
+      variant="h6"
+      sx={{ mb: 2, color: '#192959', textAlign: 'center' }}
+    >
+      Select Your Preferences
+    </Typography>
+
+    {/* Available Preferences */}
+    <Box
+      sx={{
+        display: 'flex',
+        flexWrap: 'wrap',
+        gap: '8px',
+        justifyContent: 'center',
+      }}
+    >
+      {availablePreferences.map((tag) => (
+        <Box
+          key={`available-${tag._id}`}
+          sx={{
+            position: 'relative',
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '8px 16px',
+            borderRadius: '12px',
+            backgroundColor: profileData.preferences.includes(tag.NameOfTags)
+              ? '#3a4a90'
+              : '#f0f0f0',
+            color: profileData.preferences.includes(tag.NameOfTags)
+              ? 'white'
+              : '#192959',
+            fontSize: '14px',
+            border: '1px solid #192959',
+            cursor: 'pointer',
+          }}
+          onClick={() => togglePreference(tag.NameOfTags)}
+        >
+          {tag.NameOfTags}
+          <Tooltip
+            title={
+              profileData.preferences.includes(tag.NameOfTags)
+                ? "Remove Preference"
+                : "Add Preference"
+            }
+            arrow
+          >
+            <IconButton
+              sx={{
+                position: 'absolute',
+                top: '-8px',
+                right: '-8px',
+                backgroundColor: profileData.preferences.includes(tag.NameOfTags)
+                  ? 'white' // White button for remove (X)
+                  : '#192959', // Dark blue button for add (+)
+                color: profileData.preferences.includes(tag.NameOfTags)
+                  ? '#192959' // Dark blue "X"
+                  : 'white', // White "+"
+                width: '20px',
+                height: '20px',
+                border: profileData.preferences.includes(tag.NameOfTags)
+                  ? '2px solid #192959' // Add dark blue outline for remove (X)
+                  : 'none', // No border for add (+)
+                borderRadius: '50%', // Rounded button
+                '&:hover': {
+                  backgroundColor: profileData.preferences.includes(tag.NameOfTags)
+                    ? '#e0e0e0' // Light gray hover for remove (X)
+                    : '#3a4a90', // Darker blue hover for add (+)
+                },
+              }}
+              size="small"
+              onClick={(e) => {
+                e.stopPropagation(); // Prevent parent click
+                togglePreference(tag.NameOfTags);
+              }}
+            >
+              {profileData.preferences.includes(tag.NameOfTags) ? (
+                <CloseIcon sx={{ fontSize: '14px', color: '#192959' }} />
+              ) : (
+                <AddIcon fontSize="small" />
+              )}
+            </IconButton>
+          </Tooltip>
         </Box>
-      </Modal>
+      ))}
+    </Box>
+
+    {/* Save Preferences Button */}
+    <Button
+      variant="contained"
+      onClick={savePreferences}
+      sx={{
+        mt: 3,
+        backgroundColor: '#192959',
+        color: 'white',
+        width: '100%',
+        '&:hover': {
+          backgroundColor: '#3a4a90',
+        },
+      }}
+    >
+      Save Preferences
+    </Button>
+  </Box>
+</Modal>
+
+
+
+
+
+
+
 
 
 

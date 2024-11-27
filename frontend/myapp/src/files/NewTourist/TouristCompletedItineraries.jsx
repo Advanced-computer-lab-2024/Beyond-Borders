@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Button, Typography, Dialog ,DialogContent ,DialogContentText, DialogActions ,IconButton,Tooltip, TextField, InputAdornment, Modal,MenuItem,Select,FormControl,InputLabel,} from '@mui/material';
+import { Box, Button, Typography, IconButton,Tooltip,Divider,TextField, InputAdornment, Modal,MenuItem,Select,FormControl,InputLabel,} from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import MenuIcon from '@mui/icons-material/Menu';
 import NotificationsIcon from '@mui/icons-material/Notifications';
@@ -45,13 +45,11 @@ import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import IosShareIcon from '@mui/icons-material/IosShare';
 import ShareIcon from '@mui/icons-material/Share';
 import LanguageIcon from '@mui/icons-material/Language';
-import CancelIcon from '@mui/icons-material/Cancel';
-import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined';
-
+import StarHalfIcon from '@mui/icons-material/StarHalf';
 
 import axios from 'axios';
 
-function TouristBookedActivities() {
+function TouristCompletedItineraries() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activities, setActivities] = useState([]);
   const [scrollPositions, setScrollPositions] = useState({});
@@ -89,8 +87,13 @@ const [sharedLink, setSharedLink] = useState(''); // Shared link state
 const [currentActivityName, setCurrentActivityName] = useState(''); // Trac
 const [convertedPrices, setConvertedPrices] = useState({});
 const [currency, setCurrency] = useState('EGP'); // Default currency is EGP
-const [openDialog, setOpenDialog] = useState(false);
-const [selectedActivity, setSelectedActivity] = useState(null);
+
+const [commentModalOpen, setCommentModalOpen] = useState(false);
+const [currentActivityId, setCurrentActivityId] = useState(null);
+const [commentText, setCommentText] = useState('');
+const [expanded, setExpanded] = React.useState({});
+
+
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -155,24 +158,25 @@ const [selectedActivity, setSelectedActivity] = useState(null);
 
   const fetchActivities = async () => {
     try {
-      const username = localStorage.getItem('username'); // Retrieve the logged-in username
+      // Retrieve the Username from localStorage or any other source
+      const Username = localStorage.getItem('username');
   
-      if (!username) {
-        console.error('User not logged in.');
+      if (!Username) {
+        console.error('Username not found. Please log in.');
         return;
       }
   
-      // Fetch booked activities using the username
-      const response = await axios.get('/api/viewMyBookedActivities', {
-        params: { Username: username }, // Send the username as a query parameter
+      // Make a GET request with the Username as a query parameter
+      const response = await axios.get(`/api/viewMyCompletedItineraries`, {
+        params: { Username }, // Pass the Username as query parameters
       });
   
-      setActivities(response.data); // Set the activities state with the fetched data
+      // Update the state with the fetched activities
+      setActivities(response.data);
     } catch (error) {
-      console.error('Error fetching booked activities:', error);
+      console.error('Error fetching Itineraries:', error);
     }
   };
-  
 
   const searchActivities = async (query) => {
     try {
@@ -278,36 +282,6 @@ const [selectedActivity, setSelectedActivity] = useState(null);
     }
   };
 
-
-  const handleCancelBooking = async (activityName) => {
-    const username = localStorage.getItem('username'); // Retrieve the logged-in username
-  
-    if (!username) {
-      alert('User not logged in.');
-      return;
-    }
-  
-    try {
-      const response = await axios.put('/deleteBookedActivity', {
-        touristUsername: username,
-        activityName,
-      });
-  
-      const { msg, refundedAmount, updatedWallet, updatedPoints, updatedBadgeLevel } = response.data;
-  
-      
-      console.log(`Refunded Amount: ${refundedAmount}, Updated Wallet: ${updatedWallet}`);
-  
-      // Update the activities list to remove the canceled activity
-      setActivities((prevActivities) =>
-        prevActivities.filter((activity) => activity.Name !== activityName)
-      );
-    } catch (error) {
-      console.error('Error canceling booking:', error);
-      alert(error.response?.data?.msg || 'Failed to cancel booking.');
-    }
-  };
-  
   //share
 
   const handleOpenShareModal = async (activityName) => {
@@ -357,23 +331,6 @@ const [selectedActivity, setSelectedActivity] = useState(null);
   };
   
   
-  const handleOpenDialog = (activityName) => {
-    setSelectedActivity(activityName); // Set the selected activity
-    setOpenDialog(true);              // Open the dialog
-  };
-  
-  const handleCloseDialog = () => {
-    setOpenDialog(false);             // Close the dialog
-    setSelectedActivity(null);        // Reset selected activity
-  };
-  
-  const handleConfirmDeletion = async () => {
-    if (selectedActivity) {
-      await handleCancelBooking(selectedActivity); // Call your existing cancel booking function
-    }
-    setOpenDialog(false); // Close the dialog
-    setSelectedActivity(null); // Reset selected activity
-  };
   
 
   // Fetch tags from backend
@@ -389,29 +346,128 @@ const [selectedActivity, setSelectedActivity] = useState(null);
   
   
 
-  const renderRating = (rating) => {
-    const roundedRating = Math.round(rating * 10) / 10;
-    const fullStars = Math.floor(rating);
-    const halfStars = roundedRating > fullStars ? 1 : 0;
+  const renderRating = (activityId, userRating, averageRating, handleRatingClick) => {
+    const displayRating = userRating || averageRating || 0; // Use user rating first, then average
+    const fullStars = Math.floor(displayRating);
+    const halfStars = displayRating > fullStars ? 1 : 0;
     const emptyStars = 5 - fullStars - halfStars;
   
     return (
-      <Box sx={styles.ratingContainer}>
-        <Typography variant="body2" sx={{ fontSize: '24px', position: 'absolute', right: '170px', bottom: '2px' }}>
-          {roundedRating}
+      <Box sx={styles.ratingContainer} display="flex" alignItems="center">
+        {/* Display Rating Number */}
+        <Typography
+          variant="body2"
+          sx={{
+            fontSize: '18px',
+            fontWeight: 'bold',
+            marginRight: '10px', // Spacing between number and stars
+          }}
+        >
+          {displayRating.toFixed(2)}
         </Typography>
+  
+        {/* Render Full Stars */}
         {[...Array(fullStars)].map((_, index) => (
-          <StarIcon key={`full-${index}`} sx={{ fontSize: '32px' }} />
+          <StarIcon
+            key={`full-${index}`}
+            sx={{ fontSize: '32px', cursor: 'pointer', color: '#192959' }}
+            onClick={() => handleRatingClick(activityId, index + 1)}
+          />
         ))}
+  
+        {/* Render Half Stars */}
         {[...Array(halfStars)].map((_, index) => (
-          <StarIcon key={`half-${index}`} sx={{ fontSize: '32px' }} />
+          <StarHalfIcon
+            key={`half-${index}`}
+            sx={{ fontSize: '32px', cursor: 'pointer', color: '#192959' }}
+            onClick={() => handleRatingClick(activityId, fullStars + 1)}
+          />
         ))}
+  
+        {/* Render Empty Stars */}
         {[...Array(emptyStars)].map((_, index) => (
-          <StarBorderIcon key={`empty-${index}`} sx={{ fontSize: '32px' }} />
+          <StarBorderIcon
+            key={`empty-${index}`}
+            sx={{ fontSize: '32px', cursor: 'pointer', color: '#192959' }}
+            onClick={() => handleRatingClick(activityId, fullStars + index + 1)}
+          />
         ))}
       </Box>
     );
   };
+  
+  
+
+  
+
+  const handleCommentSubmit = async () => {
+    const username = localStorage.getItem('username');
+    const activity = activities.find((activity) => activity._id === currentActivityId);
+  
+    if (!username || !activity) {
+      alert('User not logged in or activity not found.');
+      return;
+    }
+  
+    try {
+      const response = await axios.put('/commentOnItinerary', {
+        touristUsername: username,
+        itineraryName: activity.Title,
+        comment: commentText,
+      });
+  
+      const { comments } = response.data;
+  
+      // Update the comments in the activity state
+      setActivities((prevActivities) =>
+        prevActivities.map((act) =>
+          act._id === currentActivityId ? { ...act, Comments: comments, showCommentButton: true } : act
+        )
+      );
+  
+      setCommentModalOpen(false); // Close the modal
+      setCommentText(''); // Clear the comment input
+    } catch (error) {
+      console.error('Error submitting comment:', error);
+      alert(error.response?.data?.msg || 'Failed to submit comment.');
+    }
+  };
+  
+  
+  
+
+  const handleRatingClick = async (activityId, rating) => {
+    const username = localStorage.getItem('username');
+    const activity = activities.find((activity) => activity._id === activityId);
+  
+    if (!username || !activity) {
+      alert('User not logged in or activity not found.');
+      return;
+    }
+  
+    try {
+      const response = await axios.put('/rateCompletedItinerary', {
+        touristUsername: username,
+        itineraryName: activity.Title,
+        rating,
+      });
+  
+      const { newAverageRating } = response.data;
+  
+      // Update state: show user rating and "Add Comment" button
+      setActivities((prevActivities) =>
+        prevActivities.map((act) =>
+          act._id === activityId
+            ? { ...act, userRating: rating, averageRating: newAverageRating, showCommentButton: true }
+            : act
+        )
+      );
+    } catch (error) {
+      console.error('Error submitting rating:', error);
+      alert(error.response?.data?.msg || 'Failed to submit rating.');
+    }
+  };
+  
   
 
   const scrollCommentsLeft = (index) => {
@@ -436,6 +492,14 @@ const [selectedActivity, setSelectedActivity] = useState(null);
       top: 0,
       behavior: 'smooth'
     });
+  };
+
+
+  const handleToggleDescription = (index) => {
+    setExpanded((prev) => ({
+      ...prev,
+      [index]: !prev[index],
+    }));
   };
 
 
@@ -641,7 +705,7 @@ const [selectedActivity, setSelectedActivity] = useState(null);
             </Button>
 
             <Button
-                onClick={() => navigate('/TouristCompletedActivities')}
+                onClick={() => navigate('/completed-activities')}
                 sx={{
                     ...styles.sidebarButton,
                     fontSize: '14px',
@@ -962,18 +1026,16 @@ const [selectedActivity, setSelectedActivity] = useState(null);
   sx={{
     display: 'flex',
     justifyContent: 'space-between', // Ensure space between search bar and the rest
-    alignItems: 'center',           // Align items vertically in the center
+    alignItems: 'right',           // Align items vertically in the center
     marginBottom: '20px',
     marginTop: '20px',
-    marginLeft: '150px',
-    marginRight: '60px',           // Add margin to the right for consistent spacing
+    marginLeft: '1570px',         // Add margin to the right for consistent spacing
   }}
 >
- 
+
 
   {/* Sort Dropdown and Filter Icon */}
-  <Box sx={{ display: 'flex', alignItems: 'right', gap: '10px', marginLeft: '1550px',marginRight: '10px'}}>
-    
+  <Box sx={{ display: 'flex', alignItems: 'right', gap: '10px', marginLeft: '150px',marginRight: '10px'}}>
 
     <TextField
   select
@@ -982,7 +1044,7 @@ const [selectedActivity, setSelectedActivity] = useState(null);
   onChange={(e) => setCurrency(e.target.value)}
   variant="outlined"
   sx={{
-    width: '130px',
+    width: '120px',
     '& .MuiOutlinedInput-root': {
       '& fieldset': {
         borderColor: '#192959', // Default border color
@@ -1025,34 +1087,28 @@ const [selectedActivity, setSelectedActivity] = useState(null);
 </TextField>
 
 
-   
   </Box>
 </Box>
-
-
-
-
-
-      
-      {/* Main Content Area with Activities */}
-      <Box sx={styles.activitiesContainer}>
+  
+        {/* Main Content Area with Activities */}
+        <Box sx={styles.activitiesContainer}>
         {activities.map((activity, index) => (
           <Box key={index} sx={{ marginBottom: '20px' }}>
             <Box
               sx={{
                 ...styles.activityCard,
-                backgroundColor: 'white',
+                backgroundColor: activity.flagged ? 'white' : 'white',
               }}
             >
               <Box sx={styles.activityInfo}>
-                <Typography variant="h6" sx={{ fontWeight: 'bold',fontSize: '24px', marginBottom: '5px', display: 'flex', alignItems: 'center' }}>{activity.Name}</Typography>
+                <Typography variant="h6" sx={{ fontWeight: 'bold',fontSize: '24px', marginBottom: '5px', display: 'flex', alignItems: 'center' }}>{activity.Title}</Typography>
                 <Typography variant="body2" sx={{ display: 'flex', fontSize: '18px', alignItems: 'center' }}>
                   <LocationOnIcon fontSize="small" sx={{ mr: 1 }} />
-                  {activity.Location?.address || 'N/A'}
+                  {activity.Locations|| 'N/A'}
                 </Typography>
                 <Typography variant="body2" sx={{ display: 'flex', fontSize: '18px', alignItems: 'center' }}>
                   <PersonIcon fontSize="small" sx={{ mr: 1 }} />
-                  {activity.AdvertiserName}
+                  {activity.AuthorUsername}
                 </Typography>
                 <Typography variant="body2" sx={{ display: 'flex', fontSize: '18px', alignItems: 'center' }}>
                 <PaymentIcon fontSize="small" sx={{ mr: 1 }} />
@@ -1067,56 +1123,254 @@ const [selectedActivity, setSelectedActivity] = useState(null);
                 </Typography>
                 <Typography variant="body2" sx={{ display: 'flex', fontSize: '18px', alignItems: 'center' }}>
                   <AccessTimeIcon fontSize="small" sx={{ mr: 1 }} />
-                  {activity.Time}
+                  {activity.Timeline}
                 </Typography>
                 <Box sx={styles.quickFacts}>
-                  <Box sx={{ ...styles.infoContainer, backgroundColor:  '#f3f4f6' }}>
-                    <Typography variant="body2" sx={{ fontWeight: 'bold' }}>Category:</Typography>
-                    <Typography variant="body2">{activity.Category}</Typography>
-                  </Box>
-                  <Box sx={{ ...styles.infoContainer, backgroundColor: '#f3f4f6' }}>
-                    <Typography variant="body2" sx={{ fontWeight: 'bold' }}>Tags:</Typography>
-                    <Typography variant="body2">{activity.Tags.join(', ')}</Typography>
-                  </Box>
+                  
+                <Box sx={styles.quickFacts}>
+  <Box
+    sx={{
+      ...styles.infoContainer,
+      backgroundColor: activity.flagged ? '#b3b8c8' : '#f3f4f6',
+    }}
+  >
+    <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
+      Tags:
+    </Typography>
+    <Typography variant="body2">
+      {activity.Tags?.join(', ') || 'No Tags'}
+    </Typography>
+  </Box>
+</Box>
+
                 </Box>
               </Box>
-              <Box sx={styles.activityRating}>
-                {renderRating(activity.Rating)}
-              </Box>
-              <Box sx={styles.discountContainer}>
-                <Box sx={{...styles.infoContainer, backgroundColor:'#f3f4f6'}}>
-                  <Typography variant="body2" sx={{ fontWeight: 'bold' }}>Special Discount:</Typography>
-                  <Typography variant="body2">{activity.SpecialDiscount}</Typography>
+             {/* Ratings and Add Comment */}
+        <Box sx={styles.activityRating}>
+          {renderRating(
+            activity._id,
+            activity.userRating,
+            activity.Ratings,
+            handleRatingClick
+          )}
+
+          {/* Reserve space for the Add Comment button */}
+          <Box
+            sx={{
+              height: '24px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'flex-start',
+            }}
+          >
+            {activity.showCommentButton && (
+              <Button
+                variant="text"
+                onClick={() => {
+                setCurrentActivityId(activity._id);
+                  setCommentModalOpen(true);
+                }}
+                startIcon={<AddIcon />}
+                sx={{
+                  fontSize: '14px',
+                  padding: '2px 6px',
+                  color: '#192959',
+                  textTransform: 'none',
+                  '&:hover': {
+                    backgroundColor: 'rgba(25, 41, 89, 0.1)',
+                  },
+                }}
+              >
+                Add Comment
+              </Button>
+            )}
+          </Box>
+        </Box>
+               {/* Divider Line */}
+               <Divider orientation="vertical" flexItem sx={{ marginRight: '10px', borderColor: '#ccc' }} />
+
+               <Box
+                    sx={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'flex-start',
+                        gap: '5px',
+                        marginBottom: '60px',
+                        marginRight: '450px',
+                        marginTop: '40px', // Adjust this value to lower the entire section
+                    }}
+                    >
+                    <Typography
+                        variant="body2"
+                        sx={{
+                        fontWeight: 'bold', // Bold for "Activities:"
+                        fontSize: '16px', // Font size
+                        color: '#192959', // Color for the label
+                        marginBottom: '5px', // Spacing between items
+                        }}
+                    >
+                        Activities:{' '}
+                        <span
+                        style={{
+                            fontWeight: 'normal', // Normal weight for the value
+                            color: '#33416b', // Different color for the value
+                        }}
+                        >
+                        {activity.Activities || 'N/A'}
+                        </span>
+                    </Typography>
+
+
+
+                    <Box
+                        sx={{
+                            display: 'flex',
+                            alignItems: 'center', // Vertically aligns items
+                            gap: '5px', // Space between "Language:" and the value
+                        }}
+                        >
+                        <Typography
+                            variant="body2"
+                            sx={{
+                            fontWeight: 'bold', // Bold for "Language:"
+                            fontSize: '16px', // Font size
+                            }}
+                        >
+                            Language:
+                        </Typography>
+                        <Typography
+                            variant="body2"
+                            sx={{
+                            fontSize: '16px', // Font size for value
+                            color: '#192959', // Color for value
+                            }}
+                        >
+                            {activity.Language || 'N/A'}
+                        </Typography>
+                        </Box>
+
+
+
+                        <Box
+                        sx={{
+                            display: 'flex',
+                            alignItems: 'center', // Vertically aligns items
+                            gap: '5px', // Space between "Language:" and the value
+                        }}
+                        >
+                        <Typography
+                            variant="body2"
+                            sx={{
+                            fontWeight: 'bold', // Bold for "Language:"
+                            fontSize: '16px', // Font size
+                            }}
+                        >
+                            Accessibility:
+                        </Typography>
+                        <Typography
+                    variant="body2"
+                    sx={{
+                        fontSize: '16px',
+                        color: '#192959',
+                    }}
+                >
+                    {activity.accessibility === true
+                        ? 'Accessible'
+                        : activity.accessibility === false
+                        ? 'Not Accessible'
+                        : 'N/A'}
+                </Typography>
+
+                        </Box>
+
+
+                        <Box
+                        sx={{
+                            display: 'flex',
+                            alignItems: 'center', // Vertically aligns items
+                            gap: '5px', // Space between "Language:" and the value
+                        }}
+                        >
+                        <Typography
+                            variant="body2"
+                            sx={{
+                            fontWeight: 'bold', // Bold for "Language:"
+                            fontSize: '16px', // Font size
+                            }}
+                        >
+                            Pickup Location:
+                        </Typography>
+                        <Typography
+                            variant="body2"
+                            sx={{
+                            fontSize: '16px', // Font size for value
+                            color: '#192959', // Color for value
+                            }}
+                        >
+                            {activity.pickupLocation || 'N/A'}
+                        </Typography>
+                        </Box>
+
+
+
+
+
+                        <Box
+                        sx={{
+                            display: 'flex',
+                            alignItems: 'center', // Vertically aligns items
+                            gap: '5px', // Space between "Language:" and the value
+                        }}
+                        >
+                        <Typography
+                            variant="body2"
+                            sx={{
+                            fontWeight: 'bold', // Bold for "Language:"
+                            fontSize: '16px', // Font size
+                            }}
+                        >
+                            Drop-Off Location:
+                        </Typography>
+                        <Typography
+                            variant="body2"
+                            sx={{
+                            fontSize: '18px', // Font size for value
+                            color: '#192959', // Color for value
+                            }}
+                        >
+                            {activity.dropoffLocation || 'N/A'}
+                        </Typography>
+                        </Box>
+
+
+
+                        
+
                 </Box>
-              </Box>
-              <Box sx={styles.bookingOpenContainer}>
-                <Box sx={{...styles.infoContainer, backgroundColor: '#f3f4f6'}}>
-                  <Typography variant="body2" sx={{ fontWeight: 'bold' }}>Booking Open:</Typography>
-                  <Typography variant="body2">{activity.BookingOpen ? 'Yes' : 'No'}</Typography>
-                </Box>
-              </Box>
 
               
 
+              
 
+              {/* <Button
+          variant="contained"
+          disabled={!activity.isBooked} // Disable button if booking is not open
+          onClick={() => handleBookItinerary(activity.Title)}
+
+          sx={{
+            position: 'absolute',
+            top: '60px', // Position at the top
+            right: '60px', // Position at the right
+            
+            backgroundColor: '#192959',
+
+            color: '#fff',
+            '&:hover': { backgroundColor: '#33416b' },
+          }}
+        >
+          Book
+        </Button> */}
         
-              <Button
-  variant="contained"
-  disabled={!activity.BookingOpen} // Optionally disable based on booking status
-  onClick={() => handleOpenDialog(activity.Name)}
-  startIcon={<CancelOutlinedIcon />} // Add the cancel icon before the text
-  sx={{
-    position: 'absolute',
-    top: '60px', // Position at the top
-    right: '60px', // Position at the right
-    backgroundColor: '#192959', // Blue color for booking action
-    color: '#fff',
-    '&:hover': { backgroundColor: '#d32f2f' }, // Slightly lighter red on hover
-  }}
->
-  Cancel Booking
-</Button>
-
 
 
             </Box>
@@ -1176,10 +1430,10 @@ const [selectedActivity, setSelectedActivity] = useState(null);
 
 
 <Modal
-  open={isShareModalOpen}
-  onClose={() => setShareModalOpen(false)}
-  aria-labelledby="share-modal-title"
-  aria-describedby="share-modal-description"
+  open={commentModalOpen}
+  onClose={() => setCommentModalOpen(false)}
+  aria-labelledby="add-comment-title"
+  aria-describedby="add-comment-description"
 >
   <Box
     sx={{
@@ -1192,190 +1446,44 @@ const [selectedActivity, setSelectedActivity] = useState(null);
       boxShadow: 24,
       p: 4,
       borderRadius: '10px',
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      gap: '10px',
     }}
   >
-    <Typography id="share-modal-title" variant="h6" component="h2">
-      Share Activity
+    <Typography id="add-comment-title" variant="h6" component="h2" sx={{ marginBottom: '20px' }}>
+      Add Comment
     </Typography>
-
-    {/* Copy to Clipboard Button */}
-    <Button
-      variant="contained"
-      onClick={handleCopyToClipboard}
-      sx={{
-        backgroundColor: '#192959',
-        color: '#fff',
-        '&:hover': { backgroundColor: '#33416b' },
-        display: 'flex',
-        alignItems: 'center',
-        gap: '8px',
-        width: '100%',
-      }}
-    >
-      <ContentCopyIcon />
-      Copy to Clipboard
-    </Button>
-
-    {/* Share via Email and Send Buttons */}
-    {!showEmailField ? (
+    <TextField
+      fullWidth
+      multiline
+      rows={4}
+      placeholder="Write your comment here..."
+      value={commentText}
+      onChange={(e) => setCommentText(e.target.value)}
+      variant="outlined"
+    />
+    <Box sx={{ display: 'flex', justifyContent: 'flex-end', marginTop: '20px' }}>
       <Button
-        variant="contained"
-        onClick={() => setShowEmailField(true)} // Toggle to show email input and "Send" button
+        variant="outlined"
+        onClick={() => setCommentModalOpen(false)}
         sx={{
-          backgroundColor: '#192959',
-          color: '#fff',
-          '&:hover': { backgroundColor: '#33416b' },
-          display: 'flex',
-          alignItems: 'center',
-          gap: '8px',
-          width: '100%',
+          color: '#192959',
+          borderColor: '#192959',
+          '&:hover': { backgroundColor: 'rgba(25, 41, 89, 0.1)', borderColor: '#192959' },
+          marginRight: '10px',
         }}
       >
-        <ShareIcon />
-        Share via Email
+        Cancel
       </Button>
-    ) : (
-      <>
-        <TextField
-          fullWidth
-          label="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-        />
-        <Button
-          variant="contained"
-          onClick={() => handleSendEmail(currentActivityName)} // Pass activityName
-          sx={{
-            backgroundColor: '#192959',
-            color: '#fff',
-            '&:hover': { backgroundColor: '#33416b' },
-            width: '100%',
-          }}
-        >
-          Send
-        </Button>
-      </>
-    )}
-  </Box>
-</Modal>
-
-
-
-      <Modal
-  open={filterModalOpen}
-  onClose={() => setFilterModalOpen(false)}
-  aria-labelledby="filter-modal-title"
-  aria-describedby="filter-modal-description"
->
-  <Box
-    sx={{
-      position: 'absolute',
-      top: '50%',
-      left: '50%',
-      transform: 'translate(-50%, -50%)',
-      width: 400,
-      bgcolor: 'background.paper',
-      boxShadow: 24,
-      p: 4,
-      borderRadius: '10px',
-    }}
-  >
-    <Typography id="filter-modal-title" variant="h6" component="h2" sx={{ marginBottom: '20px' }}>
-      Filter Activities
-    </Typography>
-    <Box sx={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-      <TextField
-        label="Category"
-        name="Category"
-        variant="outlined"
-        value={filterInputs.Category || ""}
-        onChange={handleFilterInputChange}
-      />
-      <TextField
-        label="Min Price"
-        name="minPrice"
-        type="number"
-        variant="outlined"
-        value={filterInputs.minPrice || ""}
-        onChange={handleFilterInputChange}
-      />
-      <TextField
-        label="Max Price"
-        name="maxPrice"
-        type="number"
-        variant="outlined"
-        value={filterInputs.maxPrice || ""}
-        onChange={handleFilterInputChange}
-      />
-      <TextField
-        label="Date"
-        name="InputDate"
-        type="date"
-        variant="outlined"
-        InputLabelProps={{ shrink: true }}
-        value={filterInputs.InputDate || ""}
-        onChange={handleFilterInputChange}
-      />
-      <TextField
-        label="Rating"
-        name="Rating"
-        type="number"
-        variant="outlined"
-        value={filterInputs.Rating || ""}
-        onChange={handleFilterInputChange}
-      />
-    </Box>
-    <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '20px' }}>
-    <Button
-  variant="outlined"
-  onClick={() => setFilterModalOpen(false)}
-  sx={{
-    color: '#192959', // Text color
-    borderColor: '#192959', // Outline color
-    '&:hover': {
-      backgroundColor: 'rgba(25, 41, 89, 0.1)', // Slight background highlight on hover
-      borderColor: '#192959', // Outline color on hover
-    },
-  }}
->
-  Cancel
-</Button>
-
-      <Button variant="contained" onClick={handleFilterSubmit} sx={{ backgroundColor: '#192959', color: '#fff' }}>
-        Apply
+      <Button
+        variant="contained"
+        onClick={handleCommentSubmit}
+        sx={{ backgroundColor: '#192959', color: '#fff' }}
+      >
+        Submit
       </Button>
     </Box>
   </Box>
 </Modal>
 
-<Dialog open={openDialog} onClose={handleCloseDialog}>
-  <DialogContent>
-    <DialogContentText sx={{ fontWeight: 'bold', color: '#192959', fontSize: '20px' }}>
-      Do you want to confirm Event deletion?
-    </DialogContentText>
-    <DialogContentText sx={{ fontWeight: 'bold', color: '#33416b', marginTop: '10px' }}>
-      This action is non-reversible and the event booking will be canceled.
-    </DialogContentText>
-  </DialogContent>
-  <DialogActions>
-    <Button
-      onClick={handleCloseDialog}
-      sx={{ color: '#192959', '&:hover': { backgroundColor: '#192959', color: '#e6e7ed' } }}
-    >
-      Cancel
-    </Button>
-    <Button
-      onClick={handleConfirmDeletion}
-      sx={{ color: '#192959', '&:hover': { backgroundColor: '#192959', color: '#e6e7ed' } }}
-    >
-      Confirm
-    </Button>
-  </DialogActions>
-</Dialog>
 
 
       {/* Back to Top Button */}
@@ -1534,7 +1642,7 @@ const styles = {
   },
   activityRating: {
     position: 'absolute',
-    bottom: '140px',
+    bottom: '40px',
     right: '60px',
     display: 'flex',
     flexDirection: 'column',
@@ -1663,4 +1771,4 @@ const styles = {
   },
 };
 
-export default TouristBookedActivities;
+export default TouristCompletedItineraries;
