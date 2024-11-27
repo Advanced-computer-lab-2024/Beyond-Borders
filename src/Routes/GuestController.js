@@ -77,23 +77,31 @@ const filterActivitiesGuest = async (req, res) => {
   }
 };
 const getMuseumsByTagGuest = async (req, res) => {
-    try {
-        // Extract the tags array from the request body
-        const { tags } = req.body; // Expecting an array of tags
+  try {
+      // Extract the tags array from the request body
+      const { tags } = req.body; // Expecting an array of tags
 
-        // Find museums with any of the specified tags
-        const museums = await MuseumsModel.find({ HistoricalTags: { $in: tags } });
+      // Get the current date
+      const currentDate = new Date();
 
-        // Check if any museums were found
-        if (museums.length > 0) {
-            res.status(200).json(museums);
-        } else {
-            res.status(404).json({ error: "No museums found with the specified tags." });
-        }
-    } catch (error) {
-        res.status(400).json({ error: error.message });
-    }
+      // Find museums with the specified tags and upcoming events
+      const museums = await MuseumsModel.find({
+          HistoricalTags: { $in: tags },   // Match any of the specified tags
+          dateOfEvent: { $gte: currentDate }, // Only include upcoming events
+      });
+
+      // Check if any museums were found
+      if (museums.length > 0) {
+          res.status(200).json(museums);
+      } else {
+          res.status(404).json({ error: "No upcoming museums found with the specified tags." });
+      }
+  } catch (error) {
+      console.error("Error fetching museums:", error);
+      res.status(400).json({ error: error.message });
+  }
 };
+
 
 const getHistoricalPlacesByTagGuest = async (req, res) => {
   try {
