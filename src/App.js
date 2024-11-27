@@ -361,7 +361,7 @@ app.get("/api/getallItinerarys",getItenrarysByTourGuide);
 //Advertiser
 //app.post("/addAdvertiser",createAdvertiser);
 app.get("/api/AdvertiserProfile",ReadAdvertiserProfile);
-app.put("/api/updateAdvertiserProfile",updateAdvertiser);
+app.put("/api/updateAdvertiserProfile",uploadImage.single("Logo"),updateAdvertiser);
 app.post("/api/createNewActivity", createNewActivity);
 app.get("/api/readActivity", readActivity);
 app.put("/api/updateActivity", updateActivity);
