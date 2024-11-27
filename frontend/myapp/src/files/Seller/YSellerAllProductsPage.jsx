@@ -31,7 +31,6 @@ import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
 import SortByAlphaIcon from '@mui/icons-material/SortByAlpha';
 import EditIcon from '@mui/icons-material/Edit';
 import SaveIcon from '@mui/icons-material/Save';
-import AddIcon from '@mui/icons-material/Add';
 import LocalOfferIcon from '@mui/icons-material/LocalOffer';
 
 import AddProductModalSeller from './AddProductModalSeller'; // Adjust the path if needed
@@ -39,7 +38,7 @@ import AddProductModalSeller from './AddProductModalSeller'; // Adjust the path 
 
 import axios from 'axios';
 
-function YSellerProductsPage() {
+function YSellerAllProductsPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [viewArchived, setViewArchived] = useState(false);
   const [products, setProducts] = useState([]);
@@ -53,8 +52,6 @@ function YSellerProductsPage() {
   const [showModal, setShowModal] = useState(false);
   const [addProductModal, setAddProductModal] = useState(false);
  
-  const username = localStorage.getItem('username') || 'User'; // Retrieve username from localStorage
-
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -64,9 +61,7 @@ function YSellerProductsPage() {
 
   const fetchProducts = async () => {
     try {
-      const response = await axios.get('/api/getProductsBySeller', {
-        params: { Seller: username },
-      });
+      const response = await axios.get('/api/viewAllProductsAdmin');
       setProducts(response.data);
     } catch (error) {
       console.error('Error fetching products:', error);
@@ -75,9 +70,7 @@ function YSellerProductsPage() {
 
   const fetchArchivedProducts = async () => {
     try {
-      const response = await axios.get('/api/viewMyArchivedProductsSeller', {
-        params: { Seller: username },
-      });
+      const response = await axios.get('/api/viewArchivedProductsAdmin');
       setArchivedProducts(response.data);
     } catch (error) {
       console.error('Error fetching archived products:', error);
@@ -242,11 +235,10 @@ function YSellerProductsPage() {
 
   const handleCreateProduct = async (newProduct) => {
     try {
-      const response = await axios.post('/api/addProductSeller', newProduct);
+      const response = await axios.post('/api/addProduct', newProduct);
       console.log("Product created:", response.data);
       alert("Product created successfully!");
       setAddProductModal(false);
-      fetchProducts();
     } catch (error) {
       if (error.response) {
         console.error("Server Error:", error.response.data);
@@ -289,7 +281,7 @@ function YSellerProductsPage() {
             Beyond Borders
           </Typography>
         </Box>
-        <Box sx={styles.topMenuRight}>
+        {/* <Box sx={styles.topMenuRight}>
           <Button
             onClick={() => setViewArchived((prev) => !prev)}
             sx={styles.menuButton}
@@ -298,17 +290,11 @@ function YSellerProductsPage() {
           </Button>
           <Button
             onClick={() => setShowModal(true)} // Open modal
-            sx={{
-                backgroundColor: "#192959",
-                color: "#e6e7ed",
-                fontWeight:"bold",
-                "&:hover": { color: "#192959",backgroundColor: "#e6e7ed" },
-              }}
-              startIcon={<AddIcon />}
+            sx={styles.addProductButton}
           >
             Add Product
           </Button>
-        </Box>
+        </Box> */}
       </Box>
 
       {/* Add Product Modal */}
@@ -542,7 +528,7 @@ function YSellerProductsPage() {
                     </Typography>
              
               {/* Edit/Save Button */}
-                    <Box sx={styles.productActions}>
+                    {/* <Box sx={styles.productActions}>
                     {editMode[product._id] ? (
                         <IconButton
                         onClick={() => handleSaveClick(product._id)}
@@ -560,19 +546,19 @@ function YSellerProductsPage() {
                         <EditIcon />
                         </IconButton>
                     )}
-                    </Box>
+                    </Box> */}
 
                 </Box>
 
                 {/* Archive/Unarchive Button */}
-                <IconButton
+                {/* <IconButton
                     onClick={() =>
                     viewArchived ? unarchiveProduct(product._id) : archiveProduct(product._id)
                     }
                     sx={styles.archiveButton}
                 >
                     {viewArchived ? <UnarchiveIcon /> : <ArchiveIcon />}
-                </IconButton>
+                </IconButton> */}
                
                 <Box sx={styles.activityRating}>
                   {renderRating(product.Ratings)}
@@ -837,4 +823,4 @@ const styles = {
   
 };
 
-export default YSellerProductsPage;
+export default YSellerAllProductsPage;
