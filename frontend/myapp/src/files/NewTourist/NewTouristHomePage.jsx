@@ -535,7 +535,7 @@ const closeDeleteRequestsModal = () => {
     <Box sx={{ display: 'flex', flexDirection: 'column', marginLeft: sidebarOpen ? '20px' : '0px' }}>
       {/* My Purchased Products */}
       <Button
-        onClick={() => navigate('/my-purchased-products')}
+        onClick={() => navigate('/TouristPurchasedProducts')}
         sx={{
           ...styles.sidebarButton,
           fontSize: '14px',
@@ -549,7 +549,7 @@ const closeDeleteRequestsModal = () => {
       
       {/* View All Products */}
       <Button
-        onClick={() => navigate('/view-all-products')}
+        onClick={() => navigate('/TouristAllProducts')}
         sx={{
           ...styles.sidebarButton,
           fontSize: '14px',
