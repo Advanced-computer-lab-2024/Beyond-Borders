@@ -32,6 +32,11 @@ import ShoppingCartOutlinedIcon from '@mui/icons-material/ShoppingCartOutlined';
 import NotificationsNoneOutlinedIcon from '@mui/icons-material/NotificationsNoneOutlined';
 import AccountCircleIcon from '@mui/icons-material/AccountCircleRounded';
 import BookmarkBorderOutlinedIcon from '@mui/icons-material/BookmarkBorderOutlined';
+import SaveIcon from '@mui/icons-material/Save';
+import EditIcon from '@mui/icons-material/Edit';
+import StarsIcon from '@mui/icons-material/Stars';
+import MilitaryTechIcon from '@mui/icons-material/MilitaryTech';
+
 
 
 
@@ -78,6 +83,14 @@ function NewTouristHomePage() {
   const [productsOpen, setProductsOpen] = useState(false);
   const [complaintsOpen, setComplaintsOpen] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false); // Modal state
+
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+const [isEditable, setIsEditable] = useState(false);
+const [showPassword, setShowPassword] = useState(false); // Toggle for password visibility
+
+const [availablePreferences, setAvailablePreferences] = useState([]); // Holds available preference tags
+const [isPreferencesModalOpen, setIsPreferencesModalOpen] = useState(false); // Controls preference selection modal visibility
+
   
   const [itineraryData, setItineraryData] = useState({
     title: '',
@@ -92,6 +105,21 @@ function NewTouristHomePage() {
     dropoffLocation: '',
     tags: '',
   });
+
+  const [profileData, setProfileData] = useState({
+    username: '',
+    email: '',
+    password: '',
+    mobileNumber: '',
+    dateOfBirth: '',
+    nationality: '',
+    occupation: '',
+    wallet: 0,
+    points: 0,
+    badgeLevel: 0,
+    preferences: [],
+  });
+  
 
 
 
@@ -309,6 +337,120 @@ function NewTouristHomePage() {
     }
   };
 
+  const fetchTouristProfile = async () => {
+    const username = localStorage.getItem('username'); // Retrieve username from localStorage
+  
+    if (!username) {
+      alert('You need to log in first.');
+      return;
+    }
+  
+    try {
+      // Make the GET request to the backend API
+      const response = await axios.get('/api/viewTourist', {
+        params: { Username: username }, // Pass the username in the query parameters
+      });
+      const profile = response.data;
+  
+      // Format the date of birth (DoB) to 'YYYY-MM-DD'
+      const formatDate = (dateString) => {
+        if (!dateString) return '';
+        const date = new Date(dateString);
+        return date.toISOString().split('T')[0]; // Format as 'YYYY-MM-DD'
+      };
+  
+      // Update the state with the fetched profile data
+      setProfileData({
+        username: profile.Username || '',
+        email: profile.Email || '',
+        password: profile.Password || '',
+        mobileNumber: profile.MobileNumber || '',
+        dateOfBirth: formatDate(profile.DoB), // Format the DoB before setting it
+        nationality: profile.Nationality || '',
+        occupation: profile.Occupation || '',
+        wallet: profile.Wallet || 0,
+        points: profile.Points || 0,
+        badgeLevel: profile.BadgeLevelOfPoints || 0,
+        preferences: profile.MyPreferences || [],
+      });
+  
+      setIsProfileModalOpen(true); // Open the modal
+    } catch (error) {
+      // Handle errors appropriately
+      if (error.response && error.response.status === 404) {
+        alert('Profile not found.');
+      } else {
+        console.error('Error fetching profile:', error);
+        alert('An error occurred while loading the profile.');
+      }
+    }
+  };
+  
+  
+
+  const saveProfile = async () => {
+    const username = localStorage.getItem('username');
+  
+    if (!username) {
+      alert('You need to log in first.');
+      return;
+    }
+  
+    try {
+      // Prepare the update payload excluding non-editable fields
+      const updatePayload = {
+        Username: profileData.username,
+        Email: profileData.email,
+        Password: profileData.password,
+        MobileNumber: profileData.mobileNumber,
+        Nationality: profileData.nationality,
+        Occupation: profileData.occupation,
+        Points: profileData.points,
+        BadgeLevelOfPoints: profileData.badgeLevel,
+        MyPreferences: profileData.preferences,
+      };
+  
+      console.log("Update Payload:", updatePayload); // Debugging payload
+  
+      // Make the PUT request to update the profile
+      const response = await axios.put('/api/updateTourist', updatePayload);
+  
+      console.log("Response Data:", response.data); // Debugging response
+  
+      alert(response.data.msg || 'Profile updated successfully!');
+  
+      // Optionally, fetch updated profile from the backend
+      setProfileData((prev) => ({
+        ...prev,
+        username: response.data.Username || prev.username,
+        email: response.data.Email || prev.email,
+        password: response.data.Password || prev.password,
+        mobileNumber: response.data.MobileNumber || prev.mobileNumber,
+        nationality: response.data.Nationality || prev.nationality,
+        occupation: response.data.Occupation || prev.occupation,
+        points: response.data.Points || prev.points,
+        badgeLevel: response.data.BadgeLevelOfPoints || prev.badgeLevel,
+        preferences: response.data.MyPreferences || prev.preferences,
+      }));
+  
+      setIsEditable(false); // Disable edit mode after saving
+    } catch (error) {
+      console.error('Error saving profile:', error);
+  
+      if (error.response) {
+        alert(error.response.data.msg || 'An error occurred while saving the profile.');
+      } else {
+        alert('An error occurred. Please try again later.');
+      }
+    }
+  };
+  
+  
+  
+  
+
+  
+
   // Reset function for Add Admin Modal
   const resetAddAdminModal = () => {
     setAdminUsername('');
@@ -365,6 +507,33 @@ const confirmDeleteRequest = async () => {
   }
 };
 
+const handleOpenPreferencesModal = async () => {
+  try {
+    const response = await axios.get('/viewPreferenceTags'); // Adjust endpoint if necessary
+    const tags = response.data;
+
+    setAvailablePreferences(tags); // Populate the available preferences
+    setIsPreferencesModalOpen(true); // Open the preferences modal
+  } catch (error) {
+    console.error('Error fetching preferences:', error);
+    alert('An error occurred while fetching preferences. Please try again later.');
+  }
+};
+
+
+const togglePreference = (tag) => {
+  setProfileData((prev) => {
+    const updatedPreferences = prev.preferences.includes(tag)
+      ? prev.preferences.filter((pref) => pref !== tag) // Remove preference
+      : [...prev.preferences, tag]; // Add preference
+
+    return { ...prev, preferences: updatedPreferences };
+  });
+};
+
+
+
+
 // Reject request function
 const handleRejectRequest = async (username) => {
   try {
@@ -412,9 +581,11 @@ const closeDeleteRequestsModal = () => {
     },
   }}
   startIcon={<AccountCircleIcon />}
+  onClick={fetchTouristProfile} // Fetch profile data and open modal
 >
   My Profile
 </Button>
+
 
 <Tooltip title="Notifications" arrow>
   <IconButton
@@ -964,6 +1135,316 @@ const closeDeleteRequestsModal = () => {
     </Button>
   
 </Box>
+
+{/* Profile Modal */}
+<Modal open={isProfileModalOpen} onClose={() => setIsProfileModalOpen(false)}>
+        <Box
+          sx={{
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            width: '90%',
+            maxWidth: 500,
+            bgcolor: 'background.paper',
+            borderRadius: 1,
+            boxShadow: 24,
+            overflow: 'hidden',
+          }}
+        >
+          <Box
+            sx={{
+              maxHeight: '90vh',
+              overflowY: 'auto',
+              p: 4,
+            }}
+          >
+            {/* Header with Edit/Save Button */}
+            <Box
+              sx={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                mb: 2,
+              }}
+            >
+              <Typography variant="h6" component="h2">
+                My Profile
+              </Typography>
+              <Button
+                variant="outlined"
+                onClick={() => {
+                  if (isEditable) saveProfile();
+                  setIsEditable(!isEditable);
+                }}
+                sx={{
+                  borderColor: '#192959',
+                  color: '#192959',
+                  backgroundColor: 'white',
+                  '&:hover': {
+                    backgroundColor: '#192959',
+                    borderColor: 'white',
+                    color: 'white',
+                  },
+                }}
+                startIcon={isEditable ? <SaveIcon /> : <EditIcon />}
+              >
+                {isEditable ? 'Save Changes' : 'Edit'}
+              </Button>
+            </Box>
+
+            {/* Profile Fields */}
+            <Box component="form">
+              <TextField
+                fullWidth
+                label="Username"
+                id="username"
+                value={profileData.username}
+                InputProps={{ readOnly: true }}
+                margin="dense"
+              />
+              <TextField
+                fullWidth
+                label="Email Address"
+                id="email"
+                type="email"
+                value={profileData.email}
+                onChange={(e) => setProfileData({ ...profileData, email: e.target.value })}
+                InputProps={{ readOnly: !isEditable }}
+                margin="dense"
+              />
+              <TextField
+                fullWidth
+                label="Password"
+                id="password"
+                type={showPassword ? 'text' : 'password'}
+                value={profileData.password}
+                onChange={(e) => setProfileData({ ...profileData, password: e.target.value })}
+                InputProps={{
+                  readOnly: !isEditable,
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton onClick={() => setShowPassword(!showPassword)} edge="end">
+                        {showPassword ? <VisibilityOff /> : <Visibility />}
+                      </IconButton>
+                    </InputAdornment>
+                  ),
+                }}
+                margin="dense"
+              />
+              <TextField
+                fullWidth
+                label="Date of Birth"
+                id="dateOfBirth"
+                type="date"
+                value={profileData.dateOfBirth}
+                InputProps={{ readOnly: true }}
+                InputLabelProps={{
+                  shrink: true,
+                }}
+                margin="dense"
+              />
+              <TextField
+                fullWidth
+                label="Mobile Number"
+                id="mobileNumber"
+                value={profileData.mobileNumber}
+                onChange={(e) => setProfileData({ ...profileData, mobileNumber: e.target.value })}
+                InputProps={{ readOnly: !isEditable }}
+                margin="dense"
+              />
+              <TextField
+                fullWidth
+                label="Nationality"
+                id="nationality"
+                value={profileData.nationality}
+                onChange={(e) => setProfileData({ ...profileData, nationality: e.target.value })}
+                InputProps={{ readOnly: !isEditable }}
+                margin="dense"
+              />
+              <TextField
+                fullWidth
+                label="Occupation"
+                id="occupation"
+                value={profileData.occupation}
+                onChange={(e) => setProfileData({ ...profileData, occupation: e.target.value })}
+                InputProps={{ readOnly: !isEditable }}
+                margin="dense"
+              />
+              <TextField
+                fullWidth
+                label="Wallet"
+                id="wallet"
+                value={`${profileData.wallet} EGP`}
+                InputProps={{ readOnly: true }}
+                margin="dense"
+              />
+              <TextField
+                fullWidth
+                label="Points"
+                id="points"
+                value={profileData.points}
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <StarsIcon sx={{ color: '#192959' }} />
+                    </InputAdornment>
+                  ),
+                  readOnly: true,
+                }}
+                margin="dense"
+              />
+              <TextField
+                fullWidth
+                label="Badge Level"
+                id="badgeLevel"
+                value={profileData.badgeLevel}
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <MilitaryTechIcon sx={{ color: '#192959' }} />
+                    </InputAdornment>
+                  ),
+                  readOnly: true,
+                }}
+                margin="dense"
+              />
+              {/* Button to Open Preferences Modal */}
+              <Button
+                variant="outlined"
+                onClick={handleOpenPreferencesModal}
+                sx={{
+                  mt: 3,
+                  borderColor: '#192959',
+                  color: '#192959',
+                  width: '100%',
+                  '&:hover': {
+                    backgroundColor: '#192959',
+                    borderColor: 'white',
+                    color: 'white',
+                  },
+                }}
+                startIcon={<AddIcon />}
+              >
+                Select Preferences
+              </Button>
+            </Box>
+          </Box>
+        </Box>
+      </Modal>
+
+{/* Preferences Modal */}
+<Modal
+        open={isPreferencesModalOpen}
+        onClose={() => setIsPreferencesModalOpen(false)}
+        aria-labelledby="preferences-modal-title"
+        aria-describedby="preferences-modal-description"
+      >
+        <Box
+          sx={{
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            width: '90%',
+            maxWidth: 500,
+            bgcolor: 'background.paper',
+            borderRadius: 1,
+            boxShadow: 24,
+            p: 4,
+          }}
+        >
+          <Typography
+            id="preferences-modal-title"
+            variant="h6"
+            sx={{ mb: 2, color: '#192959', textAlign: 'center' }}
+          >
+            Select Your Preferences
+          </Typography>
+          <Box
+            sx={{
+              display: 'flex',
+              flexWrap: 'wrap',
+              gap: '8px',
+              justifyContent: 'center',
+            }}
+          >
+            {availablePreferences.map((tag) => (
+              <Box
+                key={tag._id}
+                sx={{
+                  position: 'relative',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  padding: '8px 16px',
+                  borderRadius: '12px',
+                  backgroundColor: profileData.preferences.includes(tag.NameOfTags)
+                    ? '#3a4a90'
+                    : '#f0f0f0',
+                  color: profileData.preferences.includes(tag.NameOfTags)
+                    ? 'white'
+                    : '#192959',
+                  fontSize: '14px',
+                  border: '1px solid #192959',
+                  cursor: 'pointer',
+                }}
+                onClick={() => togglePreference(tag.NameOfTags)}
+              >
+                {tag.NameOfTags}
+                <Tooltip title="Add Preference" arrow>
+                  <IconButton
+                    sx={{
+                      position: 'absolute',
+                      top: '-8px',
+                      right: '-8px',
+                      backgroundColor: profileData.preferences.includes(tag.NameOfTags)
+                        ? '#3a4a90'
+                        : '#192959',
+                      color: 'white',
+                      width: '20px',
+                      height: '20px',
+                      '&:hover': {
+                        backgroundColor: '#3a4a90',
+                      },
+                    }}
+                    size="small"
+                  >
+                    <AddIcon fontSize="small" />
+                  </IconButton>
+                </Tooltip>
+              </Box>
+            ))}
+          </Box>
+          <Button
+            variant="contained"
+            onClick={() => setIsPreferencesModalOpen(false)}
+            sx={{
+              mt: 3,
+              backgroundColor: '#192959',
+              color: 'white',
+              width: '100%',
+              '&:hover': {
+                backgroundColor: '#3a4a90',
+              },
+            }}
+          >
+            Save Preferences
+          </Button>
+        </Box>
+      </Modal>
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
