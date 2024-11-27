@@ -45,9 +45,8 @@ import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import IosShareIcon from '@mui/icons-material/IosShare';
 import ShareIcon from '@mui/icons-material/Share';
 import LanguageIcon from '@mui/icons-material/Language';
-import Divider from '@mui/material/Divider'; // For vertical divider
-import BookmarkIcon from '@mui/icons-material/Bookmark'; // For the wishlist icon
 import AddShoppingCartIcon from '@mui/icons-material/AddShoppingCart'; // For the shopping cart icon
+import BookmarkIcon from '@mui/icons-material/Bookmark';
 
 import axios from 'axios';
 
@@ -88,77 +87,29 @@ const [showEmailField, setShowEmailField] = useState(false); // State for toggli
 const [sharedLink, setSharedLink] = useState(''); // Shared link state
 const [currentActivityName, setCurrentActivityName] = useState(''); // Trac
 const [convertedPrices, setConvertedPrices] = useState({});
-const [currency, setCurrency] = useState('EGP'); // Default currency is EGP
-const [wishlist, setWishlist] = useState([]); // Ensure wishlist state is defined
 const [products, setProducts] = useState([]);
+const [currency, setCurrency] = useState('EGP'); // Default currency is EGP
+const [expanded, setExpanded] = React.useState({});
+const [wishlistStatus, setWishlistStatus] = useState({});
+const [wishlist, setWishlist] = useState([]); 
+
   const navigate = useNavigate();
 
-// Function to search products by query
-const searchProducts = async (query) => {
-    try {
-      const response = await axios.post('/api/searchProductTourist', { searchString: query });
-      const fetchedProducts = response.data;
-  
-      // Check wishlist status for each product
-      const updatedWishlist = {};
-      for (const product of fetchedProducts) {
-        const isInWishlist = await checkWishlistStatus(product.Name);
-        updatedWishlist[product._id] = isInWishlist;
-      }
-  
-      // Update states
-      setProducts(fetchedProducts);
-      setWishlist(updatedWishlist);
-    } catch (error) {
-      console.error('Error searching products:', error);
-      setProducts([]); // Clear products if no results or error
-    }
-  };
-  
-  // useEffect for initial data loading
   useEffect(() => {
-    const fetchOrSearchProducts = async () => {
-      const username = localStorage.getItem("username");
-  
-      if (!username) {
-        console.error("Username not found in local storage.");
-        return;
-      }
-  
-      try {
-        // Fetch all products or search based on the search query
-        let fetchedProducts;
-        if (!searchQuery) {
-          // Fetch all products
-          const response = await axios.get("/api/viewAllProductsSeller");
-          fetchedProducts = response.data;
-        } else {
-          // Perform search
-          const response = await axios.post("/api/searchProductTourist", { searchString: searchQuery });
-          fetchedProducts = response.data;
-        }
-  
-        // Fetch wishlist statuses in parallel
-        const updatedWishlist = {};
-        const wishlistPromises = fetchedProducts.map(async (product) => {
-          const isInWishlist = await checkWishlistStatus(product.Name);
-          updatedWishlist[product._id] = isInWishlist;
-        });
-        await Promise.all(wishlistPromises);
-  
-        // Update states
-        setProducts(fetchedProducts);
-        setWishlist(updatedWishlist);
-  
-        // Fetch categories and tags
-        fetchCategories();
-        fetchTags();
-      } catch (error) {
-        console.error("Error fetching products or wishlist status:", error);
+    // Function to handle fetching or searching activities
+    const fetchOrSearchActivities = async () => {
+      if (!searchQuery) {
+        // Fetch all activities when there's no search query
+        await fetchProducts();
+      } else {
+        // Perform search when there's a query
+        await searchProducts(searchQuery);
       }
     };
   
-    fetchOrSearchProducts(); // Trigger fetching or search logic
+    fetchOrSearchActivities(); // Call the fetch or search logic
+    fetchCategories(); // Fetch categories
+    fetchTags(); // Fetch tags
   
     // Handle scroll to show/hide "Back to Top" button
     const handleScroll = () => {
@@ -169,16 +120,38 @@ const searchProducts = async (query) => {
       }
     };
   
-    window.addEventListener("scroll", handleScroll);
+    window.addEventListener('scroll', handleScroll);
   
     // Cleanup event listener on component unmount
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, [searchQuery]); // Depend on searchQuery for fetching or searching logic
-  
-   // Runs only on mount, no search logic here
-  
-  
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [searchQuery]); // Depend on `searchQuery` to refetch activities when it changes
 
+
+  useEffect(() => {
+    if (currency !== 'EGP') {
+      convertActivityPrices();
+    }
+  }, [currency, products]);
+
+  const convertActivityPrices = async () => {
+    const newConvertedPrices = {};
+    await Promise.all(
+      products.map(async (product) => {
+        try {
+          const response = await axios.post('/convertCurr', {
+            priceEgp: product.Price,
+            targetCurrency: currency,
+          });
+          // Use a unique key for each activity
+          newConvertedPrices[product._id] = response.data.convertedPrice;
+        } catch (error) {
+          console.error(`Error converting price for product ${product.Name}:`, error);
+        }
+      })
+    );
+    setConvertedPrices(newConvertedPrices);
+  };
+  
   const checkWishlistStatus = async (productName) => {
     const username = localStorage.getItem("username");
     try {
@@ -192,99 +165,7 @@ const searchProducts = async (query) => {
     }
   };
 
- 
 
-  useEffect(() => {
-    if (currency !== 'EGP') {
-      convertActivityPrices();
-    }
-  }, [currency, activities]);
-
-  const convertActivityPrices = async () => {
-    const newConvertedPrices = {};
-    await Promise.all(
-      activities.map(async (activity) => {
-        try {
-          const response = await axios.post('/convertCurr', {
-            priceEgp: activity.Price,
-            targetCurrency: currency,
-          });
-          // Use a unique key for each activity
-          newConvertedPrices[activity._id] = response.data.convertedPrice;
-        } catch (error) {
-          console.error(`Error converting price for activity ${activity.Name}:`, error);
-        }
-      })
-    );
-    setConvertedPrices(newConvertedPrices);
-  };
- 
-//   useEffect(() => {
-//     const fetchWishlistStatus = async () => {
-//       // Retrieve username from local storage
-//       const username = localStorage.getItem("username");
-  
-//       if (!username) {
-//         console.error("Username not found in local storage.");
-//         return;
-//       }
-  
-//       const updatedWishlist = {};
-//       for (const product of products) {
-//         const isInWishlist = await checkWishlistStatus(product.Name);
-//         updatedWishlist[product._id] = isInWishlist;
-//       }
-//       setWishlist(updatedWishlist);
-//     };
-  
-//     fetchWishlistStatus();
-//   }, [products]);
-
-
-
-  // Initialize wishlist status for all products
-
-  
-
-  // Handle wishlist toggle
-  const handleToggleWishlist = async (productName, productId) => {
-    const isInWishlist = wishlist[productId];
-  
-    // Update UI immediately
-    setWishlist((prev) => ({ ...prev, [productId]: !isInWishlist }));
-  
-    // Sync with the server
-    if (isInWishlist) {
-      await removeFromWishlist(productName);
-    } else {
-      await addToWishList(productName);
-    }
-  };
-  
-
-const fetchProducts = async () => {
-  try {
-    const response = await axios.get('/api/viewAllProductsSeller'); // Adjust endpoint as needed
-    setProducts(response.data);
-  } catch (error) {
-    console.error('Error fetching products:', error);
-  }
-};
-
-const addToWishList = async (productName) => {
-    const username = localStorage.getItem("username");
-    try {
-      const response = await axios.post("/addToWishList", {
-        touristUsername: username,
-        productName,
-      });
-      return response.data;
-    } catch (error) {
-      console.error("Error adding product to wishlist:", error);
-      throw error;
-    }
-  };
-  
   const removeFromWishlist = async (productName) => {
     const username = localStorage.getItem("username");
     try {
@@ -298,63 +179,92 @@ const addToWishList = async (productName) => {
       throw error;
     }
   };
-  
 
-const handleAddToWishlist = async (productName) => {
+  const addToWishList = async (productName) => {
     const username = localStorage.getItem("username");
     try {
       const response = await axios.post("/addToWishList", {
         touristUsername: username,
         productName,
       });
-      alert(response.data.msg);
-
-      // Update wishlist state locally
-      setWishlist((prevWishlist) => [...prevWishlist, { productName }]);
+      return response.data;
     } catch (error) {
-      alert(
-        error.response?.data?.error || "Failed to add product to wishlist."
-      );
+      console.error("Error adding product to wishlist:", error);
+      throw error;
     }
   };
-
-  const handleAddToCart = async (productName) => {
-    const username = localStorage.getItem("username");
+  
+  const handleToggleWishlist = async (productName, productId) => {
+    const isInWishlist = wishlist[productId];
+  
+    // Optimistically update the UI
+    setWishlist((prev) => ({ ...prev, [productId]: !isInWishlist }));
+  
     try {
-      const response = await axios.post("/addToCart", {
-        touristUsername: username,
-        productName,
-      });
-      alert(response.data.msg);
+      if (isInWishlist) {
+        // Remove from wishlist
+        await removeFromWishlist(productName);
+      } else {
+        // Add to wishlist
+        await addToWishList(productName);
+      }
     } catch (error) {
-      alert(
-        error.response?.data?.error || "Failed to add product to cart."
-      );
+      console.error("Error toggling wishlist:", error);
+      // Revert UI change on failure
+      setWishlist((prev) => ({ ...prev, [productId]: isInWishlist }));
     }
   };
-
-  const isProductInWishlist = (productName) =>
-    wishlist.some((item) => item.productName === productName);
   
   
   
 
-  const fetchActivities = async () => {
+  // Fetch all products and initialize wishlist status
+// const fetchProducts = async () => {
+//     try {
+//       const response = await axios.get('/api/viewAllProductsSeller'); // Adjust endpoint as needed
+//       const fetchedProducts = response.data;
+  
+//       // Initialize wishlist status
+//       const wishlistStatuses = {};
+//       for (const product of fetchedProducts) {
+//         wishlistStatuses[product.Name] = await fetchWishlistStatus(product.Name);
+//       }
+//       setWishlistStatus(wishlistStatuses);
+//       setProducts(fetchedProducts);
+//     } catch (error) {
+//       console.error('Error fetching products:', error);
+//     }
+//   };
+
+
+
+const fetchProducts = async () => {
     try {
       const response = await axios.get('/api/viewAllProductsSeller');
-      setActivities(response.data);
+      const fetchedProducts = response.data;
+  
+      // Fetch wishlist status for each product
+      const wishlistStatuses = {};
+      for (const product of fetchedProducts) {
+        const isInWishlist = await checkWishlistStatus(product.Name);
+        wishlistStatuses[product._id] = isInWishlist;
+      }
+  
+      setWishlist(wishlistStatuses); // Update wishlist state
+      setProducts(fetchedProducts); // Set products state
     } catch (error) {
-      console.error('Error fetching activities:', error);
+      console.error('Error fetching products:', error);
     }
   };
+  
 
-  const searchActivities = async (query) => {
+  const searchProducts = async (query) => {
     try {
-      const response = await axios.post('/api/ActivitiesSearchAll', { searchString: query });
-      setActivities(response.data);
+      const response = await axios.post('/api/searchProductTourist', { ProductName: query });
+      setProducts(response.data);
     } catch (error) {
-      console.error('Error searching activities:', error);
-      setActivities([]); // Clear activities if no results or error
+      console.error('Error searching products:', error);
+      setProducts([]); // Clear activities if no results or error
     }
   };
 
@@ -377,7 +287,7 @@ const handleAddToWishlist = async (productName) => {
   
     setFilterInputs((prev) => ({
       ...prev,
-      [name]: name === "minPrice" || name === "maxPrice" || name === "Rating" // Ensure numerical values are parsed
+      [name]: name === "MinimumPrice" || name === "MaximumPrice" // Ensure numerical values are parsed
         ? parseFloat(value) || "" // Keep empty string if value is invalid
         : value,
     }));
@@ -390,19 +300,26 @@ const handleAddToWishlist = async (productName) => {
         Object.entries(filterInputs).filter(([_, value]) => value !== "" && value !== null)
       );
   
-      const response = await axios.post('/api/filterActivities', sanitizedInputs);
-      setActivities(response.data); // Update activities with the filtered results
+      // Map frontend filter inputs to backend field names
+      const backendPayload = {
+        MinimumPrice: sanitizedInputs.MinimumPrice,
+        MaximumPrice: sanitizedInputs.MaximumPrice,
+      };
+  
+      const response = await axios.post('/filterProductByPriceTourist', backendPayload);
+      setProducts(response.data); // Update products with the filtered results
       setFilterModalOpen(false); // Close the modal after applying filters
     } catch (error) {
       if (error.response && error.response.status === 404) {
-        // No activities found
-        setActivities([]); // Clear activities list
+        // No products found
+        setProducts([]); // Clear products list
         setFilterModalOpen(false); // Close the modal
       } else {
-        console.error('Error filtering activities:', error);
+        console.error('Error filtering products:', error);
       }
     }
   };
+  
 
 
   const handleSortChange = async (event) => {
@@ -412,24 +329,18 @@ const handleAddToWishlist = async (productName) => {
     try {
       let response;
       switch (selectedOption) {
-        case "priceAsc":
-          response = await axios.get("/sortActivitiesPriceAscendingTourist");
-          break;
-        case "priceDesc":
-          response = await axios.get("/sortActivitiesPriceDescendingTourist");
-          break;
         case "ratingAsc":
-          response = await axios.get("/sortActivitiesRatingAscendingTourist");
+          response = await axios.get("/api/sortProductsAscendingTourist");
           break;
         case "ratingDesc":
-          response = await axios.get("/sortActivitiesRatingDescendingTourist");
+          response = await axios.get("/api/sortProductsDescendingTourist");
           break;
         default:
           return; // Do nothing if no valid option is selected
       }
 
       if (response && response.data) {
-        setActivities(response.data); // Update the activities with the sorted data
+        setProducts(response.data); // Update the activities with the sorted data
       }
     } catch (error) {
       console.error("Error sorting activities:", error);
@@ -564,6 +475,27 @@ const handleAddToWishlist = async (productName) => {
       behavior: 'smooth'
     });
   };
+
+  //Description
+  const handleToggleDescription = (index) => {
+    setExpanded((prev) => ({
+      ...prev,
+      [index]: !prev[index],
+    }));
+  };
+
+  const handleAddToCart = async (productName) => {
+    const touristUsername = localStorage.getItem('username');
+    try {
+      const response = await axios.post('/addToCart', { touristUsername, productName });
+      alert(response.data.msg);
+    } catch (error) {
+      alert(error.response?.data?.error || 'Failed to add product to cart');
+    }
+  };
+  
+  
+  
 
 
 
@@ -1180,8 +1112,6 @@ const handleAddToWishlist = async (productName) => {
         ),
       }}
     >
-      <MenuItem value="priceAsc">Price: Low to High</MenuItem>
-      <MenuItem value="priceDesc">Price: High to Low</MenuItem>
       <MenuItem value="ratingAsc">Rating: Low to High</MenuItem>
       <MenuItem value="ratingDesc">Rating: High to Low</MenuItem>
     </TextField>
@@ -1259,56 +1189,63 @@ const handleAddToWishlist = async (productName) => {
 {/* Main Content Area with Products */}
 <Box sx={styles.activitiesContainer}>
   {products.map((product, index) => (
-    <Box key={product._id} sx={{ marginBottom: '20px' }}>
+    <Box key={index} sx={{ marginBottom: '40px' }}>
       <Box
         sx={{
           ...styles.activityCard,
-          backgroundColor: 'white',
-          position: 'relative', // Ensure absolute positioning for icons
+          backgroundColor: 'white', // No flagged logic for products
         }}
       >
-        {/* Icons on the Top Right */}
-        <Box
-          sx={{
-            position: 'absolute',
-            top: '20px',
-            right: '60px',
-            display: 'flex',
-            gap: '8px', // Space between icons
-            alignItems: 'center',
-          }}
-        >
-          {/* Bookmark Icon */}
-          <Tooltip title={wishlist[product._id] ? "Remove from Wishlist" : "Add to Wishlist"} arrow>
-  <IconButton onClick={() => handleToggleWishlist(product.Name, product._id)}>
-    {wishlist[product._id] ? (
-      <BookmarkIcon
-        sx={{
-          color: "#192959",
-          "&:hover": { color: "#33416b" },
-        }}
-      />
-    ) : (
-      <BookmarkBorderOutlinedIcon
-        sx={{
-          color: "#192959",
-          "&:hover": { color: "#33416b" },
-        }}
-      />
-    )}
-  </IconButton>
-</Tooltip>
+         {/* Icons for Add to Cart and Add to Wishlist */}
+<Box
+  sx={{
+    position: 'absolute',
+    top: '40px', // Align to top
+    right: '55px', // Align to right
+    display: 'flex'
+  }}
+>
+  {/* Add to Cart Icon */}
+  <Tooltip title="Add to Cart" arrow>
+    <IconButton
+      onClick={() => handleAddToCart(product.Name)}
+      sx={{
+        color: '#192959', // Icon color
+        '&:hover': {
+          color: '#33416b', // Hover color
+        },
+      }}
+    >
+      <AddShoppingCartIcon />
+    </IconButton>
+  </Tooltip>
 
+  {/* Wishlist Icon */}
+  <Tooltip
+    title={
+      wishlist[product._id]
+        ? "Remove from Wishlist"
+        : "Add to Wishlist"
+    }
+    arrow
+  >
+    <IconButton
+      onClick={() => handleToggleWishlist(product.Name, product._id)}
+      sx={{
+        color: '#192959', // Icon color
+        '&:hover': { color: '#33416b' }, // Hover color
+      }}
+    >
+      {wishlist[product._id] ? (
+        <BookmarkIcon />
+      ) : (
+        <BookmarkBorderOutlinedIcon />
+      )}
+    </IconButton>
+  </Tooltip>
+</Box>
 
-            {/* Shopping Cart Icon */}
-            <Tooltip title="Add To Shopping Cart" arrow>
-              <IconButton onClick={() => handleAddToCart(product.Name)}>
-                <AddShoppingCartIcon sx={{ color: "#192959", "&:hover": { color: "#33416b" } }} />
-              </IconButton>
-            </Tooltip>
-        </Box>
-
-        {/* Product Details */}
+        {/* Product Info */}
         <Box sx={styles.activityInfo}>
           {/* Product Name */}
           <Typography
@@ -1317,63 +1254,99 @@ const handleAddToWishlist = async (productName) => {
               fontWeight: 'bold',
               fontSize: '24px',
               marginBottom: '5px',
-              display: 'flex',
-              alignItems: 'center',
+              textAlign: 'left', // Align to the left
             }}
           >
             {product.Name}
           </Typography>
 
-          {/* Product Description */}
-          <Typography
-            variant="body2"
-            sx={{
-              display: 'flex',
-              fontSize: '18px',
-              alignItems: 'center',
-              marginBottom: '5px',
-            }}
-          >
-            {product.Description || 'No description available'}
-          </Typography>
-
           {/* Product Seller */}
-          <Typography
-            variant="body2"
-            sx={{
-              display: 'flex',
-              fontSize: '18px',
-              alignItems: 'center',
-              marginBottom: '5px',
-            }}
-          >
+          <Typography variant="body2" sx={{ display: 'flex', fontSize: '18px', alignItems: 'center' }}>
             <PersonIcon fontSize="small" sx={{ mr: 1 }} />
-            {product.Seller || 'Unknown Seller'}
+            {product.Seller || 'N/A'}
           </Typography>
 
           {/* Product Price */}
-          <Typography
-            variant="body2"
-            sx={{
-              display: 'flex',
-              fontSize: '18px',
-              alignItems: 'center',
-              marginBottom: '5px',
-            }}
-          >
+          <Typography variant="body2" sx={{ display: 'flex', fontSize: '18px', alignItems: 'center' }}>
             <PaymentIcon fontSize="small" sx={{ mr: 1 }} />
-            {`Price: ${product.Price} EGP`}
+            {currency === 'EGP'
+                  ? `${product.Price} EGP`
+                  : `${convertedPrices[product._id] || 'Loading...'} ${currency}`}
           </Typography>
+
+          {/* Right Side: Description */}
+          <Box sx={{ flex: 1, paddingLeft: '2px', textAlign: 'left', display: 'flex', alignItems: 'center', gap: '10px' }}>
+  {/* Description Label */}
+  <Typography 
+    variant="body2" 
+    sx={{ fontSize: '18px', fontWeight: 'bold' }}
+  >
+    Description:
+  </Typography>
+
+  {/* Description Content */}
+  <Typography
+    variant="body2"
+    sx={{
+      fontSize: '18px',
+      wordWrap: 'break-word', // Break long words
+      whiteSpace: 'normal',  // Wrap text normally
+      maxWidth: '550px',     // Ensure width consistency
+    }}
+  >
+    {expanded[index] || (product.Description && product.Description.length <= 25) ? (
+      <span>
+        {product.Description || 'No description available'}
+        {product.Description && product.Description.length > 25 && (
+          <span
+            style={{
+              color: '#8088a3',
+              marginLeft: '5px',
+              fontWeight: 'bold',
+              cursor: 'pointer',
+            }}
+            onClick={() => handleToggleDescription(index)}
+          >
+            {" "}Read Less
+          </span>
+        )}
+      </span>
+    ) : (
+      <span>
+        {(product.Description || 'No description available').substring(0, 25)}...
+        <span
+          style={{
+            color: '#8088a3',
+            marginLeft: '5px',
+            fontWeight: 'bold',
+            cursor: 'pointer',
+          }}
+          onClick={() => handleToggleDescription(index)}
+        >
+          {" "}Read More
+        </span>
+      </span>
+    )}
+  </Typography>
+</Box>
+
         </Box>
 
-        {/* Ratings */}
-        <Box sx={styles.activityRating}>
-          {renderRating(product.Ratings)}
-        </Box>
+        {/* Product Ratings */}
+        <Box sx={styles.activityRating}>{renderRating(product.Ratings)}</Box>
       </Box>
 
       {/* Reviews Section */}
-      <Box sx={styles.commentsSection}>
+      <Box
+        sx={{
+          ...styles.commentsSection,
+          marginTop: '20px', // Adds space above reviews
+          //padding: '15px', // Optional padding for better visuals
+          //backgroundColor: '#f9f9f9', // Slight background color to separate reviews
+          borderRadius: '10px', // Rounded corners for reviews container
+          //boxShadow: '0px 2px 6px rgba(0, 0, 0, 0.1)', // Optional shadow
+        }}
+      >
         {product.Reviews && product.Reviews.length > 0 ? (
           <>
             {/* Scroll Left Button */}
@@ -1421,7 +1394,9 @@ const handleAddToWishlist = async (productName) => {
       </Box>
     </Box>
   ))}
-</Box>;
+</Box>
+
+
 
       <Box sx={styles.activitiesContainer}>
   {products.length > 0 ? (
@@ -1432,7 +1407,7 @@ const handleAddToWishlist = async (productName) => {
     ))
   ) : (
     <Typography variant="h6" sx={{ textAlign: 'center', color: '#192959', marginTop: '20px' }}>
-      No Products Found.
+      No Products Found .
     </Typography>
   )}
 </Box>
@@ -1548,49 +1523,28 @@ const handleAddToWishlist = async (productName) => {
     }}
   >
     <Typography id="filter-modal-title" variant="h6" component="h2" sx={{ marginBottom: '20px' }}>
-      Filter Activities
+      Filter Products
     </Typography>
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-      <TextField
-        label="Category"
-        name="Category"
-        variant="outlined"
-        value={filterInputs.Category || ""}
-        onChange={handleFilterInputChange}
-      />
-      <TextField
-        label="Min Price"
-        name="minPrice"
+      
+    <TextField
+        label="Minimum Price"
+        name="MinimumPrice"
         type="number"
         variant="outlined"
-        value={filterInputs.minPrice || ""}
+        value={filterInputs.MinimumPrice || ""}
         onChange={handleFilterInputChange}
-      />
-      <TextField
-        label="Max Price"
-        name="maxPrice"
+        />
+        <TextField
+        label="Maximum Price"
+        name="MaximumPrice"
         type="number"
         variant="outlined"
-        value={filterInputs.maxPrice || ""}
+        value={filterInputs.MaximumPrice || ""}
         onChange={handleFilterInputChange}
-      />
-      <TextField
-        label="Date"
-        name="InputDate"
-        type="date"
-        variant="outlined"
-        InputLabelProps={{ shrink: true }}
-        value={filterInputs.InputDate || ""}
-        onChange={handleFilterInputChange}
-      />
-      <TextField
-        label="Rating"
-        name="Rating"
-        type="number"
-        variant="outlined"
-        value={filterInputs.Rating || ""}
-        onChange={handleFilterInputChange}
-      />
+        />
+
+     
     </Box>
     <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '20px' }}>
     <Button
@@ -1771,7 +1725,7 @@ const styles = {
   },
   activityRating: {
     position: 'absolute',
-    bottom: '60px',
+    bottom: '45px',
     right: '60px',
     display: 'flex',
     flexDirection: 'column',
