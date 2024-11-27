@@ -8,8 +8,8 @@ const { default: mongoose } = require('mongoose');
 
 const readSellerProfile = async (req, res) => {
   try {
-    const { Username } = req.query;
-    const Seller = await AcceptedSellerModel.findOne({ Username: Username });
+    const { username } = req.query;
+    const Seller = await AcceptedSellerModel.findOne({ Username: username });
     if (Seller) {
       res.status(200).json(Seller);
     } else {

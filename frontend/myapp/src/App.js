@@ -94,7 +94,7 @@ import YAdminItinerariesPage from './files/Admin/YAdminItinerariesPage';
 import YAdvertiserDashboard from './files/Advertiser/YAdvertiserDashboard';
 import YAdvertiserActivitiesPage from './files/Advertiser/YAdvertiserActivitiesPage';
 import YAdvertiserSalesPage from './files/Advertiser/YAdvertiserSalesPage';
-
+import YTourGuideDashboard from './files/TourGuide/YTourGuideDashboard';
 
 import YAdminProductsPage from './files/Admin/YAdminProductsPage';
 import AddProductModal from './files/Admin/AddProductModal';
@@ -242,7 +242,7 @@ function App() {
           <Route path="/YSellerSalesPage" element={<YSellerSalesPage />} />
           <Route path="/AddProductModalSeller" element={<AddProductModalSeller />} />
           <Route path="/YSellerAllProductsPage" element={<YSellerAllProductsPage />} />
-
+          <Route path="/YTourGuideDashboard" element={<YTourGuideDashboard />} />
         </Routes>
       </BrowserRouter>
     </div>
