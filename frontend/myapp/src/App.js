@@ -84,7 +84,7 @@ import TouristCompletedActivities from './files/NewTourist/TouristCompletedActiv
 import TouristCompletedHPs from './files/NewTourist/TouristCompletedHPs';
 import TouristCompletedMuseums from './files/NewTourist/TouristCompletedMuseums';
 import TouristAllProducts from './files/NewTourist/TouristAllProducts';
-
+import TouristPurchasedProducts from './files/NewTourist/TouristPurchasedProducts';
 
 //YASSIN AND AMINA DASHBOARD
 import YAdminDashboard from './files/Admin/YAdminDashboard';
@@ -149,9 +149,9 @@ function App() {
           <Route path="/TouristCompletedHPs" element={<TouristCompletedHPs/>}/>
           <Route path="/TouristCompletedMuseums" element={<TouristCompletedMuseums/>}/>
           <Route path="/TouristAllProducts" element={<TouristAllProducts/>}/>
+          <Route path="/TouristPurchasedProducts" element={<TouristPurchasedProducts/>}/>
+
           
-
-
 
 
           <Route path="/HomePageAdmin" element={<HomePageAdmin/>}/>
