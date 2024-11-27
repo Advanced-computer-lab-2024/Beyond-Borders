@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Button, Typography, IconButton,Tooltip, TextField, InputAdornment, Modal,MenuItem,Select,FormControl,InputLabel,Divider} from '@mui/material';
+import { Box, Button, Typography, IconButton,Dialog ,DialogContent ,DialogContentText, DialogActions,Tooltip, TextField, InputAdornment, Modal,MenuItem,Select,FormControl,InputLabel,Divider} from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import MenuIcon from '@mui/icons-material/Menu';
 import NotificationsIcon from '@mui/icons-material/Notifications';
@@ -45,6 +45,8 @@ import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import IosShareIcon from '@mui/icons-material/IosShare';
 import ShareIcon from '@mui/icons-material/Share';
 import LanguageIcon from '@mui/icons-material/Language';
+import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined';
+
 import axios from 'axios';
 
 function TouristBookedMuseum() {
@@ -86,7 +88,8 @@ const [currentMuseumName, setCurrentMuseumName] = useState(''); // Trac
 const [convertedPrices, setConvertedPrices] = useState({});
 const [currency, setCurrency] = useState('EGP'); // Default currency is EGP
 const [expanded, setExpanded] = useState({});
-
+const [openDialog, setOpenDialog] = useState(false);
+const [selectedActivity, setSelectedActivity] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -161,11 +164,20 @@ const [expanded, setExpanded] = useState({});
   
 
   const fetchMuseums = async () => {
+    const username = localStorage.getItem('username'); // Retrieve logged-in user's username
+  
+    if (!username) {
+      console.error('User not logged in.');
+      return;
+    }
+  
     try {
-      const response = await axios.get('/api/ViewAllUpcomingMuseumEventsTourist');
-      setMuseums(response.data);
+      const response = await axios.get('/api/viewMyBookedMuseums', {
+        params: { Username: username }, // Send the username as a query parameter
+      });
+      setMuseums(response.data); // Set state with the booked historical places
     } catch (error) {
-      console.error('Error fetching museums:', error);
+      console.error('Error fetching booked historical places:', error);
     }
   };
 
@@ -271,6 +283,31 @@ const [expanded, setExpanded] = useState({});
     }
   };
   
+  const handleCancelBooking = async (museumName) => {
+    const username = localStorage.getItem('username'); // Retrieve logged-in user's username
+  
+    if (!username) {
+      alert('User not logged in.');
+      return;
+    }
+  
+    try {
+      // Call the backend API to delete the booked museum
+      const response = await axios.put('/deleteBookedMuseum', {
+        touristUsername: username,
+        museumName, // Pass the museum name as the identifier
+      });
+  
+      // Notify the user of successful cancellation
+      alert(response.data.msg);
+  
+      // Update the state to remove the canceled event
+      setMuseums((prevMuseums) => prevMuseums.filter((museum) => museum.name !== museumName));
+    } catch (error) {
+      console.error('Error canceling museum event:', error);
+      alert(error.response?.data?.msg || 'Failed to cancel the event.');
+    }
+  };
   
   const handleSendEmail = async (museumName) => {
     if (!email || !sharedLink) {
@@ -302,7 +339,23 @@ const [expanded, setExpanded] = useState({});
     });
   };
   
-
+  const handleOpenDialog = (activityName) => {
+    setSelectedActivity(activityName); // Set the selected activity
+    setOpenDialog(true);              // Open the dialog
+  };
+  
+  const handleCloseDialog = () => {
+    setOpenDialog(false);             // Close the dialog
+    setSelectedActivity(null);        // Reset selected activity
+  };
+  
+  const handleConfirmDeletion = async () => {
+    if (selectedActivity) {
+      await handleCancelBooking(selectedActivity); // Call your existing cancel booking function
+    }
+    setOpenDialog(false); // Close the dialog
+    setSelectedActivity(null); // Reset selected activity
+  };
   
   
 
@@ -887,43 +940,10 @@ const [expanded, setExpanded] = useState({});
   }}
 >
   {/* Search Bar */}
-  <TextField
-    label="Search"
-    variant="outlined"
-    value={searchQuery}
-    onChange={handleSearchChange}
-    sx={{
-      width: '30%',
-      '& .MuiOutlinedInput-root': {
-        '& fieldset': {
-          borderColor: '#192959', // Default outline color
-          borderWidth: '2px',
-        },
-        '&:hover fieldset': {
-          borderColor: '#192959', // Hover outline color
-          borderWidth: '2.5px',
-        },
-        '&.Mui-focused fieldset': {
-          borderColor: '#192959', // Focused outline color
-          borderWidth: '2.5px',
-        },
-      },
-      '& .MuiInputLabel-root': {
-        color: '#192959', // Label color
-        fontSize: '18px',
-      },
-    }}
-    InputProps={{
-      startAdornment: (
-        <Box sx={{ display: 'flex', alignItems: 'center', color: '#192959', paddingLeft: '5px' }}>
-          <SearchIcon />
-        </Box>
-      ),
-    }}
-  />
+  
 
   {/* Sort Dropdown and Filter Icon */}
-  <Box sx={{ display: 'flex', alignItems: 'right', gap: '10px', marginLeft: '100px'}}>
+  <Box sx={{ display: 'flex', alignItems: 'right', gap: '10px', marginLeft: '1575px',marginRight: '10px'}}>
     <TextField
   select
   label="Currency"
@@ -975,17 +995,7 @@ const [expanded, setExpanded] = useState({});
 
 
     {/* Filter Icon */}
-    <Tooltip title="Filter" placement="bottom" arrow>
-      <IconButton
-        onClick={() => setFilterModalOpen(true)}
-        sx={{
-          color: '#192959',
-          '&:hover': { backgroundColor: '#e6e7ed', color: '#33416b' },
-        }}
-      >
-        <FilterAltIcon fontSize="large" />
-      </IconButton>
-    </Tooltip>
+   
   </Box>
 </Box>
 
@@ -1154,37 +1164,23 @@ const [expanded, setExpanded] = useState({});
 
         {/* Book Button */}
         <Button
-          variant="contained"
-          onClick={() => handleBookMuseum(museum.name)}
-          sx={{
-            position: 'absolute',
-            top: '60px', // Position at the top
-            right: '60px', // Position at the right
-            backgroundColor: '#192959',
-            color: '#fff',
-            '&:hover': { backgroundColor: '#33416b' },
-          }}
-        >
-          Book
-        </Button>
+            variant="contained"
+            onClick={() => handleOpenDialog(museum.name)}
+            startIcon={<CancelOutlinedIcon />} // Add the cancel icon before the text
+            sx={{
+                position: 'absolute',
+                top: '50px', // Position at the top
+                right: '60px', // Position at the right
+                backgroundColor: '#192959', // Blue color for booking action
+                color: '#fff',
+                '&:hover': { backgroundColor: '#d32f2f' }, // Slightly lighter red on hover
+            }}
+            >
+            Cancel Booking
+            </Button>
 
         {/* Share Button */}
-        <Tooltip title="Share" arrow>
-          <IconButton
-            onClick={() => handleOpenShareModal(museum.name)}
-            sx={{
-              position: 'absolute',
-              top: '60px',
-              right: '140px',
-              color: '#192959',
-              '&:hover': {
-                color: '#33416b',
-              },
-            }}
-          >
-            <IosShareIcon />
-          </IconButton>
-        </Tooltip>
+        
       </Box>
 
       {/* Comments Section */}
@@ -1401,6 +1397,30 @@ const [expanded, setExpanded] = useState({});
   </Box>
 </Modal>
 
+<Dialog open={openDialog} onClose={handleCloseDialog}>
+  <DialogContent>
+    <DialogContentText sx={{ fontWeight: 'bold', color: '#192959', fontSize: '20px' }}>
+      Do you want to confirm Event deletion?
+    </DialogContentText>
+    <DialogContentText sx={{ fontWeight: 'bold', color: '#33416b', marginTop: '10px' }}>
+      This action is non-reversible and the event booking will be canceled.
+    </DialogContentText>
+  </DialogContent>
+  <DialogActions>
+    <Button
+      onClick={handleCloseDialog}
+      sx={{ color: '#192959', '&:hover': { backgroundColor: '#192959', color: '#e6e7ed' } }}
+    >
+      Cancel
+    </Button>
+    <Button
+      onClick={handleConfirmDeletion}
+      sx={{ color: '#192959', '&:hover': { backgroundColor: '#192959', color: '#e6e7ed' } }}
+    >
+      Confirm
+    </Button>
+  </DialogActions>
+</Dialog>
 
 
       {/* Back to Top Button */}
