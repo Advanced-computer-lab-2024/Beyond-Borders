@@ -18,6 +18,8 @@ import EditIcon from '@mui/icons-material/Edit';
 import SaveIcon from '@mui/icons-material/Save';
 import PersonIcon from '@mui/icons-material/Person'; // Icon for generic user type
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
+import PriorityHighIcon from '@mui/icons-material/PriorityHigh'; // Icon for generic user type
+
 
 import axios from 'axios';
 
@@ -54,6 +56,10 @@ function YAdvertiserDashboard() {
   const [requestToDelete, setRequestToDelete] = useState(null); // For confirmation dialog
 
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+
+  const [notifications, setNotifications] = useState([]);
+  const [isNotificationsSidebarOpen, setNotificationsSidebarOpen] = useState(false);
+
 
 
   //MY PROFILE
@@ -145,6 +151,69 @@ function YAdvertiserDashboard() {
       alert('An error occurred while loading the profile.');
     }
   };
+
+  const fetchNotifications = async () => {
+    const username = localStorage.getItem('username');
+    if (!username) return;
+  
+    try {
+      const response = await axios.get(`/api/getAdvertiserNotifications`, {
+        params: { username },
+      });
+      setNotifications(response.data.notifications); // Assuming backend sends an array of notifications
+    } catch (error) {
+      console.error('Error fetching notifications:', error);
+    }
+  };
+
+  const toggleNotificationsSidebar = () => {
+    setNotificationsSidebarOpen((prev) => !prev);
+    if (!isNotificationsSidebarOpen) fetchNotifications(); // Fetch notifications only when opening
+  };
+  
+  // const markAllAsRead = async () => {
+  //   const username = localStorage.getItem('username'); // Get the username from localStorage
+  //   if (!username) {
+  //     alert('You need to log in first.');
+  //     return;
+  //   }
+  
+  //   try {
+  //     const response = await axios.put('/api/allNotificationsRead', {
+  //       params: { username },
+  //     });
+  //     // if (response.status === 200) {
+  //     //   alert('All notifications marked as read.');
+  //     // } else {
+  //     //   alert('Failed to mark notifications as read.');
+  //     // }
+  //   } catch (error) {
+  //     console.error('Error marking notifications as read:', error);
+  //     alert('An error occurred while marking notifications as read.');
+  //   }
+  // };
+
+  const markAllAsRead = async () => {
+    const username = localStorage.getItem('username'); // Get the username from localStorage
+    if (!username) {
+      alert('You need to log in first.');
+      return;
+    }
+  
+    try {
+      const response = await axios.put('/api/allNotificationsRead', { username });
+      if (response.status === 200) {
+        alert('All notifications marked as read.');
+      } else {
+        alert('Failed to mark notifications as read.');
+      }
+    } catch (error) {
+      console.error('Error marking notifications as read:', error);
+      alert('An error occurred while marking notifications as read.');
+    }
+  };
+  
+  
 
   // Fetch profile data
   // const readMyProfile = async () => {
@@ -440,6 +509,93 @@ const handleAccountDeletion = async () => {
     <Box sx={styles.container}>
       {sidebarOpen && <Box sx={styles.overlay} onClick={() => setSidebarOpen(false)} />}
 
+      {isNotificationsSidebarOpen && (
+  <>
+    <Box
+      sx={{
+        position: 'fixed',
+        top: '60px',
+        right: 0,
+        width: '350px',
+        height: 'calc(100% - 60px)',
+        backgroundColor: '#cccfda',
+        boxShadow: '-2px 0 8px rgba(0, 0, 0, 0.2)',
+        zIndex: 10,
+        padding: '20px',
+      }}
+    >
+      <Box
+        sx={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          marginBottom: '10px',
+        }}
+      >
+        <Typography variant="h6" textAlign="left" sx={{ color: '#192959' }}>
+          Notifications
+        </Typography>
+        <Button
+          variant="outlined"
+          size="small"
+          sx={{
+            color: '#192959',
+            borderColor: '#192959',
+            '&:hover': {
+              backgroundColor: '#192959',
+              color: '#ffffff',
+            },
+          }}
+          onClick={async () => {
+            await markAllAsRead();
+            fetchNotifications(); // Refresh notifications after marking all as read
+          }}
+        >
+          Mark all as read
+        </Button>
+      </Box>
+      {notifications.length > 0 ? (
+        notifications.map((notification, index) => (
+          <Box
+            key={index}
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              padding: '10px',
+              marginBottom: '10px',
+              backgroundColor: notification.Read ? '#f0f0f0' : '#fff0f0',
+              borderRadius: '5px',
+              boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+            }}
+          >
+            <Typography variant="body1" textAlign="left" sx={{ color: '#192959' }}>
+              {notification.NotificationText}
+            </Typography>
+            {!notification.Read && <PriorityHighIcon sx={{ color: 'red' }} />}
+          </Box>
+        ))
+      ) : (
+        <Typography>No notifications</Typography>
+      )}
+    </Box>
+    <Box
+      sx={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        width: '100%',
+        height: '100%',
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        zIndex: 5,
+      }}
+      onClick={toggleNotificationsSidebar}
+    />
+  </>
+)}
+
+
+
       {/* Top Menu Bar */}
       <Box sx={styles.topMenu}>
         <Box sx={styles.menuIconContainer}>
@@ -504,7 +660,7 @@ const handleAccountDeletion = async () => {
               </Box>
             )}
           </Box> */}
-          <IconButton sx={styles.iconButton}>
+          <IconButton onClick={toggleNotificationsSidebar} sx={styles.iconButton}>
             <NotificationsIcon />
           </IconButton>
           <IconButton onClick={() => navigate('/')}sx={styles.iconButton}>
