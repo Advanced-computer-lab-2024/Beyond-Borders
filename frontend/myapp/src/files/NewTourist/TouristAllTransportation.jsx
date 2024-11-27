@@ -85,6 +85,7 @@ const [sharedLink, setSharedLink] = useState(''); // Shared link state
 const [currentActivityName, setCurrentActivityName] = useState(''); // Trac
 const [convertedPrices, setConvertedPrices] = useState({});
 const [currency, setCurrency] = useState('EGP'); // Default currency is EGP
+const [transportation, setTransportation] = useState([]);
 
   const navigate = useNavigate();
 
@@ -93,7 +94,7 @@ const [currency, setCurrency] = useState('EGP'); // Default currency is EGP
     const fetchOrSearchActivities = async () => {
       if (!searchQuery) {
         // Fetch all activities when there's no search query
-        await fetchActivities();
+        await fetchTransportation();
       } else {
         // Perform search when there's a query
         await searchActivities(searchQuery);
@@ -129,21 +130,22 @@ const [currency, setCurrency] = useState('EGP'); // Default currency is EGP
   const convertActivityPrices = async () => {
     const newConvertedPrices = {};
     await Promise.all(
-      activities.map(async (activity) => {
+      transportation.map(async (transport) => {
         try {
           const response = await axios.post('/convertCurr', {
-            priceEgp: activity.Price,
+            priceEgp: transport.price, // Assuming 'price' is the price field in transportation
             targetCurrency: currency,
           });
-          // Use a unique key for each activity
-          newConvertedPrices[activity._id] = response.data.convertedPrice;
+          // Use a unique key for each transportation entry
+          newConvertedPrices[transport._id] = response.data.convertedPrice;
         } catch (error) {
-          console.error(`Error converting price for activity ${activity.Name}:`, error);
+          console.error(`Error converting price for transportation ${transport.serviceName}:`, error);
         }
       })
     );
     setConvertedPrices(newConvertedPrices);
   };
+  
   
   
   
@@ -156,6 +158,19 @@ const [currency, setCurrency] = useState('EGP'); // Default currency is EGP
       console.error('Error fetching activities:', error);
     }
   };
+
+  const fetchTransportation = async () => {
+    try {
+      // Call the backend API to fetch all transportation options
+      const response = await axios.get('/api/viewAllTransportation');
+      
+      // Update the state with the fetched transportation options
+      setTransportation(response.data); // Assuming `setTransportation` is used to manage the transportation state
+    } catch (error) {
+      console.error('Error fetching transportation options:', error);
+    }
+  };
+  
 
   const searchActivities = async (query) => {
     try {
@@ -374,7 +389,38 @@ const [currency, setCurrency] = useState('EGP'); // Default currency is EGP
     });
   };
 
-
+  const handleBookTransportation = async (TranspName) => {
+    const username = localStorage.getItem('username'); // Retrieve logged-in user's username
+  
+    if (!username) {
+      alert('User not logged in.');
+      return;
+    }
+  
+    try {
+      // Call the backend API to book the transportation
+      const response = await axios.put('bookTransportation', {
+        touristUsername: username,
+        TranspName,
+      });
+  
+      // Notify the user of successful booking
+      alert(response.data.msg);
+  
+      // Optionally, update the transportation state to reflect the booking
+      setTransportation((prevTransportations) =>
+        prevTransportations.map((transp) =>
+          transp.serviceName === TranspName
+            ? { ...transp, capacity: transp.capacity - 1, available: transp.capacity - 1 > 0 }
+            : transp
+        )
+      );
+    } catch (error) {
+      console.error('Error booking transportation:', error);
+      alert(error.response?.data?.msg || 'Failed to book transportation.');
+    }
+  };
+  
 
  
   
@@ -906,95 +952,11 @@ const [currency, setCurrency] = useState('EGP'); // Default currency is EGP
   }}
 >
   {/* Search Bar */}
-  <TextField
-    label="Search"
-    variant="outlined"
-    value={searchQuery}
-    onChange={handleSearchChange}
-    sx={{
-      width: '30%',
-      '& .MuiOutlinedInput-root': {
-        '& fieldset': {
-          borderColor: '#192959', // Default outline color
-          borderWidth: '2px',
-        },
-        '&:hover fieldset': {
-          borderColor: '#192959', // Hover outline color
-          borderWidth: '2.5px',
-        },
-        '&.Mui-focused fieldset': {
-          borderColor: '#192959', // Focused outline color
-          borderWidth: '2.5px',
-        },
-      },
-      '& .MuiInputLabel-root': {
-        color: '#192959', // Label color
-        fontSize: '18px',
-      },
-    }}
-    InputProps={{
-      startAdornment: (
-        <Box sx={{ display: 'flex', alignItems: 'center', color: '#192959', paddingLeft: '5px' }}>
-          <SearchIcon />
-        </Box>
-      ),
-    }}
-  />
+ 
 
   {/* Sort Dropdown and Filter Icon */}
-  <Box sx={{ display: 'flex', alignItems: 'right', gap: '10px', marginLeft: '100px'}}>
-    <TextField
-      select
-      label={
-        <Box sx={{ display: 'flex', alignItems: 'right', gap: '8px' }}>
-          Sort By
-        </Box>
-      }
-      variant="outlined"
-      value={sortOption}
-      onChange={handleSortChange}
-      sx={{
-        width: '80%',
-        '& .MuiOutlinedInput-root': {
-          '& fieldset': {
-            borderColor: '#192959', // Default border color
-            borderWidth: '2px',
-          },
-          '&:hover fieldset': {
-            borderColor: '#33416b', // Hover border color
-            borderWidth: '2.5px',
-          },
-          '&.Mui-focused fieldset': {
-            borderColor: '#192959', // Focused border color
-            borderWidth: '2.5px',
-          },
-        },
-        '& .MuiInputLabel-root': {
-          color: '#192959', // Label color
-          fontSize: '18px',
-        },
-      }}
-      InputProps={{
-        startAdornment: (
-          <Box
-            sx={{
-              display: 'flex',
-              alignItems: 'center',
-              color: '#192959',
-              paddingLeft: '5px',
-            }}
-          >
-            <SwapVertIcon />
-          </Box>
-        ),
-      }}
-    >
-      <MenuItem value="priceAsc">Price: Low to High</MenuItem>
-      <MenuItem value="priceDesc">Price: High to Low</MenuItem>
-      <MenuItem value="ratingAsc">Rating: Low to High</MenuItem>
-      <MenuItem value="ratingDesc">Rating: High to Low</MenuItem>
-    </TextField>
-
+  <Box sx={{ display: 'flex', alignItems: 'right', gap: '10px', marginLeft: '1560px',marginRight: '10px'}}>
+    
     <TextField
   select
   label="Currency"
@@ -1002,7 +964,7 @@ const [currency, setCurrency] = useState('EGP'); // Default currency is EGP
   onChange={(e) => setCurrency(e.target.value)}
   variant="outlined"
   sx={{
-    width: '210px',
+    width: '120px',
     '& .MuiOutlinedInput-root': {
       '& fieldset': {
         borderColor: '#192959', // Default border color
@@ -1046,17 +1008,7 @@ const [currency, setCurrency] = useState('EGP'); // Default currency is EGP
 
 
     {/* Filter Icon */}
-    <Tooltip title="Filter" placement="bottom" arrow>
-      <IconButton
-        onClick={() => setFilterModalOpen(true)}
-        sx={{
-          color: '#192959',
-          '&:hover': { backgroundColor: '#e6e7ed', color: '#33416b' },
-        }}
-      >
-        <FilterAltIcon fontSize="large" />
-      </IconButton>
-    </Tooltip>
+    
   </Box>
 </Box>
 
@@ -1064,160 +1016,95 @@ const [currency, setCurrency] = useState('EGP'); // Default currency is EGP
 
 
 
-      
-      {/* Main Content Area with Activities */}
-      <Box sx={styles.activitiesContainer}>
-        {activities.map((activity, index) => (
-          <Box key={index} sx={{ marginBottom: '20px' }}>
-            <Box
-              sx={{
-                ...styles.activityCard,
-                backgroundColor: activity.flagged ? '#cccfda' : 'white',
-              }}
-            >
-              <Box sx={styles.activityInfo}>
-                <Typography variant="h6" sx={{ fontWeight: 'bold',fontSize: '24px', marginBottom: '5px', display: 'flex', alignItems: 'center' }}>{activity.Name}</Typography>
-                <Typography variant="body2" sx={{ display: 'flex', fontSize: '18px', alignItems: 'center' }}>
-                  <LocationOnIcon fontSize="small" sx={{ mr: 1 }} />
-                  {activity.Location?.address || 'N/A'}
-                </Typography>
-                <Typography variant="body2" sx={{ display: 'flex', fontSize: '18px', alignItems: 'center' }}>
-                  <PersonIcon fontSize="small" sx={{ mr: 1 }} />
-                  {activity.AdvertiserName}
-                </Typography>
-                <Typography variant="body2" sx={{ display: 'flex', fontSize: '18px', alignItems: 'center' }}>
-                <PaymentIcon fontSize="small" sx={{ mr: 1 }} />
-                {currency === 'EGP'
-                  ? `${activity.Price} EGP`
-                  : `${convertedPrices[activity._id] || 'Loading...'} ${currency}`}
-              </Typography>
+     {/* Main Content Area with Transportation */}
+<Box sx={styles.activitiesContainer}>
+  {transportation.map((transportation, index) => (
+    <Box key={index} sx={{ marginBottom: '20px' }}>
+      <Box
+        sx={{
+          ...styles.activityCard,
+          backgroundColor:  'white',
+        }}
+      >
+        <Box sx={styles.activityInfo}>
+          <Typography variant="h6" sx={{ fontWeight: 'bold', fontSize: '24px', marginBottom: '5px', display: 'flex', alignItems: 'center' }}>
+            {transportation.serviceName}
+          </Typography>
+          <Typography variant="body2" sx={{ display: 'flex', fontSize: '18px', alignItems: 'center' }}>
+            <LocationOnIcon fontSize="small" sx={{ mr: 1 }} />
+            {transportation.routeDetails.startLocation} to {transportation.routeDetails.endLocation}
+          </Typography>
+          <Typography variant="body2" sx={{ display: 'flex', fontSize: '18px', alignItems: 'center' }}>
+            <PersonIcon fontSize="small" sx={{ mr: 1 }} />
+            {transportation.advertiserName}
+          </Typography>
+          <Typography variant="body2" sx={{ display: 'flex', fontSize: '18px', alignItems: 'center' }}>
+            <PaymentIcon fontSize="small" sx={{ mr: 1 }} />
+            {currency === 'EGP'
+              ? `${transportation.price} EGP`
+              : `${convertedPrices[transportation._id] || 'Loading...'} ${currency}`}
+          </Typography>
+          <Typography variant="body2" sx={{ display: 'flex', fontSize: '18px', alignItems: 'center' }}>
+            <CalendarTodayIcon fontSize="small" sx={{ mr: 1 }} />
+            {transportation.schedule.map((s, i) => (
+              <span key={i}>
+                {s.day}: {s.departureTime} - {s.arrivalTime}
+                {i < transportation.schedule.length - 1 ? ', ' : ''}
+              </span>
+            ))}
+          </Typography>
+          <Typography variant="body2" sx={{ display: 'flex', fontSize: '18px', alignItems: 'center' }}>
+            <Box component="span" sx={{ fontWeight: 'bold' }}>
+                Capacity Available:
+            </Box> {" "}
+            {transportation.capacity}
+            </Typography>
+          <Box sx={styles.quickFacts}>
+            <Box sx={{ ...styles.infoContainer, backgroundColor: transportation.available ? '#f3f4f6' : '#b3b8c8' }}>
+              <Typography variant="body2" sx={{ fontWeight: 'bold' }}>Type:</Typography>
+              <Typography variant="body2">{transportation.serviceType}</Typography>
+            </Box>
+          </Box>
+        </Box>
+       
+        <Box sx={styles.discountContainer}>
+          <Box sx={{ ...styles.infoContainer, backgroundColor: transportation.available ? '#f3f4f6' : '#b3b8c8' }}>
+            <Typography variant="body2" sx={{ fontWeight: 'bold' }}>Available:</Typography>
+            <Typography variant="body2">{transportation.available ? 'Yes' : 'No'}</Typography>
+          </Box>
+        </Box>
 
-                <Typography variant="body2" sx={{ display: 'flex', fontSize: '18px', alignItems: 'center' }}>
-                  <CalendarTodayIcon fontSize="small" sx={{ mr: 1 }} />
-                  {new Date(activity.Date).toLocaleDateString()}
-                </Typography>
-                <Typography variant="body2" sx={{ display: 'flex', fontSize: '18px', alignItems: 'center' }}>
-                  <AccessTimeIcon fontSize="small" sx={{ mr: 1 }} />
-                  {activity.Time}
-                </Typography>
-                <Box sx={styles.quickFacts}>
-                  <Box sx={{ ...styles.infoContainer, backgroundColor: activity.flagged ? '#b3b8c8' : '#f3f4f6' }}>
-                    <Typography variant="body2" sx={{ fontWeight: 'bold' }}>Category:</Typography>
-                    <Typography variant="body2">{activity.Category}</Typography>
-                  </Box>
-                  <Box sx={{ ...styles.infoContainer, backgroundColor: activity.flagged ? '#b3b8c8' : '#f3f4f6' }}>
-                    <Typography variant="body2" sx={{ fontWeight: 'bold' }}>Tags:</Typography>
-                    <Typography variant="body2">{activity.Tags.join(', ')}</Typography>
-                  </Box>
-                </Box>
-              </Box>
-              <Box sx={styles.activityRating}>
-                {renderRating(activity.Rating)}
-              </Box>
-              <Box sx={styles.discountContainer}>
-                <Box sx={{...styles.infoContainer, backgroundColor: activity.flagged ? '#b3b8c8' : '#f3f4f6'}}>
-                  <Typography variant="body2" sx={{ fontWeight: 'bold' }}>Special Discount:</Typography>
-                  <Typography variant="body2">{activity.SpecialDiscount}</Typography>
-                </Box>
-              </Box>
-              <Box sx={styles.bookingOpenContainer}>
-                <Box sx={{...styles.infoContainer, backgroundColor: activity.flagged ? '#b3b8c8' : '#f3f4f6'}}>
-                  <Typography variant="body2" sx={{ fontWeight: 'bold' }}>Booking Open:</Typography>
-                  <Typography variant="body2">{activity.BookingOpen ? 'Yes' : 'No'}</Typography>
-                </Box>
-              </Box>
-
-              
-
-              <Button
+        <Button
           variant="contained"
-          disabled={!activity.BookingOpen} // Disable button if booking is not open
-          onClick={() => handleBookActivity(activity.Name)}
+          disabled={!transportation.available} // Disable button if not available
+          onClick={() => handleBookTransportation(transportation.serviceName)}
           sx={{
             position: 'absolute',
             top: '60px', // Position at the top
             right: '60px', // Position at the right
-            
             backgroundColor: '#192959',
-
             color: '#fff',
             '&:hover': { backgroundColor: '#33416b' },
           }}
         >
           Book
         </Button>
-        <Tooltip title="Share" arrow>
-
-        <IconButton
-    onClick={() => handleOpenShareModal(activity.Name)} // Pass activity name
-    sx={{
-      position: 'absolute',
-      top: '60px',
-      right: '140px',
-      color: '#192959', // Icon color
-      '&:hover': {
-        color: '#33416b', // Hover color for the icon
-      },
-    }}
-  >
-    <IosShareIcon />
-  </IconButton>
-  
-</Tooltip>
-
-
-
-            </Box>
-            <Box sx={styles.commentsSection}>
-  {activity.Comments && activity.Comments.length > 0 ? (
-    <>
-      {/* Show the scroll left button only if there's content to scroll back */}
-      {scrollPositions[index] > 0 && (
-        <IconButton sx={styles.scrollButton} onClick={() => scrollCommentsLeft(index)}>
-          <ArrowBackIcon />
-        </IconButton>
-      )}
-      
-      <Box
-        sx={styles.commentsContainer}
-        id={`commentsContainer-${index}`}
-        onScroll={(e) => updateScrollPosition(index, e.target.scrollLeft)}
-      >
-        {activity.Comments.map((comment, idx) => (
-          <Box key={idx} sx={styles.commentCard}>
-            <Typography variant="body2">{comment.Comment || 'No comment available'}</Typography>
-            <Typography variant="caption">@ {comment.touristUsername || 'Anonymous'}</Typography>
-          </Box>
-        ))}
       </Box>
-      
-      {/* Show the scroll right button only if there are 3 or more comments */}
-      {activity.Comments.length >= 3 && (
-        <IconButton sx={styles.scrollButton} onClick={() => scrollCommentsRight(index)}>
-          <ArrowForwardIcon />
-        </IconButton>
-      )}
-    </>
-  ) : (
-    <Typography variant="body2">No comments available</Typography>
-  )}
+    </Box>
+  ))}
 </Box>
 
- 
-          </Box>
-        ))}
-      </Box>
 
       <Box sx={styles.activitiesContainer}>
-  {activities.length > 0 ? (
-    activities.map((activity, index) => (
+  {transportation.length > 0 ? (
+    transportation.map((transp, index) => (
       <Box key={index} sx={{ marginBottom: '20px' }}>
         {/* Your activity card code */}
       </Box>
     ))
   ) : (
     <Typography variant="h6" sx={{ textAlign: 'center', color: '#192959', marginTop: '20px' }}>
-      No Activities Found Matching Your Criteria.
+      No Transportations Available.
     </Typography>
   )}
 </Box>
@@ -1512,7 +1399,7 @@ const styles = {
   },
   discountContainer: {
     position: 'absolute',
-    bottom: '100px',
+    bottom: '50px',
     right: '50px',
     display: 'flex',
     flexDirection: 'column',
