@@ -750,7 +750,7 @@ const fetchProducts = async () => {
     <Box sx={{ display: 'flex', flexDirection: 'column', marginLeft: sidebarOpen ? '20px' : '0px' }}>
       {/* My Purchased Products */}
       <Button
-        onClick={() => navigate('/my-purchased-products')}
+        onClick={() => navigate('/TouristPurchasedProducts')}
         sx={{
           ...styles.sidebarButton,
           fontSize: '14px',
@@ -764,7 +764,7 @@ const fetchProducts = async () => {
       
       {/* View All Products */}
       <Button
-        onClick={() => navigate('/view-all-products')}
+        onClick={() => navigate('/TouristAllProducts')}
         sx={{
           ...styles.sidebarButton,
           fontSize: '14px',
@@ -920,7 +920,7 @@ const fetchProducts = async () => {
   {historicalPlacesOpen && (
     <Box sx={{ display: 'flex', flexDirection: 'column', marginLeft: sidebarOpen ? '20px' : '0px' }}>
       <Button
-        onClick={() => navigate('/upcoming-historical-places')}
+        onClick={() => navigate('/TouristUpcomingHP')}
         sx={{
           ...styles.sidebarButton,
           fontSize: '14px',
@@ -932,7 +932,7 @@ const fetchProducts = async () => {
         {sidebarOpen && 'Upcoming '}
       </Button>
       <Button
-        onClick={() => navigate('/visited-historical-places')}
+        onClick={() => navigate('/TouristCompletedHPs')}
         sx={{
           ...styles.sidebarButton,
           fontSize: '14px',
