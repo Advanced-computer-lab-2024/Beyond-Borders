@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Button, Typography, Dialog ,DialogContent ,DialogContentText, DialogActions ,IconButton,Tooltip, TextField, InputAdornment, Modal,MenuItem,Select,FormControl,InputLabel,} from '@mui/material';
+import { Box, Button, Typography, Dialog ,DialogContent ,DialogContentText, DialogActions ,Divider,IconButton,Tooltip, TextField, InputAdornment, Modal,MenuItem,Select,FormControl,InputLabel,} from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import MenuIcon from '@mui/icons-material/Menu';
 import NotificationsIcon from '@mui/icons-material/Notifications';
@@ -45,13 +45,11 @@ import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import IosShareIcon from '@mui/icons-material/IosShare';
 import ShareIcon from '@mui/icons-material/Share';
 import LanguageIcon from '@mui/icons-material/Language';
-import CancelIcon from '@mui/icons-material/Cancel';
 import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined';
-
 
 import axios from 'axios';
 
-function TouristBookedActivities() {
+function TouristBookedHP() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activities, setActivities] = useState([]);
   const [scrollPositions, setScrollPositions] = useState({});
@@ -91,21 +89,24 @@ const [convertedPrices, setConvertedPrices] = useState({});
 const [currency, setCurrency] = useState('EGP'); // Default currency is EGP
 const [openDialog, setOpenDialog] = useState(false);
 const [selectedActivity, setSelectedActivity] = useState(null);
-  const navigate = useNavigate();
+//hps
+const [HPs, setHPs] = useState([]);
+const navigate = useNavigate();
+const [expanded, setExpanded] = React.useState({});
 
   useEffect(() => {
     // Function to handle fetching or searching activities
-    const fetchOrSearchActivities = async () => {
+    const fetchOrSearchHPs = async () => {
       if (!searchQuery) {
-        // Fetch all activities when there's no search query
-        await fetchActivities();
+        // Fetch all hps when there's no search query
+        await fetchHistoricalPlaces();
       } else {
         // Perform search when there's a query
-        await searchActivities(searchQuery);
+        await searchHPs(searchQuery);
       }
     };
   
-    fetchOrSearchActivities(); // Call the fetch or search logic
+    fetchOrSearchHPs(); // Call the fetch or search logic
     fetchCategories(); // Fetch categories
     fetchTags(); // Fetch tags
   
@@ -124,63 +125,110 @@ const [selectedActivity, setSelectedActivity] = useState(null);
     return () => window.removeEventListener('scroll', handleScroll);
   }, [searchQuery]); // Depend on `searchQuery` to refetch activities when it changes
 
+  // useEffect(() => {
+  //   fetchHistoricalPlaces();
+  // }, []);
 
   useEffect(() => {
     if (currency !== 'EGP') {
       convertActivityPrices();
     }
-  }, [currency, activities]);
+  }, [currency, HPs]);
+
+  // const convertActivityPrices = async () => {
+  //   const newConvertedPrices = {};
+  //   await Promise.all(
+  //     activities.map(async (activity) => {
+  //       try {
+  //         const response = await axios.post('/convertCurr', {
+  //           priceEgp: activity.Price,
+  //           targetCurrency: currency,
+  //         });
+  //         // Use a unique key for each activity
+  //         newConvertedPrices[activity._id] = response.data.convertedPrice;
+  //       } catch (error) {
+  //         console.error(`Error converting price for activity ${activity.Name}:`, error);
+  //       }
+  //     })
+  //   );
+  //   setConvertedPrices(newConvertedPrices);
+  // };
 
   const convertActivityPrices = async () => {
     const newConvertedPrices = {};
+  
     await Promise.all(
-      activities.map(async (activity) => {
+      HPs.map(async (hp) => {
         try {
-          const response = await axios.post('/convertCurr', {
-            priceEgp: activity.Price,
-            targetCurrency: currency,
-          });
-          // Use a unique key for each activity
-          newConvertedPrices[activity._id] = response.data.convertedPrice;
+          // Convert ticket prices for each category: foreigner, native, and student
+          const responses = await Promise.all(
+            Object.entries(hp.ticketPrices).map(async ([category, priceEgp]) => {
+              const response = await axios.post('/convertCurr', {
+                priceEgp,
+                targetCurrency: currency,
+              });
+              return { category, convertedPrice: response.data.convertedPrice };
+            })
+          );
+  
+          // Organize the converted prices by category
+          newConvertedPrices[hp._id] = responses.reduce((acc, { category, convertedPrice }) => {
+            acc[category] = convertedPrice;
+            return acc;
+          }, {});
         } catch (error) {
-          console.error(`Error converting price for activity ${activity.Name}:`, error);
+          console.error(`Error converting prices for museum ${hp.name}:`, error);
         }
       })
     );
+  
     setConvertedPrices(newConvertedPrices);
   };
   
   
+  const fetchHistoricalPlaces = async () => {
+    const username = localStorage.getItem('username'); // Retrieve logged-in user's username
   
-
-  const fetchActivities = async () => {
+    if (!username) {
+      console.error('User not logged in.');
+      return;
+    }
+  
     try {
-      const username = localStorage.getItem('username'); // Retrieve the logged-in username
-  
-      if (!username) {
-        console.error('User not logged in.');
-        return;
-      }
-  
-      // Fetch booked activities using the username
-      const response = await axios.get('/api/viewMyBookedActivities', {
+      const response = await axios.get('/api/viewMyBookedHistoricalPlaces', {
         params: { Username: username }, // Send the username as a query parameter
       });
-  
-      setActivities(response.data); // Set the activities state with the fetched data
+      setHPs(response.data); // Set state with the booked historical places
     } catch (error) {
-      console.error('Error fetching booked activities:', error);
+      console.error('Error fetching booked historical places:', error);
     }
   };
   
 
-  const searchActivities = async (query) => {
+  const handleToggleDescription = (index) => {
+    setExpanded((prev) => ({
+      ...prev,
+      [index]: !prev[index],
+    }));
+  };
+
+  // const searchActivities = async (query) => {
+  //   try {
+  //     const response = await axios.post('/api/ActivitiesSearchAll', { searchString: query });
+  //     setActivities(response.data);
+  //   } catch (error) {
+  //     console.error('Error searching activities:', error);
+  //     setActivities([]); // Clear activities if no results or error
+  //   }
+  // };
+
+  const searchHPs = async (query) => {
     try {
-      const response = await axios.post('/api/ActivitiesSearchAll', { searchString: query });
-      setActivities(response.data);
+      const response = await axios.post('/api/HistoricalPlacesSearchAll', { searchString: query });
+      setHPs(response.data);
     } catch (error) {
-      console.error('Error searching activities:', error);
-      setActivities([]); // Clear activities if no results or error
+      console.error('Error searching hps:', error);
+      setHPs([]); // Clear activities if no results or error
     }
   };
 
@@ -203,65 +251,69 @@ const [selectedActivity, setSelectedActivity] = useState(null);
   
     setFilterInputs((prev) => ({
       ...prev,
-      [name]: name === "minPrice" || name === "maxPrice" || name === "Rating" // Ensure numerical values are parsed
-        ? parseFloat(value) || "" // Keep empty string if value is invalid
-        : value,
+      [name]: value, // Update the corresponding field in the state
     }));
   };
   
+  
   const handleFilterSubmit = async () => {
     try {
-      // Remove empty or invalid fields before sending to backend
-      const sanitizedInputs = Object.fromEntries(
-        Object.entries(filterInputs).filter(([_, value]) => value !== "" && value !== null)
-      );
+      // Format the tags input into an array
+      const sanitizedInputs = {
+        tags: filterInputs.Tags ? filterInputs.Tags.split(',').map(tag => tag.trim()) : [], // Split by commas and trim spaces
+      };
   
-      const response = await axios.post('/api/filterActivities', sanitizedInputs);
-      setActivities(response.data); // Update activities with the filtered results
-      setFilterModalOpen(false); // Close the modal after applying filters
+      // Send the request to the backend
+      const response = await axios.post('/getHistoricalPlacesByTagTourist', sanitizedInputs);
+  
+      // Update the hps state with the filtered results
+      setHPs(response.data);
+      setFilterModalOpen(false); // Close the modal
     } catch (error) {
       if (error.response && error.response.status === 404) {
-        // No activities found
-        setActivities([]); // Clear activities list
-        setFilterModalOpen(false); // Close the modal
+        // No hps found
+        setHPs([]); 
       } else {
-        console.error('Error filtering activities:', error);
+        console.error('Error filtering hps:', error);
       }
+      setFilterModalOpen(false);
     }
   };
 
 
-  const handleSortChange = async (event) => {
-    const selectedOption = event.target.value;
-    setSortOption(selectedOption);
+  // const handleSortChange = async (event) => {
+  //   const selectedOption = event.target.value;
+  //   setSortOption(selectedOption);
 
-    try {
-      let response;
-      switch (selectedOption) {
-        case "priceAsc":
-          response = await axios.get("/sortActivitiesPriceAscendingTourist");
-          break;
-        case "priceDesc":
-          response = await axios.get("/sortActivitiesPriceDescendingTourist");
-          break;
-        case "ratingAsc":
-          response = await axios.get("/sortActivitiesRatingAscendingTourist");
-          break;
-        case "ratingDesc":
-          response = await axios.get("/sortActivitiesRatingDescendingTourist");
-          break;
-        default:
-          return; // Do nothing if no valid option is selected
-      }
+  //   try {
+  //     let response;
+  //     switch (selectedOption) {
+  //       case "priceAsc":
+  //         response = await axios.get("/sortActivitiesPriceAscendingTourist");
+  //         break;
+  //       case "priceDesc":
+  //         response = await axios.get("/sortActivitiesPriceDescendingTourist");
+  //         break;
+  //       case "ratingAsc":
+  //         response = await axios.get("/sortActivitiesRatingAscendingTourist");
+  //         break;
+  //       case "ratingDesc":
+  //         response = await axios.get("/sortActivitiesRatingDescendingTourist");
+  //         break;
+  //       default:
+  //         return; // Do nothing if no valid option is selected
+  //     }
 
-      if (response && response.data) {
-        setActivities(response.data); // Update the activities with the sorted data
-      }
-    } catch (error) {
-      console.error("Error sorting activities:", error);
-    }
-  };
+  //     if (response && response.data) {
+  //       setActivities(response.data); // Update the activities with the sorted data
+  //     }
+  //   } catch (error) {
+  //     console.error("Error sorting activities:", error);
+  //   }
+  // };
   //book
+
+
   const handleBookActivity = async (activityName) => {
     const touristUsername = localStorage.getItem('username'); // Assuming username is stored in localStorage
   
@@ -279,8 +331,25 @@ const [selectedActivity, setSelectedActivity] = useState(null);
   };
 
 
-  const handleCancelBooking = async (activityName) => {
-    const username = localStorage.getItem('username'); // Retrieve the logged-in username
+  //book
+  const handleBookHistoricalPlace = async (historicalPlaceName) => {
+    const touristUsername = localStorage.getItem('username'); // Assuming username is stored in localStorage
+  
+    if (!touristUsername) {
+      alert('Please log in to book hps.');
+      return;
+    }
+  
+    try {
+      const response = await axios.put('/bookHistoricalPlace', { touristUsername, historicalPlaceName });
+      navigate('/TouristPaymentPage');
+    } catch (error) {
+      alert(error.response?.data?.msg || 'An error occurred while booking the HP.');
+    }
+  };
+
+  const handleCancelBooking = async (HPName) => {
+    const username = localStorage.getItem('username'); // Retrieve logged-in user's username
   
     if (!username) {
       alert('User not logged in.');
@@ -288,23 +357,19 @@ const [selectedActivity, setSelectedActivity] = useState(null);
     }
   
     try {
-      const response = await axios.put('/deleteBookedActivity', {
+      // Call the backend API to delete the booked historical place
+      const response = await axios.put('/deleteBookedHP', {
         touristUsername: username,
-        activityName,
+        HPName,
       });
   
-      const { msg, refundedAmount, updatedWallet, updatedPoints, updatedBadgeLevel } = response.data;
+      // Notify the user of successful cancellation
   
-      
-      console.log(`Refunded Amount: ${refundedAmount}, Updated Wallet: ${updatedWallet}`);
-  
-      // Update the activities list to remove the canceled activity
-      setActivities((prevActivities) =>
-        prevActivities.filter((activity) => activity.Name !== activityName)
-      );
+      // Update the state to remove the canceled event
+      setHPs((prevHPs) => prevHPs.filter((hp) => hp.name !== HPName));
     } catch (error) {
-      console.error('Error canceling booking:', error);
-      alert(error.response?.data?.msg || 'Failed to cancel booking.');
+      console.error('Error canceling historical place event:', error);
+      alert(error.response?.data?.msg || 'Failed to cancel the event.');
     }
   };
   
@@ -313,7 +378,7 @@ const [selectedActivity, setSelectedActivity] = useState(null);
   const handleOpenShareModal = async (activityName) => {
     try {
       const response = await axios.post('/getCopyLink', {
-        entityType: 'activity',
+        entityType: 'historicalPlace',
         entityName: activityName,
       });
       setSharedLink(response.data.link); // Set the generated link
@@ -334,7 +399,7 @@ const [selectedActivity, setSelectedActivity] = useState(null);
   
     try {
       const response = await axios.post('/getCopyLink', {
-        entityType: 'activity',
+        entityType: 'historicalPlace',
         entityName: activityName,
         email,
       });
@@ -374,7 +439,6 @@ const [selectedActivity, setSelectedActivity] = useState(null);
     setOpenDialog(false); // Close the dialog
     setSelectedActivity(null); // Reset selected activity
   };
-  
 
   // Fetch tags from backend
   const fetchTags = async () => {
@@ -749,7 +813,7 @@ const [selectedActivity, setSelectedActivity] = useState(null);
   {historicalPlacesOpen && (
     <Box sx={{ display: 'flex', flexDirection: 'column', marginLeft: sidebarOpen ? '20px' : '0px' }}>
       <Button
-        onClick={() => navigate('/upcoming-historical-places')}
+        onClick={() => navigate('/TouristUpcomingHP')}
         sx={{
           ...styles.sidebarButton,
           fontSize: '14px',
@@ -969,11 +1033,61 @@ const [selectedActivity, setSelectedActivity] = useState(null);
     marginRight: '60px',           // Add margin to the right for consistent spacing
   }}
 >
- 
+  
 
   {/* Sort Dropdown and Filter Icon */}
-  <Box sx={{ display: 'flex', alignItems: 'right', gap: '10px', marginLeft: '1550px',marginRight: '10px'}}>
-    
+  <Box sx={{ display: 'flex', alignItems: 'right', gap: '10px', marginLeft: '1565px',marginRight: '10px'}}>
+    {/* <TextField
+      select
+      label={
+        <Box sx={{ display: 'flex', alignItems: 'right', gap: '8px' }}>
+          Sort By
+        </Box>
+      }
+      variant="outlined"
+      value={sortOption}
+      onChange={handleSortChange}
+      sx={{
+        width: '80%',
+        '& .MuiOutlinedInput-root': {
+          '& fieldset': {
+            borderColor: '#192959', // Default border color
+            borderWidth: '2px',
+          },
+          '&:hover fieldset': {
+            borderColor: '#33416b', // Hover border color
+            borderWidth: '2.5px',
+          },
+          '&.Mui-focused fieldset': {
+            borderColor: '#192959', // Focused border color
+            borderWidth: '2.5px',
+          },
+        },
+        '& .MuiInputLabel-root': {
+          color: '#192959', // Label color
+          fontSize: '18px',
+        },
+      }}
+      InputProps={{
+        startAdornment: (
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              color: '#192959',
+              paddingLeft: '5px',
+            }}
+          >
+            <SwapVertIcon />
+          </Box>
+        ),
+      }}
+    >
+      <MenuItem value="priceAsc">Price: Low to High</MenuItem>
+      <MenuItem value="priceDesc">Price: High to Low</MenuItem>
+      <MenuItem value="ratingAsc">Rating: Low to High</MenuItem>
+      <MenuItem value="ratingDesc">Rating: High to Low</MenuItem>
+    </TextField> */}
 
     <TextField
   select
@@ -1025,7 +1139,8 @@ const [selectedActivity, setSelectedActivity] = useState(null);
 </TextField>
 
 
-   
+    {/* Filter Icon */}
+    
   </Box>
 </Box>
 
@@ -1034,94 +1149,188 @@ const [selectedActivity, setSelectedActivity] = useState(null);
 
 
       
-      {/* Main Content Area with Activities */}
-      <Box sx={styles.activitiesContainer}>
-        {activities.map((activity, index) => (
-          <Box key={index} sx={{ marginBottom: '20px' }}>
-            <Box
-              sx={{
-                ...styles.activityCard,
-                backgroundColor: 'white',
-              }}
-            >
-              <Box sx={styles.activityInfo}>
-                <Typography variant="h6" sx={{ fontWeight: 'bold',fontSize: '24px', marginBottom: '5px', display: 'flex', alignItems: 'center' }}>{activity.Name}</Typography>
-                <Typography variant="body2" sx={{ display: 'flex', fontSize: '18px', alignItems: 'center' }}>
-                  <LocationOnIcon fontSize="small" sx={{ mr: 1 }} />
-                  {activity.Location?.address || 'N/A'}
-                </Typography>
-                <Typography variant="body2" sx={{ display: 'flex', fontSize: '18px', alignItems: 'center' }}>
-                  <PersonIcon fontSize="small" sx={{ mr: 1 }} />
-                  {activity.AdvertiserName}
-                </Typography>
-                <Typography variant="body2" sx={{ display: 'flex', fontSize: '18px', alignItems: 'center' }}>
-                <PaymentIcon fontSize="small" sx={{ mr: 1 }} />
-                {currency === 'EGP'
-                  ? `${activity.Price} EGP`
-                  : `${convertedPrices[activity._id] || 'Loading...'} ${currency}`}
-              </Typography>
-
-                <Typography variant="body2" sx={{ display: 'flex', fontSize: '18px', alignItems: 'center' }}>
-                  <CalendarTodayIcon fontSize="small" sx={{ mr: 1 }} />
-                  {new Date(activity.Date).toLocaleDateString()}
-                </Typography>
-                <Typography variant="body2" sx={{ display: 'flex', fontSize: '18px', alignItems: 'center' }}>
-                  <AccessTimeIcon fontSize="small" sx={{ mr: 1 }} />
-                  {activity.Time}
-                </Typography>
-                <Box sx={styles.quickFacts}>
-                  <Box sx={{ ...styles.infoContainer, backgroundColor:  '#f3f4f6' }}>
-                    <Typography variant="body2" sx={{ fontWeight: 'bold' }}>Category:</Typography>
-                    <Typography variant="body2">{activity.Category}</Typography>
-                  </Box>
-                  <Box sx={{ ...styles.infoContainer, backgroundColor: '#f3f4f6' }}>
+{/* Main Content Area with Historical Places */}
+<Box sx={styles.activitiesContainer}>
+  {HPs.map((hp, index) => (
+    <Box key={index} sx={{ marginBottom: '20px' }}>
+      <Box
+        sx={{
+          ...styles.activityCard,
+          backgroundColor: 'white',
+          display: 'flex', // Ensures the children are laid out horizontally
+        }}
+      >
+       {/* Flex Container for Left and Right Sections */}
+<Box sx={{ display: 'flex', flex: 1 }}>
+  {/* Left Side: Activity Info */}
+  <Box sx={{ flex: 1 }}>
+    <Typography
+      variant="h6"
+      sx={{
+        fontWeight: 'bold',
+        fontSize: '24px',
+        marginBottom: '10px', // Increased spacing below the title
+        display: 'flex',
+        alignItems: 'center',
+      }}
+    >
+      {hp.name}
+    </Typography>
+    <Typography
+      variant="body2"
+      sx={{
+        display: 'flex',
+        fontSize: '18px',
+        alignItems: 'center',
+        marginBottom: '10px', // Added spacing between items
+      }}
+    >
+      <LocationOnIcon fontSize="small" sx={{ mr: 1 }} />
+      {hp.location || 'N/A'}
+    </Typography>
+    <Typography
+      variant="body2"
+      sx={{
+        display: 'flex',
+        fontSize: '18px',
+        alignItems: 'center',
+        marginBottom: '10px', // Added spacing between items
+      }}
+    >
+      <PersonIcon fontSize="small" sx={{ mr: 1 }} />
+      {hp.AuthorUsername}
+    </Typography>
+    <Typography
+      variant="body2"
+      sx={{
+        display: 'flex',
+        fontSize: '18px',
+        alignItems: 'center',
+        marginBottom: '10px', // Added spacing between items
+      }}
+    >
+      <AccessTimeIcon fontSize="small" sx={{ mr: 1 }} />
+      {hp.openingHours || 'N/A'}
+    </Typography>
+    <Typography
+      variant="body2"
+      sx={{
+        display: 'flex',
+        fontSize: '18px',
+        alignItems: 'center',
+        marginBottom: '10px', // Added spacing between items
+      }}
+    >
+      <PaymentIcon fontSize="small" sx={{ mr: 1 }} />
+      {currency === 'EGP'
+        ? `Native: ${hp.ticketPrices?.native || 0} EGP | Foreigner: ${hp.ticketPrices?.foreigner || 0} EGP | Student: ${hp.ticketPrices?.student || 0} EGP`
+        : `Native: ${convertedPrices[hp._id]?.native || 'Loading...'} ${currency} | Foreigner: ${convertedPrices[hp._id]?.foreigner || 'Loading...'} ${currency} | Student: ${convertedPrices[hp._id]?.student || 'Loading...'} ${currency}`}
+    </Typography>
+    <Typography
+      variant="body2"
+      sx={{
+        display: 'flex',
+        fontSize: '18px',
+        alignItems: 'center',
+        marginBottom: '10px', // Added spacing between items
+      }}
+    >
+      <CalendarTodayIcon fontSize="small" sx={{ mr: 1 }} />
+      {hp.dateOfEvent ? new Date(hp.dateOfEvent).toLocaleDateString() : 'N/A'}
+    </Typography>
+    <Box sx={{ ...styles.quickFacts, marginTop: '10px' /* Added spacing above quick facts */ }}>
+    <Box sx={{ ...styles.infoContainer, backgroundColor: '#b3b8c8'  }}>
                     <Typography variant="body2" sx={{ fontWeight: 'bold' }}>Tags:</Typography>
-                    <Typography variant="body2">{activity.Tags.join(', ')}</Typography>
+                    <Typography variant="body2">{hp.Tags.join(', ')}</Typography>
                   </Box>
-                </Box>
-              </Box>
-              <Box sx={styles.activityRating}>
-                {renderRating(activity.Rating)}
-              </Box>
-              <Box sx={styles.discountContainer}>
-                <Box sx={{...styles.infoContainer, backgroundColor:'#f3f4f6'}}>
-                  <Typography variant="body2" sx={{ fontWeight: 'bold' }}>Special Discount:</Typography>
-                  <Typography variant="body2">{activity.SpecialDiscount}</Typography>
-                </Box>
-              </Box>
-              <Box sx={styles.bookingOpenContainer}>
-                <Box sx={{...styles.infoContainer, backgroundColor: '#f3f4f6'}}>
-                  <Typography variant="body2" sx={{ fontWeight: 'bold' }}>Booking Open:</Typography>
-                  <Typography variant="body2">{activity.BookingOpen ? 'Yes' : 'No'}</Typography>
-                </Box>
-              </Box>
+    </Box>
+  </Box>
 
-              
+{/* Divider */}
+<Divider orientation="vertical" flexItem sx={{ marginX: '20px', borderColor: '#ccc' }} />
 
+{/* Right Side: Description */}
+<Box sx={{ flex: 1, paddingLeft: '20px', textAlign: 'left' }}>
+  <Typography variant="body2" sx={{ fontSize: '18px', fontWeight: 'bold', marginBottom: '10px',marginTop:'40px' }}>
+    Description:
+  </Typography>
+
+  <Typography
+    variant="body2"
+    sx={{
+      fontSize: '18px',
+      wordWrap: 'break-word', // Break long words
+      whiteSpace: 'normal',  // Wrap text normally
+      maxWidth: '550px',     // Ensure width consistency
+    }}
+  >
+    {expanded[index] || (hp.description && hp.description.length <= 45) ? (
+      <span>
+        {hp.description || 'No description available'}
+        {hp.description && hp.description.length > 45 && (
+          <span
+            style={{
+              color: '#8088a3',
+              marginLeft: '5px',
+              fontWeight: 'bold',
+              cursor: 'pointer',
+            }}
+            onClick={() => handleToggleDescription(index)}
+          >
+            {" "}Read Less
+          </span>
+        )}
+      </span>
+    ) : (
+      <span>
+        {(hp.description || 'No description available').substring(0, 45)}...
+        <span
+          style={{
+            color: '#8088a3',
+            marginLeft: '5px',
+            fontWeight: 'bold',
+            cursor: 'pointer',
+          }}
+          onClick={() => handleToggleDescription(index)}
+        >
+          {" "}Read More
+        </span>
+      </span>
+    )}
+  </Typography>
+</Box>
+
+        </Box>
+
+
+        <Box sx={styles.activityRating}>
+          {renderRating(hp.Ratings || 0)}
+        </Box>
+
+
+       <Button
+            variant="contained"
+            onClick={() => handleOpenDialog(hp.name)}
+            startIcon={<CancelOutlinedIcon />} // Add the cancel icon before the text
+            sx={{
+                position: 'absolute',
+                top: '50px', // Position at the top
+                right: '60px', // Position at the right
+                backgroundColor: '#192959', // Blue color for booking action
+                color: '#fff',
+                '&:hover': { backgroundColor: '#d32f2f' }, // Slightly lighter red on hover
+            }}
+            >
+            Cancel Booking
+            </Button>
 
         
-              <Button
-  variant="contained"
-  disabled={!activity.BookingOpen} // Optionally disable based on booking status
-  onClick={() => handleOpenDialog(activity.Name)}
-  startIcon={<CancelOutlinedIcon />} // Add the cancel icon before the text
-  sx={{
-    position: 'absolute',
-    top: '60px', // Position at the top
-    right: '60px', // Position at the right
-    backgroundColor: '#192959', // Blue color for booking action
-    color: '#fff',
-    '&:hover': { backgroundColor: '#d32f2f' }, // Slightly lighter red on hover
-  }}
->
-  Cancel Booking
-</Button>
 
 
 
-            </Box>
+     </Box>
             <Box sx={styles.commentsSection}>
-  {activity.Comments && activity.Comments.length > 0 ? (
+  {hp.Comments && hp.Comments.length > 0 ? (
     <>
       {/* Show the scroll left button only if there's content to scroll back */}
       {scrollPositions[index] > 0 && (
@@ -1135,7 +1344,7 @@ const [selectedActivity, setSelectedActivity] = useState(null);
         id={`commentsContainer-${index}`}
         onScroll={(e) => updateScrollPosition(index, e.target.scrollLeft)}
       >
-        {activity.Comments.map((comment, idx) => (
+        {hp.Comments.map((comment, idx) => (
           <Box key={idx} sx={styles.commentCard}>
             <Typography variant="body2">{comment.Comment || 'No comment available'}</Typography>
             <Typography variant="caption">@ {comment.touristUsername || 'Anonymous'}</Typography>
@@ -1144,7 +1353,7 @@ const [selectedActivity, setSelectedActivity] = useState(null);
       </Box>
       
       {/* Show the scroll right button only if there are 3 or more comments */}
-      {activity.Comments.length >= 3 && (
+      {hp.Comments.length >= 3 && (
         <IconButton sx={styles.scrollButton} onClick={() => scrollCommentsRight(index)}>
           <ArrowForwardIcon />
         </IconButton>
@@ -1169,7 +1378,7 @@ const [selectedActivity, setSelectedActivity] = useState(null);
     ))
   ) : (
     <Typography variant="h6" sx={{ textAlign: 'center', color: '#192959', marginTop: '20px' }}>
-      No Activities Found Matching Your Criteria.
+      
     </Typography>
   )}
 </Box>
@@ -1265,7 +1474,7 @@ const [selectedActivity, setSelectedActivity] = useState(null);
 
 
 
-      <Modal
+<Modal
   open={filterModalOpen}
   onClose={() => setFilterModalOpen(false)}
   aria-labelledby="filter-modal-title"
@@ -1284,68 +1493,40 @@ const [selectedActivity, setSelectedActivity] = useState(null);
       borderRadius: '10px',
     }}
   >
-    <Typography id="filter-modal-title" variant="h6" component="h2" sx={{ marginBottom: '20px' }}>
-      Filter Activities
+    <Typography id="filter-modal-title" variant="h6" sx={{ marginBottom: '20px' }}>
+      Filter HIstorical Places
     </Typography>
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
       <TextField
-        label="Category"
-        name="Category"
+        label="Tags"
+        name="Tags" // This must match the key in filterInputs
         variant="outlined"
-        value={filterInputs.Category || ""}
+        value={filterInputs.Tags || ""} // Ensure the Tags field exists in filterInputs
         onChange={handleFilterInputChange}
-      />
-      <TextField
-        label="Min Price"
-        name="minPrice"
-        type="number"
-        variant="outlined"
-        value={filterInputs.minPrice || ""}
-        onChange={handleFilterInputChange}
-      />
-      <TextField
-        label="Max Price"
-        name="maxPrice"
-        type="number"
-        variant="outlined"
-        value={filterInputs.maxPrice || ""}
-        onChange={handleFilterInputChange}
-      />
-      <TextField
-        label="Date"
-        name="InputDate"
-        type="date"
-        variant="outlined"
-        InputLabelProps={{ shrink: true }}
-        value={filterInputs.InputDate || ""}
-        onChange={handleFilterInputChange}
-      />
-      <TextField
-        label="Rating"
-        name="Rating"
-        type="number"
-        variant="outlined"
-        value={filterInputs.Rating || ""}
-        onChange={handleFilterInputChange}
+        helperText="Enter tags separated by commas"
       />
     </Box>
     <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '20px' }}>
-    <Button
-  variant="outlined"
-  onClick={() => setFilterModalOpen(false)}
-  sx={{
-    color: '#192959', // Text color
-    borderColor: '#192959', // Outline color
-    '&:hover': {
-      backgroundColor: 'rgba(25, 41, 89, 0.1)', // Slight background highlight on hover
-      borderColor: '#192959', // Outline color on hover
-    },
-  }}
->
-  Cancel
-</Button>
+      <Button
+        variant="outlined"
+        onClick={() => setFilterModalOpen(false)}
+        sx={{
+          color: '#192959',
+          borderColor: '#192959',
+          '&:hover': {
+            backgroundColor: 'rgba(25, 41, 89, 0.1)',
+            borderColor: '#192959',
+          },
+        }}
+      >
+        Cancel
+      </Button>
 
-      <Button variant="contained" onClick={handleFilterSubmit} sx={{ backgroundColor: '#192959', color: '#fff' }}>
+      <Button
+        variant="contained"
+        onClick={handleFilterSubmit} // Call the submit handler
+        sx={{ backgroundColor: '#192959', color: '#fff' }}
+      >
         Apply
       </Button>
     </Box>
@@ -1376,7 +1557,6 @@ const [selectedActivity, setSelectedActivity] = useState(null);
     </Button>
   </DialogActions>
 </Dialog>
-
 
       {/* Back to Top Button */}
       {showBackToTop && (
@@ -1487,6 +1667,7 @@ const styles = {
     padding: '20px 70px 20px 90px',
     marginLeft: '60px',
     transition: 'margin-left 0.3s ease',
+    height: '200px',
   },
   discountContainer: {
     position: 'absolute',
@@ -1534,7 +1715,7 @@ const styles = {
   },
   activityRating: {
     position: 'absolute',
-    bottom: '140px',
+    bottom: '60px',
     right: '60px',
     display: 'flex',
     flexDirection: 'column',
@@ -1623,6 +1804,11 @@ const styles = {
     display: 'flex',
     flexDirection: 'column',
   },
+  verticalDivider: {
+    backgroundColor: '#d1d5db',
+    width: '1px',
+    margin: '40px 15px 0 15px', // Adjust the top margin to position the start
+  },
   modalHeader: {
     display: 'flex',
     justifyContent: 'space-between',
@@ -1663,4 +1849,4 @@ const styles = {
   },
 };
 
-export default TouristBookedActivities;
+export default TouristBookedHP;

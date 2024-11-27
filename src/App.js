@@ -23,7 +23,7 @@ const {readSellerProfile, updateSeller, editProductSeller, createNewProductSelle
 const {createNewHistoricalTag,createMuseumsAsTourismGoverner,getMuseumsByAuthorAsTourismGoverner
   ,createHistoricalPlaceAsTourismGoverner , getHistoricalPlaceByNameAsTourismGoverner , updateHistoricalPlaceAsTourismGoverner , deletePlaceAsTourismGoverner , getHistoricalByAuthorAsTourismGoverner, getMuseumByNameAsTourismGoverner, updateMuseumByNameAsTourismGoverner, deleteMuseumByNameAsTourismGoverner,
   loginGoverner, updateGovernorPassword} = require("./Routes/TourismGovernorController");
-const{ReadAdvertiserProfile , updateAdvertiser, createNewActivity, readActivity, updateActivity, deleteActivity, getActivitiesByAuthor, loginAdvertiser, updateAdvertiserPassword, decrementLoginCountAdvertiser,requestDeleteAccountAdvertiser, allNotificationsRead, areAllNotificationsRead} = require("./Routes/AdvertiserController");
+const{ReadAdvertiserProfile , updateAdvertiser, createNewActivity, readActivity, updateActivity, deleteActivity, getActivitiesByAuthor, loginAdvertiser, updateAdvertiserPassword, decrementLoginCountAdvertiser,requestDeleteAccountAdvertiser, allNotificationsRead, areAllNotificationsRead, getAdvertiserNotifications} = require("./Routes/AdvertiserController");
 const {filterActivitiesGuest, getMuseumsByTagGuest, ViewAllUpcomingActivitiesGuest, ViewAllUpcomingMuseumEventsGuest, getHistoricalPlacesByTagGuest, ViewAllUpcomingHistoricalPlacesEventsGuest, sortActivitiesPriceAscendingGuest, sortActivitiesPriceDescendingGuest, sortActivitiesRatingDescendingGuest, sortActivitiesRatingAscendingGuest, ViewAllUpcomingItinerariesGuest, sortItinerariesPriceDescendingGuest, sortItinerariesPriceAscendingGuest, filterItinerariesGuest,ChooseActivitiesByCategoryGuest} = require("./Routes/GuestController");
 
 //const {createNewTourismGoverner, createNewAdmin, createNewProduct, editProduct} = require("./Routes/AdminController");
@@ -242,8 +242,10 @@ app.get("/api/getAllUnregisteredAdvertisers", getAllUnregisteredAdvertisers);
 app.get("/api/getAllUnregisteredTourGuides", getAllUnregisteredTourGuides);
 app.get("/api/getAllUnregisteredSellers", getAllUnregisteredSellers);
 app.get("/api/getAllUnregisteredTransportationAdvertisers", getAllUnregisteredTransportationAdvertisers);
-app.post("/api/allNotificationsRead", allNotificationsRead);
+app.put("/api/allNotificationsRead", allNotificationsRead);
 app.get("/api/areAllNotificationsRead", areAllNotificationsRead);
+app.get("/api/getAdvertiserNotifications", getAdvertiserNotifications);
+
 
 //SPRINT 2 MALAK AND JANA
 app.get("/ChooseActivitiesByCategoryTourist",ChooseActivitiesByCategoryTourist);

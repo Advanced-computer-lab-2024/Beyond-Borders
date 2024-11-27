@@ -347,14 +347,40 @@ const requestDeleteAccountAdvertiser = async (req, res) => {
   }
 };
 
+// const allNotificationsRead = async (req, res) => {
+//   const { username } = req.query; // Extract username from query
+//   try {
+//     if (!username) {
+//       return res.status(400).json({ error: "Username is required." });
+//     }
+
+//     // Find the advertiser and update all notifications to `Read: true`
+//     const updatedAdvertiser = await AdvertiserModel.findOneAndUpdate(
+//       { Username: username }, // Find the advertiser by username
+//       { $set: { "Notifications.$[].Read": true } }, // Update all notifications to `Read: true`
+//       { new: true } // Return the updated document
+//     );
+
+//     if (!updatedAdvertiser) {
+//       return res.status(404).json({ error: "Advertiser not found." });
+//     }
+
+//     res.status(200).json({
+//       message: "All notifications marked as read successfully.",
+//       advertiser: updatedAdvertiser,
+//     });
+//   } catch (error) {
+//     res.status(500).json({ error: error.message });
+//   }
+// };
+
 const allNotificationsRead = async (req, res) => {
-  const { username } = req.query; // Extract username from query
+  const { username } = req.body; // Extract username from the request body
   try {
     if (!username) {
       return res.status(400).json({ error: "Username is required." });
     }
 
-    // Find the advertiser and update all notifications to `Read: true`
     const updatedAdvertiser = await AdvertiserModel.findOneAndUpdate(
       { Username: username }, // Find the advertiser by username
       { $set: { "Notifications.$[].Read": true } }, // Update all notifications to `Read: true`
@@ -373,6 +399,7 @@ const allNotificationsRead = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
 
 const areAllNotificationsRead = async (req, res) => {
   const { username } = req.query; // Extract username from query
@@ -398,6 +425,30 @@ const areAllNotificationsRead = async (req, res) => {
   }
 };
 
-  
+const getAdvertiserNotifications = async (req, res) => {
+  const { username } = req.query; // Extract username from query parameters
 
-      module.exports = {ReadAdvertiserProfile , updateAdvertiser, createNewActivity, readActivity, updateActivity, deleteActivity, getActivitiesByAuthor, loginAdvertiser, updateAdvertiserPassword, decrementLoginCountAdvertiser,requestDeleteAccountAdvertiser, allNotificationsRead, areAllNotificationsRead};
+  try {
+    if (!username) {
+      return res.status(400).json({ error: "Username is required." });
+    }
+
+    // Find the advertiser and retrieve the Notifications field
+    const advertiser = await AdvertiserModel.findOne(
+      { Username: username },
+      "Notifications" // Only select the Notifications field
+    );
+
+    if (!advertiser) {
+      return res.status(404).json({ error: "Advertiser not found." });
+    }
+
+    // Return all notifications
+    res.status(200).json({ notifications: advertiser.Notifications });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+
+      module.exports = {ReadAdvertiserProfile , updateAdvertiser, createNewActivity, readActivity, updateActivity, deleteActivity, getActivitiesByAuthor, loginAdvertiser, updateAdvertiserPassword, decrementLoginCountAdvertiser,requestDeleteAccountAdvertiser, allNotificationsRead, areAllNotificationsRead, getAdvertiserNotifications};
