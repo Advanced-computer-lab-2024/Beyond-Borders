@@ -32,15 +32,28 @@ const Begin2 = () => {
   };
 
   return (
-    <Box>
+    <Box
+      sx={{
+        minHeight: '100vh',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundImage: `url(/images/beach2.jpg)`, // Set the background image
+        backgroundSize: 'cover', // Cover the entire container
+        backgroundRepeat: 'no-repeat',
+        backgroundPosition: 'center',
+      }}
+    >
       {/* Animated Welcome Text */}
       <Box
         sx={{
           textAlign: 'center',
-          marginTop: '50px',
+          marginTop: '-50px',
+          marginBottom: '20px',
           fontSize: '2rem',
           fontWeight: 'bold',
-          color: '#283593',
+          color: '#192959',
         }}
       >
         {text} {/* Display the animated text */}
@@ -53,18 +66,26 @@ const Begin2 = () => {
           textAlign: 'center',
           margin: '20px',
           padding: '25px',
-          backgroundColor: '#fff',
-          borderRadius: '8px',
-          boxShadow: '0 0 10px rgba(0, 0, 0, 0.3)',
+          backgroundColor: 'rgba(255, 255, 255, 0.7)', // Translucent background
+          borderRadius: '12px',
+          boxShadow: '0 4px 10px rgba(0, 0, 0, 0.3)',
           width: '500px',
-          height: 'auto',
-          minHeight: '200px',
+          minHeight: '250px',
           marginLeft: 'auto',
           marginRight: 'auto',
-          marginTop: '50px',
+          marginTop: '30px',
         }}
       >
-        <h2>Login</h2>
+        <h2
+          style={{
+            fontSize: '2rem', // Bigger font size for "Login"
+            color: '#192959', // Dark blue color
+            marginBottom: '20px',
+            marginTop: '-10px', // Raise the text
+          }}
+        >
+          Login
+        </h2>
 
         <Box
           component="form"
@@ -93,54 +114,37 @@ const Begin2 = () => {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
           />
-            {/* Forgot Password Link */}
-            <Box sx={{ textAlign: 'left', marginTop: '2px',marginRight:'20px' }}>
-                <Link
-                    to="/forgot-password"
-                    style={{
-                    textDecoration: 'none',
-                    color: '#283593',
-                    }}
-                    onMouseEnter={(e) => (e.target.style.textDecoration = 'underline')} // Add underline on hover
-                    onMouseLeave={(e) => (e.target.style.textDecoration = 'none')} // Remove underline when not hovering
-                >
-                    Forgot password?
-                </Link>
-                </Box>
 
+          {/* Forgot Password Link */}
+          <Box sx={{ textAlign: 'left', marginTop: '2px', marginRight: '20px' }}>
+            <Link
+              to="/forgot-password"
+              style={{
+                textDecoration: 'none',
+                color: '#192959',
+              }}
+              onMouseEnter={(e) => (e.target.style.textDecoration = 'underline')} // Add underline on hover
+              onMouseLeave={(e) => (e.target.style.textDecoration = 'none')} // Remove underline when not hovering
+            >
+              Forgot password?
+            </Link>
+          </Box>
 
           {/* Login Button */}
           <Button
-                variant="contained"
-                sx={{
-                    backgroundColor: '#192959', // Original color
-                    color: 'white',
-                    borderRadius: '20px',
-                    '&:hover': {
-                    backgroundColor: '#4b5a86', // Lighter shade of #192959
-                    },
-                }}
-                onClick={handleLogin}
-                >
-                Sign in
-                </Button>
-
-        </Box>
-
-        {/* Forgot Password and Register Links */}
-        <Box sx={{ marginTop: '20px' }}>
-          
-          <p>
-            Don't have an account?{' '}
-            <Link
-              to="/New"
-              style={{ textDecoration: 'none', color: '#192959', fontWeight: 'bold' }}
-              onMouseEnter={(e) => (e.target.style.textDecoration = 'underline')} // Add underline on hover
-               onMouseLeave={(e) => (e.target.style.textDecoration = 'none')} // Remove underline when not hovering
-            >
-              Register Now
-            </Link>
-          </p>
+            variant="contained"
+            sx={{
+              backgroundColor: '#192959', // Original color
+              color: 'white',
+              borderRadius: '20px',
+              '&:hover': {
+                backgroundColor: '#4b5a86', // Lighter shade of #192959
+              },
+            }}
+            onClick={handleLogin}
+          >
+            Sign in
+          </Button>
         </Box>
 
         {/* Forgot Password and Register Links */}
@@ -158,21 +162,37 @@ const Begin2 = () => {
             </Link>
           </p>
         </Box>
+
+        {/* Forgot Password and Register Links */}
+        <Box sx={{ marginTop: '20px' }}>
+          <p>
+            Don't have an account?{' '}
+            <Link
+              to="/New"
+              style={{ textDecoration: 'none', color: '#192959', fontWeight: 'bold' }}
+              onMouseEnter={(e) => (e.target.style.textDecoration = 'underline')} // Add underline on hover
+              onMouseLeave={(e) => (e.target.style.textDecoration = 'none')} // Remove underline when not hovering
+            >
+              Register Now
+            </Link>
+          </p>
+        </Box>
+
         {/* Continue as Guest Link */}
-  <p>
-    <Link
-      to="/homeGuest" // Replace with the route for the guest home page
-      style={{
-        textDecoration: 'none',
-        color: '#192959',
-        fontWeight: 'bold',
-      }}
-      onMouseEnter={(e) => (e.target.style.textDecoration = 'underline')} // Add underline on hover
-      onMouseLeave={(e) => (e.target.style.textDecoration = 'none')} // Remove underline when not hovering
-    >
-      Continue as Guest
-    </Link>
-  </p>
+        <p>
+          <Link
+            to="/homeGuest" // Replace with the route for the guest home page
+            style={{
+              textDecoration: 'none',
+              color: '#192959',
+              fontWeight: 'bold',
+            }}
+            onMouseEnter={(e) => (e.target.style.textDecoration = 'underline')} // Add underline on hover
+            onMouseLeave={(e) => (e.target.style.textDecoration = 'none')} // Remove underline when not hovering
+          >
+            Continue as Guest
+          </Link>
+        </p>
       </Box>
     </Box>
   );
