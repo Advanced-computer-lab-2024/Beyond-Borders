@@ -126,7 +126,7 @@ app.post("/addAdmin", createNewAdmin);
 app.post("/api/addProduct", uploadImage.single("Picture"), createNewProduct);
 app.post("/api/addProductSeller", uploadImage.single("Picture"), createNewProductSeller);
 app.put("/api/editProduct", uploadImage.single("Picture"), editProduct);
-app.put("/api/editProductSeller", uploadImage.single("Picture"), editProductSeller);
+app.put("/api/editProductSeller", uploadImage.single("Logo"), editProductSeller);
 app.post("/api/acceptSeller", acceptSeller);
 app.post("/api/acceptTourGuide", acceptTourGuide);
 app.post("/api/acceptAdvertiser", acceptAdvertiser);
