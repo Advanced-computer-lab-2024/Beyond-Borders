@@ -136,7 +136,7 @@ const Begin2 = () => {
             sx={{
               backgroundColor: '#192959', // Original color
               color: 'white',
-              borderRadius: '20px',
+              borderRadius: '10px',
               '&:hover': {
                 backgroundColor: '#4b5a86', // Lighter shade of #192959
               },
