@@ -283,6 +283,13 @@ function YAdminProductsPage() {
     }));
   };
 
+  const handleImageEditClick = (productId) => {
+    const fileInput = document.getElementById(`file-input-${productId}`);
+    if (fileInput) {
+      fileInput.click(); // Programmatically trigger file input click
+    }
+  };
+
   return (
     <Box sx={styles.container}>
       {sidebarOpen && <Box sx={styles.overlay} onClick={() => setSidebarOpen(false)} />}
@@ -407,13 +414,42 @@ function YAdminProductsPage() {
           {displayedProducts.map((product, index) => (
             <Box key={product._id}>
                 <Box sx={styles.productCard}>
+                {/* <Box sx={styles.productImageContainer}>
+                <img
+      src={`http://localhost:8000${product.Picture}`}
+      alt="Product"
+      style={styles.productImage}
+    />
+    {editMode[product._id] && (
+      <>
+        <Box
+          sx={styles.editIconOverlay}
+          onClick={() => handleImageEditClick(product._id)}
+        >
+          <EditIcon />
+        </Box>
+        <input
+          id={`file-input-${product._id}`}
+          type="file"
+          accept="image/*"
+          style={styles.hiddenInput}
+          onChange={(e) =>
+            setEditedProduct((prev) => ({
+              ...prev,
+              Picture: e.target.files[0],
+            }))
+          }
+        />
+      </>
+    )}
+  </Box> */}
                      {/* Product Name */}
                     <Typography 
                     variant="h6" sx={styles.productTitle}>{product.Name}
                     </Typography>
 
                     {/* Product Seller */}
-                    <Box sx={styles.productDetail}>
+                    <Box sx={styles.productDetails}>
                     <Typography variant="body2" sx={{ display: 'flex', alignItems: 'center' }}>
                         <PersonIcon fontSize="small" sx={{ mr: 1 }} />
                         {editMode[product._id] ? (
@@ -431,7 +467,7 @@ function YAdminProductsPage() {
                     </Box>
 
                     {/* Product Price */}
-                    <Box sx={styles.productDetail}>
+                    <Box sx={styles.productDetails}>
                     <Typography variant="body2" sx={{ display: 'flex', alignItems: 'center' }}>
                         <AttachMoneyIcon fontSize="small" sx={{ mr: 1 }} />
                         {editMode[product._id] ? (
@@ -448,7 +484,7 @@ function YAdminProductsPage() {
                     </Box>
 
                     {/* Product Quantity */}
-                    <Box sx={styles.productDetail}>
+                    <Box sx={styles.productDetails}>
                     <Typography variant="body2" sx={{ display: 'flex', alignItems: 'center' }}>
                         <InventoryIcon fontSize="small" sx={{ mr: 1 }} />
                         {editMode[product._id] ? (
@@ -465,7 +501,7 @@ function YAdminProductsPage() {
                     </Box>
 
                     {/* Product Sales */}
-                    <Box sx={styles.productDetail}>
+                    <Box sx={styles.productDetails}>
                     <Typography variant="body2" sx={{ display: 'flex', alignItems: 'center' }}>
                         <ShoppingCartIcon fontSize="small" sx={{ mr: 1 }} />
                         {editMode[product._id] ? (
@@ -483,7 +519,7 @@ function YAdminProductsPage() {
                     </Box>
 
                      {/* Product Total Price of Sales */}
-                <Box sx={styles.productDetail}>
+                <Box sx={styles.productDetails}>
                 <Typography variant="body2" sx={{ display: 'flex', alignItems: 'center' }}>
                     <AttachMoneyIcon fontSize="small" sx={{ mr: 1 }} />
                     {editMode[product._id] ? (
@@ -500,7 +536,7 @@ function YAdminProductsPage() {
                     </Typography>
                     </Box>
 
-                    <img
+                    {/* <img
                     src={`http://localhost:8000${product.Picture}`}
                     alt="Product"
                     style={styles.productImage}
@@ -516,11 +552,11 @@ function YAdminProductsPage() {
                     inputProps={{ accept: "image/*" }}
                   />
                   
-                    )}
+                    )} */}
 
 
                {/* Product Description */}
-                    <Box sx={styles.productDetail}>
+                    <Box sx={styles.productDetails}>
                     <Typography variant="body2" sx={{ display: 'flex', alignItems: 'center' }}>
                         <DescriptionIcon fontSize="small" sx={{ mr: 1 }} />
                         {editMode[product._id] ? (
@@ -564,6 +600,37 @@ function YAdminProductsPage() {
                         </>
                         )}
                     </Typography>
+
+                     {/* Image Section */}
+  <Box sx={styles.productImageContainer}>
+  <img
+    src={`http://localhost:8000${product.Picture}`}
+    alt="Product"
+    style={styles.productImage}
+  />
+  {editMode[product._id] && (
+    <>
+      <Box
+        sx={styles.editIconOverlay}
+        onClick={() => document.getElementById(`file-input-${product._id}`).click()}
+      >
+        <EditIcon />
+      </Box>
+      <input
+        id={`file-input-${product._id}`}
+        type="file"
+        accept="image/*"
+        style={styles.hiddenInput}
+        onChange={(e) =>
+          setEditedProduct((prev) => ({
+            ...prev,
+            Picture: e.target.files[0],
+          }))
+        }
+      />
+    </>
+  )}
+</Box>
 
              
               {/* Edit/Save Button */}
@@ -777,15 +844,19 @@ const styles = {
     border: '1px solid #ccc',
     position: 'relative',
     textAlign: 'left',
+    maxHeight: '350px', // Ensure the container matches the height of the picture
+  },
+  productDetails: {
+    marginBottom: '10px',
   },
   productTitle: {
     fontWeight: 'bold',
     fontSize: '20px',
     marginBottom: '10px',
   },
-  productDetail: {
-    marginBottom: '10px',
-  },
+  // productDetail: {
+  //   marginBottom: '10px',
+  // },
   archiveButton: {
     position: 'absolute',
     top: '10px',
@@ -859,15 +930,50 @@ const styles = {
       color: "#192959", // Text changes to #192959
     },
   },
+  productImageContainer: {
+    position: 'relative',
+    width: '250px', // Fixed width for the container
+    height: '250px', // Fixed height for the container
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    border: '1px solid #ccc',
+    borderRadius: '10px',
+    overflow: 'hidden',
+    top: '-212px', // Moves the image container up
+    right: '-500px', // Moves the image container to the right
+    zIndex: 1, // Keep it above other elements
+  },
   productImage: {
-    width: '150px', // Increase the width
-    height: '150px', // Increase the height
+    width: '100%', // Ensure the image adapts to the container's size
+    height: '100%',
     objectFit: 'cover',
-    borderRadius: '8px',
-    marginBottom: '10px',
-    marginLeft: '20px', // Move the image to the right
+    position: 'relative',
+  },
+  editIconOverlay: {
+    position: 'absolute', // Overlay on top of the image
+    top: '50%', // Center vertically within the container
+    left: '50%', // Center horizontally
+    transform: 'translate(-50%, -50%)', // Exact centering
+    backgroundColor: 'rgba(0, 0, 0, 0.5)', // Semi-transparent background
+    color: '#fff', // Icon color
+    borderRadius: '50%', // Round overlay
+    padding: '10px', // Padding for the icon
+    cursor: 'pointer', // Pointer cursor for interactivity
+    zIndex: 2, // Ensure it stays above the image
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   
+  hiddenInput: {
+    position: 'absolute', // Position it absolutely within the container
+    top: 0,
+    left: 0,
+    width: 0, // Ensure it takes no space
+    height: 0, // Ensure it takes no space
+    opacity: 0, // Fully hide it
+  },
   
 };
 

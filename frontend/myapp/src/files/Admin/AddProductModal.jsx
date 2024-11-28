@@ -5,11 +5,7 @@ import {
   Typography,
   TextField,
   Button,
-  InputAdornment,
-  IconButton,
 } from "@mui/material";
-import Visibility from "@mui/icons-material/Visibility";
-import VisibilityOff from "@mui/icons-material/VisibilityOff";
 
 const styles = {
   modalContent: {
@@ -29,6 +25,22 @@ const styles = {
     "&:hover": {
       backgroundColor: "#192959",
     },
+    marginTop: "5px",
+  },
+  uploadButton: {
+    display: "inline-block",
+    border: "1px solid #007BFF",
+    borderRadius: "5px",
+    padding: "10px 0px", // Increase padding to make the button longer
+    color: "#007BFF",
+    textAlign: "center",
+    cursor: "pointer",
+    fontSize: "14px",
+    width: "100%", // Make the button span the full width
+    marginBottom: "20px", // Add space below the button
+  },
+  hiddenInput: {
+    display: "none",
   },
 };
 
@@ -48,23 +60,33 @@ function AddProductModal({ open, handleClose, handleCreateProduct }) {
     setNewProduct((prev) => ({ ...prev, [name]: value }));
   };
 
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setNewProduct((prev) => ({ ...prev, Picture: file }));
+    }
+  };
+
   const handleSubmit = () => {
-    // Validate required fields
-    if (!newProduct.Name || !newProduct.Description || !newProduct.Price || !newProduct.Quantity || !newProduct.Seller || !newProduct.Picture) {
+    if (
+      !newProduct.Name ||
+      !newProduct.Description ||
+      !newProduct.Price ||
+      !newProduct.Quantity ||
+      !newProduct.Seller ||
+      !newProduct.Picture
+    ) {
       setErrorMessage("All fields are required, including Picture!");
       return;
     }
-  
-    // Create FormData object to send the file
+
     const formData = new FormData();
     Object.keys(newProduct).forEach((key) => {
       formData.append(key, newProduct[key]);
     });
-  
-    // Call the handler to create the product
+
     handleCreateProduct(formData);
-  
-    // Reset the form
+
     setNewProduct({
       Name: "",
       Description: "",
@@ -73,11 +95,10 @@ function AddProductModal({ open, handleClose, handleCreateProduct }) {
       Seller: "",
       Picture: "",
     });
-  
+
     setErrorMessage("");
     handleClose();
   };
-  
 
   return (
     <Modal open={open} onClose={handleClose}>
@@ -132,14 +153,21 @@ function AddProductModal({ open, handleClose, handleCreateProduct }) {
           onChange={handleInputChange}
           sx={{ mb: 2 }}
         />
-       <TextField
-        name="Picture"
-        type="file"
-        fullWidth
-        onChange={(e) => setNewProduct((prev) => ({ ...prev, Picture: e.target.files[0] }))}
-        sx={{ mb: 2 }}
-        inputProps={{ accept: "image/*" }} // Restrict to image files
+        <input
+          type="file"
+          accept="image/*"
+          id="upload-picture"
+          style={styles.hiddenInput}
+          onChange={handleFileChange}
         />
+        <label htmlFor="upload-picture" style={styles.uploadButton}>
+          Upload Picture
+        </label>
+        {newProduct.Picture && (
+          <Typography variant="body2" sx={{ mt: 1 }}>
+            Selected File: {newProduct.Picture.name}
+          </Typography>
+        )}
 
         {errorMessage && (
           <Typography color="error" sx={{ mb: 2 }}>
