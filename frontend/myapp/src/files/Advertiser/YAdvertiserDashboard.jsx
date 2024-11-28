@@ -19,6 +19,8 @@ import SaveIcon from '@mui/icons-material/Save';
 import PersonIcon from '@mui/icons-material/Person'; // Icon for generic user type
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import PriorityHighIcon from '@mui/icons-material/PriorityHigh'; // Icon for generic user type
+import NotificationImportantIcon from '@mui/icons-material/NotificationImportant';
+import DoneAllIcon from '@mui/icons-material/DoneAll';
 
 
 import axios from 'axios';
@@ -59,6 +61,8 @@ function YAdvertiserDashboard() {
 
   const [notifications, setNotifications] = useState([]);
   const [isNotificationsSidebarOpen, setNotificationsSidebarOpen] = useState(false);
+  const [allNotificationsRead, setAllNotificationsRead] = useState(true);
+
 
 
 
@@ -120,6 +124,8 @@ function YAdvertiserDashboard() {
     };
   
     fetchProfileData();
+    checkNotificationsStatus();
+
   }, []);
 
   const readMyProfile = async () => {
@@ -168,8 +174,28 @@ function YAdvertiserDashboard() {
 
   const toggleNotificationsSidebar = () => {
     setNotificationsSidebarOpen((prev) => !prev);
-    if (!isNotificationsSidebarOpen) fetchNotifications(); // Fetch notifications only when opening
+    if (!isNotificationsSidebarOpen) {
+      fetchNotifications(); // Fetch notifications when opening
+      checkNotificationsStatus(); // Update notification icon status
+    }
   };
+  
+
+  const checkNotificationsStatus = async () => {
+    const username = localStorage.getItem('username');
+    if (!username) return;
+  
+    try {
+      const response = await axios.get('/api/areAllNotificationsRead', {
+        params: { username },
+      });
+  
+      setAllNotificationsRead(response.data.allRead);
+    } catch (error) {
+      console.error('Error checking notification status:', error);
+    }
+  };
+  
   
   // const markAllAsRead = async () => {
   //   const username = localStorage.getItem('username'); // Get the username from localStorage
@@ -204,6 +230,7 @@ function YAdvertiserDashboard() {
       const response = await axios.put('/api/allNotificationsRead', { username });
       if (response.status === 200) {
         alert('All notifications marked as read.');
+        checkNotificationsStatus(); // Update notification icon status
       } else {
         alert('Failed to mark notifications as read.');
       }
@@ -512,73 +539,89 @@ const handleAccountDeletion = async () => {
       {isNotificationsSidebarOpen && (
   <>
     <Box
+  sx={{
+    position: 'fixed',
+    top: '60px',
+    right: 0,
+    width: '350px',
+    height: 'calc(100% - 60px)',
+    backgroundColor: '#cccfda',
+    boxShadow: '-2px 0 8px rgba(0, 0, 0, 0.2)',
+    zIndex: 10,
+    padding: '20px',
+    display: 'flex',
+    flexDirection: 'column',
+    overflowY: 'auto', // Enable vertical scrolling
+    scrollbarWidth: 'thin', // Firefox scrollbar styling
+    '&::-webkit-scrollbar': {
+      width: '8px', // Scrollbar width
+    },
+    '&::-webkit-scrollbar-track': {
+      backgroundColor: '#e6e7ed', // Scrollbar track color
+    },
+    '&::-webkit-scrollbar-thumb': {
+      backgroundColor: '#192959', // Scrollbar thumb color
+      borderRadius: '4px', // Rounded edges
+    },
+  }}
+>
+  <Box
+    sx={{
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: '10px',
+    }}
+  >
+    <Typography variant="h6" textAlign="left" sx={{ color: '#192959' }}>
+      Notifications
+    </Typography>
+    <Button
+      variant="outlined"
+      size="small"
       sx={{
-        position: 'fixed',
-        top: '60px',
-        right: 0,
-        width: '350px',
-        height: 'calc(100% - 60px)',
-        backgroundColor: '#cccfda',
-        boxShadow: '-2px 0 8px rgba(0, 0, 0, 0.2)',
-        zIndex: 10,
-        padding: '20px',
+        color: '#192959',
+        borderColor: '#192959',
+        '&:hover': {
+          backgroundColor: '#192959',
+          color: '#ffffff',
+        },
+      }}
+      startIcon={<DoneAllIcon />} // Adds the DoneAllIcon to the left of the text
+      onClick={async () => {
+        await markAllAsRead();
+        fetchNotifications(); // Refresh notifications after marking all as read
       }}
     >
+      Mark all as read
+    </Button>
+  </Box>
+  {notifications.length > 0 ? (
+    notifications.map((notification, index) => (
       <Box
+        key={index}
         sx={{
           display: 'flex',
-          justifyContent: 'space-between',
           alignItems: 'center',
+          justifyContent: 'space-between',
+          padding: '10px',
           marginBottom: '10px',
+          backgroundColor: notification.Read ? '#f0f0f0' : '#ffbaba',
+          borderRadius: '5px',
+          boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
         }}
       >
-        <Typography variant="h6" textAlign="left" sx={{ color: '#192959' }}>
-          Notifications
+        <Typography variant="body1" textAlign="left" sx={{ color: '#192959' }}>
+          {notification.NotificationText}
         </Typography>
-        <Button
-          variant="outlined"
-          size="small"
-          sx={{
-            color: '#192959',
-            borderColor: '#192959',
-            '&:hover': {
-              backgroundColor: '#192959',
-              color: '#ffffff',
-            },
-          }}
-          onClick={async () => {
-            await markAllAsRead();
-            fetchNotifications(); // Refresh notifications after marking all as read
-          }}
-        >
-          Mark all as read
-        </Button>
+        {!notification.Read && <PriorityHighIcon sx={{ color: 'red' }} />}
       </Box>
-      {notifications.length > 0 ? (
-        notifications.map((notification, index) => (
-          <Box
-            key={index}
-            sx={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              padding: '10px',
-              marginBottom: '10px',
-              backgroundColor: notification.Read ? '#f0f0f0' : '#fff0f0',
-              borderRadius: '5px',
-              boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-            }}
-          >
-            <Typography variant="body1" textAlign="left" sx={{ color: '#192959' }}>
-              {notification.NotificationText}
-            </Typography>
-            {!notification.Read && <PriorityHighIcon sx={{ color: 'red' }} />}
-          </Box>
-        ))
-      ) : (
-        <Typography>No notifications</Typography>
-      )}
-    </Box>
+    ))
+  ) : (
+    <Typography>No notifications</Typography>
+  )}
+</Box>
+
     <Box
       sx={{
         position: 'fixed',
@@ -607,66 +650,50 @@ const handleAccountDeletion = async () => {
           </Typography>
         </Box>
         <Box sx={styles.topMenuRight}>
-          {/* <Button onClick={readMyProfile} sx={styles.menuButton}>
-            My Profile
-          </Button> */}
-          <Button
-  sx={{
-    ...styles.menuButton,
-    '&:hover': {
-      backgroundColor: '#e6e7ed', // Lighter hover background
-      color: '#192959', // Text color on hover
-    },
-  }}
-  startIcon={
-    profileData.logo ? (
-      <img
-        src={profileData.logo}
-        alt="Profile"
-        style={{
-          width: '30px',
-          height: '30px',
-          borderRadius: '50%',
-          objectFit: 'cover',
-          border: '2px solid #e6e7ed',
-        }}
-      />
+  <Button
+    sx={{
+      ...styles.menuButton,
+      '&:hover': {
+        backgroundColor: '#e6e7ed', // Lighter hover background
+        color: '#192959', // Text color on hover
+      },
+    }}
+    startIcon={
+      profileData.logo ? (
+        <img
+          src={profileData.logo}
+          alt="Profile"
+          style={{
+            width: '30px',
+            height: '30px',
+            borderRadius: '50%',
+            objectFit: 'cover',
+            border: '2px solid #e6e7ed',
+          }}
+        />
+      ) : (
+        <AccountCircleIcon />
+      )
+    }
+    onClick={readMyProfile}
+  >
+    My Profile
+  </Button>
+  <IconButton
+    onClick={toggleNotificationsSidebar}
+    sx={styles.iconButton}
+  >
+    {allNotificationsRead ? (
+      <NotificationsIcon />
     ) : (
-      <AccountCircleIcon />
-    )
-  }
-  onClick={readMyProfile}
->
-  My Profile
-</Button>
-          {/* <Button onClick={() => setChangePasswordModal(true)} sx={styles.menuButton}>
-            Request Account Deletion
-          </Button> */}
-          {/* <Box
-            onMouseEnter={() => setShowManageAccessDropdown(true)}
-            onMouseLeave={() => setShowManageAccessDropdown(false)}
-            sx={styles.manageAccessContainer}
-          >
-            <Button sx={styles.menuButton}>Manage Access</Button>
-            {showManageAccessDropdown && (
-              <Box sx={styles.dropdown}>
-                <Button onClick={() => setAddAdminModal(true)} sx={styles.dropdownItem}>Add Admin</Button>
-                <Button onClick={() => setAddTourismGovModal(true)} sx={styles.dropdownItem}>Add Tourism Governor</Button>
-                <Button onClick={() => navigate('/requests')} sx={styles.dropdownItem}>Requests</Button>
-                <Button onClick={() => setDeleteRequestsModal(true)} sx={styles.dropdownItem}>
-                  Delete Requests
-                </Button>
+      <NotificationImportantIcon sx={{ color: 'red' }} />
+    )}
+  </IconButton>
+  <IconButton onClick={() => navigate('/')} sx={styles.iconButton}>
+    <LogoutIcon />
+  </IconButton>
+</Box>
 
-              </Box>
-            )}
-          </Box> */}
-          <IconButton onClick={toggleNotificationsSidebar} sx={styles.iconButton}>
-            <NotificationsIcon />
-          </IconButton>
-          <IconButton onClick={() => navigate('/')}sx={styles.iconButton}>
-            <LogoutIcon />
-          </IconButton>
-        </Box>
       </Box>
 
       {/* Collapsible Sidebar */}
