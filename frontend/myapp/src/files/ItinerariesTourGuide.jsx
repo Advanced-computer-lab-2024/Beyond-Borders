@@ -537,13 +537,22 @@ const [isModalOpen, setIsModalOpen] = useState(false); // Modal state
         {/* <Button onClick={() => setActiveModal('viewCategories')} sx={styles.menuButton}>
           Activity Categories
         </Button> */}
+        <Button
+            onClick={() => navigate('/Deactivated')}
+            sx={styles.menuButton}
+          >
+            {/* {viewArchived ? "View Unarchived Products" : "View Archived Products"} */}
+            {"View My Deactivated Itineraries"}
+
+          </Button>
 
 <Button
         onClick={handleModalOpen}
         sx={{
           backgroundColor: "#192959",
           color: "#fff",
-          "&:hover": { backgroundColor: "#4b5a86" },
+          fontWeight:"bold",
+                "&:hover": { color: "#192959",backgroundColor: "#e6e7ed" },
         }}
         startIcon={<AddIcon />}
       >
@@ -578,10 +587,10 @@ const [isModalOpen, setIsModalOpen] = useState(false); // Modal state
         
         <Button onClick={() => navigate('/ItinerariesTourguide')} sx={styles.sidebarButton}>
           <MapIcon sx={styles.icon} />
-          {sidebarOpen && 'Itineraries'}
+          {sidebarOpen && 'My Itineraries'}
         </Button>
 
-        <Button
+        {/* <Button
     sx={{
       color: '#e6e7ed',
       display: 'flex',
@@ -599,8 +608,8 @@ const [isModalOpen, setIsModalOpen] = useState(false); // Modal state
   >
     <BlockIcon style={styles.icon} />
     {sidebarOpen && "Deactivated Itineraries"}
-  </Button>
-        <Button onClick={() => navigate('/HomePageTourGuide')} sx={styles.sidebarButton}>
+  </Button> */}
+        <Button onClick={() => navigate('/YTourGuideDashboard')} sx={styles.sidebarButton}>
           <DashboardIcon sx={styles.icon} />
           {sidebarOpen && 'Back to Dashboard'}
         </Button>

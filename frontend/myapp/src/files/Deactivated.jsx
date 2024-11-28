@@ -465,6 +465,14 @@ const [itineraryToDeactivate, setItineraryToDeactivate] = useState(null);
           
         </Box>
         <Box sx={styles.topMenuRight}>
+        <Button
+            onClick={() => navigate('/ItinerariesTourGuide')}
+            sx={styles.menuButton}
+          >
+            {/* {viewArchived ? "View Unarchived Products" : "View Archived Products"} */}
+            {"View My Activated Itineraries"}
+
+          </Button>
         {/* <Button onClick={() => setActiveModal('viewCategories')} sx={styles.menuButton}>
           Activity Categories
         </Button> */}
@@ -496,9 +504,9 @@ const [itineraryToDeactivate, setItineraryToDeactivate] = useState(null);
         
         <Button onClick={() => navigate('/ItinerariesTourguide')} sx={styles.sidebarButton}>
           <MapIcon sx={styles.icon} />
-          {sidebarOpen && 'Itineraries'}
+          {sidebarOpen && 'My Itineraries'}
         </Button>
-        <Button onClick={() => navigate('/HomePageTourGuide')} sx={styles.sidebarButton}>
+        <Button onClick={() => navigate('/YTourGuideDashboard')} sx={styles.sidebarButton}>
           <DashboardIcon sx={styles.icon} />
           {sidebarOpen && 'Back to Dashboard'}
         </Button>

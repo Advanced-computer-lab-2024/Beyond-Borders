@@ -476,7 +476,7 @@ const handleAccountDeletion = async () => {
     <Box
   sx={{
     position: 'fixed',
-    top: '60px',
+    top: '66px',
     right: 0,
     width: '350px',
     height: 'calc(100% - 60px)',
@@ -665,7 +665,7 @@ const handleAccountDeletion = async () => {
           <StorefrontIcon sx={styles.icon} />
           {sidebarOpen && 'Products'}
         </Button> */}
-        <Button onClick={() => navigate('/YAdvertiserActivitiesPage')} sx={styles.sidebarButton}>
+        <Button onClick={() => navigate('/ItinerariesTourGuide')} sx={styles.sidebarButton}>
           <MapIcon sx={styles.icon} />
           {sidebarOpen && ' My Itineraries'}
         </Button>
@@ -703,7 +703,7 @@ const handleAccountDeletion = async () => {
         </Box>
 
         {/* Right Section: My Activities */}
-        <Box sx={styles.infoBox} onClick={() => navigate('/YAdvertiserActivitiesPage')}>
+        <Box sx={styles.infoBox} onClick={() => navigate('/ItinerariesTourGuide')}>
             <img src="/images/itinerary.jpg" alt="Activities" style={styles.image} />
             <Typography variant="h6" sx={styles.text} className="text">
             My Itineraries
