@@ -36,6 +36,8 @@ import SaveIcon from '@mui/icons-material/Save';
 import EditIcon from '@mui/icons-material/Edit';
 import StarsIcon from '@mui/icons-material/Stars';
 import MilitaryTechIcon from '@mui/icons-material/MilitaryTech';
+import RemoveIcon from '@mui/icons-material/Remove';
+
 
 
 
@@ -90,6 +92,7 @@ const [showPassword, setShowPassword] = useState(false); // Toggle for password 
 
 const [availablePreferences, setAvailablePreferences] = useState([]); // Holds available preference tags
 const [isPreferencesModalOpen, setIsPreferencesModalOpen] = useState(false); // Controls preference selection modal visibility
+const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
   
   const [itineraryData, setItineraryData] = useState({
@@ -558,6 +561,48 @@ const savePreferences = async () => {
   }
 };
 
+const handleAccountDeletion = async () => {
+  const username = profileData.username; // Use the username from profile data
+
+  if (!username) {
+    alert('Username not found. Please try again.');
+    return;
+  }
+
+  try {
+    const response = await axios.post('/api/requestDeleteAccountTourist', {
+      Username: username, // Pass the username to the backend
+    });
+    alert(response.data.msg || 'Your request to delete the account has been submitted!');
+  } catch (error) {
+    console.error('Error requesting account deletion:', error);
+    alert(
+      error.response?.data?.msg ||
+        'An error occurred while requesting account deletion. Please try again later.'
+    );
+  }
+};
+
+const handleRedeemPoints = async () => {
+  try {
+    const response = await axios.put('/redeemPoints', {
+      username: profileData.username,
+    });
+    alert(response.data.msg);
+    setProfileData({
+      ...profileData,
+      wallet: response.data.walletBalance,
+      points: response.data.remainingPoints,
+    });
+  } catch (error) {
+    alert(
+      error.response?.data?.msg || 'An error occurred while redeeming points.'
+    );
+  }
+};
+
+
+
 
 
 
@@ -811,7 +856,7 @@ const closeDeleteRequestsModal = () => {
                 </Button>
 
                 <Button
-                onClick={() => navigate('/my-booked-activities')}
+                onClick={() => navigate('/TouristBookedActivities')}
                 sx={{
                     ...styles.sidebarButton,
                     fontSize: '14px',
@@ -860,7 +905,7 @@ const closeDeleteRequestsModal = () => {
         {sidebarOpen && 'Upcoming '}
       </Button>
       <Button
-        onClick={() => navigate('/completed-itineraries')}
+        onClick={() => navigate('/TouristCompletedItineraries')}
         sx={{
           ...styles.sidebarButton,
           fontSize: '14px',
@@ -872,7 +917,7 @@ const closeDeleteRequestsModal = () => {
         {sidebarOpen && 'Completed '}
       </Button>
       <Button
-        onClick={() => navigate('/my-booked-itineraries')}
+        onClick={() => navigate('/TouristBookedItineraries')}
         sx={{
           ...styles.sidebarButton,
           fontSize: '14px',
@@ -931,7 +976,7 @@ const closeDeleteRequestsModal = () => {
         {sidebarOpen && 'Visited '}
       </Button>
       <Button
-        onClick={() => navigate('/saved-historical-places')}
+        onClick={() => navigate('/TouristBookedHP')}
         sx={{
           ...styles.sidebarButton,
           fontSize: '14px',
@@ -996,7 +1041,7 @@ const closeDeleteRequestsModal = () => {
       
       {/* Saved Museums */}
       <Button
-        onClick={() => navigate('/saved-museums')}
+        onClick={() => navigate('/TouristBookedMuseum')}
         sx={{
           ...styles.sidebarButton,
           fontSize: '14px',
@@ -1034,7 +1079,7 @@ const closeDeleteRequestsModal = () => {
     <Box sx={{ display: 'flex', flexDirection: 'column', marginLeft: sidebarOpen ? '20px' : '0px' }}>
       {/* Available Transportation */}
       <Button
-        onClick={() => navigate('/available-transportation')}
+        onClick={() => navigate('/TouristAllTransportation')}
         sx={{
           ...styles.sidebarButton,
           fontSize: '14px',
@@ -1048,7 +1093,7 @@ const closeDeleteRequestsModal = () => {
       
       {/* Booked Transportation */}
       <Button
-        onClick={() => navigate('/booked-transportation')}
+        onClick={() => navigate('/TouristBookedTransportation')}
         sx={{
           ...styles.sidebarButton,
           fontSize: '14px',
@@ -1139,29 +1184,7 @@ const closeDeleteRequestsModal = () => {
         Itineraries
       </Typography>
     </Box>
-    
-    
-  </Box>
-  {/* Right Arrow Button */}
-  <Button
-      sx={{
-        backgroundColor: '#99a0b5',
-        color: '#e6e7ed',
-        height: '30px', // Smaller height
-        width: '30px', // Smaller width
-        borderRadius: '50%',
-        marginLeft: '10px',
-        marginRight:'10px',
-        minWidth: '30px', // Ensures consistent size
-        padding: 0,
-        '&:hover': {
-          backgroundColor: '#192959',
-        },
-      }}
-      onClick={() => console.log('Right Arrow Clicked')}
-    >
-      ➡️
-    </Button>
+     </Box>
   
 </Box>
 
@@ -1308,21 +1331,47 @@ const closeDeleteRequestsModal = () => {
           InputProps={{ readOnly: true }}
           margin="dense"
         />
-        <TextField
-          fullWidth
-          label="Points"
-          id="points"
-          value={profileData.points}
-          InputProps={{
-            startAdornment: (
-              <InputAdornment position="start">
-                <StarsIcon sx={{ color: '#192959' }} />
-              </InputAdornment>
-            ),
-            readOnly: true,
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
           }}
-          margin="dense"
-        />
+        >
+          <TextField
+            fullWidth
+            label="Points"
+            id="points"
+            value={profileData.points}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <StarsIcon sx={{ color: '#192959' }} />
+                </InputAdornment>
+              ),
+              readOnly: true,
+            }}
+            margin="dense"
+            sx={{ marginRight: '10px' }}
+          />
+          <Button
+            variant="outlined"
+            onClick={handleRedeemPoints}
+            sx={{
+              borderColor: '#192959',
+              color: '#192959',
+              backgroundColor: 'white',
+              fontWeight: 'bold',
+              '&:hover': {
+                backgroundColor: '#192959',
+                borderColor: 'white',
+                color: 'white',
+              },
+            }}
+          >
+            Redeem
+          </Button>
+        </Box>
         <TextField
           fullWidth
           label="Badge Level"
@@ -1393,7 +1442,6 @@ const closeDeleteRequestsModal = () => {
             </Box>
           </Box>
         ) : (
-          // If no preferences, show button to open preferences modal
           <Button
             variant="outlined"
             onClick={handleOpenPreferencesModal}
@@ -1414,9 +1462,29 @@ const closeDeleteRequestsModal = () => {
           </Button>
         )}
       </Box>
+
+      {/* REQUEST TO DELETE ACCOUNT Button */}
+      <Button
+        variant="contained"
+        onClick={() => setIsDeleteDialogOpen(true)}
+        sx={{
+          marginTop: '10px',
+          backgroundColor: '#ff7b7b',
+          color: '#a70000',
+          fontWeight: 'bold',
+          '&:hover': {
+            backgroundColor: '#a70000',
+            color: '#ff7b7b',
+          },
+        }}
+      >
+        REQUEST TO DELETE ACCOUNT
+      </Button>
     </Box>
   </Box>
 </Modal>
+
+
 
 <Modal
   open={isPreferencesModalOpen}
@@ -1478,34 +1546,26 @@ const closeDeleteRequestsModal = () => {
           onClick={() => togglePreference(tag.NameOfTags)}
         >
           {tag.NameOfTags}
-          <Tooltip
-            title={
-              profileData.preferences.includes(tag.NameOfTags)
-                ? "Remove Preference"
-                : "Add Preference"
-            }
-            arrow
-          >
             <IconButton
               sx={{
                 position: 'absolute',
                 top: '-8px',
                 right: '-8px',
                 backgroundColor: profileData.preferences.includes(tag.NameOfTags)
-                  ? 'white' // White button for remove (X)
+                  ? 'white' // White button for remove (-)
                   : '#192959', // Dark blue button for add (+)
                 color: profileData.preferences.includes(tag.NameOfTags)
-                  ? '#192959' // Dark blue "X"
+                  ? '#192959' // Dark blue "-"
                   : 'white', // White "+"
                 width: '20px',
                 height: '20px',
                 border: profileData.preferences.includes(tag.NameOfTags)
-                  ? '2px solid #192959' // Add dark blue outline for remove (X)
+                  ? '2px solid #192959' // Add dark blue outline for remove (-)
                   : 'none', // No border for add (+)
                 borderRadius: '50%', // Rounded button
                 '&:hover': {
                   backgroundColor: profileData.preferences.includes(tag.NameOfTags)
-                    ? '#e0e0e0' // Light gray hover for remove (X)
+                    ? '#e0e0e0' // Light gray hover for remove (-)
                     : '#3a4a90', // Darker blue hover for add (+)
                 },
               }}
@@ -1516,12 +1576,12 @@ const closeDeleteRequestsModal = () => {
               }}
             >
               {profileData.preferences.includes(tag.NameOfTags) ? (
-                <CloseIcon sx={{ fontSize: '14px', color: '#192959' }} />
+                <RemoveIcon sx={{ fontSize: '14px', color: '#192959' }} />
               ) : (
                 <AddIcon fontSize="small" />
               )}
             </IconButton>
-          </Tooltip>
+          
         </Box>
       ))}
     </Box>
@@ -1545,24 +1605,49 @@ const closeDeleteRequestsModal = () => {
   </Box>
 </Modal>
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+<Dialog open={isDeleteDialogOpen} onClose={() => setIsDeleteDialogOpen(false)}>
+  <DialogContent>
+    <Typography
+      variant="h6"
+      sx={{ fontWeight: 'bold', color: '#192959', mb: 2 }}
+    >
+      Are you sure you want to request the deletion of your account?
+    </Typography>
+    <Typography variant="body2" sx={{ color: '#555' }}>
+      This action cannot be reversed! If you decide to continue, our admins
+      will review your profile and decide whether to proceed with your request.
+    </Typography>
+  </DialogContent>
+  <DialogActions>
+    <Button
+      onClick={() => setIsDeleteDialogOpen(false)}
+      sx={{
+        color: '#192959',
+        backgroundColor: '#e6e7ed',
+        '&:hover': {
+          backgroundColor: '#d1d3d6',
+        },
+      }}
+    >
+      Cancel
+    </Button>
+    <Button
+      onClick={async () => {
+        await handleAccountDeletion();
+        setIsDeleteDialogOpen(false);
+      }}
+      sx={{
+        color: '#fff',
+        backgroundColor: '#a70000',
+        '&:hover': {
+          backgroundColor: '#8b0000',
+        },
+      }}
+    >
+      Confirm
+    </Button>
+  </DialogActions>
+</Dialog>
 
 
 
@@ -1831,6 +1916,16 @@ const styles = {
     display: 'flex',
     alignItems: 'center',
     gap: '18px',
+  },
+  reqDeleteButton: {
+    marginTop: "10px",
+    backgroundColor: '#ff7b7b',
+    color: '#a70000',
+    fontWeight: 'bold',
+    '&:hover': {
+      backgroundColor: '#a70000', // Set background color on hover
+      color: '#ff7b7b',           // Set text color on hover
+    },
   },
   logo: {
     fontWeight: 'bold',

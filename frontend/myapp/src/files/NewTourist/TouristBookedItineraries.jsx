@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Button, Typography, IconButton,Tooltip,Divider,TextField, InputAdornment, Modal,MenuItem,Select,FormControl,InputLabel,} from '@mui/material';
+import { Box, Button, Typography, IconButton,Dialog,DialogContent ,DialogContentText, DialogActions ,Tooltip,Divider,TextField, InputAdornment, Modal,MenuItem,Select,FormControl,InputLabel,} from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import MenuIcon from '@mui/icons-material/Menu';
 import NotificationsIcon from '@mui/icons-material/Notifications';
@@ -45,6 +45,8 @@ import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import IosShareIcon from '@mui/icons-material/IosShare';
 import ShareIcon from '@mui/icons-material/Share';
 import LanguageIcon from '@mui/icons-material/Language';
+import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined';
+
 import axios from 'axios';
 
 function TouristBookedItineraries() {
@@ -85,7 +87,8 @@ const [sharedLink, setSharedLink] = useState(''); // Shared link state
 const [currentActivityName, setCurrentActivityName] = useState(''); // Trac
 const [convertedPrices, setConvertedPrices] = useState({});
 const [currency, setCurrency] = useState('EGP'); // Default currency is EGP
-
+const [openDialog, setOpenDialog] = useState(false);
+const [selectedActivity, setSelectedActivity] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -149,13 +152,26 @@ const [currency, setCurrency] = useState('EGP'); // Default currency is EGP
   
 
   const fetchItineraries = async () => {
+    const username = localStorage.getItem('username'); // Retrieve the logged-in user's username
+  
+    if (!username) {
+      console.error('User not logged in.');
+      return;
+    }
+  
     try {
-      const response = await axios.get('/api/ViewAllUpcomingItinerariesTourist');
-      setActivities(response.data); // Assuming you're using `setActivities` to populate the UI
+      // Call the backend API to fetch booked itineraries
+      const response = await axios.get('/api/viewMyBookedItineraries', {
+        params: { Username: username }, // Send the username as a query parameter
+      });
+  
+      // Update the state with the fetched itineraries
+      setActivities(response.data); // Assuming `setActivities` is used to populate the UI
     } catch (error) {
       console.error('Error fetching itineraries:', error);
     }
   };
+  
 
   const searchItineraries = async (query) => {
     try {
@@ -383,8 +399,49 @@ const [currency, setCurrency] = useState('EGP'); // Default currency is EGP
       </Box>
     );
   };
+
+  const handleCancelBooking = async (itineraryName) => {
+    const username = localStorage.getItem('username'); // Retrieve logged-in user's username
+  
+    if (!username) {
+      alert('User not logged in.');
+      return;
+    }
+  
+    try {
+      // Call the backend API to delete the booked itinerary
+      const response = await axios.put('/deleteBookedItinerary', {
+        touristUsername: username,
+        itineraryName, // Pass the itinerary name as the identifier
+      });
+  
+      // Notify the user of successful cancellation
+      // Update the state to remove the canceled event
+      setActivities((prevActivities) => prevActivities.filter((activity) => activity.Title !== itineraryName));
+    } catch (error) {
+      console.error('Error canceling itinerary:', error);
+      alert(error.response?.data?.msg || 'Failed to cancel the itinerary.');
+    }
+  };
   
   
+  const handleOpenDialog = (activityName) => {
+    setSelectedActivity(activityName); // Set the selected activity
+    setOpenDialog(true);              // Open the dialog
+  };
+  
+  const handleCloseDialog = () => {
+    setOpenDialog(false);             // Close the dialog
+    setSelectedActivity(null);        // Reset selected activity
+  };
+  
+  const handleConfirmDeletion = async () => {
+    if (selectedActivity) {
+      await handleCancelBooking(selectedActivity); // Call your existing cancel booking function
+    }
+    setOpenDialog(false); // Close the dialog
+    setSelectedActivity(null); // Reset selected activity
+  };
 
   const scrollCommentsLeft = (index) => {
     const container = document.getElementById(`commentsContainer-${index}`);
@@ -942,93 +999,11 @@ const [currency, setCurrency] = useState('EGP'); // Default currency is EGP
   }}
 >
   {/* Search Bar */}
-  <TextField
-    label="Search"
-    variant="outlined"
-    value={searchQuery}
-    onChange={handleSearchChange}
-    sx={{
-      width: '30%',
-      '& .MuiOutlinedInput-root': {
-        '& fieldset': {
-          borderColor: '#192959', // Default outline color
-          borderWidth: '2px',
-        },
-        '&:hover fieldset': {
-          borderColor: '#192959', // Hover outline color
-          borderWidth: '2.5px',
-        },
-        '&.Mui-focused fieldset': {
-          borderColor: '#192959', // Focused outline color
-          borderWidth: '2.5px',
-        },
-      },
-      '& .MuiInputLabel-root': {
-        color: '#192959', // Label color
-        fontSize: '18px',
-      },
-    }}
-    InputProps={{
-      startAdornment: (
-        <Box sx={{ display: 'flex', alignItems: 'center', color: '#192959', paddingLeft: '5px' }}>
-          <SearchIcon />
-        </Box>
-      ),
-    }}
-  />
+  
 
   {/* Sort Dropdown and Filter Icon */}
-  <Box sx={{ display: 'flex', alignItems: 'right', gap: '10px', marginLeft: '100px'}}>
-    <TextField
-      select
-      label={
-        <Box sx={{ display: 'flex', alignItems: 'right', gap: '8px' }}>
-          Sort By
-        </Box>
-      }
-      variant="outlined"
-      value={sortOption}
-      onChange={handleSortChange}
-      sx={{
-        width: '80%',
-        '& .MuiOutlinedInput-root': {
-          '& fieldset': {
-            borderColor: '#192959', // Default border color
-            borderWidth: '2px',
-          },
-          '&:hover fieldset': {
-            borderColor: '#33416b', // Hover border color
-            borderWidth: '2.5px',
-          },
-          '&.Mui-focused fieldset': {
-            borderColor: '#192959', // Focused border color
-            borderWidth: '2.5px',
-          },
-        },
-        '& .MuiInputLabel-root': {
-          color: '#192959', // Label color
-          fontSize: '18px',
-        },
-      }}
-      InputProps={{
-        startAdornment: (
-          <Box
-            sx={{
-              display: 'flex',
-              alignItems: 'center',
-              color: '#192959',
-              paddingLeft: '5px',
-            }}
-          >
-            <SwapVertIcon />
-          </Box>
-        ),
-      }}
-    >
-      <MenuItem value="priceAsc">Price: Low to High</MenuItem>
-      <MenuItem value="priceDesc">Price: High to Low</MenuItem>
-      
-    </TextField>
+  <Box sx={{ display: 'flex', alignItems: 'right', gap: '10px', marginLeft: '1565px',marginRight: '10px'}}>
+    
 
     <TextField
   select
@@ -1081,17 +1056,7 @@ const [currency, setCurrency] = useState('EGP'); // Default currency is EGP
 
 
     {/* Filter Icon */}
-    <Tooltip title="Filter" placement="bottom" arrow>
-      <IconButton
-        onClick={() => setFilterModalOpen(true)}
-        sx={{
-          color: '#192959',
-          '&:hover': { backgroundColor: '#e6e7ed', color: '#33416b' },
-        }}
-      >
-        <FilterAltIcon fontSize="large" />
-      </IconButton>
-    </Tooltip>
+    
   </Box>
 </Box>
 
@@ -1107,7 +1072,7 @@ const [currency, setCurrency] = useState('EGP'); // Default currency is EGP
             <Box
               sx={{
                 ...styles.activityCard,
-                backgroundColor: activity.flagged ? '#cccfda' : 'white',
+                backgroundColor: 'white',
               }}
             >
               <Box sx={styles.activityInfo}>
@@ -1141,7 +1106,7 @@ const [currency, setCurrency] = useState('EGP'); // Default currency is EGP
   <Box
     sx={{
       ...styles.infoContainer,
-      backgroundColor: activity.flagged ? '#b3b8c8' : '#f3f4f6',
+      backgroundColor: '#f3f4f6',
     }}
   >
     <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
@@ -1318,7 +1283,7 @@ const [currency, setCurrency] = useState('EGP'); // Default currency is EGP
                 </Box>
 
               <Box sx={styles.bookingOpenContainer}>
-                <Box sx={{...styles.infoContainer, backgroundColor: activity.flagged ? '#b3b8c8' : '#f3f4f6'}}>
+                <Box sx={{...styles.infoContainer, backgroundColor: '#f3f4f6'}}>
                   <Typography variant="body2" sx={{ fontWeight: 'bold' }}>Booking Open:</Typography>
                   <Typography variant="body2">{activity.isBooked ? 'Yes' : 'No'}</Typography>
                 </Box>
@@ -1327,41 +1292,21 @@ const [currency, setCurrency] = useState('EGP'); // Default currency is EGP
               
 
               <Button
-          variant="contained"
-          disabled={!activity.isBooked} // Disable button if booking is not open
-          onClick={() => handleBookItinerary(activity.Title)}
-
-          sx={{
-            position: 'absolute',
-            top: '60px', // Position at the top
-            right: '60px', // Position at the right
-            
-            backgroundColor: '#192959',
-
-            color: '#fff',
-            '&:hover': { backgroundColor: '#33416b' },
-          }}
-        >
-          Book
-        </Button>
-        <Tooltip title="Share" arrow>
-
-        <IconButton
-    onClick={() => handleOpenShareModal(activity.Title)} // Pass activity name
-    sx={{
-      position: 'absolute',
-      top: '60px',
-      right: '140px',
-      color: '#192959', // Icon color
-      '&:hover': {
-        color: '#33416b', // Hover color for the icon
-      },
-    }}
-  >
-    <IosShareIcon />
-  </IconButton>
-  
-</Tooltip>
+            variant="contained"
+            onClick={() => handleOpenDialog(activity.Title)}
+            startIcon={<CancelOutlinedIcon />} // Add the cancel icon before the text
+            sx={{
+                position: 'absolute',
+                top: '50px', // Position at the top
+                right: '60px', // Position at the right
+                backgroundColor: '#192959', // Blue color for booking action
+                color: '#fff',
+                '&:hover': { backgroundColor: '#d32f2f' }, // Slightly lighter red on hover
+            }}
+            >
+            Cancel Booking
+            </Button>
+       
 
 
 
@@ -1636,6 +1581,30 @@ const [currency, setCurrency] = useState('EGP'); // Default currency is EGP
   </Box>
 </Modal>
 
+<Dialog open={openDialog} onClose={handleCloseDialog}>
+  <DialogContent>
+    <DialogContentText sx={{ fontWeight: 'bold', color: '#192959', fontSize: '20px' }}>
+      Do you want to confirm Event deletion?
+    </DialogContentText>
+    <DialogContentText sx={{ fontWeight: 'bold', color: '#33416b', marginTop: '10px' }}>
+      This action is non-reversible and the event booking will be canceled.
+    </DialogContentText>
+  </DialogContent>
+  <DialogActions>
+    <Button
+      onClick={handleCloseDialog}
+      sx={{ color: '#192959', '&:hover': { backgroundColor: '#192959', color: '#e6e7ed' } }}
+    >
+      Cancel
+    </Button>
+    <Button
+      onClick={handleConfirmDeletion}
+      sx={{ color: '#192959', '&:hover': { backgroundColor: '#192959', color: '#e6e7ed' } }}
+    >
+      Confirm
+    </Button>
+  </DialogActions>
+</Dialog>
 
       {/* Back to Top Button */}
       {showBackToTop && (

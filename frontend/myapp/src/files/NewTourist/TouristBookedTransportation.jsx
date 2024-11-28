@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Button, Typography, IconButton,Tooltip,Divider,TextField, InputAdornment, Modal,MenuItem,Select,FormControl,InputLabel,} from '@mui/material';
+import { Box, Button, Typography, IconButton,Tooltip, TextField, InputAdornment, Modal,MenuItem,Select,FormControl,InputLabel,} from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import MenuIcon from '@mui/icons-material/Menu';
 import NotificationsIcon from '@mui/icons-material/Notifications';
@@ -47,7 +47,7 @@ import ShareIcon from '@mui/icons-material/Share';
 import LanguageIcon from '@mui/icons-material/Language';
 import axios from 'axios';
 
-function TouristUpcomingItineraries() {
+function TouristBookedTransportation() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activities, setActivities] = useState([]);
   const [scrollPositions, setScrollPositions] = useState({});
@@ -85,23 +85,23 @@ const [sharedLink, setSharedLink] = useState(''); // Shared link state
 const [currentActivityName, setCurrentActivityName] = useState(''); // Trac
 const [convertedPrices, setConvertedPrices] = useState({});
 const [currency, setCurrency] = useState('EGP'); // Default currency is EGP
-const [expanded, setExpanded] = useState(false);
+const [transportation, setTransportation] = useState([]);
 
   const navigate = useNavigate();
 
   useEffect(() => {
     // Function to handle fetching or searching activities
-    const fetchOrSearchItineraries = async () => {
+    const fetchOrSearchActivities = async () => {
       if (!searchQuery) {
         // Fetch all activities when there's no search query
-         await fetchItineraries();
+        await fetchTransportation();
       } else {
         // Perform search when there's a query
-        await searchItineraries(searchQuery);
+        await searchActivities(searchQuery);
       }
     };
   
-    fetchOrSearchItineraries(); // Call the fetch or search logic
+    fetchOrSearchActivities(); // Call the fetch or search logic
     fetchCategories(); // Fetch categories
     fetchTags(); // Fetch tags
   
@@ -130,16 +130,16 @@ const [expanded, setExpanded] = useState(false);
   const convertActivityPrices = async () => {
     const newConvertedPrices = {};
     await Promise.all(
-      activities.map(async (activity) => {
+      transportation.map(async (transport) => {
         try {
           const response = await axios.post('/convertCurr', {
-            priceEgp: activity.Price,
+            priceEgp: transport.price, // Assuming 'price' is the price field in transportation
             targetCurrency: currency,
           });
-          // Use a unique key for each activity
-          newConvertedPrices[activity._id] = response.data.convertedPrice;
+          // Use a unique key for each transportation entry
+          newConvertedPrices[transport._id] = response.data.convertedPrice;
         } catch (error) {
-          console.error(`Error converting price for activity ${activity.Name}:`, error);
+          console.error(`Error converting price for transportation ${transport.serviceName}:`, error);
         }
       })
     );
@@ -148,46 +148,52 @@ const [expanded, setExpanded] = useState(false);
   
   
   
+  
 
-  const fetchItineraries = async () => {
+  const fetchActivities = async () => {
     try {
-      const response = await axios.get('/api/ViewAllUpcomingItinerariesTourist');
-      setActivities(response.data); // Assuming you're using `setActivities` to populate the UI
+      const response = await axios.get('/api/ViewAllUpcomingActivities');
+      setActivities(response.data);
     } catch (error) {
-      console.error('Error fetching itineraries:', error);
+      console.error('Error fetching activities:', error);
     }
   };
 
-  const searchItineraries = async (query) => {
+  const fetchTransportation = async () => {
     try {
-      // Send the search query to the backend
-      const response = await axios.post('/api/ItinerarySearchAll', { searchString: query });
-  
-      // Update the activities state with the fetched itineraries
-      if (response.data.length > 0) {
-        setActivities(response.data); // Update state if itineraries are found
-      } else {
-        setActivities([]); // Clear activities if no itineraries found
+      const username = localStorage.getItem('username'); // Retrieve logged-in user's username
+      if (!username) {
+        alert('User not logged in.');
+        return;
       }
+  
+      // Call the API to fetch booked transportation details for the logged-in user
+      const response = await axios.get('/api/viewMyBookedTransportation', {
+        params: { Username: username }, // Pass the username as a query parameter
+      });
+  
+      setTransportation(response.data); // Set the transportation state with the response data
     } catch (error) {
-      console.error('Error searching itineraries:', error);
-  
-      // Handle 404 error when no itineraries are found
-      if (error.response?.status === 404) {
-        setActivities([]); // Clear activities list
-      } else {
-        alert(error.response?.data?.msg || 'An error occurred while searching itineraries.'); // Show error message for other errors
-      }
+      console.error('Error fetching booked transportation:', error);
+      alert(error.response?.data?.msg || 'Failed to fetch booked transportation.');
     }
   };
   
-  // Handle search input change
+  
+
+  const searchActivities = async (query) => {
+    try {
+      const response = await axios.post('/api/ActivitiesSearchAll', { searchString: query });
+      setActivities(response.data);
+    } catch (error) {
+      console.error('Error searching activities:', error);
+      setActivities([]); // Clear activities if no results or error
+    }
+  };
+
   const handleSearchChange = (event) => {
-    const query = event.target.value; // Get the input value
-    setSearchQuery(query); // Update search query state
-    searchItineraries(query); // Trigger the search functionality
+    setSearchQuery(event.target.value); // Update search query state
   };
-  
 
   // Fetch categories from backend
   const fetchCategories = async () => {
@@ -212,34 +218,24 @@ const [expanded, setExpanded] = useState(false);
   
   const handleFilterSubmit = async () => {
     try {
-      // Remove empty or invalid fields before sending to the backend
+      // Remove empty or invalid fields before sending to backend
       const sanitizedInputs = Object.fromEntries(
-        Object.entries(filterInputs).filter(
-          ([_, value]) => value !== "" && value !== null && value !== undefined
-        )
+        Object.entries(filterInputs).filter(([_, value]) => value !== "" && value !== null)
       );
   
-      // Send the sanitized inputs to the backend for filtering itineraries
-      const response = await axios.post('/api/filterItinerariesTourist', sanitizedInputs);
-  
-      // Update activities with the filtered results
-      setActivities(response.data);
-  
-      // Close the modal after applying filters
-      setFilterModalOpen(false);
+      const response = await axios.post('/api/filterActivities', sanitizedInputs);
+      setActivities(response.data); // Update activities with the filtered results
+      setFilterModalOpen(false); // Close the modal after applying filters
     } catch (error) {
       if (error.response && error.response.status === 404) {
-        // If no itineraries are found, clear the activities list
-        setActivities([]);
+        // No activities found
+        setActivities([]); // Clear activities list
         setFilterModalOpen(false); // Close the modal
-        alert(error.response.data.msg); // Show user-friendly message
       } else {
-        console.error('Error filtering itineraries:', error);
-        alert('An error occurred while filtering itineraries. Please try again.');
+        console.error('Error filtering activities:', error);
       }
     }
   };
-  
 
 
   const handleSortChange = async (event) => {
@@ -250,12 +246,17 @@ const [expanded, setExpanded] = useState(false);
       let response;
       switch (selectedOption) {
         case "priceAsc":
-          response = await axios.get("/sortItinerariesPriceAscendingTourist");
+          response = await axios.get("/sortActivitiesPriceAscendingTourist");
           break;
         case "priceDesc":
-          response = await axios.get("/sortItinerariesPriceDescendingTourist");
+          response = await axios.get("/sortActivitiesPriceDescendingTourist");
           break;
-       
+        case "ratingAsc":
+          response = await axios.get("/sortActivitiesRatingAscendingTourist");
+          break;
+        case "ratingDesc":
+          response = await axios.get("/sortActivitiesRatingDescendingTourist");
+          break;
         default:
           return; // Do nothing if no valid option is selected
       }
@@ -268,36 +269,32 @@ const [expanded, setExpanded] = useState(false);
     }
   };
   //book
-  const handleBookItinerary = async (itineraryName) => {
+  const handleBookActivity = async (activityName) => {
     const touristUsername = localStorage.getItem('username'); // Assuming username is stored in localStorage
-    
+  
     if (!touristUsername) {
-      alert('Please log in to book an itinerary.');
+      alert('Please log in to book activities.');
       return;
     }
   
     try {
-      // Make a POST request to book the itinerary
-      const response = await axios.put('/bookItinerary', { touristUsername, itineraryName });
-  
-      // Navigate to the payment page on success
+      const response = await axios.put('/bookActivity', { touristUsername, activityName });
       navigate('/TouristPaymentPage');
     } catch (error) {
-      alert(error.response?.data?.msg || 'An error occurred while booking the itinerary.');
+      alert(error.response?.data?.msg || 'An error occurred while booking the activity.');
     }
   };
-  
 
   //share
 
-  const handleOpenShareModal = async (itineraryName) => {
+  const handleOpenShareModal = async (activityName) => {
     try {
       const response = await axios.post('/getCopyLink', {
-        entityType: 'itinerary',
-        entityName: itineraryName,
+        entityType: 'activity',
+        entityName: activityName,
       });
       setSharedLink(response.data.link); // Set the generated link
-      setCurrentActivityName(itineraryName); // Store the activity name in state
+      setCurrentActivityName(activityName); // Store the activity name in state
       setShareModalOpen(true); // Open the modal
     } catch (error) {
       console.error('Error generating link:', error);
@@ -306,7 +303,7 @@ const [expanded, setExpanded] = useState(false);
   };
   
   
-  const handleSendEmail = async (itineraryName) => {
+  const handleSendEmail = async (activityName) => {
     if (!email || !sharedLink) {
       alert('Please provide a valid email and ensure the link is generated.');
       return;
@@ -314,8 +311,8 @@ const [expanded, setExpanded] = useState(false);
   
     try {
       const response = await axios.post('/getCopyLink', {
-        entityType: 'itinerary',
-        entityName: itineraryName,
+        entityType: 'activity',
+        entityName: activityName,
         email,
       });
       alert(response.data.msg); // Show success message
@@ -353,15 +350,6 @@ const [expanded, setExpanded] = useState(false);
   
 
   const renderRating = (rating) => {
-    if (typeof rating !== 'number' || rating < 0 || rating > 5) {
-      // Handle invalid rating gracefully
-      return (
-        <Typography variant="body2" sx={{ fontSize: '24px', position: 'absolute', right: '170px', bottom: '2px' }}>
-          N/A
-        </Typography>
-      );
-    }
-  
     const roundedRating = Math.round(rating * 10) / 10;
     const fullStars = Math.floor(rating);
     const halfStars = roundedRating > fullStars ? 1 : 0;
@@ -384,14 +372,6 @@ const [expanded, setExpanded] = useState(false);
       </Box>
     );
   };
-
-  const handleToggleDescription = (index) => {
-    setExpanded((prev) => ({
-      ...prev,
-      [index]: !prev[index], // Toggle expanded state for the specific index
-    }));
-  };
-  
   
 
   const scrollCommentsLeft = (index) => {
@@ -418,7 +398,38 @@ const [expanded, setExpanded] = useState(false);
     });
   };
 
-
+  const handleBookTransportation = async (TranspName) => {
+    const username = localStorage.getItem('username'); // Retrieve logged-in user's username
+  
+    if (!username) {
+      alert('User not logged in.');
+      return;
+    }
+  
+    try {
+      // Call the backend API to book the transportation
+      const response = await axios.put('bookTransportation', {
+        touristUsername: username,
+        TranspName,
+      });
+  
+      // Notify the user of successful booking
+      alert(response.data.msg);
+  
+      // Optionally, update the transportation state to reflect the booking
+      setTransportation((prevTransportations) =>
+        prevTransportations.map((transp) =>
+          transp.serviceName === TranspName
+            ? { ...transp, capacity: transp.capacity - 1, available: transp.capacity - 1 > 0 }
+            : transp
+        )
+      );
+    } catch (error) {
+      console.error('Error booking transportation:', error);
+      alert(error.response?.data?.msg || 'Failed to book transportation.');
+    }
+  };
+  
 
  
   
@@ -559,7 +570,7 @@ const [expanded, setExpanded] = useState(false);
     <Box sx={{ display: 'flex', flexDirection: 'column', marginLeft: sidebarOpen ? '20px' : '0px' }}>
       {/* My Purchased Products */}
       <Button
-        onClick={() => navigate('/TouristPurchasedProducts')}
+        onClick={() => navigate('/my-purchased-products')}
         sx={{
           ...styles.sidebarButton,
           fontSize: '14px',
@@ -573,7 +584,7 @@ const [expanded, setExpanded] = useState(false);
       
       {/* View All Products */}
       <Button
-        onClick={() => navigate('/TouristAllProducts')}
+        onClick={() => navigate('/view-all-products')}
         sx={{
           ...styles.sidebarButton,
           fontSize: '14px',
@@ -634,7 +645,7 @@ const [expanded, setExpanded] = useState(false);
                 </Button>
 
                 <Button
-                onClick={() => navigate('/TouristBookedActivities')}
+                onClick={() => navigate('/my-booked-activities')}
                 sx={{
                     ...styles.sidebarButton,
                     fontSize: '14px',
@@ -682,7 +693,7 @@ const [expanded, setExpanded] = useState(false);
         {sidebarOpen && 'Upcoming '}
       </Button>
       <Button
-        onClick={() => navigate('/TouristCompletedItineraries')}
+        onClick={() => navigate('/completed-itineraries')}
         sx={{
           ...styles.sidebarButton,
           fontSize: '14px',
@@ -729,7 +740,7 @@ const [expanded, setExpanded] = useState(false);
   {historicalPlacesOpen && (
     <Box sx={{ display: 'flex', flexDirection: 'column', marginLeft: sidebarOpen ? '20px' : '0px' }}>
       <Button
-        onClick={() => navigate('/TouristUpcomingHP')}
+        onClick={() => navigate('/upcoming-historical-places')}
         sx={{
           ...styles.sidebarButton,
           fontSize: '14px',
@@ -741,7 +752,7 @@ const [expanded, setExpanded] = useState(false);
         {sidebarOpen && 'Upcoming '}
       </Button>
       <Button
-        onClick={() => navigate('/TouristCompletedHPs')}
+        onClick={() => navigate('/visited-historical-places')}
         sx={{
           ...styles.sidebarButton,
           fontSize: '14px',
@@ -753,7 +764,7 @@ const [expanded, setExpanded] = useState(false);
         {sidebarOpen && 'Visited '}
       </Button>
       <Button
-        onClick={() => navigate('/TouristBookedHP')}
+        onClick={() => navigate('/saved-historical-places')}
         sx={{
           ...styles.sidebarButton,
           fontSize: '14px',
@@ -816,7 +827,7 @@ const [expanded, setExpanded] = useState(false);
       
       {/* Saved Museums */}
       <Button
-        onClick={() => navigate('/TouristBookedMuseum')}
+        onClick={() => navigate('/saved-museums')}
         sx={{
           ...styles.sidebarButton,
           fontSize: '14px',
@@ -950,94 +961,11 @@ const [expanded, setExpanded] = useState(false);
   }}
 >
   {/* Search Bar */}
-  <TextField
-    label="Search"
-    variant="outlined"
-    value={searchQuery}
-    onChange={handleSearchChange}
-    sx={{
-      width: '30%',
-      '& .MuiOutlinedInput-root': {
-        '& fieldset': {
-          borderColor: '#192959', // Default outline color
-          borderWidth: '2px',
-        },
-        '&:hover fieldset': {
-          borderColor: '#192959', // Hover outline color
-          borderWidth: '2.5px',
-        },
-        '&.Mui-focused fieldset': {
-          borderColor: '#192959', // Focused outline color
-          borderWidth: '2.5px',
-        },
-      },
-      '& .MuiInputLabel-root': {
-        color: '#192959', // Label color
-        fontSize: '18px',
-      },
-    }}
-    InputProps={{
-      startAdornment: (
-        <Box sx={{ display: 'flex', alignItems: 'center', color: '#192959', paddingLeft: '5px' }}>
-          <SearchIcon />
-        </Box>
-      ),
-    }}
-  />
+ 
 
   {/* Sort Dropdown and Filter Icon */}
-  <Box sx={{ display: 'flex', alignItems: 'right', gap: '10px', marginLeft: '100px'}}>
-    <TextField
-      select
-      label={
-        <Box sx={{ display: 'flex', alignItems: 'right', gap: '8px' }}>
-          Sort By
-        </Box>
-      }
-      variant="outlined"
-      value={sortOption}
-      onChange={handleSortChange}
-      sx={{
-        width: '80%',
-        '& .MuiOutlinedInput-root': {
-          '& fieldset': {
-            borderColor: '#192959', // Default border color
-            borderWidth: '2px',
-          },
-          '&:hover fieldset': {
-            borderColor: '#33416b', // Hover border color
-            borderWidth: '2.5px',
-          },
-          '&.Mui-focused fieldset': {
-            borderColor: '#192959', // Focused border color
-            borderWidth: '2.5px',
-          },
-        },
-        '& .MuiInputLabel-root': {
-          color: '#192959', // Label color
-          fontSize: '18px',
-        },
-      }}
-      InputProps={{
-        startAdornment: (
-          <Box
-            sx={{
-              display: 'flex',
-              alignItems: 'center',
-              color: '#192959',
-              paddingLeft: '5px',
-            }}
-          >
-            <SwapVertIcon />
-          </Box>
-        ),
-      }}
-    >
-      <MenuItem value="priceAsc">Price: Low to High</MenuItem>
-      <MenuItem value="priceDesc">Price: High to Low</MenuItem>
-      
-    </TextField>
-
+  <Box sx={{ display: 'flex', alignItems: 'right', gap: '10px', marginLeft: '1560px',marginRight: '10px'}}>
+    
     <TextField
   select
   label="Currency"
@@ -1045,7 +973,7 @@ const [expanded, setExpanded] = useState(false);
   onChange={(e) => setCurrency(e.target.value)}
   variant="outlined"
   sx={{
-    width: '210px',
+    width: '120px',
     '& .MuiOutlinedInput-root': {
       '& fieldset': {
         borderColor: '#192959', // Default border color
@@ -1089,386 +1017,90 @@ const [expanded, setExpanded] = useState(false);
 
 
     {/* Filter Icon */}
-    <Tooltip title="Filter" placement="bottom" arrow>
-      <IconButton
-        onClick={() => setFilterModalOpen(true)}
+    
+  </Box>
+</Box>
+
+
+
+
+
+     {/* Main Content Area with Transportation */}
+<Box sx={styles.activitiesContainer}>
+  {transportation.map((transportation, index) => (
+    <Box key={index} sx={{ marginBottom: '20px' }}>
+      <Box
         sx={{
-          color: '#192959',
-          '&:hover': { backgroundColor: '#e6e7ed', color: '#33416b' },
+          ...styles.activityCard,
+          backgroundColor:  'white',
         }}
       >
-        <FilterAltIcon fontSize="large" />
-      </IconButton>
-    </Tooltip>
-  </Box>
-</Box>
-
-
-
-
-
-      
-      {/* Main Content Area with Activities */}
-      <Box sx={styles.activitiesContainer}>
-        {activities.map((activity, index) => (
-          <Box key={index} sx={{ marginBottom: '20px' }}>
-            <Box
-              sx={{
-                ...styles.activityCard,
-                backgroundColor: activity.flagged ? '#cccfda' : 'white',
-              }}
-            >
-              <Box sx={styles.activityInfo}>
-                <Typography variant="h6" sx={{ fontWeight: 'bold',fontSize: '24px', marginBottom: '5px', display: 'flex', alignItems: 'center' }}>{activity.Title}</Typography>
-                <Typography variant="body2" sx={{ display: 'flex', fontSize: '18px', alignItems: 'center' }}>
-                  <LocationOnIcon fontSize="small" sx={{ mr: 1 }} />
-                  {activity.Locations|| 'N/A'}
-                </Typography>
-                <Typography variant="body2" sx={{ display: 'flex', fontSize: '18px', alignItems: 'center' }}>
-                  <PersonIcon fontSize="small" sx={{ mr: 1 }} />
-                  {activity.AuthorUsername}
-                </Typography>
-                <Typography variant="body2" sx={{ display: 'flex', fontSize: '18px', alignItems: 'center' }}>
-                <PaymentIcon fontSize="small" sx={{ mr: 1 }} />
-                {currency === 'EGP'
-                  ? `${activity.Price} EGP`
-                  : `${convertedPrices[activity._id] || 'Loading...'} ${currency}`}
-              </Typography>
-
-                <Typography variant="body2" sx={{ display: 'flex', fontSize: '18px', alignItems: 'center' }}>
-                  <CalendarTodayIcon fontSize="small" sx={{ mr: 1 }} />
-                  {new Date(activity.Date).toLocaleDateString()}
-                </Typography>
-                <Box sx={{ flex: 1, textAlign: 'left' }}>
-  <Typography
-    variant="body2"
-    sx={{
-      fontSize: '18px',
-      wordWrap: 'break-word', // Break long words
-      whiteSpace: 'normal',  // Wrap text normally
-      maxWidth: '550px',     // Ensure width consistency
-      cursor: activity.Timeline.length > 15 ? 'pointer' : 'default', // Make clickable only if necessary
-      marginTop: '10px',
-    }}
-  >
-    <AccessTimeIcon fontSize="small" sx={{ mr: 1, color: '#8088a3' }} />
-    {expanded[index] || activity.Timeline.length <= 15 ? (
-      <span>
-        {activity.Timeline}
-        {activity.Timeline.length > 15 && (
-          <span
-            style={{
-              color: '#8088a3',
-             
-              fontWeight: 'bold',
-              cursor: 'pointer',
-            }}
-            onClick={() => handleToggleDescription(index)} // Trigger toggle
-          >
-            {" "}Read Less
-          </span>
-        )}
-      </span>
-    ) : (
-      <span>
-        {activity.Timeline.substring(0, 15)}... {/* Truncate timeline */}
-        <span
-          style={{
-            color: '#8088a3',
-            marginLeft: '5px',
-            fontWeight: 'bold',
-            cursor: 'pointer'
-          }}
-          onClick={() => handleToggleDescription(index)} // Trigger toggle
-        >
-          {" "}Read More
-        </span>
-      </span>
-    )}
-  </Typography>
-</Box>
-
-                <Box sx={styles.quickFacts}>
-                  
-                <Box sx={styles.quickFacts}>
-  <Box
-    sx={{
-      ...styles.infoContainer,
-      backgroundColor: activity.flagged ? '#b3b8c8' : '#f3f4f6',
-    }}
-  >
-    <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
-      Tags:
-    </Typography>
-    <Typography variant="body2">
-      {activity.Tags?.join(', ') || 'No Tags'}
-    </Typography>
-  </Box>
-</Box>
-
-                </Box>
-              </Box>
-              <Box sx={styles.activityRating}>
-                {renderRating(activity.Ratings)}
-              </Box>
-
-               {/* Divider Line */}
-               <Divider orientation="vertical" flexItem sx={{ marginRight: '10px', borderColor: '#ccc' }} />
-
-               <Box
-                    sx={{
-                        display: 'flex',
-                        flexDirection: 'column',
-                        alignItems: 'flex-start',
-                        gap: '5px',
-                        marginBottom: '60px',
-                        marginRight: '450px',
-                        marginTop: '40px', // Adjust this value to lower the entire section
-                    }}
-                    >
-                    <Typography
-                        variant="body2"
-                        sx={{
-                        fontWeight: 'bold', // Bold for "Activities:"
-                        fontSize: '16px', // Font size
-                        color: '#192959', // Color for the label
-                        marginBottom: '5px', // Spacing between items
-                        }}
-                    >
-                        Activities:{' '}
-                        <span
-                        style={{
-                            fontWeight: 'normal', // Normal weight for the value
-                            color: '#33416b', // Different color for the value
-                        }}
-                        >
-                        {activity.Activities || 'N/A'}
-                        </span>
-                    </Typography>
-
-
-
-                    <Box
-                        sx={{
-                            display: 'flex',
-                            alignItems: 'center', // Vertically aligns items
-                            gap: '5px', // Space between "Language:" and the value
-                        }}
-                        >
-                        <Typography
-                            variant="body2"
-                            sx={{
-                            fontWeight: 'bold', // Bold for "Language:"
-                            fontSize: '16px', // Font size
-                            }}
-                        >
-                            Language:
-                        </Typography>
-                        <Typography
-                            variant="body2"
-                            sx={{
-                            fontSize: '16px', // Font size for value
-                            color: '#192959', // Color for value
-                            }}
-                        >
-                            {activity.Language || 'N/A'}
-                        </Typography>
-                        </Box>
-
-
-
-                        <Box
-                        sx={{
-                            display: 'flex',
-                            alignItems: 'center', // Vertically aligns items
-                            gap: '5px', // Space between "Language:" and the value
-                        }}
-                        >
-                        <Typography
-                            variant="body2"
-                            sx={{
-                            fontWeight: 'bold', // Bold for "Language:"
-                            fontSize: '16px', // Font size
-                            }}
-                        >
-                            Accessibility:
-                        </Typography>
-                        <Typography
-                    variant="body2"
-                    sx={{
-                        fontSize: '16px',
-                        color: '#192959',
-                    }}
-                >
-                    {activity.accessibility === true
-                        ? 'Accessible'
-                        : activity.accessibility === false
-                        ? 'Not Accessible'
-                        : 'N/A'}
-                </Typography>
-
-                        </Box>
-
-
-                        <Box
-                        sx={{
-                            display: 'flex',
-                            alignItems: 'center', // Vertically aligns items
-                            gap: '5px', // Space between "Language:" and the value
-                        }}
-                        >
-                        <Typography
-                            variant="body2"
-                            sx={{
-                            fontWeight: 'bold', // Bold for "Language:"
-                            fontSize: '16px', // Font size
-                            }}
-                        >
-                            Pickup Location:
-                        </Typography>
-                        <Typography
-                            variant="body2"
-                            sx={{
-                            fontSize: '16px', // Font size for value
-                            color: '#192959', // Color for value
-                            }}
-                        >
-                            {activity.pickupLocation || 'N/A'}
-                        </Typography>
-                        </Box>
-
-
-
-
-
-                        <Box
-                        sx={{
-                            display: 'flex',
-                            alignItems: 'center', // Vertically aligns items
-                            gap: '5px', // Space between "Language:" and the value
-                        }}
-                        >
-                        <Typography
-                            variant="body2"
-                            sx={{
-                            fontWeight: 'bold', // Bold for "Language:"
-                            fontSize: '16px', // Font size
-                            }}
-                        >
-                            Drop-Off Location:
-                        </Typography>
-                        <Typography
-                            variant="body2"
-                            sx={{
-                            fontSize: '18px', // Font size for value
-                            color: '#192959', // Color for value
-                            }}
-                        >
-                            {activity.dropoffLocation || 'N/A'}
-                        </Typography>
-                        </Box>
-
-                </Box>
-
-              <Box sx={styles.bookingOpenContainer}>
-                <Box sx={{...styles.infoContainer, backgroundColor: activity.flagged ? '#b3b8c8' : '#f3f4f6'}}>
-                  <Typography variant="body2" sx={{ fontWeight: 'bold' }}>Booking Open:</Typography>
-                  <Typography variant="body2">{activity.isBooked ? 'Yes' : 'No'}</Typography>
-                </Box>
-              </Box>
-
-              
-
-              <Button
-          variant="contained"
-          disabled={!activity.isBooked} // Disable button if booking is not open
-          onClick={() => handleBookItinerary(activity.Title)}
-
-          sx={{
-            position: 'absolute',
-            top: '60px', // Position at the top
-            right: '60px', // Position at the right
-            
-            backgroundColor: '#192959',
-
-            color: '#fff',
-            '&:hover': { backgroundColor: '#33416b' },
-          }}
-        >
-          Book
-        </Button>
-        <Tooltip title="Share" arrow>
-
-        <IconButton
-    onClick={() => handleOpenShareModal(activity.Title)} // Pass activity name
-    sx={{
-      position: 'absolute',
-      top: '60px',
-      right: '140px',
-      color: '#192959', // Icon color
-      '&:hover': {
-        color: '#33416b', // Hover color for the icon
-      },
-    }}
-  >
-    <IosShareIcon />
-  </IconButton>
-  
-</Tooltip>
-
-
-
+        <Box sx={styles.activityInfo}>
+          <Typography variant="h6" sx={{ fontWeight: 'bold', fontSize: '24px', marginBottom: '5px', display: 'flex', alignItems: 'center' }}>
+            {transportation.serviceName}
+          </Typography>
+          <Typography variant="body2" sx={{ display: 'flex', fontSize: '18px', alignItems: 'center' }}>
+            <LocationOnIcon fontSize="small" sx={{ mr: 1 }} />
+            {transportation.routeDetails.startLocation} to {transportation.routeDetails.endLocation}
+          </Typography>
+          <Typography variant="body2" sx={{ display: 'flex', fontSize: '18px', alignItems: 'center' }}>
+            <PersonIcon fontSize="small" sx={{ mr: 1 }} />
+            {transportation.advertiserName}
+          </Typography>
+          <Typography variant="body2" sx={{ display: 'flex', fontSize: '18px', alignItems: 'center' }}>
+            <PaymentIcon fontSize="small" sx={{ mr: 1 }} />
+            {currency === 'EGP'
+              ? `${transportation.price} EGP`
+              : `${convertedPrices[transportation._id] || 'Loading...'} ${currency}`}
+          </Typography>
+          <Typography variant="body2" sx={{ display: 'flex', fontSize: '18px', alignItems: 'center' }}>
+            <CalendarTodayIcon fontSize="small" sx={{ mr: 1 }} />
+            {transportation.schedule.map((s, i) => (
+              <span key={i}>
+                {s.day}: {s.departureTime} - {s.arrivalTime}
+                {i < transportation.schedule.length - 1 ? ', ' : ''}
+              </span>
+            ))}
+          </Typography>
+          <Typography variant="body2" sx={{ display: 'flex', fontSize: '18px', alignItems: 'center' }}>
+            <Box component="span" sx={{ fontWeight: 'bold' }}>
+                Capacity Available:
+            </Box> {" "}
+            {transportation.capacity}
+            </Typography>
+          <Box sx={styles.quickFacts}>
+            <Box sx={{ ...styles.infoContainer, backgroundColor: transportation.available ? '#f3f4f6' : '#b3b8c8' }}>
+              <Typography variant="body2" sx={{ fontWeight: 'bold' }}>Type:</Typography>
+              <Typography variant="body2">{transportation.serviceType}</Typography>
             </Box>
-            <Box sx={styles.commentsSection}>
-  {activity.Comments && activity.Comments.length > 0 ? (
-    <>
-      {/* Show the scroll left button only if there's content to scroll back */}
-      {scrollPositions[index] > 0 && (
-        <IconButton sx={styles.scrollButton} onClick={() => scrollCommentsLeft(index)}>
-          <ArrowBackIcon />
-        </IconButton>
-      )}
-      
-      <Box
-        sx={styles.commentsContainer}
-        id={`commentsContainer-${index}`}
-        onScroll={(e) => updateScrollPosition(index, e.target.scrollLeft)}
-      >
-        {activity.Comments.map((comment, idx) => (
-          <Box key={idx} sx={styles.commentCard}>
-            <Typography variant="body2">{comment.Comment || 'No comment available'}</Typography>
-            <Typography variant="caption">@ {comment.touristUsername || 'Anonymous'}</Typography>
           </Box>
-        ))}
+        </Box>
+       
+        <Box sx={styles.discountContainer}>
+          <Box sx={{ ...styles.infoContainer, backgroundColor: transportation.available ? '#f3f4f6' : '#b3b8c8' }}>
+            <Typography variant="body2" sx={{ fontWeight: 'bold' }}>Available:</Typography>
+            <Typography variant="body2">{transportation.available ? 'Yes' : 'No'}</Typography>
+          </Box>
+        </Box>
+
+       
+       
       </Box>
-      
-      {/* Show the scroll right button only if there are 3 or more comments */}
-      {activity.Comments.length >= 3 && (
-        <IconButton sx={styles.scrollButton} onClick={() => scrollCommentsRight(index)}>
-          <ArrowForwardIcon />
-        </IconButton>
-      )}
-    </>
-  ) : (
-    <Typography variant="body2">No comments available</Typography>
-  )}
+    </Box>
+  ))}
 </Box>
 
- 
-          </Box>
-        ))}
-      </Box>
 
       <Box sx={styles.activitiesContainer}>
-  {activities.length > 0 ? (
-    activities.map((activity, index) => (
+  {transportation.length > 0 ? (
+    transportation.map((transp, index) => (
       <Box key={index} sx={{ marginBottom: '20px' }}>
         {/* Your activity card code */}
       </Box>
     ))
   ) : (
     <Typography variant="h6" sx={{ textAlign: 'center', color: '#192959', marginTop: '20px' }}>
-      No Activities Found Matching Your Criteria.
+      No Transportations Available.
     </Typography>
   )}
 </Box>
@@ -1564,7 +1196,7 @@ const [expanded, setExpanded] = useState(false);
 
 
 
-<Modal
+      <Modal
   open={filterModalOpen}
   onClose={() => setFilterModalOpen(false)}
   aria-labelledby="filter-modal-title"
@@ -1576,42 +1208,31 @@ const [expanded, setExpanded] = useState(false);
       top: '50%',
       left: '50%',
       transform: 'translate(-50%, -50%)',
-      width: 500, // Increased width for better layout
+      width: 400,
       bgcolor: 'background.paper',
       boxShadow: 24,
       p: 4,
       borderRadius: '10px',
     }}
   >
-    <Typography
-      id="filter-modal-title"
-      variant="h6"
-      component="h2"
-      sx={{
-        marginBottom: '20px',
-        textAlign: 'center',
-        color: '#192959', // Matches the theme
-      }}
-    >
-      Filter Itineraries
+    <Typography id="filter-modal-title" variant="h6" component="h2" sx={{ marginBottom: '20px' }}>
+      Filter Activities
     </Typography>
-    <Box
-      sx={{
-        display: 'grid',
-        gridTemplateColumns: '1fr 1fr', // Two columns for better layout
-        gap: '15px',
-      }}
-    >
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+      <TextField
+        label="Category"
+        name="Category"
+        variant="outlined"
+        value={filterInputs.Category || ""}
+        onChange={handleFilterInputChange}
+      />
       <TextField
         label="Min Price"
-        name="MinPrice"
+        name="minPrice"
         type="number"
         variant="outlined"
-        value={filterInputs.MinPrice || ""}
+        value={filterInputs.minPrice || ""}
         onChange={handleFilterInputChange}
-        sx={{
-          gridColumn: '1 / span 1', // Place in first column
-        }}
       />
       <TextField
         label="Max Price"
@@ -1620,9 +1241,6 @@ const [expanded, setExpanded] = useState(false);
         variant="outlined"
         value={filterInputs.maxPrice || ""}
         onChange={handleFilterInputChange}
-        sx={{
-          gridColumn: '2 / span 1', // Place in second column
-        }}
       />
       <TextField
         label="Date"
@@ -1632,63 +1250,38 @@ const [expanded, setExpanded] = useState(false);
         InputLabelProps={{ shrink: true }}
         value={filterInputs.InputDate || ""}
         onChange={handleFilterInputChange}
-        sx={{
-          gridColumn: '1 / span 1', // Place in first column
-        }}
       />
       <TextField
-        label="Language"
-        name="Language"
+        label="Rating"
+        name="Rating"
+        type="number"
         variant="outlined"
-        value={filterInputs.Language || ""}
+        value={filterInputs.Rating || ""}
         onChange={handleFilterInputChange}
-        sx={{
-          gridColumn: '2 / span 1', // Place in second column
-        }}
-      />
-      <TextField
-        label="Tags (Comma-separated)"
-        name="Tags"
-        variant="outlined"
-        value={filterInputs.Tags || ""}
-        onChange={handleFilterInputChange}
-        sx={{
-          gridColumn: '1 / span 2', // Spans across both columns
-        }}
       />
     </Box>
     <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '20px' }}>
-      <Button
-        variant="outlined"
-        onClick={() => setFilterModalOpen(false)}
-        sx={{
-          color: '#192959',
-          borderColor: '#192959',
-          '&:hover': {
-            backgroundColor: 'rgba(25, 41, 89, 0.1)',
-            borderColor: '#192959',
-          },
-        }}
-      >
-        Cancel
-      </Button>
-      <Button
-        variant="contained"
-        onClick={handleFilterSubmit}
-        sx={{
-          backgroundColor: '#192959',
-          color: '#fff',
-          '&:hover': {
-            backgroundColor: '#33416b', // Slightly darker color on hover
-          },
-        }}
-      >
+    <Button
+  variant="outlined"
+  onClick={() => setFilterModalOpen(false)}
+  sx={{
+    color: '#192959', // Text color
+    borderColor: '#192959', // Outline color
+    '&:hover': {
+      backgroundColor: 'rgba(25, 41, 89, 0.1)', // Slight background highlight on hover
+      borderColor: '#192959', // Outline color on hover
+    },
+  }}
+>
+  Cancel
+</Button>
+
+      <Button variant="contained" onClick={handleFilterSubmit} sx={{ backgroundColor: '#192959', color: '#fff' }}>
         Apply
       </Button>
     </Box>
   </Box>
 </Modal>
-
 
       {/* Back to Top Button */}
       {showBackToTop && (
@@ -1802,7 +1395,7 @@ const styles = {
   },
   discountContainer: {
     position: 'absolute',
-    bottom: '100px',
+    bottom: '50px',
     right: '50px',
     display: 'flex',
     flexDirection: 'column',
@@ -1846,7 +1439,7 @@ const styles = {
   },
   activityRating: {
     position: 'absolute',
-    bottom: '100px',
+    bottom: '140px',
     right: '60px',
     display: 'flex',
     flexDirection: 'column',
@@ -1864,11 +1457,6 @@ const styles = {
     display: 'flex',
     flexDirection: 'column',
     gap: '5px',
-  },
-  verticalDivider: {
-    backgroundColor: '#d1d5db',
-    width: '1px',
-    margin: '20px 15px 0 15px', // Adjust the top margin to position the start
   },
   
   activityInfoRight: {
@@ -1980,4 +1568,4 @@ const styles = {
   },
 };
 
-export default TouristUpcomingItineraries;
+export default TouristBookedTransportation;

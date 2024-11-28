@@ -91,7 +91,17 @@ const [currency, setCurrency] = useState('EGP'); // Default currency is EGP
 const [commentModalOpen, setCommentModalOpen] = useState(false);
 const [currentActivityId, setCurrentActivityId] = useState(null);
 const [commentText, setCommentText] = useState('');
-const [expanded, setExpanded] = React.useState({});
+const [expanded, setExpanded] = useState(false);
+const [isModalOpen, setIsModalOpen] = useState(false); // Modal state
+const [selectedTourGuide, setSelectedTourGuide] = useState({
+    username: '',
+    itineraryName: '',
+    rating: 0,
+  }); // Track selected tour guide
+  const [tourGuideCommentModalOpen, setTourGuideCommentModalOpen] = useState(false); // Manage modal visibility
+
+  
+
 
 
   const navigate = useNavigate();
@@ -395,9 +405,122 @@ const [expanded, setExpanded] = React.useState({});
       </Box>
     );
   };
+  const renderTourGuideRating = (itineraryName, authorUsername, tourGuideRating, handleRatingClick) => {
+    const fullStars = Math.floor(tourGuideRating || 0);
+    const halfStars = tourGuideRating > fullStars ? 1 : 0;
+    const emptyStars = 5 - fullStars - halfStars;
+  
+    return (
+      <Box display="flex" alignItems="center" gap={1}>
+        {/* Render Full Stars */}
+        {[...Array(fullStars)].map((_, index) => (
+          <StarIcon
+            key={`full-${index}`}
+            sx={{ fontSize: '24px', cursor: 'pointer', color: '#192959' }}
+            onClick={() => handleRatingClick(itineraryName, authorUsername, index + 1)}
+          />
+        ))}
+  
+        {/* Render Half Stars */}
+        {[...Array(halfStars)].map((_, index) => (
+          <StarHalfIcon
+            key={`half-${index}`}
+            sx={{ fontSize: '24px', cursor: 'pointer', color: '#192959' }}
+            onClick={() => handleRatingClick(itineraryName, authorUsername, fullStars + 1)}
+          />
+        ))}
+  
+        {/* Render Empty Stars */}
+        {[...Array(emptyStars)].map((_, index) => (
+          <StarBorderIcon
+            key={`empty-${index}`}
+            sx={{ fontSize: '24px', cursor: 'pointer', color: '#192959' }}
+            onClick={() => handleRatingClick(itineraryName, authorUsername, fullStars + index + 1)}
+          />
+        ))}
+      </Box>
+    );
+  };
   
   
+  
+  const handleTourGuideRatingClick = async (itineraryName, authorUsername, rating) => {
+    const touristUsername = localStorage.getItem('username');
+  
+    if (!rating || rating < 1 || rating > 5) {
+      alert('Rating must be a number between 1 and 5.');
+      return;
+    }
+  
+    try {
+      const response = await axios.put('/rateTourGuide', {
+        touristUsername,
+        itineraryName, // Include itinerary name as required by the backend
+        rating,
+      });
+  
+      alert(response.data.msg);
+  
+      // Update the activities to reflect the new tour guide rating
+      setActivities((prevActivities) =>
+        prevActivities.map((activity) =>
+          activity.AuthorUsername === authorUsername
+            ? { ...activity, tourGuideRating: response.data.newAverageRating, showTourGuideCommentButton: true }
+            : activity
+        )
+      );
+  
+      // Update the selected tour guide rating in the modal
+      if (selectedTourGuide.username === authorUsername) {
+        setSelectedTourGuide((prev) => ({
+          ...prev,
+          rating: response.data.newAverageRating, // Update to the new average rating
+          canComment: true, // Enable the comment button
+        }));
+      }
+    } catch (error) {
+      console.error('Error rating tour guide:', error);
+      alert('An error occurred while submitting your rating.');
+    }
+  };
 
+
+
+  const handleTourGuideCommentSubmit = async () => {
+    const touristUsername = localStorage.getItem('username');
+  
+    if (!commentText || commentText.trim().length === 0) {
+      alert('Comment cannot be empty.');
+      return;
+    }
+  
+    try {
+      const response = await axios.put('/commentOnTourGuide', {
+        touristUsername,
+        itineraryName: selectedTourGuide.itineraryName,
+        comment: commentText.trim(),
+      });
+  
+      alert(response.data.msg);
+  
+      // Update the activities to include the new comment
+      setActivities((prevActivities) =>
+        prevActivities.map((activity) =>
+          activity.AuthorUsername === selectedTourGuide.username
+            ? { ...activity, tourGuideComments: response.data.comments }
+            : activity
+        )
+      );
+  
+      setTourGuideCommentModalOpen(false); // Close the modal
+      setCommentText(''); // Clear the input
+    } catch (error) {
+      console.error('Error submitting comment:', error);
+      alert('An error occurred while submitting your comment.');
+    }
+  };
+  
+  
   
 
   const handleCommentSubmit = async () => {
@@ -498,9 +621,12 @@ const [expanded, setExpanded] = React.useState({});
   const handleToggleDescription = (index) => {
     setExpanded((prev) => ({
       ...prev,
-      [index]: !prev[index],
+      [index]: !prev[index], // Toggle expanded state for the specific index
     }));
   };
+  
+
+
 
 
 
@@ -643,7 +769,7 @@ const [expanded, setExpanded] = React.useState({});
     <Box sx={{ display: 'flex', flexDirection: 'column', marginLeft: sidebarOpen ? '20px' : '0px' }}>
       {/* My Purchased Products */}
       <Button
-        onClick={() => navigate('/my-purchased-products')}
+        onClick={() => navigate('/TouristPurchasedProducts')}
         sx={{
           ...styles.sidebarButton,
           fontSize: '14px',
@@ -657,7 +783,7 @@ const [expanded, setExpanded] = React.useState({});
       
       {/* View All Products */}
       <Button
-        onClick={() => navigate('/view-all-products')}
+        onClick={() => navigate('/TouristAllProducts')}
         sx={{
           ...styles.sidebarButton,
           fontSize: '14px',
@@ -705,7 +831,7 @@ const [expanded, setExpanded] = React.useState({});
             </Button>
 
             <Button
-                onClick={() => navigate('/completed-activities')}
+                onClick={() => navigate('/TouristCompletedActivities')}
                 sx={{
                     ...styles.sidebarButton,
                     fontSize: '14px',
@@ -718,7 +844,7 @@ const [expanded, setExpanded] = React.useState({});
                 </Button>
 
                 <Button
-                onClick={() => navigate('/my-booked-activities')}
+                onClick={() => navigate('/TouristBookedActivities')}
                 sx={{
                     ...styles.sidebarButton,
                     fontSize: '14px',
@@ -766,7 +892,7 @@ const [expanded, setExpanded] = React.useState({});
         {sidebarOpen && 'Upcoming '}
       </Button>
       <Button
-        onClick={() => navigate('/completed-itineraries')}
+        onClick={() => navigate('/TouristCompletedItineraries')}
         sx={{
           ...styles.sidebarButton,
           fontSize: '14px',
@@ -813,7 +939,7 @@ const [expanded, setExpanded] = React.useState({});
   {historicalPlacesOpen && (
     <Box sx={{ display: 'flex', flexDirection: 'column', marginLeft: sidebarOpen ? '20px' : '0px' }}>
       <Button
-        onClick={() => navigate('/upcoming-historical-places')}
+        onClick={() => navigate('/TouristUpcomingHP')}
         sx={{
           ...styles.sidebarButton,
           fontSize: '14px',
@@ -825,7 +951,7 @@ const [expanded, setExpanded] = React.useState({});
         {sidebarOpen && 'Upcoming '}
       </Button>
       <Button
-        onClick={() => navigate('/visited-historical-places')}
+        onClick={() => navigate('/TouristCompletedHPs')}
         sx={{
           ...styles.sidebarButton,
           fontSize: '14px',
@@ -837,7 +963,7 @@ const [expanded, setExpanded] = React.useState({});
         {sidebarOpen && 'Visited '}
       </Button>
       <Button
-        onClick={() => navigate('/saved-historical-places')}
+        onClick={() => navigate('/TouristBookedHP')}
         sx={{
           ...styles.sidebarButton,
           fontSize: '14px',
@@ -900,7 +1026,7 @@ const [expanded, setExpanded] = React.useState({});
       
       {/* Saved Museums */}
       <Button
-        onClick={() => navigate('/saved-museums')}
+        onClick={() => navigate('/TouristBookedMuseum')}
         sx={{
           ...styles.sidebarButton,
           fontSize: '14px',
@@ -1106,10 +1232,36 @@ const [expanded, setExpanded] = React.useState({});
                   <LocationOnIcon fontSize="small" sx={{ mr: 1 }} />
                   {activity.Locations|| 'N/A'}
                 </Typography>
-                <Typography variant="body2" sx={{ display: 'flex', fontSize: '18px', alignItems: 'center' }}>
-                  <PersonIcon fontSize="small" sx={{ mr: 1 }} />
-                  {activity.AuthorUsername}
-                </Typography>
+                <Typography
+  variant="body2"
+  sx={{
+    display: 'flex',
+    fontSize: '18px',
+    alignItems: 'center',
+    cursor: 'pointer',
+    transition: 'all 0.3s ease', // Smooth transition for hover effects
+    '&:hover': {
+      //fontWeight: 'bold', // Make text bold on hover
+      textDecoration: 'underline', // Underline text on hover
+      color: '#192959', // Optional: Change color on hover
+    },
+  }}
+  onClick={() => {
+    setSelectedTourGuide({
+      username: activity.AuthorUsername,
+      itineraryName: activity.Title,
+      rating: activity.tourGuideRating || 0, // Pass current rating
+    });
+    setIsModalOpen(true);
+  }}
+>
+  <PersonIcon fontSize="small" sx={{ mr: 1 }} />
+  {activity.AuthorUsername}
+</Typography>
+
+
+
+
                 <Typography variant="body2" sx={{ display: 'flex', fontSize: '18px', alignItems: 'center' }}>
                 <PaymentIcon fontSize="small" sx={{ mr: 1 }} />
                 {currency === 'EGP'
@@ -1121,17 +1273,63 @@ const [expanded, setExpanded] = React.useState({});
                   <CalendarTodayIcon fontSize="small" sx={{ mr: 1 }} />
                   {new Date(activity.Date).toLocaleDateString()}
                 </Typography>
-                <Typography variant="body2" sx={{ display: 'flex', fontSize: '18px', alignItems: 'center' }}>
-                  <AccessTimeIcon fontSize="small" sx={{ mr: 1 }} />
-                  {activity.Timeline}
-                </Typography>
+                <Box sx={{ flex: 1, textAlign: 'left' }}>
+  <Typography
+    variant="body2"
+    sx={{
+      fontSize: '18px',
+      wordWrap: 'break-word', // Break long words
+      whiteSpace: 'normal',  // Wrap text normally
+      maxWidth: '550px',     // Ensure width consistency
+      cursor: activity.Timeline.length > 15 ? 'pointer' : 'default', // Make clickable only if necessary
+      marginTop: '10px',
+    }}
+  >
+    <AccessTimeIcon fontSize="small" sx={{ mr: 1, color: '#8088a3' }} />
+    {expanded[index] || activity.Timeline.length <= 15 ? (
+      <span>
+        {activity.Timeline}
+        {activity.Timeline.length > 15 && (
+          <span
+            style={{
+              color: '#8088a3',
+             
+              fontWeight: 'bold',
+              cursor: 'pointer',
+            }}
+            onClick={() => handleToggleDescription(index)} // Trigger toggle
+          >
+            {" "}Read Less
+          </span>
+        )}
+      </span>
+    ) : (
+      <span>
+        {activity.Timeline.substring(0, 15)}... {/* Truncate timeline */}
+        <span
+          style={{
+            color: '#8088a3',
+            marginLeft: '5px',
+            fontWeight: 'bold',
+            cursor: 'pointer'
+          }}
+          onClick={() => handleToggleDescription(index)} // Trigger toggle
+        >
+          {" "}Read More
+        </span>
+      </span>
+    )}
+  </Typography>
+</Box>
+
+
                 <Box sx={styles.quickFacts}>
                   
                 <Box sx={styles.quickFacts}>
   <Box
     sx={{
       ...styles.infoContainer,
-      backgroundColor: activity.flagged ? '#b3b8c8' : '#f3f4f6',
+      backgroundColor: activity.flagged ? '#f3f4f6' : '#f3f4f6',
     }}
   >
     <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
@@ -1423,10 +1621,158 @@ const [expanded, setExpanded] = React.useState({});
     ))
   ) : (
     <Typography variant="h6" sx={{ textAlign: 'center', color: '#192959', marginTop: '20px' }}>
-      No Activities Found Matching Your Criteria.
+      No Itineraries Found
     </Typography>
   )}
 </Box>
+
+
+
+<Modal
+  open={isModalOpen}
+  onClose={() => setIsModalOpen(false)}
+  aria-labelledby="rate-tour-guide-title"
+  aria-describedby="rate-tour-guide-description"
+>
+  <Box
+    sx={{
+      position: 'absolute',
+      top: '50%',
+      left: '50%',
+      transform: 'translate(-50%, -50%)',
+      width: 400,
+      bgcolor: 'background.paper',
+      boxShadow: 24,
+      p: 4,
+      borderRadius: '10px',
+    }}
+  >
+    <Typography id="rate-tour-guide-title" variant="h6" component="h2" sx={{ marginBottom: '20px' }}>
+      Rate Tour Guide: {selectedTourGuide.username}
+    </Typography>
+
+    {/* Show Updated Rating */}
+    <Typography
+      variant="body2"
+      sx={{ marginBottom: '20px', fontSize: '18px', color: '#192959', fontWeight: 'bold' }}
+    >
+      Rating: {selectedTourGuide.rating ? selectedTourGuide.rating.toFixed(1) : 'N/A'}
+    </Typography>
+
+    {/* Rating Stars */}
+    {renderTourGuideRating(
+      selectedTourGuide.itineraryName,
+      selectedTourGuide.username,
+      selectedTourGuide.rating || 0,
+      handleTourGuideRatingClick
+    )}
+
+    {/* Add Comment Section */}
+    {selectedTourGuide.rating && (
+      <Box sx={{ marginTop: '20px' }}>
+        <Typography
+          id="add-comment-title"
+          variant="h6"
+          component="h2"
+          sx={{ marginBottom: '10px', fontSize: '16px', color: '#192959' }}
+        >
+          Add Comment
+        </Typography>
+        <TextField
+          fullWidth
+          multiline
+          rows={4}
+          placeholder="Write your comment here..."
+          value={commentText}
+          onChange={(e) => setCommentText(e.target.value)}
+          variant="outlined"
+        />
+        <Box sx={{ display: 'flex', justifyContent: 'flex-end', marginTop: '10px' }}>
+          <Button
+            variant="contained"
+            onClick={handleTourGuideCommentSubmit}
+            sx={{ backgroundColor: '#192959', color: '#fff' }}
+          >
+            Submit Comment
+          </Button>
+        </Box>
+      </Box>
+    )}
+
+    <Box sx={{ display: 'flex', justifyContent: 'flex-end', marginTop: '20px' }}>
+      <Button
+        variant="outlined"
+        onClick={() => setIsModalOpen(false)}
+        sx={{
+          color: '#192959',
+          borderColor: '#192959',
+          '&:hover': { backgroundColor: 'rgba(25, 41, 89, 0.1)', borderColor: '#192959' },
+          marginRight: '10px',
+        }}
+      >
+        Close
+      </Button>
+    </Box>
+  </Box>
+</Modal>
+
+
+<Modal
+  open={tourGuideCommentModalOpen}
+  onClose={() => setTourGuideCommentModalOpen(false)}
+  aria-labelledby="add-comment-title"
+  aria-describedby="add-comment-description"
+>
+  <Box
+    sx={{
+      position: 'absolute',
+      top: '50%',
+      left: '50%',
+      transform: 'translate(-50%, -50%)',
+      width: 400,
+      bgcolor: 'background.paper',
+      boxShadow: 24,
+      p: 4,
+      borderRadius: '10px',
+    }}
+  >
+    <Typography id="add-comment-title" variant="h6" component="h2" sx={{ marginBottom: '20px' }}>
+      Add Comment for {selectedTourGuide.username}
+    </Typography>
+    <TextField
+      fullWidth
+      multiline
+      rows={4}
+      placeholder="Write your comment here..."
+      value={commentText}
+      onChange={(e) => setCommentText(e.target.value)}
+      variant="outlined"
+    />
+    <Box sx={{ display: 'flex', justifyContent: 'flex-end', marginTop: '20px' }}>
+      <Button
+        variant="outlined"
+        onClick={() => setTourGuideCommentModalOpen(false)}
+        sx={{
+          color: '#192959',
+          borderColor: '#192959',
+          '&:hover': { backgroundColor: 'rgba(25, 41, 89, 0.1)', borderColor: '#192959' },
+          marginRight: '10px',
+        }}
+      >
+        Cancel
+      </Button>
+      <Button
+        variant="contained"
+        onClick={handleTourGuideCommentSubmit}
+        sx={{ backgroundColor: '#192959', color: '#fff' }}
+      >
+        Submit
+      </Button>
+    </Box>
+  </Box>
+</Modal>
+
+
 
 
 <Modal

@@ -10,7 +10,7 @@ require("dotenv").config(); //load enviironment variables
 //const {createUser,getUsers, updateUser, deleteUser} = require("./Routes/userController");
 const {createTourist,getTourist, updateTourist, searchProductTourist, filterActivities, filterProductByPriceTourist, ActivityRating, sortProductsDescendingTourist, sortProductsAscendingTourist, ViewAllUpcomingActivities, ViewAllUpcomingMuseumEventsTourist, getMuseumsByTagTourist, getHistoricalPlacesByTagTourist, ViewAllUpcomingHistoricalPlacesEventsTourist,viewProductsTourist, sortActivitiesPriceAscendingTourist, sortActivitiesPriceDescendingTourist, sortActivitiesRatingAscendingTourist, sortActivitiesRatingDescendingTourist, loginTourist, ViewAllUpcomingItinerariesTourist, sortItinerariesPriceAscendingTourist, sortItinerariesPriceDescendingTourist, filterItinerariesTourist,ActivitiesSearchAll, ItinerarySearchAll, MuseumSearchAll, HistoricalPlacesSearchAll, ProductRating, createComplaint, getComplaintsByTouristUsername,ChooseActivitiesByCategoryTourist,bookActivity,bookItinerary,bookMuseum,bookHistoricalPlace, ratePurchasedProduct, addPurchasedProducts, reviewPurchasedProduct, addCompletedItinerary, rateTourGuide, commentOnTourGuide, rateCompletedItinerary, commentOnItinerary, addCompletedActivities, addCompletedMuseumEvents, addCompletedHPEvents, rateCompletedActivity, rateCompletedMuseum, rateCompletedHP, commentOnActivity, commentOnMuseum, commentOnHP,deleteBookedActivity,deleteBookedItinerary,deleteBookedMuseum,deleteBookedHP,payActivity,updateWallet,updatepoints,payItinerary,payMuseum,payHP,redeemPoints, convertEgp, fetchFlights,viewBookedItineraries, requestDeleteAccountTourist,convertCurr,getActivityDetails,getHistoricalPlaceDetails,getMuseumDetails,GetCopyLink, bookFlight, fetchHotelsByCity, fetchHotels, 
   bookHotel,bookTransportation,addPreferences, viewMyCompletedActivities, viewMyCompletedItineraries, viewMyCompletedMuseums, viewMyCompletedHistoricalPlaces,viewMyBookedActivities,viewMyBookedItineraries,viewMyBookedMuseums,viewMyBookedHistoricalPlaces,viewTourGuidesCompleted,viewAllTransportation, getItineraryDetails, viewPreferenceTags,viewPurchasedProducts,viewBookedActivities,viewMyBookedTransportation, payActivityByCard, payItineraryByCard, payMuseumByCard, payHPByCard, sendOtp, loginTouristOTP,addBookmark,viewBookmarks, addToWishList, viewMyWishlist, removeFromWishlist, addToCartFromWishlist, addToCart, removeFromCart, changeProductQuantityInCart, checkout,
-  addDeliveryAddress, viewDeliveryAddresses,checkIfInWishlist, chooseDeliveryAddress,payOrderWallet,payOrderCash,viewOrderDetails,cancelOrder,markOrdersAsDelivered,viewAllOrders,sendUpcomingEventNotifications,payOrderStripe,payItineraryStripe,payActivityStripe,payMuseumStripe,payHPStripe, fetchCityCode} = require("./Routes/TouristController");
+  addDeliveryAddress, viewDeliveryAddresses,checkIfInWishlist, chooseDeliveryAddress,payOrderWallet,payOrderCash,viewOrderDetails,cancelOrder,markOrdersAsDelivered,viewAllOrders,sendUpcomingEventNotifications,payOrderStripe,payItineraryStripe,payActivityStripe,payMuseumStripe,payHPStripe, fetchCityCode, getTourGuideComments} = require("./Routes/TouristController");
 const {createUnregisteredAdvertiser} = require("./Routes/UnregisteredAdvertiserController");
 
 const {createUnregisteredTranspAdvertiser} = require("./Routes/UnregisteredTranspAdvertiserController");
@@ -27,7 +27,7 @@ const{ReadAdvertiserProfile , updateAdvertiser, createNewActivity, readActivity,
 const {filterActivitiesGuest, getMuseumsByTagGuest, ViewAllUpcomingActivitiesGuest, ViewAllUpcomingMuseumEventsGuest, getHistoricalPlacesByTagGuest, ViewAllUpcomingHistoricalPlacesEventsGuest, sortActivitiesPriceAscendingGuest, sortActivitiesPriceDescendingGuest, sortActivitiesRatingDescendingGuest, sortActivitiesRatingAscendingGuest, ViewAllUpcomingItinerariesGuest, sortItinerariesPriceDescendingGuest, sortItinerariesPriceAscendingGuest, filterItinerariesGuest,ChooseActivitiesByCategoryGuest} = require("./Routes/GuestController");
 
 //const {createNewTourismGoverner, createNewAdmin, createNewProduct, editProduct} = require("./Routes/AdminController");
-const{ReadTourGuideProfile , UpdateTourGuideEmail , UpdateTourGuidePassword, UpdateTourGuideMobileNum , UpdateTourGuideYearsofExperience ,UpdateTourGuidePreviousWork, createItineraryAsTourGuide, readItineraryAsTourGuide, updateItineraryAsTourGuide, deleteItineraryAsTourGuide, updateTourGuideProfile,loginTourGuide,getItenrarysByTourGuide, deactivateItinerary,activateItinerary, viewMyDeactivatedItinerariesTourGuide, decrementLoginCountTourGuide,requestDeleteAccountTourGuide} = require("./Routes/TourGuideController")
+const{ReadTourGuideProfile , UpdateTourGuideEmail , UpdateTourGuidePassword, UpdateTourGuideMobileNum , UpdateTourGuideYearsofExperience ,UpdateTourGuidePreviousWork, createItineraryAsTourGuide, readItineraryAsTourGuide, updateItineraryAsTourGuide, deleteItineraryAsTourGuide, updateTourGuideProfile,loginTourGuide,getItenrarysByTourGuide, deactivateItinerary,activateItinerary, viewMyDeactivatedItinerariesTourGuide, decrementLoginCountTourGuide,requestDeleteAccountTourGuide, allNotificationsReadtg, areAllNotificationsReadtg, getAdvertiserNotificationstg} = require("./Routes/TourGuideController")
 //importing a set of functions
 const MongoURI = process.env.MONGO_URI ;
 
@@ -245,7 +245,9 @@ app.get("/api/getAllUnregisteredTransportationAdvertisers", getAllUnregisteredTr
 app.put("/api/allNotificationsRead", allNotificationsRead);
 app.get("/api/areAllNotificationsRead", areAllNotificationsRead);
 app.get("/api/getAdvertiserNotifications", getAdvertiserNotifications);
-
+app.put("/api/allNotificationsReadtg", allNotificationsReadtg);
+app.get("/api/areAllNotificationsReadtg", areAllNotificationsReadtg);
+app.get("/api/getAdvertiserNotificationstg", getAdvertiserNotificationstg);
 
 //SPRINT 2 MALAK AND JANA
 app.get("/ChooseActivitiesByCategoryTourist",ChooseActivitiesByCategoryTourist);
@@ -316,6 +318,7 @@ app.post('/api/acceptTranspAdvertiser', acceptTranspAdvertiser);
 app.post('/createNewTransportation', createNewTransportation);
 app.get("/ReadTransportationAdvertiserProfile",ReadTransportationAdvertiserProfile);
 app.get("/viewPreferenceTags",viewPreferenceTags);
+app.get("/getTourGuideComments",getTourGuideComments);
 
 app.put("/bookTransportation",bookTransportation);
 app.put("/addPreferences",addPreferences);

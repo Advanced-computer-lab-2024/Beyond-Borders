@@ -451,4 +451,80 @@ const requestDeleteAccountTourGuide = async (req, res) => {
   }
 };
 
-module.exports = {ReadTourGuideProfile , UpdateTourGuideEmail , UpdateTourGuidePassword, UpdateTourGuideMobileNum , UpdateTourGuideYearsofExperience ,UpdateTourGuidePreviousWork ,createItineraryAsTourGuide,readItineraryAsTourGuide,updateItineraryAsTourGuide,deleteItineraryAsTourGuide, updateTourGuideProfile,loginTourGuide,getItenrarysByTourGuide, deactivateItinerary,activateItinerary, viewMyDeactivatedItinerariesTourGuide, decrementLoginCountTourGuide,requestDeleteAccountTourGuide};
+const allNotificationsReadtg = async (req, res) => {
+  const { username } = req.body; // Extract username from the request body
+  try {
+    if (!username) {
+      return res.status(400).json({ error: "Username is required." });
+    }
+
+    const updatedAdvertiser = await TourGuideModel.findOneAndUpdate(
+      { Username: username }, // Find the advertiser by username
+      { $set: { "Notifications.$[].Read": true } }, // Update all notifications to `Read: true`
+      { new: true } // Return the updated document
+    );
+
+    if (!updatedAdvertiser) {
+      return res.status(404).json({ error: "Advertiser not found." });
+    }
+
+    res.status(200).json({
+      message: "All notifications marked as read successfully.",
+      advertiser: updatedAdvertiser,
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+
+const areAllNotificationsReadtg = async (req, res) => {
+  const { username } = req.query; // Extract username from query
+
+  try {
+    if (!username) {
+      return res.status(400).json({ error: "Username is required." });
+    }
+
+    // Find the advertiser by username and select the Notifications field
+    const advertiser = await TourGuideModel.findOne({ Username: username }, "Notifications");
+
+    if (!advertiser) {
+      return res.status(404).json({ error: "Advertiser not found." });
+    }
+
+    // Check if all notifications are marked as `Read: true`
+    const allRead = advertiser.Notifications.every(notification => notification.Read);
+
+    res.status(200).json({ allRead }); // Return true or false
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+const getAdvertiserNotificationstg = async (req, res) => {
+  const { username } = req.query; // Extract username from query parameters
+
+  try {
+    if (!username) {
+      return res.status(400).json({ error: "Username is required." });
+    }
+
+    // Find the advertiser and retrieve the Notifications field
+    const advertiser = await TourGuideModel.findOne(
+      { Username: username },
+      "Notifications" // Only select the Notifications field
+    );
+
+    if (!advertiser) {
+      return res.status(404).json({ error: "Advertiser not found." });
+    }
+
+    // Return all notifications
+    res.status(200).json({ notifications: advertiser.Notifications });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+module.exports = {ReadTourGuideProfile , UpdateTourGuideEmail , UpdateTourGuidePassword, UpdateTourGuideMobileNum , UpdateTourGuideYearsofExperience ,UpdateTourGuidePreviousWork ,createItineraryAsTourGuide,readItineraryAsTourGuide,updateItineraryAsTourGuide,deleteItineraryAsTourGuide, updateTourGuideProfile,loginTourGuide,getItenrarysByTourGuide, deactivateItinerary,activateItinerary, viewMyDeactivatedItinerariesTourGuide, decrementLoginCountTourGuide,requestDeleteAccountTourGuide, allNotificationsReadtg, areAllNotificationsReadtg, getAdvertiserNotificationstg};

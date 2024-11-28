@@ -36,7 +36,8 @@ const LoginTourGuide = () => {
           setShowTermsModal(true);
         } else {
           setTimeout(() => {
-            window.location.href = '/HomePageTourGuide';
+            //window.location.href = '/HomePageTourGuide';
+            window.location.href = '/YTourGuideDashboard';
           }, 2000);
         }
       } else {
