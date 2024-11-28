@@ -618,7 +618,7 @@ const handleAccountDeletion = async () => {
       </Box>
     ))
   ) : (
-    <Typography>No notifications</Typography>
+    <Typography variant="body1" textAlign="left" sx={{ color: '#192959' }}>No notifications</Typography>
   )}
 </Box>
 
