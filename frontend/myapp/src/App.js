@@ -91,6 +91,7 @@ import TouristBookedItineraries from './files/NewTourist/TouristBookedItinerarie
 import TouristCompletedItineraries from './files/NewTourist/TouristCompletedItineraries';
 import TouristAllTransportation from './files/NewTourist/TouristAllTransportation';
 import TouristBookedTransportation from './files/NewTourist/TouristBookedTransportation';
+import TouristComplaints from './files/NewTourist/TouristComplaints';
 
 
 //YASSIN AND AMINA DASHBOARD
@@ -163,6 +164,7 @@ function App() {
           <Route path="/TouristCompletedItineraries" element={<TouristCompletedItineraries/>}/>
           <Route path="/TouristAllTransportation" element={<TouristAllTransportation/>}/>
           <Route path="/TouristBookedTransportation" element={<TouristBookedTransportation/>}/>
+          <Route path="/TouristComplaints" element={<TouristComplaints/>}/>
 
           
           
