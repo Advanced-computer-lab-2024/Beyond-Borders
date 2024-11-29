@@ -23,7 +23,7 @@ const ArchivedProductsModel = require('../Models/ArchivedProducts.js');
 const DeleteRequestsModel = require('../Models/DeleteRequests.js');
 const DeactivatedItineraries = require('../Models/DeactivatedItineraries.js');
 const DeactivatedActivitiesModel = require('../Models/DeactivatedActivities.js');
-
+const PromoCode = require('../Models/PromoCode'); 
 const nodemailer = require('nodemailer'); 
 
 const { default: mongoose } = require('mongoose');
@@ -1551,8 +1551,55 @@ const getAdminPassword = async (req, res) => {
         }
       };
 
+// Create Promo Code Method in Admin Controller (No expiryDate)
+const createPromoCode = async (req, res) => {
+  const { code, discountPercentage, isActive } = req.body;
+
+  try {
+    // Validate required fields
+    if (!code || !discountPercentage) {
+      return res.status(400).json({ error: "Code and discount percentage are required." });
+    }
+
+    // Check if the promo code already exists using Mongoose's findOne method
+    const existingPromoCode = await PromoCode.findOne({ code });
+    if (existingPromoCode) {
+      return res.status(400).json({ error: "Promo code already exists." });
+    }
+
+    // Validate discount percentage (it should be between 0 and 100)
+    if (discountPercentage < 0 || discountPercentage > 100) {
+      return res.status(400).json({ error: "Discount percentage must be between 0 and 100." });
+    }
+
+    // Create new PromoCode document without expiryDate field
+    const newPromoCode = new PromoCode({
+      code,
+      discountPercentage,
+      isActive: isActive !== undefined ? isActive : true // Default to true if isActive is not provided
+    });
+
+    // Save the promo code to the database using Mongoose's save method
+    await newPromoCode.save();
+
+    // Send success response
+    return res.status(201).json({
+      message: "Promo code created successfully.",
+      promoCode: newPromoCode
+    });
+
+  } catch (error) {
+    console.error("Error creating promo code:", error);
+    return res.status(500).json({ error: "Server error. Could not create promo code." });
+  }
+};
+
+
+
+
 
 module.exports = {createNewAdmin, createNewTourismGoverner, createNewProduct, editProduct, acceptSeller, rejectSeller, createNewCategory, readAllActivityCategories, updateCategory, deleteActivityCategory, deleteAccount, searchProductAdmin, createNewTag, readAllTags, updateTag, deleteTag, 
     acceptTourGuide, rejectTourGuide, acceptAdvertiser, rejectAdvertiser, filterProductByPriceAdmin, sortProductsDescendingAdmin, sortProductsAscendingAdmin,viewProducts, loginAdmin, viewAllProductsAdmin, updateAdminPassword, getAllComplaints, updateComplaintStatus, replyToComplaint, getComplaintDetails, 
     filterComplaintsByStatus, sortComplaintsByRecent, sortComplaintsByOldest, archiveProduct, unarchiveProduct, flagItinerary, flagActivity, viewArchivedProductsAdmin , viewAllActivitiesAdmin ,viewAllItinerariesAdmin,acceptTranspAdvertiser,rejectTranspAdvertiser, readAllDeleteRequests,rejectRequestDeleteAccout,
-    getAdminPassword,viewAdvertiserDocument,viewTourGuideDocuments,viewSellerDocument,getAllUnregisteredAdvertisers,getAllUnregisteredTourGuides,getAllUnregisteredSellers,getAllUnregisteredTransportationAdvertisers};
+    getAdminPassword,viewAdvertiserDocument,viewTourGuideDocuments,viewSellerDocument,getAllUnregisteredAdvertisers,getAllUnregisteredTourGuides,getAllUnregisteredSellers,getAllUnregisteredTransportationAdvertisers,  createPromoCode
+  };
