@@ -33,7 +33,8 @@ const CreateMuseums = async (req, res) => {
             dateOfEvent,
             Ratings: 0,
             RatingCount: 0,
-            Comments: []
+            Comments: [],
+            SendNotificationTo:[]
 
         });
 

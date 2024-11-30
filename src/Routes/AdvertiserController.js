@@ -1,5 +1,7 @@
 const AdvertiserModel = require('../Models/Advertiser.js');
 const ActivityModel = require('../Models/Activity.js');
+const TouristModel = require('../Models/Tourist.js');
+
 const TagsModel = require('../Models/Tags.js');
 const NewActivityCategoryModel = require('../Models/ActivityCategory.js');
 const DeleteRequestsModel = require('../Models/DeleteRequests.js');
@@ -149,63 +151,226 @@ const { default: mongoose } = require('mongoose');
         }
       };
 
-      const updateActivity = async (req, res) => {
-        // Destructure fields from the request body
-        const { AdvertiserName, Name, Date, Time, SpecialDiscount, BookingOpen, Price, Location, Category, Tags } = req.body;
+    //   const updateActivity = async (req, res) => {
+    //     // Destructure fields from the request body
+    //     const { AdvertiserName, Name, Date, Time, SpecialDiscount, BookingOpen, Price, Location, Category, Tags } = req.body;
     
-        try {
-            // Check if the activity exists with the provided name and advertiser name
-            const existingActivity = await ActivityModel.findOne({ Name: Name, AdvertiserName: AdvertiserName });
-            if (!existingActivity) {
-                return res.status(404).json({ error: "Activity not found for the given advertiser." });
-            }
+    //     try {
+    //         // Check if the activity exists with the provided name and advertiser name
+    //         const existingActivity = await ActivityModel.findOne({ Name: Name, AdvertiserName: AdvertiserName });
+    //         if (!existingActivity) {
+    //             return res.status(404).json({ error: "Activity not found for the given advertiser." });
+    //         }
     
-            // If Category is provided, check if it exists
-            if (Category) {
-                const existingCategory = await NewActivityCategoryModel.findOne({ NameOfCategory: Category });
-                if (!existingCategory) {
-                    return res.status(400).json({ error: "Selected category does not exist!" });
-                }
-            }
+    //         // If Category is provided, check if it exists
+    //         if (Category) {
+    //             const existingCategory = await NewActivityCategoryModel.findOne({ NameOfCategory: Category });
+    //             if (!existingCategory) {
+    //                 return res.status(400).json({ error: "Selected category does not exist!" });
+    //             }
+    //         }
     
-            // If Tags are provided, check if they exist
-            if (Tags && Tags.length > 0) {
-                const existingTags = await TagsModel.find({ NameOfTags: { $in: Tags } });
-                if (existingTags.length !== Tags.length) {
-                    return res.status(400).json({ error: "One or more tags do not exist!" });
-                }
-            }
+    //         // If Tags are provided, check if they exist
+    //         if (Tags && Tags.length > 0) {
+    //             const existingTags = await TagsModel.find({ NameOfTags: { $in: Tags } });
+    //             if (existingTags.length !== Tags.length) {
+    //                 return res.status(400).json({ error: "One or more tags do not exist!" });
+    //             }
+    //         }
     
-            // Prepare an object with the fields to update (excluding AdvertiserName and Name)
-            const updateFields = {
-                Date,
-                Time,
-                SpecialDiscount,
-                BookingOpen,
-                Price,
-                Location,
-                Category,
-                Tags
-            };
+    //         // Prepare an object with the fields to update (excluding AdvertiserName and Name)
+    //         const updateFields = {
+    //             Date,
+    //             Time,
+    //             SpecialDiscount,
+    //             BookingOpen,
+    //             Price,
+    //             Location,
+    //             Category,
+    //             Tags
+    //         };
     
-            // Filter out any undefined values to avoid updating fields with undefined
-            Object.keys(updateFields).forEach(key => updateFields[key] === undefined && delete updateFields[key]);
+    //         // Filter out any undefined values to avoid updating fields with undefined
+    //         Object.keys(updateFields).forEach(key => updateFields[key] === undefined && delete updateFields[key]);
     
-            // Update the activity
-            const updatedActivity = await ActivityModel.findOneAndUpdate(
-                { Name: Name, AdvertiserName: AdvertiserName }, // Find by Name and AdvertiserName
-                { $set: updateFields }, // Update only the specified fields
-                { new: true } // Return the updated document
-            );
+    //         // Update the activity
+    //         const updatedActivity = await ActivityModel.findOneAndUpdate(
+    //             { Name: Name, AdvertiserName: AdvertiserName }, // Find by Name and AdvertiserName
+    //             { $set: updateFields }, // Update only the specified fields
+    //             { new: true } // Return the updated document
+    //         );
     
-            // Send the updated activity as a JSON response with a 200 OK status
-            res.status(200).json({ msg: "Activity updated successfully!", activity: updatedActivity });
-        } catch (error) {
-            // If an error occurs, send a 400 Bad Request status with the error message
-            res.status(400).json({ error: error.message });
-        }
-    };
+    //         // Send the updated activity as a JSON response with a 200 OK status
+    //         res.status(200).json({ msg: "Activity updated successfully!", activity: updatedActivity });
+    //     } catch (error) {
+    //         // If an error occurs, send a 400 Bad Request status with the error message
+    //         res.status(400).json({ error: error.message });
+    //     }
+    // };
+
+    const updateActivity = async (req, res) => {
+      // Destructure fields from the request body
+      const { AdvertiserName, Name, Date, Time, SpecialDiscount, BookingOpen, Price, Location, Category, Tags } = req.body;
+  
+      try {
+          // Check if the activity exists with the provided name and advertiser name
+          const existingActivity = await ActivityModel.findOne({ Name: Name, AdvertiserName: AdvertiserName });
+          if (!existingActivity) {
+              return res.status(404).json({ error: "Activity not found for the given advertiser." });
+          }
+  
+          // If Category is provided, check if it exists
+          if (Category) {
+              const existingCategory = await NewActivityCategoryModel.findOne({ NameOfCategory: Category });
+              if (!existingCategory) {
+                  return res.status(400).json({ error: "Selected category does not exist!" });
+              }
+          }
+  
+          // If Tags are provided, check if they exist
+          if (Tags && Tags.length > 0) {
+              const existingTags = await TagsModel.find({ NameOfTags: { $in: Tags } });
+              if (existingTags.length !== Tags.length) {
+                  return res.status(400).json({ error: "One or more tags do not exist!" });
+              }
+          }
+
+          if (existingActivity.BookingOpen === false && BookingOpen === true) {
+                        // Notify all users in SendNotificationTo
+                        for (const subscriber of existingActivity.SendNotificationTo || []) {
+                            const { username } = subscriber;
+            
+                            // Find the corresponding tourist
+                            const tourist = await TouristModel.findOne({ Username: username });
+                            if (tourist) {
+                                // Add a notification about the booking opening
+                                tourist.Notifications.push({
+                                    NotificationText: `The activity "${existingActivity.Name}" is now open for booking!`,
+                                    Read: false,
+                                });
+                                await tourist.save(); // Save the updated tourist document
+                            }
+                        }
+            
+                        // Clear the SendNotificationTo array after sending notifications
+                        existingActivity.SendNotificationTo = [];
+                       // await existingActivity.save();
+
+                    } 
+            
+  
+          // Prepare an object with the fields to update (excluding AdvertiserName and Name)
+          const updateFields = {
+              Date,
+              Time,
+              SpecialDiscount,
+              BookingOpen,
+              Price,
+              Location,
+              Category,
+              Tags
+          };
+  
+          // Filter out any undefined values to avoid updating fields with undefined
+          Object.keys(updateFields).forEach(key => updateFields[key] === undefined && delete updateFields[key]);
+  
+          // Update the activity
+          const updatedActivity = await ActivityModel.findOneAndUpdate(
+              { Name: Name, AdvertiserName: AdvertiserName }, // Find by Name and AdvertiserName
+              { $set: updateFields }, // Update only the specified fields
+              { new: true } // Return the updated document
+          );
+          
+          // Send the updated activity as a JSON response with a 200 OK status
+          res.status(200).json({ msg: "Activity updated successfully!", activity: updatedActivity });
+      } catch (error) {
+          // If an error occurs, send a 400 Bad Request status with the error message
+          res.status(400).json({ error: error.message });
+      }
+  };
     
+  //   const updateActivity = async (req, res) => {
+  //     const { AdvertiserName, Name, Date, Time, SpecialDiscount, BookingOpen, Price, Location, Category, Tags } = req.body;
+  
+  //     try {
+  //         // Check if the activity exists with the provided name and advertiser name
+  //         const existingActivity = await ActivityModel.findOne({ Name: Name, AdvertiserName: AdvertiserName });
+  //         if (!existingActivity) {
+  //             return res.status(404).json({ error: "Activity not found for the given advertiser." });
+  //         }
+  
+  //         // If Category is provided, check if it exists
+  //         if (Category) {
+  //             const existingCategory = await NewActivityCategoryModel.findOne({ NameOfCategory: Category });
+  //             if (!existingCategory) {
+  //                 return res.status(400).json({ error: "Selected category does not exist!" });
+  //             }
+  //         }
+  
+  //         // If Tags are provided, check if they exist
+  //         if (Tags && Tags.length > 0) {
+  //             const existingTags = await TagsModel.find({ NameOfTags: { $in: Tags } });
+  //             if (existingTags.length !== Tags.length) {
+  //                 return res.status(400).json({ error: "One or more tags do not exist!" });
+  //             }
+  //         }
+  
+  //         // Check if BookingOpen is changing
+  //         if (existingActivity.BookingOpen === false && BookingOpen === true) {
+  //             // Notify all users in SendNotificationTo
+  //             for (const subscriber of existingActivity.SendNotificationTo || []) {
+  //                 const { username } = subscriber;
+  
+  //                 // Find the corresponding tourist
+  //                 const tourist = await TouristModel.findOne({ Username: username });
+  //                 if (tourist) {
+  //                     // Add a notification about the booking opening
+  //                     tourist.Notifications.push({
+  //                         NotificationText: `The activity "${existingActivity.Name}" is now open for booking!`,
+  //                         Read: false,
+  //                     });
+  //                     await tourist.save(); // Save the updated tourist document
+  //                 }
+  //             }
+  
+  //             // Clear the SendNotificationTo array after sending notifications
+  //             existingActivity.SendNotificationTo = [];
+  //         } 
+  
+
+  //         // Prepare an object with the fields to update (excluding AdvertiserName and Name)
+  //         const updateFields = {
+  //             Date,
+  //             Time,
+  //             SpecialDiscount,
+  //             BookingOpen,
+  //             Price,
+  //             Location,
+  //             Category,
+  //             Tags,
+  //         };
+  
+  //         // Filter out any undefined values to avoid updating fields with undefined
+  //         Object.keys(updateFields).forEach(key => updateFields[key] === undefined && delete updateFields[key]);
+  
+  //         // Update the activity
+  //         const updatedActivity = await ActivityModel.findOneAndUpdate(
+  //             { Name: Name, AdvertiserName: AdvertiserName }, // Find by Name and AdvertiserName
+  //             { $set: updateFields }, // Update only the specified fields
+  //             { new: true } // Return the updated document
+  //         );
+  
+  //         // Save the updated activity if notifications were sent
+  //         await existingActivity.save();
+  
+  //         // Send the updated activity as a JSON response with a 200 OK status
+  //         res.status(200).json({ msg: "Activity updated successfully!", activity: updatedActivity });
+  //     } catch (error) {
+  //         // If an error occurs, send a 400 Bad Request status with the error message
+  //         res.status(400).json({ error: error.message });
+  //     }
+  // };
+  
     const deleteActivity = async (req, res) => {
       const { AdvertiserName, Name } = req.body;
   

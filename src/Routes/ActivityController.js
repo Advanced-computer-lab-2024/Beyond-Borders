@@ -51,8 +51,44 @@ const createNewActivity = async (req, res) => {
     }
   };
 
+  // const updateActivity = async (req, res) => {
+  //   // Destructure the activity name from the request parameters and the new data from the request body
+  //   const { name } = req.params; // Assuming the name is passed as a route parameter
+  //   const { AdvertiserName, Date, Time, SpecialDiscount, BookingOpen, Price, Location, Category, Tags } = req.body;
+  
+  //   try {
+  //     // Find the activity by its name (case-insensitive)
+  //     const activity = await ActivityModel.findOne({ Name: { $regex: new RegExp(name, 'i') } });
+  
+  //     // If no activity is found, return a 404 error
+  //     if (!activity) {
+  //       return res.status(404).json({ error: "Activity not found!" });
+  //     }
+  
+  //     // Update the activity with the new data
+  //     activity.AdvertiserName = AdvertiserName !== undefined ? AdvertiserName : activity.AdvertiserName;
+  //     activity.Date = Date !== undefined ? Date : activity.Date;
+  //     activity.Time = Time !== undefined ? Time : activity.Time;
+  //     activity.SpecialDiscount = SpecialDiscount !== undefined ? SpecialDiscount : activity.SpecialDiscount;
+  //     activity.BookingOpen = BookingOpen !== undefined ? BookingOpen : activity.BookingOpen;
+  //     activity.Price = Price !== undefined ? Price : activity.Price;
+  //     activity.Location = Location !== undefined ? Location : activity.Location;
+  //     activity.Category = Category !== undefined ? Category : activity.Category;
+  //     activity.Tags = Tags !== undefined ? Tags : activity.Tags;
+  
+  //     // Save the updated activity
+  //     const updatedActivity = await activity.save();
+  
+  //     // Return the updated activity as a JSON response with a 200 OK status
+  //     res.status(200).json(updatedActivity);
+  
+  //   } catch (error) {
+  //     // If an error occurs, send a 500 Internal Server Error status with the error message
+  //     res.status(500).json({ error: error.message });
+  //   }
+  // };
+  
   const updateActivity = async (req, res) => {
-    // Destructure the activity name from the request parameters and the new data from the request body
     const { name } = req.params; // Assuming the name is passed as a route parameter
     const { AdvertiserName, Date, Time, SpecialDiscount, BookingOpen, Price, Location, Category, Tags } = req.body;
   
@@ -63,6 +99,28 @@ const createNewActivity = async (req, res) => {
       // If no activity is found, return a 404 error
       if (!activity) {
         return res.status(404).json({ error: "Activity not found!" });
+      }
+  
+      // Check if BookingOpen is changing from false to true
+      if (activity.BookingOpen === false && BookingOpen === true) {
+        // Notify all users in SendNotificationTo
+        for (const subscriber of activity.SendNotificationTo) {
+          const { username } = subscriber;
+  
+          // Find the corresponding tourist
+          const tourist = await TouristModel.findOne({ Username: username });
+          if (tourist) {
+            // Add a notification about the booking opening
+            tourist.Notifications.push({
+              NotificationText: `The activity "${activity.Name}" is now open for booking!`,
+              Read: false,
+            });
+            await tourist.save(); // Save the updated tourist document
+          }
+        }
+  
+        // Clear the SendNotificationTo array after sending notifications
+        activity.SendNotificationTo = [];
       }
   
       // Update the activity with the new data
@@ -80,8 +138,10 @@ const createNewActivity = async (req, res) => {
       const updatedActivity = await activity.save();
   
       // Return the updated activity as a JSON response with a 200 OK status
-      res.status(200).json(updatedActivity);
-  
+      res.status(200).json({
+        message: "Activity updated successfully!",
+        activity: updatedActivity,
+      });
     } catch (error) {
       // If an error occurs, send a 500 Internal Server Error status with the error message
       res.status(500).json({ error: error.message });

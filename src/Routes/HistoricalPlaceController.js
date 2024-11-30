@@ -39,7 +39,8 @@ const CreateHistoricalPlace = async (req, res) => {
           dateOfEvent,
           Ratings: 0,
           RatingCount: 0,
-          Comments: []
+          Comments: [],
+          SendNotificationTo:[]
       });
 
       // Respond with the created document and a 201 Created status
