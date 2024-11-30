@@ -5,6 +5,7 @@ import {
   Typography,
   Button,
   IconButton,
+  TextField,
   Divider,
 } from "@mui/material";
 import MenuIcon from "@mui/icons-material/Menu";
@@ -22,11 +23,17 @@ import ImageIcon from "@mui/icons-material/Image";
 import TagIcon from "@mui/icons-material/Label";
 import { useNavigate } from 'react-router-dom';
 import DashboardIcon from '@mui/icons-material/Dashboard';
+import SaveIcon from '@mui/icons-material/Save';
 
 const MuseumTG = () => {
   const [museums, setMuseums] = useState([]);
   const [errorMessage, setErrorMessage] = useState("");
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const urlParams = new URLSearchParams(window.location.search);
+  const [editing, setEditing] = useState({});  // Initialize it as an empty object, or with indices if needed
+
+  const museumName = urlParams.get('name');
+
     const navigate = useNavigate();
   // Fetch museums
   const fetchMuseumsByAuthor = async () => {
@@ -56,6 +63,25 @@ const MuseumTG = () => {
       setErrorMessage("An error occurred while fetching museums. Please try again.");
     }
   };
+ 
+
+  const handleUpdateMuseum = async (index) => {
+    const updatedMuseum = museums[index]; // Get the updated museum data
+  
+    // Log to ensure the data is correct
+    console.log("Updated Museum:", updatedMuseum);
+  
+    try {
+      const response = await axios.post('/updateMuseumByName', updatedMuseum);
+      alert(response.data.msg || "Museum updated successfully.");
+      window.location.href = "/MuseumTG"; // Redirect or reload page after update
+    } catch (error) {
+      console.error("Error updating museum:", error);
+      alert(`An error occurred while updating the museum: ${error.response?.data?.error || "Unknown error"}`);
+    }
+  };
+  
+  
 
   // Delete a museum
   const removeMuseum = async (museumName) => {
@@ -84,6 +110,24 @@ const MuseumTG = () => {
         alert("An error occurred while deleting the museum. Please try again.");
       }
     }
+  };
+  const handleEditFieldChange = (index, field, value) => {
+    setMuseums((prevMuseums) => {
+      const updatedMuseums = [...prevMuseums];
+      const museum = { ...updatedMuseums[index] };
+      
+      // Update the specific field in the museum object
+      if (field.includes(".")) {
+        // For nested fields (like ticketPrices.foreigner), split the field path
+        const fieldParts = field.split(".");
+        museum[fieldParts[0]][fieldParts[1]] = value;
+      } else {
+        museum[field] = value;
+      }
+      
+      updatedMuseums[index] = museum; // Replace the old museum data with updated one
+      return updatedMuseums;
+    });
   };
 
   // Fetch museums on component mount
@@ -164,87 +208,193 @@ const MuseumTG = () => {
       >
         
 
-        {/* Activity Content */}
         <Box sx={styles.activityContent}>
-          {/* Left Side */}
-          <Box sx={styles.activityLeft}>
-            <Typography variant="h6" sx={{ display: 'flex',fontWeight: 'bold', fontSize: '24px', marginBottom: '5px' }}>
-              {museum.name}
-            </Typography>
-            <Typography variant="body2" sx={{ display: 'flex', fontSize: '18px', alignItems: 'left' }}>
-              <LocationOnIcon fontSize="small" sx={{ mr: 1 }} />
-              {museum.location || 'N/A'}
-            </Typography>
-            {/* Other musuem details */}
-              {/* Tags */}
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
-                  Tags:
-                </Typography>
-                <Box sx={styles.tagContainer}>
-                  {museum.HistoricalTags.map((tag, tagIndex) => (
-                    <Typography
-                      key={tagIndex}
-                      sx={{
-                        ...styles.tag,
-                        backgroundColor: '#cccfda',
-                        color: '#192959',
-                      }}
-                    >
-                      {tag}
-                    </Typography>
-                  ))}
-                </Box>
-              </Box>
-
-                
+  {/* Left Side */}
+  <Box sx={styles.activityLeft}>
+    {editing[index] ? (
+      <>
+        {/* Editable Name */}
+        <TextField
+          label="Museum Name"
+          value={museum.name}
+          onChange={(e) =>
+            handleEditFieldChange(index, 'name', e.target.value)
+          }
+          fullWidth
+          sx={{ marginBottom: '10px' }}
+        />
+        {/* Editable Location */}
+        <TextField
+          label="Location"
+          value={museum.location}
+          onChange={(e) =>
+            handleEditFieldChange(index, 'location', e.target.value)
+          }
+          fullWidth
+          sx={{ marginBottom: '10px' }}
+        />
+        {/* Editable Description */}
+        <TextField
+          label="Description"
+          value={museum.description}
+          onChange={(e) =>
+            handleEditFieldChange(index, 'description', e.target.value)
+          }
+          fullWidth
+          multiline
+          rows={4}
+          sx={{ marginBottom: '10px' }}
+        />
+        {/* Editable Tags */}
+        <TextField
+          label="Tags"
+          value={museum.HistoricalTags.join(', ')} // Join tags into a single comma-separated string
+          onChange={(e) =>
+            handleEditFieldChange(index, 'HistoricalTags', e.target.value.split(',').map((tag) => tag.trim())) // Split input into array
+          }
+          fullWidth
+          sx={{ marginBottom: '10px' }}
+        />
+      </>
+    ) : (
+      <>
+        {/* Display Museum Name */}
+        <Typography variant="h6" sx={{ display: 'flex', fontWeight: 'bold', fontSize: '24px', marginBottom: '5px' }}>
+          {museum.name}
+        </Typography>
+        {/* Display Location */}
+        <Typography variant="body2" sx={{ display: 'flex', fontSize: '18px', alignItems: 'left' }}>
+          <LocationOnIcon fontSize="small" sx={{ mr: 1 }} />
+          {museum.location || 'N/A'}
+        </Typography>
+        {/* Display Tags */}
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
+            Tags:
+          </Typography>
+          <Box sx={styles.tagContainer}>
+            {museum.HistoricalTags.map((tag, tagIndex) => (
+              <Typography
+                key={tagIndex}
+                sx={{
+                  ...styles.tag,
+                  backgroundColor: '#cccfda',
+                  color: '#192959',
+                }}
+              >
+                {tag}
+              </Typography>
+            ))}
           </Box>
-
-          {/* Divider Line */}
-          <Divider orientation="vertical" flexItem sx={styles.verticalDivider} />
-
-          {/* Right Side */}
-          <Box sx={styles.activityRight}>
-          <Typography variant="body2" sx={{ display: 'flex', fontSize: '18px', alignItems: 'right' }}>
-              <AttachMoneyIcon fontSize="small" sx={{ mr: 1 }} />
-              Foreigner  ${museum.ticketPrices.foreigner}, Native  $
-                      {museum.ticketPrices.native}, Student  ${museum.ticketPrices.student}
-            </Typography>
-            <Typography variant="body2" sx={{ display: 'flex', fontSize: '18px', alignItems: 'right' }}>
-              <CalendarTodayIcon fontSize="small" sx={{ mr: 1 }} />
-              {new Date(museum.dateOfEvent).toLocaleDateString()}
-            </Typography>
-            <Typography variant="body2" sx={{ fontSize: '16px'}}>
-            <strong>Description:</strong> {museum.description || "No description provided."}
-            </Typography>
-            <Typography variant="body2" sx={styles.info}>
-                      <ImageIcon fontSize="small" sx={{ mr: 1 }} />
-                      Pictures: {museum.pictures ? museum.pictures.length : 0} available
-            </Typography>
-            {/* <Typography variant="body2" sx={{ fontSize: '16px' }}>
-              <strong>Booking Open:</strong> {activity.isBooked ? 'Yes' : 'No'}
-            </Typography> */}
-          </Box>
-          {/* Edit/Delete Buttons */}
-          <Box sx={styles.museumActions}>
-                  <IconButton
-                    onClick={() =>
-                      (window.location.href = `/editMuseum?name=${encodeURIComponent(
-                        museum.name
-                      )}&author=${encodeURIComponent(localStorage.getItem("username"))}`)
-                    }
-                    sx={styles.actionButton}
-                  >
-                    <EditIcon />
-                  </IconButton>
-                  <IconButton
-                    onClick={() => removeMuseum(museum.name)}
-                    sx={{ ...styles.actionButton, ...styles.deleteButton }}
-                  >
-                    <DeleteIcon />
-                  </IconButton>
-                </Box>
         </Box>
+      </>
+    )}
+  </Box>
+
+  {/* Divider Line */}
+  <Divider orientation="vertical" flexItem sx={styles.verticalDivider} />
+
+  {/* Right Side */}
+  <Box sx={styles.activityRight}>
+    {editing[index] ? (
+      <>
+        {/* Editable Ticket Prices */}
+        <TextField
+          label="Foreigner Ticket Price"
+          value={museum.ticketPrices.foreigner}
+          onChange={(e) =>
+            handleEditFieldChange(index, 'ticketPrices.foreigner', e.target.value)
+          }
+          fullWidth
+          sx={{ marginBottom: '10px', maxWidth: '400px' }}
+        />
+        <TextField
+          label="Native Ticket Price"
+          value={museum.ticketPrices.native}
+          onChange={(e) =>
+            handleEditFieldChange(index, 'ticketPrices.native', e.target.value)
+          }
+          fullWidth
+          sx={{ marginBottom: '10px', maxWidth: '400px' }}
+        />
+        <TextField
+          label="Student Ticket Price"
+          value={museum.ticketPrices.student}
+          onChange={(e) =>
+            handleEditFieldChange(index, 'ticketPrices.student', e.target.value)
+          }
+          fullWidth
+          sx={{ marginBottom: '10px', maxWidth: '400px' }}
+        />
+        {/* Editable Event Date */}
+        <TextField
+          label="Event Date"
+          type="date"
+          value={new Date(museum.dateOfEvent).toISOString().split('T')[0]}
+          onChange={(e) =>
+            handleEditFieldChange(index, 'dateOfEvent', e.target.value)
+          }
+          fullWidth
+          sx={{ marginBottom: '10px', maxWidth: '400px' }}
+          InputLabelProps={{ shrink: true }}
+        />
+      </>
+    ) : (
+      <>
+        {/* Display Ticket Prices */}
+        <Typography variant="body2" sx={{ display: 'flex', fontSize: '18px', alignItems: 'right' }}>
+          <AttachMoneyIcon fontSize="small" sx={{ mr: 1 }} />
+          Foreigner  ${museum.ticketPrices.foreigner}, Native  $
+          {museum.ticketPrices.native}, Student  ${museum.ticketPrices.student}
+        </Typography>
+        {/* Display Event Date */}
+        <Typography variant="body2" sx={{ display: 'flex', fontSize: '18px', alignItems: 'right' }}>
+          <CalendarTodayIcon fontSize="small" sx={{ mr: 1 }} />
+          {new Date(museum.dateOfEvent).toLocaleDateString()}
+        </Typography>
+        {/* Display Description */}
+        <Typography variant="body2" sx={{ fontSize: '16px' }}>
+          <strong>Description:</strong> {museum.description || 'No description provided.'}
+        </Typography>
+        {/* Display Picture Count */}
+        <Typography variant="body2" sx={styles.info}>
+          <ImageIcon fontSize="small" sx={{ mr: 1 }} />
+          Pictures: {museum.pictures ? museum.pictures.length : 0} available
+        </Typography>
+      </>
+    )}
+  </Box>
+
+  {/* Edit/Delete Buttons */}
+  <Box sx={styles.museumActions}>
+    <IconButton
+      onClick={() => {
+        if (editing[index]) {
+          handleUpdateMuseum(index);
+        }
+        setEditing((prev) => ({ ...prev, [index]: !prev[index] }));
+      }}
+      sx={{
+        color: '#192959', // Icon color
+        backgroundColor: '#f0f0f0', // Greyish background
+        '&:hover': {
+          backgroundColor: '#e6e7ed', // Lighter hover background
+        },
+        width: '40px', // Ensure square icon button
+        height: '40px',
+      }}
+    >
+      {editing[index] ? <SaveIcon /> : <EditIcon />}
+    </IconButton>
+    <IconButton
+      onClick={() => removeMuseum(museum.name)}
+      sx={{ ...styles.actionButton, ...styles.deleteButton }}
+    >
+      <DeleteIcon />
+    </IconButton>
+  </Box>
+</Box>
+
 
       
       </Box>
