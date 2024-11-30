@@ -1,11 +1,12 @@
 const MuseumsModel = require('../Models/Museums.js');
+const TouristModel = require('../Models/Tourist.js');
 const TagsModel = require('../Models/HistoricalTags.js');
 
 const { default: mongoose } = require('mongoose');
 const CreateMuseums = async (req, res) => {
     try {
         // Destructure the required fields from the request body
-        const { name, description, pictures, location, openingHours, ticketPrices, AuthorUsername , HistoricalTags, dateOfEvent} = req.body;
+        const { name, description, pictures, location, openingHours, ticketPrices,BookingOpen, AuthorUsername , HistoricalTags, dateOfEvent} = req.body;
 
         const existingMuseum = await MuseumsModel.findOne({ name: name });
         if (existingMuseum) {
@@ -28,6 +29,7 @@ const CreateMuseums = async (req, res) => {
             ticketPrices,
             AuthorUsername,
             HistoricalTags,
+            BookingOpen,
             dateOfEvent,
             Ratings: 0,
             RatingCount: 0,
@@ -60,51 +62,122 @@ const getMuseumByName = async (req, res) => {
   }
 };
 
-const updateMuseumByName = async (req, res) => {
-  const { name, description, pictures, location, openingHours, ticketPrices, AuthorUsername, HistoricalTags } = req.body;
+// const updateMuseumByName = async (req, res) => {
+//   const { name, description, pictures, location, openingHours,BookingOpen, ticketPrices, AuthorUsername, HistoricalTags } = req.body;
 
-  try {
+//   try {
+//       // Check if the museum exists with the provided name and author username
+//       const existingMuseum = await MuseumsModel.findOne({ name: name, AuthorUsername: AuthorUsername });
+//       if (!existingMuseum) {
+//           return res.status(404).json({ error: "Museum not found for the given Author." });
+//       }
+
+//       // If Tags are provided, check if they exist (optional, you can skip if no validation is needed)
+//       if (HistoricalTags && HistoricalTags.length > 0) {
+//           const existingTags = await TagsModel.find({ NameOfHistoricalTags: { $in: HistoricalTags } });
+//           if (existingTags.length !== HistoricalTags.length) {
+//               return res.status(400).json({ error: "One or more tags do not exist!" });
+//           }
+//       }
+
+//       // Prepare an object with the fields to update, including HistoricalTags
+//       const updateFields = {
+//           description,
+//           pictures,
+//           location,
+//           openingHours,
+//           ticketPrices,
+//           BookingOpen,
+//           HistoricalTags, // Ensure HistoricalTags is part of the updateFields
+//       };
+
+//       // Filter out any undefined values to avoid updating fields with undefined
+//       Object.keys(updateFields).forEach((key) => updateFields[key] === undefined && delete updateFields[key]);
+
+//       // Update the museum
+//       const updatedMuseum = await MuseumsModel.findOneAndUpdate(
+//           { name: name, AuthorUsername: AuthorUsername }, // Find by name and AuthorUsername
+//           { $set: updateFields }, // Update only the specified fields
+//           { new: true } // Return the updated document
+//       );
+
+//       // Send the updated museum as a JSON response with a 200 OK status
+//       res.status(200).json({ msg: "Museum updated successfully!", museum: updatedMuseum });
+//   } catch (error) {
+//       // If an error occurs, send a 400 Bad Request status with the error message
+//       res.status(400).json({ error: error.message });
+//   }
+// };
+
+const updateMuseumByName = async (req, res) => {
+    const { name, description, pictures, location, openingHours, BookingOpen, ticketPrices, AuthorUsername, HistoricalTags } = req.body;
+  
+    try {
       // Check if the museum exists with the provided name and author username
       const existingMuseum = await MuseumsModel.findOne({ name: name, AuthorUsername: AuthorUsername });
       if (!existingMuseum) {
-          return res.status(404).json({ error: "Museum not found for the given Author." });
+        return res.status(404).json({ error: "Museum not found for the given Author." });
       }
-
-      // If Tags are provided, check if they exist (optional, you can skip if no validation is needed)
+  
+      // If Tags are provided, check if they exist
       if (HistoricalTags && HistoricalTags.length > 0) {
-          const existingTags = await TagsModel.find({ NameOfHistoricalTags: { $in: HistoricalTags } });
-          if (existingTags.length !== HistoricalTags.length) {
-              return res.status(400).json({ error: "One or more tags do not exist!" });
-          }
+        const existingTags = await TagsModel.find({ NameOfHistoricalTags: { $in: HistoricalTags } });
+        if (existingTags.length !== HistoricalTags.length) {
+          return res.status(400).json({ error: "One or more tags do not exist!" });
+        }
       }
+  
+      // Check if BookingOpen is changing from true to false
+      if (existingMuseum.BookingOpen === false && BookingOpen === true) {
+        // Perform actions when BookingOpen changes from true to false
+        // Example: Send a notification to the users or handle booking closure logic
+        for (const subscriber of existingMuseum.SendNotificationTo) {
+          const { username } = subscriber;
+  
+          // Find the corresponding tourist
+          const tourist = await TouristModel.findOne({ Username: username });
+          if (tourist) {
+            // Add a notification about the booking closure
+            tourist.Notifications.push({
+              NotificationText: `The museum "${existingMuseum.name}"is now open for booking!.`,
+              Read: false,
+            });
+            await tourist.save(); // Save the updated tourist document
+          }
+        }
 
+        existingMuseum.SendNotificationTo = [];
+        await existingMuseum.save(); // Save the updated museum document
+      }
+  
       // Prepare an object with the fields to update, including HistoricalTags
       const updateFields = {
-          description,
-          pictures,
-          location,
-          openingHours,
-          ticketPrices,
-          HistoricalTags, // Ensure HistoricalTags is part of the updateFields
+        description,
+        pictures,
+        location,
+        openingHours,
+        ticketPrices,
+        BookingOpen,
+        HistoricalTags,
       };
-
+  
       // Filter out any undefined values to avoid updating fields with undefined
       Object.keys(updateFields).forEach((key) => updateFields[key] === undefined && delete updateFields[key]);
-
+  
       // Update the museum
       const updatedMuseum = await MuseumsModel.findOneAndUpdate(
-          { name: name, AuthorUsername: AuthorUsername }, // Find by name and AuthorUsername
-          { $set: updateFields }, // Update only the specified fields
-          { new: true } // Return the updated document
+        { name: name, AuthorUsername: AuthorUsername }, // Find by name and AuthorUsername
+        { $set: updateFields }, // Update only the specified fields
+        { new: true } // Return the updated document
       );
-
+  
       // Send the updated museum as a JSON response with a 200 OK status
       res.status(200).json({ msg: "Museum updated successfully!", museum: updatedMuseum });
-  } catch (error) {
+    } catch (error) {
       // If an error occurs, send a 400 Bad Request status with the error message
       res.status(400).json({ error: error.message });
-  }
-};
+    }
+  };
 
 
 

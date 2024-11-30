@@ -182,6 +182,8 @@ const CreateHistoricalPlace = async (req, res) => {
             await tourist.save(); // Save the updated tourist document
           }
         }
+        existingHistoricalPlace.SendNotificationTo = [];
+      await existingHistoricalPlace.save();
       }
   
       // Update the historical place
