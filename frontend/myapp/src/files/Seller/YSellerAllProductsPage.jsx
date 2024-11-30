@@ -405,7 +405,37 @@ function YSellerAllProductsPage() {
           {displayedProducts.map((product, index) => (
             <Box key={product._id}>
                 <Box sx={styles.productCard}>
+                <Box sx={styles.productImageContainer}>
+    <img
+      src={`http://localhost:8000${product.Picture}`}
+      alt="Product"
+      style={styles.productImage}
+    />
+    {editMode[product._id] && (
+      <>
+        <Box
+          sx={styles.editIconOverlay}
+          onClick={() => document.getElementById(`file-input-${product._id}`).click()}
+        >
+          <EditIcon />
+        </Box>
+        <input
+          id={`file-input-${product._id}`}
+          type="file"
+          accept="image/*"
+          style={styles.hiddenInput}
+          onChange={(e) =>
+            setEditedProduct((prev) => ({
+              ...prev,
+              Picture: e.target.files[0],
+            }))
+          }
+        />
+      </>
+    )}
+  </Box>
                      {/* Product Name */}
+                      <Box sx={styles.productDetailsContainer}>
                     <Typography 
                     variant="h6" sx={styles.productTitle}>{product.Name}
                     </Typography>
@@ -498,14 +528,14 @@ function YSellerAllProductsPage() {
                     </Typography>
                     </Box>
 
-                    <img
+                    {/* <img
                     src={`http://localhost:8000${product.Picture}`}
                     alt="Product"
                     style={styles.productImage}
-                    />
+                    /> */}
 
 
-                    {editMode[product._id] && (
+                    {/* {editMode[product._id] && (
                     <TextField
                     name="Picture"
                     type="file"
@@ -514,55 +544,65 @@ function YSellerAllProductsPage() {
                     inputProps={{ accept: "image/*" }}
                   />
                   
-                    )}
+                    )} */}
 
 
 
                {/* Product Description */}
-                    <Box sx={styles.productDetail}>
-                    <Typography variant="body2" sx={{ display: 'flex', alignItems: 'center' }}>
-                        <DescriptionIcon fontSize="small" sx={{ mr: 1 }} />
-                        {editMode[product._id] ? (
-                        // Render the editable TextField only in edit mode
+                     {/* Product Description */}
+                  <Box sx={{ marginBottom: '10px', maxWidth: '100%' }}>
+                  <Typography variant="body2" sx={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                      <DescriptionIcon fontSize="small" sx={{ mr: 1 }} />
+                      {editMode[product._id] ? (
                         <TextField
-                            value={editedProduct.Description || ''}
-                            onChange={(e) => handleInputChange(e, 'Description')}
-                            multiline
-                            sx={{ width: '600px' }} // Fixed smaller width
-                            size="small"
-                            rows={2}
+                          value={editedProduct.Description || ''}
+                          onChange={(e) => handleInputChange(e, 'Description')}
+                          multiline
+                          sx={{ width: '100%', maxWidth: '400px' }} // Limit the width of the editable box
+                          size="small"
+                          rows={3} // Shorter height for the editable box
                         />
-                        ) : (
-                        // Render the description text with Read More/Read Less logic in non-edit mode
-                        <>
-                            {product.Description.length > 100 && !expanded[product._id] ? (
+                      ) : (
+                        <Typography
+                          variant="body2"
+                          sx={{
+                            whiteSpace: 'pre-wrap',
+                            wordWrap: 'break-word',
+                            textAlign: 'left',
+                          }}
+                        >
+                          {product.Description.length > 100 && !expanded[product._id] ? (
                             <>
-                                {product.Description.slice(0, 100)}...
-                                <Typography
+                              {product.Description.slice(0, 100)}...
+                              <Typography
                                 component="span"
                                 onClick={() => toggleExpandDescription(product._id)}
-                                sx={{ cursor: 'pointer', color: 'blue', ml: 1 }}
-                                >
+                                sx={styles.readMore}
+                              >
                                 Read More
-                                </Typography>
+                              </Typography>
                             </>
-                            ) : (
+                          ) : (
                             <>
-                                {product.Description}
-                                {product.Description.length > 100 && (
+                              {product.Description}
+                              {product.Description.length > 100 && (
                                 <Typography
-                                    component="span"
-                                    onClick={() => toggleExpandDescription(product._id)}
-                                    sx={{ cursor: 'pointer', color: 'blue', ml: 1 }}
+                                  component="span"
+                                  onClick={() => toggleExpandDescription(product._id)}
+                                  sx={styles.readMore}
                                 >
-                                    Read Less
+                                  Read Less
                                 </Typography>
-                                )}
+                              )}
                             </>
-                            )}
-                        </>
-                        )}
-                    </Typography>
+                          )}
+                        </Typography>
+                      )}
+                    </Box>
+                  </Typography>
+                  </Box>
+                  </Box>
              
               {/* Edit/Save Button */}
                     {/* <Box sx={styles.productActions}>
@@ -585,7 +625,7 @@ function YSellerAllProductsPage() {
                     )}
                     </Box> */}
 
-                </Box>
+                
 
                 {/* Archive/Unarchive Button */}
                 {/* <IconButton
@@ -768,21 +808,28 @@ const styles = {
     },
   },
   productCard: {
+    display: 'flex',
+    alignItems: 'flex-start', // Align items at the top
     backgroundColor: '#fff',
     padding: '20px',
     borderRadius: '10px',
     boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.2)',
     border: '1px solid #ccc',
-    position: 'relative',
     textAlign: 'left',
+    minHeight: '150px', // Ensure the height matches the image
+    position: 'relative', // Allow positioning of child elements
+    flexWrap: 'wrap', // Allow wrapping of content inside the card
   },
   productTitle: {
     fontWeight: 'bold',
     fontSize: '20px',
     marginBottom: '10px',
+    textAlign: 'left', // Align text to the left
+    alignSelf: 'flex-start', // Position the title to the left of its container
   },
   productDetail: {
     marginBottom: '10px',
+    maxWidth: '80%', // Ensure it doesn't overlap with other elements
   },
   archiveButton: {
     position: 'absolute',
@@ -826,21 +873,19 @@ const styles = {
   },
   activityRating: {
     position: 'absolute',
-    bottom: '20px',
+    bottom: '10px',
     right: '10px',
     display: 'flex',
-    flexDirection: 'column',
-    gap: '10px',
+    alignItems: 'center',
+    gap: '5px',
   },
   productActions: {
-    display: 'flex',
-    justifyContent: 'flex-start', // Change alignment if needed
-    alignItems: 'center',
-    gap: '10px',
-    position: 'absolute', // Adjust position
+    position: 'absolute',
     top: '10px',
-    right: '50px',
-    zIndex: 1, // Ensure it renders above other elements
+    right: '60px', // Leave space for the archive button
+    display: 'flex',
+    gap: '10px',
+    zIndex: 1,
   },
   actionButton: {
     color: '#192959',
@@ -857,15 +902,40 @@ const styles = {
       color: "#192959", // Text changes to #192959
     },
   },
-  productImage: {
-    width: '150px', // Increase the width
-    height: '150px', // Increase the height
-    objectFit: 'cover',
-    borderRadius: '8px',
-    marginBottom: '10px',
-    marginLeft: '20px', // Move the image to the right
+  productImageContainer: {
+    position: 'relative',
+    width: '200px', // Adjust image size
+    height: '200px',
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: '10px',
+    overflow: 'hidden',
+    marginRight: '20px',
+    backgroundColor: 'transparent',
+    flexShrink: 0, // Prevent image from shrinking
+    transform: 'translateY(40px)', // Move the image down by 10px
   },
-  
+  productImage: {
+    width: '100%', // Ensure the image fills the container
+    height: '100%',
+    objectFit: 'cover', // Maintain aspect ratio while filling the container
+    border: 'none', // Remove any border around the image
+   
+  },
+  productDetailsContainer: {
+    flex: 1, // Take the remaining space
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '10px', // Add spacing between details
+    minWidth: 0, // Prevent overflow
+  },
+  readMore: {
+    cursor: 'pointer',
+    color: 'blue',
+    display: 'block',
+    marginTop: '5px',
+  },
 };
 
 export default YSellerAllProductsPage;
