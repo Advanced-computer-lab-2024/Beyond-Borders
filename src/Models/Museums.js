@@ -35,11 +35,24 @@ const museumPlaceSchema = new mongoose.Schema({
     default: 0,
     required: false
   },
+  BookingOpen: {
+    type: Boolean,
+    default:true,
+    required: false,
+  },
   RatingCount: {
     type: Number,
     default: 0,
     required: false 
-  }
+  },
+  SendNotificationTo: [
+    {
+      username: {
+        type: String,
+        required: false
+      }
+    }
+  ]
 }, { timestamps: true });
 
 const MuseumPlace = mongoose.model('MuseumPlace', museumPlaceSchema);

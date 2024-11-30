@@ -37,7 +37,20 @@ const HistoricalPlaceSchema = new mongoose.Schema({
     type: Number,
     default: 0,
     required: false 
-  }
+  },
+  BookingOpen: {
+    type: Boolean,
+    default: true,
+    required: false,
+  },
+  SendNotificationTo: [
+    {
+      username: {
+        type: String,
+        required: false
+      }
+    }
+  ]
 }, { timestamps: true });
 
 const MuseumPlace = mongoose.model('Historical Place', HistoricalPlaceSchema);

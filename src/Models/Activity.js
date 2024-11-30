@@ -74,8 +74,17 @@ const ActivitySchema = new Schema({
     default: 0,
     required: false 
   },
-  flagged: { type: Boolean}
+  flagged: { type: Boolean},
+  SendNotificationTo: [
+    {
+      username: {
+        type: String,
+        required: false
+      }
+    }
+  ]
 },
+
 { timestamps: true }); //adds 2 more field (Created At:) & (Updated At:)
 
 const Activity = mongoose.model('Activity', ActivitySchema);

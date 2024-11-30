@@ -219,7 +219,20 @@ const TouristSchema = new Schema({
       required: false
     }
   }
-  ]
+  ],
+  Notifications: [
+    {
+      NotificationText: {
+        type: String,
+        required: false,
+      },
+      Read: {
+        type: Boolean,
+        default: false, // Default to unread
+        required: false,
+      },
+    }
+  ],
     
   
 }, { timestamps: true }); // adds Created At & Updated At fields

@@ -1,11 +1,12 @@
 const HistoricalPlacesModel = require('../Models/HistoricalPlaces.js');
+const TouristModel = require('../Models/Tourist.js');
 // const HistoricalTags = require('../Models/HistoricalTags');
 const TagsModel = require('../Models/HistoricalTags');
 const { default: mongoose } = require('mongoose');
 const CreateHistoricalPlace = async (req, res) => {
   try {
       // Destructure the required fields from the request body
-      const { name, description, pictures, location, openingHours, ticketPrices, AuthorUsername, HistoricalTags, dateOfEvent } = req.body;//changed
+      const { name, description, pictures, location, openingHours, ticketPrices, AuthorUsername,BookingOpen, HistoricalTags, dateOfEvent } = req.body;//changed
 
       // Validate that Tags is an array
       if (!Array.isArray(HistoricalTags) || HistoricalTags.length === 0) {
@@ -33,6 +34,7 @@ const CreateHistoricalPlace = async (req, res) => {
           openingHours,
           ticketPrices,
           AuthorUsername,
+          BookingOpen,
           Tags : HistoricalTags,//changed
           dateOfEvent,
           Ratings: 0,
@@ -66,45 +68,142 @@ const CreateHistoricalPlace = async (req, res) => {
       res.status(400).json({ error: error.message });
     }
   };
-  const updateHistoricalPlace = async (req, res) => {
-    const {name, description, pictures, location, openingHours, ticketPrices, AuthorUsername, HistoricalTags} = req.body;
+  // const updateHistoricalPlace = async (req, res) => {
+  //   const {name, description, pictures, location, openingHours,BookingOpen, ticketPrices, AuthorUsername, HistoricalTags} = req.body;
 
-    try {
-        // Check if the activity exists with the provided name and advertiser name
-        const existingHistoricalPlace = await HistoricalPlacesModel.findOne({ name: name, AuthorUsername: AuthorUsername });
-        if (!existingHistoricalPlace) {
-            return res.status(404).json({ error: "HistoricalPLacce not found for the given Tourism Governer." });
-        }
-         // If Tags are provided, check if they exist
-         if (HistoricalTags && HistoricalTags.length > 0) {
-          const existingTags = await TagsModel.find({ NameOfHistoricalTags: { $in: HistoricalTags } });
-          if (existingTags.length !== HistoricalTags.length) {
-              return res.status(400).json({ error: "One or more tags do not exist!" });
-          }
-      }
+  //   try {
+  //       // Check if the activity exists with the provided name and advertiser name
+  //       const existingHistoricalPlace = await HistoricalPlacesModel.findOne({ name: name, AuthorUsername: AuthorUsername });
+  //       if (!existingHistoricalPlace) {
+  //           return res.status(404).json({ error: "HistoricalPLacce not found for the given Tourism Governer." });
+  //       }
+  //        // If Tags are provided, check if they exist
+  //        if (HistoricalTags && HistoricalTags.length > 0) {
+  //         const existingTags = await TagsModel.find({ NameOfHistoricalTags: { $in: HistoricalTags } });
+  //         if (existingTags.length !== HistoricalTags.length) {
+  //             return res.status(400).json({ error: "One or more tags do not exist!" });
+  //         }
+  //     }
        
-        // Prepare an object with the fields to update (excluding AdvertiserName and Name)
-        const updateFields = {
-          description, pictures, location, openingHours, ticketPrices, Tags: HistoricalTags
-        };
+  //       // Prepare an object with the fields to update (excluding AdvertiserName and Name)
+  //       const updateFields = {
+  //         description, pictures, location, openingHours, ticketPrices, BookingOpen,Tags: HistoricalTags
+  //       };
 
-        // Filter out any undefined values to avoid updating fields with undefined
-        Object.keys(updateFields).forEach(key => updateFields[key] === undefined && delete updateFields[key]);
+  //       // Filter out any undefined values to avoid updating fields with undefined
+  //       Object.keys(updateFields).forEach(key => updateFields[key] === undefined && delete updateFields[key]);
 
-        // Update the activity
-        const updatedHistoricalPlace = await HistoricalPlacesModel.findOneAndUpdate(
-            { name: name, AuthorUsername: AuthorUsername }, // Find by Name and AdvertiserName
-            { $set: updateFields }, // Update only the specified fields
-            { new: true } // Return the updated document
-        );
+  //       // Update the activity
+  //       const updatedHistoricalPlace = await HistoricalPlacesModel.findOneAndUpdate(
+  //           { name: name, AuthorUsername: AuthorUsername }, // Find by Name and AdvertiserName
+  //           { $set: updateFields }, // Update only the specified fields
+  //           { new: true } // Return the updated document
+  //       );
 
-        // Send the updated activity as a JSON response with a 200 OK status
-        res.status(200).json({ msg: "Historical place updated successfully!", HistoricalPlace: updatedHistoricalPlace });
+  //       // Send the updated activity as a JSON response with a 200 OK status
+  //       res.status(200).json({ msg: "Historical place updated successfully!", HistoricalPlace: updatedHistoricalPlace });
+  //   } catch (error) {
+  //       // If an error occurs, send a 400 Bad Request status with the error message
+  //       res.status(400).json({ error: error.message });
+  //   }
+  // };
+
+  const updateHistoricalPlace = async (req, res) => {
+    const {
+      name,
+      description,
+      pictures,
+      location,
+      openingHours,
+      BookingOpen,
+      ticketPrices,
+      AuthorUsername,
+      HistoricalTags,
+    } = req.body;
+  
+    try {
+      // Check if the historical place exists with the provided name and author username
+      const existingHistoricalPlace = await HistoricalPlacesModel.findOne({
+        name: name,
+        AuthorUsername: AuthorUsername,
+      });
+  
+      if (!existingHistoricalPlace) {
+        return res
+          .status(404)
+          .json({ error: "Historical place not found for the given author." });
+      }
+  
+      // If Tags are provided, check if they exist
+      if (HistoricalTags && HistoricalTags.length > 0) {
+        const existingTags = await TagsModel.find({
+          NameOfHistoricalTags: { $in: HistoricalTags },
+        });
+        if (existingTags.length !== HistoricalTags.length) {
+          return res
+            .status(400)
+            .json({ error: "One or more tags do not exist!" });
+        }
+      }
+  
+      // Prepare an object with the fields to update (excluding AuthorUsername and Name)
+      const updateFields = {
+        description,
+        pictures,
+        location,
+        openingHours,
+        ticketPrices,
+        BookingOpen,
+        Tags: HistoricalTags,
+      };
+  
+      // Filter out any undefined values to avoid updating fields with undefined
+      Object.keys(updateFields).forEach(
+        (key) => updateFields[key] === undefined && delete updateFields[key]
+      );
+  
+      // Check if BookingOpen is being updated from false to true
+      if (
+        existingHistoricalPlace.BookingOpen === false &&
+        BookingOpen === true
+      ) {
+        // Loop through the SendNotificationTo array
+        for (const subscriber of existingHistoricalPlace.SendNotificationTo) {
+          const { username } = subscriber;
+  
+          // Find the corresponding tourist
+          const tourist = await TouristModel.findOne({ Username: username });
+          if (tourist) {
+            // Add a notification to their Notifications array
+            tourist.Notifications.push({
+              NotificationText: `The event "${existingHistoricalPlace.name}" is now open for booking!`,
+              Read: false,
+            });
+            await tourist.save(); // Save the updated tourist document
+          }
+        }
+      }
+  
+      // Update the historical place
+      const updatedHistoricalPlace = await HistoricalPlacesModel.findOneAndUpdate(
+        { name: name, AuthorUsername: AuthorUsername }, // Find by Name and AuthorUsername
+        { $set: updateFields }, // Update only the specified fields
+        { new: true } // Return the updated document
+      );
+  
+      // Send the updated historical place as a JSON response with a 200 OK status
+      res
+        .status(200)
+        .json({
+          msg: "Historical place updated successfully!",
+          HistoricalPlace: updatedHistoricalPlace,
+        });
     } catch (error) {
-        // If an error occurs, send a 400 Bad Request status with the error message
-        res.status(400).json({ error: error.message });
+      // If an error occurs, send a 400 Bad Request status with the error message
+      res.status(400).json({ error: error.message });
     }
   };
+  
   const deleteHistoricalPlacebyName = async (req, res) => {
     try {
         const { name, AuthorUsername } = req.body;

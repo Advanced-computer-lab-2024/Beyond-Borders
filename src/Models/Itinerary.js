@@ -36,7 +36,20 @@ const itinerarySchema = new mongoose.Schema({
     default: 0,
     required: false 
   },
-  flagged: { type: Boolean}
+  BookingOpen: {
+    type: Boolean,
+    default:true,
+    required: false,
+  },
+  flagged: { type: Boolean},
+  SendNotificationTo: [
+    {
+      username: {
+        type: String,
+        required: false
+      }
+    }
+  ]
 },{ timestamps: true });
 
 const Itinerary = mongoose.model('Itinerary', itinerarySchema);
