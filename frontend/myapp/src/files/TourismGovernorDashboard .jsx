@@ -68,6 +68,7 @@ const TourismGovernorDashboard = () => {
       setErrorMessage('An error occurred. Please try again.');
     }
   };
+  const username = localStorage.getItem('username') || 'User'; // Retrieve username from localStorage
 
   const handlePasswordFormSubmit = async (event) => {
     event.preventDefault();
@@ -160,6 +161,17 @@ const TourismGovernorDashboard = () => {
 
       {/* Main Content Area with Boxes */}
       <Box sx={{ ...styles.content, filter: sidebarOpen ? 'brightness(0.5)' : 'none' }}>
+      {/* Left Section: Welcome Message */}
+      <Box sx={styles.welcomeSection}>
+            <Typography variant="h4" sx={{ fontWeight: 'bold', mb: 2, color: '#192959', textAlign: 'left' }}>
+            Welcome back, {username}!
+            </Typography>
+            <Typography variant="body1" sx={{ fontSize: '18px', lineHeight: '1.8', color: '#192959', textAlign: 'left' }}>
+            Thank you for choosing Beyond Borders. Use your dashboard to explore Museums,
+            Historical Places, and stay connected with the vibrant tourism ecosystem.
+            Let's create unforgettable experiences together!
+            </Typography>
+        </Box>
         <Box sx={styles.infoBox} onClick={() => navigate('/MuseumTG')}>
           <img src="/images/museum.jpg" alt="Museums" style={styles.image} />
           <Typography variant="h6" sx={styles.text} className="text">Museums</Typography>
@@ -472,6 +484,15 @@ const styles = {
   actionIcons: {
     display: "flex",
     gap: "10px",
+  },
+  welcomeSection: {
+    //width: '500px',
+    flex: 1,
+    marginRight: '0px',
+    padding: '140px 0px 20px 20px',
+    // backgroundColor: '#f8f9fa',
+    // borderRadius: '15px',
+    // boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.2)',
   },
 };
 
