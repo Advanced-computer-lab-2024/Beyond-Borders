@@ -6362,6 +6362,33 @@ const payOrderStripe = async (req, res) => {
 
 
 
+// const viewOrderDetails = async (req, res) => {
+//   const { orderNumber } = req.query;
+
+//   try {
+//     if (!orderNumber) {
+//       return res.status(400).json({ error: "Order number is required." });
+//     }
+
+    
+
+//     // Fetch the specific order by orderNumber and username
+//     const order = await OrderModel.findOne({ orderNumber});
+//     if (!order) {
+//       return res.status(404).json({ error: `Order with number ${orderNumber} not found.` });
+//     }
+
+//     // Respond with the specific order details
+//     res.status(200).json({
+//       msg: "Order details retrieved successfully.",
+//       orderDetails: order,
+//     });
+//   } catch (error) {
+//     console.error("Error retrieving order details:", error);
+//     res.status(500).json({ error: "Failed to retrieve order details." });
+//   }
+// };
+
 const viewOrderDetails = async (req, res) => {
   const { orderNumber } = req.query;
 
@@ -6370,24 +6397,38 @@ const viewOrderDetails = async (req, res) => {
       return res.status(400).json({ error: "Order number is required." });
     }
 
-    
-
-    // Fetch the specific order by orderNumber and username
-    const order = await OrderModel.findOne({ orderNumber});
+    // Fetch the specific order by orderNumber
+    const order = await OrderModel.findOne({ orderNumber });
     if (!order) {
       return res.status(404).json({ error: `Order with number ${orderNumber} not found.` });
     }
 
-    // Respond with the specific order details
+    // Fetch product details for each product in the order
+    const productDetailsPromises = order.productsPurchased.map(async (purchasedProduct) => {
+      const product = await ProductModel.findOne({ Name: purchasedProduct.productName });
+      return {
+        ...purchasedProduct._doc, // Include the purchased product details
+        productDetails: product || null, // Add the product details (null if not found)
+      };
+    });
+
+    // Resolve all promises to get the complete product details
+    const detailedProducts = await Promise.all(productDetailsPromises);
+
+    // Respond with the specific order details and enriched product details
     res.status(200).json({
       msg: "Order details retrieved successfully.",
-      orderDetails: order,
+      orderDetails: {
+        ...order._doc,
+        productsPurchased: detailedProducts, // Include enriched product details
+      },
     });
   } catch (error) {
     console.error("Error retrieving order details:", error);
     res.status(500).json({ error: "Failed to retrieve order details." });
   }
 };
+
 
 const cancelOrder = async (req, res) => {
   const { touristUsername, orderNumber } = req.body;
