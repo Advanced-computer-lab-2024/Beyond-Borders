@@ -831,47 +831,93 @@ const loginTourist = async (req, res) => {
   }
 };
 
+// const sortItinerariesPriceAscendingTourist = async (req, res) => {
+//   try {
+//     const currentDate = new Date();
+//     currentDate.setHours(0, 0, 0, 0);
+
+//     // Get all activities from the database
+//     const itineraries = await ItineraryModel.find();
+
+//     // Filter for upcoming activities only
+//     const upcomingItineraries = itineraries.filter(itinerary => itinerary.Date >= currentDate);
+
+//     // Sort the upcoming activities by price in ascending order
+//     const sortedUpcomingItineraries = upcomingItineraries.sort((a, b) => a.Price - b.Price);
+
+//     // Respond with the sorted activities
+//     res.status(200).json(sortedUpcomingItineraries);
+//   } catch (error) {
+//     res.status(400).json({ error: error.message });
+//   }
+// };
+
+// const sortItinerariesPriceDescendingTourist = async (req, res) => {
+//   try {
+//     const currentDate = new Date();
+//     currentDate.setHours(0, 0, 0, 0);
+
+//     // Get all activities from the database
+//     const itineraries = await ItineraryModel.find();
+
+//     // Filter for upcoming activities only
+//     const upcomingItineraries = itineraries.filter(itinerary => itinerary.Date >= currentDate);
+
+//     // Sort the upcoming activities by price in descending order
+//     const sortedUpcomingItineraries = upcomingItineraries.sort((a, b) => b.Price - a.Price);
+
+//     // Respond with the sorted activities
+//     res.status(200).json(sortedUpcomingItineraries);
+//   } catch (error) {
+//     res.status(400).json({ error: error.message });
+//   }
+// };
+
 const sortItinerariesPriceAscendingTourist = async (req, res) => {
   try {
     const currentDate = new Date();
     currentDate.setHours(0, 0, 0, 0);
 
-    // Get all activities from the database
+    // Get all itineraries from the database
     const itineraries = await ItineraryModel.find();
 
-    // Filter for upcoming activities only
-    const upcomingItineraries = itineraries.filter(itinerary => itinerary.Date >= currentDate);
+    // Filter for upcoming activities and exclude flagged itineraries
+    const upcomingItineraries = itineraries.filter(itinerary => 
+      itinerary.Date >= currentDate && itinerary.flagged !== true
+    );
 
-    // Sort the upcoming activities by price in ascending order
+    // Sort the upcoming itineraries by price in ascending order
     const sortedUpcomingItineraries = upcomingItineraries.sort((a, b) => a.Price - b.Price);
 
-    // Respond with the sorted activities
+    // Respond with the sorted itineraries
     res.status(200).json(sortedUpcomingItineraries);
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
 };
-
 const sortItinerariesPriceDescendingTourist = async (req, res) => {
   try {
     const currentDate = new Date();
     currentDate.setHours(0, 0, 0, 0);
 
-    // Get all activities from the database
+    // Get all itineraries from the database
     const itineraries = await ItineraryModel.find();
 
-    // Filter for upcoming activities only
-    const upcomingItineraries = itineraries.filter(itinerary => itinerary.Date >= currentDate);
+    // Filter for upcoming activities and exclude flagged itineraries
+    const upcomingItineraries = itineraries.filter(itinerary => 
+      itinerary.Date >= currentDate && itinerary.flagged !== true
+    );
 
-    // Sort the upcoming activities by price in descending order
+    // Sort the upcoming itineraries by price in descending order
     const sortedUpcomingItineraries = upcomingItineraries.sort((a, b) => b.Price - a.Price);
 
-    // Respond with the sorted activities
+    // Respond with the sorted itineraries
     res.status(200).json(sortedUpcomingItineraries);
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
 };
+
 
 // const filterItineraries = async (req, res) => {
 //   const { minPrice, maxPrice, InputDate, Language, Tags } = req.body; // Extract 'Tags' from the request body
@@ -6069,6 +6115,7 @@ const payOrderWallet = async (req, res) => {
       orderDate: new Date(),
       paymentStatus: "Paid",
       orderStatus: "Out for Delivery",
+      TotalPrice:totalPrice
     });
 
     tourist.Orders.push({ OrderNumber: order.orderNumber });
@@ -6604,13 +6651,13 @@ const sendUpcomingEventNotifications = async () => {
     const tourists = await TouristModel.find();
 
     for (const tourist of tourists) {
-      const upcomingEvents = [];
+      const upcomingEventNames = [];
 
       // Check for activities
       for (const activity of tourist.BookedActivities || []) {
         const event = await ActivityModel.findOne({ Name: activity.activityName });
         if (event && event.Date >= todayStart && event.Date <= tomorrowEnd) {
-          upcomingEvents.push({ name: event.Name, date: event.Date });
+          upcomingEventNames.push(event.Name);
         }
       }
 
@@ -6618,7 +6665,7 @@ const sendUpcomingEventNotifications = async () => {
       for (const itinerary of tourist.BookedItineraries || []) {
         const event = await ItineraryModel.findOne({ Title: itinerary.ItineraryName });
         if (event && event.Date >= todayStart && event.Date <= tomorrowEnd) {
-          upcomingEvents.push({ name: event.Title, date: event.Date });
+          upcomingEventNames.push(event.Title);
         }
       }
 
@@ -6626,7 +6673,7 @@ const sendUpcomingEventNotifications = async () => {
       for (const museum of tourist.BookedMuseums || []) {
         const event = await MuseumModel.findOne({ name: museum.MuseumName });
         if (event && event.dateOfEvent >= todayStart && event.dateOfEvent <= tomorrowEnd) {
-          upcomingEvents.push({ name: event.name, date: event.dateOfEvent });
+          upcomingEventNames.push(event.name);
         }
       }
 
@@ -6634,12 +6681,12 @@ const sendUpcomingEventNotifications = async () => {
       for (const place of tourist.BookedHistPlaces || []) {
         const event = await HistoricalPlacesModel.findOne({ name: place.HistPlaceName });
         if (event && event.dateOfEvent >= todayStart && event.dateOfEvent <= tomorrowEnd) {
-          upcomingEvents.push({ name: event.name, date: event.dateOfEvent });
+          upcomingEventNames.push(event.name);
         }
       }
 
       // Send notifications if there are upcoming events
-      if (upcomingEvents.length > 0) {
+      if (upcomingEventNames.length > 0) {
         const transporter = nodemailer.createTransport({
           service: "gmail",
           auth: {
@@ -6648,8 +6695,8 @@ const sendUpcomingEventNotifications = async () => {
           },
         });
 
-        const eventDetails = upcomingEvents
-          .map(event => `- ${event.name} on ${new Date(event.date).toDateString()}`)
+        const eventDetails = upcomingEventNames
+          .map(eventName => `- ${eventName}`)
           .join("\n");
 
         const mailOptions = {
@@ -6671,8 +6718,21 @@ const sendUpcomingEventNotifications = async () => {
         };
 
         try {
+          // Send email reminder
           await transporter.sendMail(mailOptions);
           console.log(`Reminder sent to ${tourist.Email}`);
+
+          // Add individual event names to the tourist's Notifications array
+          for (const eventName of upcomingEventNames) {
+            tourist.Notifications.push({
+              NotificationText: `You have an upcoming event: ${eventName}`,
+              Read: false,
+            });
+          }
+
+          // Save the updated tourist document
+          await tourist.save();
+          console.log(`Notifications added to ${tourist.Username}`);
         } catch (emailError) {
           console.error(`Failed to send email to ${tourist.Email}:`, emailError);
         }
@@ -6682,6 +6742,8 @@ const sendUpcomingEventNotifications = async () => {
     console.error("Error sending event reminders:", error);
   }
 };
+
+
 
 const addNotificationSubscriberHP = async (req, res) => {
   const { username, historicalPlaceName } = req.body;
@@ -6813,8 +6875,57 @@ const addNotificationSubscriberActivity = async (req, res) => {
   }
 };
 
+const addNotificationSubscriberItinerary = async (req, res) => {
+  const { username, itineraryTitle } = req.body;
+
+  if (!username || !itineraryTitle) {
+    return res.status(400).json({
+      error: 'Username and itinerary title are required.',
+    });
+  }
+
+  try {
+    // Find the itinerary by title
+    let itinerary = await ItineraryModel.findOne({ Title: itineraryTitle });
+
+    if (!itinerary) {
+      return res.status(404).json({ error: 'Itinerary not found.' });
+    }
+
+    // Ensure `SendNotificationTo` exists
+    if (!itinerary.SendNotificationTo) {
+      itinerary.SendNotificationTo = [];
+    }
+
+    // Check if the username is already in the array
+    const isAlreadySubscribed = itinerary.SendNotificationTo.some(
+      (subscriber) => subscriber.username === username
+    );
+
+    if (isAlreadySubscribed) {
+      return res
+        .status(400)
+        .json({ error: 'User is already subscribed for notifications.' });
+    }
+
+    // Add the username to the SendNotificationTo array
+    itinerary.SendNotificationTo.push({ username });
+    await itinerary.save();
+
+    res.status(200).json({
+      message: `User ${username} has been added to the notification list for ${itineraryTitle}.`,
+      updatedItinerary: itinerary,
+    });
+  } catch (error) {
+    res.status(500).json({
+      error: 'An error occurred while updating the notification list.',
+      details: error.message,
+    });
+  }
+};
+
 
 module.exports = {createTourist, getTourist, updateTourist, searchProductTourist, filterActivities, filterProductByPriceTourist, ActivityRating, sortProductsDescendingTourist, sortProductsAscendingTourist, ViewAllUpcomingActivities, ViewAllUpcomingMuseumEventsTourist, getMuseumsByTagTourist, getHistoricalPlacesByTagTourist, ViewAllUpcomingHistoricalPlacesEventsTourist,viewProductsTourist, sortActivitiesPriceAscendingTourist, sortActivitiesPriceDescendingTourist, sortActivitiesRatingAscendingTourist, sortActivitiesRatingDescendingTourist, loginTourist, ViewAllUpcomingItinerariesTourist, sortItinerariesPriceAscendingTourist, sortItinerariesPriceDescendingTourist, filterItinerariesTourist, ActivitiesSearchAll, ItinerarySearchAll, MuseumSearchAll, HistoricalPlacesSearchAll, ProductRating, createComplaint, getComplaintsByTouristUsername,ChooseActivitiesByCategoryTourist,bookActivity,bookItinerary,bookMuseum,bookHistoricalPlace, ratePurchasedProduct, addPurchasedProducts, reviewPurchasedProduct, addCompletedItinerary, rateTourGuide, commentOnTourGuide, rateCompletedItinerary, commentOnItinerary, addCompletedActivities, addCompletedMuseumEvents, addCompletedHPEvents, rateCompletedActivity, rateCompletedMuseum, rateCompletedHP, commentOnActivity, commentOnMuseum, commentOnHP,deleteBookedActivity,deleteBookedItinerary,deleteBookedMuseum,deleteBookedHP,payActivity,updateWallet,updatepoints,payItinerary,payMuseum,payHP,redeemPoints, convertEgp, fetchFlights,viewBookedItineraries, requestDeleteAccountTourist,convertCurr,getActivityDetails,getHistoricalPlaceDetails,getMuseumDetails,GetCopyLink, bookFlight
   ,fetchHotelsByCity, fetchHotels, bookHotel,bookTransportation,addPreferences, viewMyCompletedActivities, viewMyCompletedItineraries, viewMyCompletedMuseums, viewMyCompletedHistoricalPlaces,viewMyBookedActivities,viewMyBookedItineraries,viewMyBookedMuseums,viewMyBookedHistoricalPlaces,viewTourGuidesCompleted,viewAllTransportation, getItineraryDetails, viewPreferenceTags,viewPurchasedProducts,viewBookedActivities,viewMyBookedTransportation,addBookmark
 , payActivityByCard, payItineraryByCard, payMuseumByCard, payHPByCard, sendOtp, loginTouristOTP,viewBookmarks, addToWishList, viewMyWishlist, removeFromWishlist, addToCartFromWishlist, addToCart, removeFromCart, changeProductQuantityInCart, checkout, addDeliveryAddress, viewDeliveryAddresses,chooseDeliveryAddress,payOrderWallet,payOrderCash,viewOrderDetails,cancelOrder,cancelOrder,markOrdersAsDelivered,viewAllOrders,sendUpcomingEventNotifications,payOrderStripe
-,payItineraryStripe,payActivityStripe,payMuseumStripe,payHPStripe, fetchCityCode, checkIfInWishlist, getTourGuideComments,addNotificationSubscriberHP,addNotificationSubscriberMuseum,addNotificationSubscriberActivity};
+,payItineraryStripe,payActivityStripe,payMuseumStripe,payHPStripe, fetchCityCode, checkIfInWishlist, getTourGuideComments,addNotificationSubscriberHP,addNotificationSubscriberMuseum,addNotificationSubscriberActivity,addNotificationSubscriberItinerary};
