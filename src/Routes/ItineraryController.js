@@ -1,5 +1,6 @@
 const ItineraryModel = require('../Models/Itinerary.js');
 const TagsModel = require('../Models/Tags.js');
+const TouristModel = require('../Models/Tourist.js');
 const { default: mongoose } = require('mongoose');
 
 
@@ -14,6 +15,7 @@ const { default: mongoose } = require('mongoose');
       Language,
       Price,
       Date,
+      BookingOpen,
       accessibility,
       pickupLocation,
       dropoffLocation,
@@ -38,6 +40,7 @@ const { default: mongoose } = require('mongoose');
         Language,
         Price,
         Date,
+        BookingOpen,
         accessibility,
         pickupLocation,
         dropoffLocation,
@@ -100,8 +103,130 @@ const { default: mongoose } = require('mongoose');
     }
 };
   
+// const updateItineraryByTitle = async (req, res) => {
+//   const { Title,
+//       Activities,
+//       Locations,
+//       Timeline,
+//       Language,
+//       Price,
+//       Date,
+//       accessibility,
+//       pickupLocation,
+//       dropoffLocation,
+//       BookingOpen,
+//       Tags
+//   } = req.body;
+
+//   try {
+//       // Find the itinerary by its title (case-insensitive)
+//       const itinerary = await ItineraryModel.findOne({ Title: { $regex: new RegExp(Title, 'i') } });
+
+//       // If no itinerary is found, return a 404 error
+//       if (!itinerary) {
+//           return res.status(404).json({ error: "Itinerary not found!" });
+//       }
+
+//       // If Tags are provided, check if they exist
+//       if (Tags && Tags.length > 0) {
+//         const existingTags = await TagsModel.find({ NameOfTags: { $in: Tags } });
+//         if (existingTags.length !== Tags.length) {
+//             return res.status(400).json({ error: "One or more tags do not exist!" });
+//         }
+//       }
+
+//       // Prepare an object with the fields to update (excluding AdvertiserName and Name)
+//       const updateFields = {
+//         Activities,
+//         Locations,
+//         Timeline,
+//         Language,
+//         Price,
+//         Date,
+//         accessibility,
+//         pickupLocation,
+//         dropoffLocation,
+//         BookingOpen,
+//         Tags
+//       };
+
+//       // Filter out any undefined values to avoid updating fields with undefined
+//       Object.keys(updateFields).forEach(key => updateFields[key] === undefined && delete updateFields[key]);
+
+//       // Update the itinerary
+//       const updatedItinerary = await ItineraryModel.findOneAndUpdate(
+//         { Title: Title}, 
+//         { $set: updateFields }, // Update only the specified fields
+//         { new: true } // Return the updated document
+//     );
+
+//     // Send the updated activity as a JSON response with a 200 OK status
+//     res.status(200).json({ msg: "Itinerary updated successfully!", itinerary: updatedItinerary });
+
+//   } catch (error) {
+//       // If an error occurs, send a 500 Internal Server Error status with the error message
+//       res.status(500).json({ error: error.message });
+//   }
+// };
+
 const updateItineraryByTitle = async (req, res) => {
-  const { Title,
+  const {
+    Title,
+    Activities,
+    Locations,
+    Timeline,
+    Language,
+    Price,
+    Date,
+    accessibility,
+    pickupLocation,
+    dropoffLocation,
+    BookingOpen,
+    Tags
+  } = req.body;
+
+  try {
+    // Find the itinerary by its title (case-insensitive)
+    const itinerary = await ItineraryModel.findOne({ Title: { $regex: new RegExp(Title, 'i') } });
+
+    // If no itinerary is found, return a 404 error
+    if (!itinerary) {
+      return res.status(404).json({ error: "Itinerary not found!" });
+    }
+
+    // If Tags are provided, check if they exist
+    if (Tags && Tags.length > 0) {
+      const existingTags = await TagsModel.find({ NameOfTags: { $in: Tags } });
+      if (existingTags.length !== Tags.length) {
+        return res.status(400).json({ error: "One or more tags do not exist!" });
+      }
+    }
+
+    // Check if BookingOpen is changing from false to true
+    if (itinerary.BookingOpen === false && BookingOpen === true) {
+      // Perform actions when BookingOpen changes from false to true (open booking)
+      for (const subscriber of itinerary.SendNotificationTo) {
+        const { username } = subscriber;
+
+        // Find the corresponding tourist
+        const tourist = await TouristModel.findOne({ Username: username });
+        if (tourist) {
+          // Add a notification about the itinerary opening for booking
+          tourist.Notifications.push({
+            NotificationText: `The itinerary "${itinerary.Title}" is now open for booking!`,
+            Read: false,
+          });
+          await tourist.save(); // Save the updated tourist document
+        }
+      }
+
+      // Clear the SendNotificationTo array after sending notifications
+      itinerary.SendNotificationTo = [];
+      await itinerary.save(); // Save the updated itinerary document
+    }
+
+    // Prepare an object with the fields to update
+    const updateFields = {
       Activities,
       Locations,
       Timeline,
@@ -111,58 +236,29 @@ const updateItineraryByTitle = async (req, res) => {
       accessibility,
       pickupLocation,
       dropoffLocation,
+      BookingOpen,
       Tags
-  } = req.body;
+    };
 
-  try {
-      // Find the itinerary by its title (case-insensitive)
-      const itinerary = await ItineraryModel.findOne({ Title: { $regex: new RegExp(Title, 'i') } });
+    // Filter out any undefined values to avoid updating fields with undefined
+    Object.keys(updateFields).forEach(key => updateFields[key] === undefined && delete updateFields[key]);
 
-      // If no itinerary is found, return a 404 error
-      if (!itinerary) {
-          return res.status(404).json({ error: "Itinerary not found!" });
-      }
-
-      // If Tags are provided, check if they exist
-      if (Tags && Tags.length > 0) {
-        const existingTags = await TagsModel.find({ NameOfTags: { $in: Tags } });
-        if (existingTags.length !== Tags.length) {
-            return res.status(400).json({ error: "One or more tags do not exist!" });
-        }
-      }
-
-      // Prepare an object with the fields to update (excluding AdvertiserName and Name)
-      const updateFields = {
-        Activities,
-        Locations,
-        Timeline,
-        Language,
-        Price,
-        Date,
-        accessibility,
-        pickupLocation,
-        dropoffLocation,
-        Tags
-      };
-
-      // Filter out any undefined values to avoid updating fields with undefined
-      Object.keys(updateFields).forEach(key => updateFields[key] === undefined && delete updateFields[key]);
-
-      // Update the itinerary
-      const updatedItinerary = await ItineraryModel.findOneAndUpdate(
-        { Title: Title}, 
-        { $set: updateFields }, // Update only the specified fields
-        { new: true } // Return the updated document
+    // Update the itinerary
+    const updatedItinerary = await ItineraryModel.findOneAndUpdate(
+      { Title: Title }, // Find by title
+      { $set: updateFields }, // Update only the specified fields
+      { new: true } // Return the updated document
     );
 
-    // Send the updated activity as a JSON response with a 200 OK status
+    // Send the updated itinerary as a JSON response with a 200 OK status
     res.status(200).json({ msg: "Itinerary updated successfully!", itinerary: updatedItinerary });
 
   } catch (error) {
-      // If an error occurs, send a 500 Internal Server Error status with the error message
-      res.status(500).json({ error: error.message });
+    // If an error occurs, send a 500 Internal Server Error status with the error message
+    res.status(500).json({ error: error.message });
   }
 };
+
 
 
   /*const updateItineraryByTitle = async (req, res) => {
