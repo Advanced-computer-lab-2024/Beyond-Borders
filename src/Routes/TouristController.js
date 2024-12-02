@@ -6605,13 +6605,13 @@ const sendUpcomingEventNotifications = async () => {
     const tourists = await TouristModel.find();
 
     for (const tourist of tourists) {
-      const upcomingEvents = [];
+      const upcomingEventNames = [];
 
       // Check for activities
       for (const activity of tourist.BookedActivities || []) {
         const event = await ActivityModel.findOne({ Name: activity.activityName });
         if (event && event.Date >= todayStart && event.Date <= tomorrowEnd) {
-          upcomingEvents.push({ name: event.Name, date: event.Date });
+          upcomingEventNames.push(event.Name);
         }
       }
 
@@ -6619,7 +6619,7 @@ const sendUpcomingEventNotifications = async () => {
       for (const itinerary of tourist.BookedItineraries || []) {
         const event = await ItineraryModel.findOne({ Title: itinerary.ItineraryName });
         if (event && event.Date >= todayStart && event.Date <= tomorrowEnd) {
-          upcomingEvents.push({ name: event.Title, date: event.Date });
+          upcomingEventNames.push(event.Title);
         }
       }
 
@@ -6627,7 +6627,7 @@ const sendUpcomingEventNotifications = async () => {
       for (const museum of tourist.BookedMuseums || []) {
         const event = await MuseumModel.findOne({ name: museum.MuseumName });
         if (event && event.dateOfEvent >= todayStart && event.dateOfEvent <= tomorrowEnd) {
-          upcomingEvents.push({ name: event.name, date: event.dateOfEvent });
+          upcomingEventNames.push(event.name);
         }
       }
 
@@ -6635,12 +6635,12 @@ const sendUpcomingEventNotifications = async () => {
       for (const place of tourist.BookedHistPlaces || []) {
         const event = await HistoricalPlacesModel.findOne({ name: place.HistPlaceName });
         if (event && event.dateOfEvent >= todayStart && event.dateOfEvent <= tomorrowEnd) {
-          upcomingEvents.push({ name: event.name, date: event.dateOfEvent });
+          upcomingEventNames.push(event.name);
         }
       }
 
       // Send notifications if there are upcoming events
-      if (upcomingEvents.length > 0) {
+      if (upcomingEventNames.length > 0) {
         const transporter = nodemailer.createTransport({
           service: "gmail",
           auth: {
@@ -6649,8 +6649,8 @@ const sendUpcomingEventNotifications = async () => {
           },
         });
 
-        const eventDetails = upcomingEvents
-          .map(event => `- ${event.name} on ${new Date(event.date).toDateString()}`)
+        const eventDetails = upcomingEventNames
+          .map(eventName => `- ${eventName}`)
           .join("\n");
 
         const mailOptions = {
@@ -6672,8 +6672,21 @@ const sendUpcomingEventNotifications = async () => {
         };
 
         try {
+          // Send email reminder
           await transporter.sendMail(mailOptions);
           console.log(`Reminder sent to ${tourist.Email}`);
+
+          // Add individual event names to the tourist's Notifications array
+          for (const eventName of upcomingEventNames) {
+            tourist.Notifications.push({
+              NotificationText: `You have an upcoming event: ${eventName}`,
+              Read: false,
+            });
+          }
+
+          // Save the updated tourist document
+          await tourist.save();
+          console.log(`Notifications added to ${tourist.Username}`);
         } catch (emailError) {
           console.error(`Failed to send email to ${tourist.Email}:`, emailError);
         }
@@ -6683,6 +6696,8 @@ const sendUpcomingEventNotifications = async () => {
     console.error("Error sending event reminders:", error);
   }
 };
+
+
 
 const addNotificationSubscriberHP = async (req, res) => {
   const { username, historicalPlaceName } = req.body;
