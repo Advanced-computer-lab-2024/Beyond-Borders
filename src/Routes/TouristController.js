@@ -831,47 +831,93 @@ const loginTourist = async (req, res) => {
   }
 };
 
+// const sortItinerariesPriceAscendingTourist = async (req, res) => {
+//   try {
+//     const currentDate = new Date();
+//     currentDate.setHours(0, 0, 0, 0);
+
+//     // Get all activities from the database
+//     const itineraries = await ItineraryModel.find();
+
+//     // Filter for upcoming activities only
+//     const upcomingItineraries = itineraries.filter(itinerary => itinerary.Date >= currentDate);
+
+//     // Sort the upcoming activities by price in ascending order
+//     const sortedUpcomingItineraries = upcomingItineraries.sort((a, b) => a.Price - b.Price);
+
+//     // Respond with the sorted activities
+//     res.status(200).json(sortedUpcomingItineraries);
+//   } catch (error) {
+//     res.status(400).json({ error: error.message });
+//   }
+// };
+
+// const sortItinerariesPriceDescendingTourist = async (req, res) => {
+//   try {
+//     const currentDate = new Date();
+//     currentDate.setHours(0, 0, 0, 0);
+
+//     // Get all activities from the database
+//     const itineraries = await ItineraryModel.find();
+
+//     // Filter for upcoming activities only
+//     const upcomingItineraries = itineraries.filter(itinerary => itinerary.Date >= currentDate);
+
+//     // Sort the upcoming activities by price in descending order
+//     const sortedUpcomingItineraries = upcomingItineraries.sort((a, b) => b.Price - a.Price);
+
+//     // Respond with the sorted activities
+//     res.status(200).json(sortedUpcomingItineraries);
+//   } catch (error) {
+//     res.status(400).json({ error: error.message });
+//   }
+// };
+
 const sortItinerariesPriceAscendingTourist = async (req, res) => {
   try {
     const currentDate = new Date();
     currentDate.setHours(0, 0, 0, 0);
 
-    // Get all activities from the database
+    // Get all itineraries from the database
     const itineraries = await ItineraryModel.find();
 
-    // Filter for upcoming activities only
-    const upcomingItineraries = itineraries.filter(itinerary => itinerary.Date >= currentDate);
+    // Filter for upcoming activities and exclude flagged itineraries
+    const upcomingItineraries = itineraries.filter(itinerary => 
+      itinerary.Date >= currentDate && itinerary.flagged !== true
+    );
 
-    // Sort the upcoming activities by price in ascending order
+    // Sort the upcoming itineraries by price in ascending order
     const sortedUpcomingItineraries = upcomingItineraries.sort((a, b) => a.Price - b.Price);
 
-    // Respond with the sorted activities
+    // Respond with the sorted itineraries
     res.status(200).json(sortedUpcomingItineraries);
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
 };
-
 const sortItinerariesPriceDescendingTourist = async (req, res) => {
   try {
     const currentDate = new Date();
     currentDate.setHours(0, 0, 0, 0);
 
-    // Get all activities from the database
+    // Get all itineraries from the database
     const itineraries = await ItineraryModel.find();
 
-    // Filter for upcoming activities only
-    const upcomingItineraries = itineraries.filter(itinerary => itinerary.Date >= currentDate);
+    // Filter for upcoming activities and exclude flagged itineraries
+    const upcomingItineraries = itineraries.filter(itinerary => 
+      itinerary.Date >= currentDate && itinerary.flagged !== true
+    );
 
-    // Sort the upcoming activities by price in descending order
+    // Sort the upcoming itineraries by price in descending order
     const sortedUpcomingItineraries = upcomingItineraries.sort((a, b) => b.Price - a.Price);
 
-    // Respond with the sorted activities
+    // Respond with the sorted itineraries
     res.status(200).json(sortedUpcomingItineraries);
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
 };
+
 
 // const filterItineraries = async (req, res) => {
 //   const { minPrice, maxPrice, InputDate, Language, Tags } = req.body; // Extract 'Tags' from the request body
