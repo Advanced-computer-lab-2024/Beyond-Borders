@@ -37,6 +37,7 @@ import EditIcon from '@mui/icons-material/Edit';
 import StarsIcon from '@mui/icons-material/Stars';
 import MilitaryTechIcon from '@mui/icons-material/MilitaryTech';
 import RemoveIcon from '@mui/icons-material/Remove';
+import ShoppingBagIcon from '@mui/icons-material/ShoppingBag';
 
 
 
@@ -761,6 +762,11 @@ const closeDeleteRequestsModal = () => {
         <Button onClick={() => navigate('/TouristComplaints')} sx={styles.sidebarButton}>
           <AssignmentIcon sx={styles.icon} />
           {sidebarOpen && 'Complaints'}
+        </Button>
+
+        <Button onClick={() => navigate('/TouristOrders')} sx={styles.sidebarButton}>
+          <ShoppingBagIcon sx={styles.icon} />
+          {sidebarOpen && 'Orders'}
         </Button>
 
        
