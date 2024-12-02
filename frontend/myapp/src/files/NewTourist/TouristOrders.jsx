@@ -320,20 +320,38 @@ const fetchOrders = async () => {
         return;
       }
   
-      // Fetch current and past orders for the logged-in tourist
+      // Fetch current and past orders for the logged-in user
       const response = await axios.get('/api/viewAllOrders', {
         params: { touristUsername: username }, // Send the username as a query parameter
       });
   
       const { currentOrders, pastOrders } = response.data;
   
-      // Update state with the retrieved orders
-      setCurrentOrders(currentOrders); // Assuming you have a state for current orders
-      setPastOrders(pastOrders);       // Assuming you have a state for past orders
+      // Fetch product details for each order
+      const fetchDetailedOrders = async (orders) => {
+        const detailedOrders = await Promise.all(
+          orders.map(async (order) => {
+            const orderDetailsResponse = await axios.get('/api/viewOrderDetails', {
+              params: { orderNumber: order.orderNumber }, // Use the order number to fetch details
+            });
+            return orderDetailsResponse.data.orderDetails; // Return detailed order data
+          })
+        );
+        return detailedOrders;
+      };
+  
+      // Fetch enriched details for current and past orders
+      const detailedCurrentOrders = await fetchDetailedOrders(currentOrders);
+      const detailedPastOrders = await fetchDetailedOrders(pastOrders);
+  
+      // Update state with enriched order data
+      setCurrentOrders(detailedCurrentOrders);
+      setPastOrders(detailedPastOrders);
     } catch (error) {
       console.error('Error fetching orders:', error);
     }
   };
+  
   
   
   
@@ -1271,11 +1289,6 @@ const fetchOrders = async () => {
   </Box>
 </Box>
 
-
-
-
-
-      
 {/* Current Orders */}
 <Box sx={styles.activitiesContainer}>
   <Typography variant="h5" sx={{ fontWeight: 'bold', marginBottom: '20px' }}>
@@ -1286,64 +1299,23 @@ const fetchOrders = async () => {
       <Box
         key={index}
         sx={{
-          ...styles.activityCard,
-          backgroundColor: 'white', // Set the card background to white
-          borderRadius: '10px', // Optional: Add rounded corners
-          padding: '20px', // Add padding for better spacing
-          boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.1)', // Optional: Add subtle shadow
-          position: 'relative', // For positioning the cancel button
+          backgroundColor: 'white',
+          borderRadius: '10px',
+          padding: '20px',
+          boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.1)',
+          marginBottom: '20px',
+          position: 'relative', // Added for absolute positioning
         }}
       >
-        <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
-          Order #{order.orderNumber}
-        </Typography>
-        {/* Date */}
-        <Typography
-          variant="body2"
-          sx={{
-            display: 'flex',
-            fontSize: '18px',
-            alignItems: 'center',
-          }}
-        >
-          <CalendarTodayIcon fontSize="small" sx={{ mr: 1 }} />
-          {new Date(order.orderDate).toLocaleDateString()}
-        </Typography>
-        {/* Status */}
-        <Typography
-          variant="body2"
-          sx={{
-            display: 'flex',
-            fontSize: '18px',
-            alignItems: 'center',
-          }}
-        >
-          <LocalShippingIcon fontSize="small" sx={{ mr: 1 }} />
-          {order.orderStatus}
-        </Typography>
-        {/* Payment */}
-        <Typography
-          variant="body2"
-          sx={{
-            display: 'flex',
-            fontSize: '18px',
-            alignItems: 'center',
-          }}
-        >
-          <PaymentIcon fontSize="small" sx={{ mr: 1 }} />
-          {order.paymentStatus}
-        </Typography>
-
-       
         {/* Cancel Order Button */}
         <Button
           variant="contained"
-          onClick={() => handleOpenDialog(order.orderNumber)} // Pass the order number
+          onClick={() => handleOpenDialog(order.orderNumber)}
           startIcon={<CancelOutlinedIcon />}
           sx={{
             position: 'absolute',
-            top: '10px', // Adjust position
-            right: '10px', // Adjust position
+            top: '10px', // Position button at the top
+            right: '10px', // Align button to the right
             backgroundColor: '#192959',
             color: '#fff',
             '&:hover': { backgroundColor: '#d32f2f' },
@@ -1352,22 +1324,181 @@ const fetchOrders = async () => {
           Cancel Order
         </Button>
 
-        <Button
-            variant="contained"
-            onClick={() => handleViewOrderDetails(order.orderNumber)}
-            startIcon={<CancelOutlinedIcon />}
-            sx={{
-                position: 'absolute',
-                top: '50px',
-                right: '10px',
-                backgroundColor: '#192959',
-                color: '#fff',
-                '&:hover': { backgroundColor: '#d32f2f' },
-            }}
-            >
-            View Details
-            </Button>
+{/* Order Status */}
+<Typography
+  variant="body2"
+  sx={{
+    position: 'absolute',
+    top: '95px', // Position it below the Cancel Order button
+    right: '20px', // Align it to the right
+    fontSize: '16px',
+    color: '#808080', // Grey color
+    fontWeight: 'bold',
+    display: 'flex', // Add flex for icon alignment
+    alignItems: 'center', // Align icon with text
+    //backgroundColor: '#f1f1f1', // Add background like the image
+    padding: '5px 10px', // Add padding for better spacing
+    borderRadius: '5px', // Rounded corners like in the photo
+    //boxShadow: '0px 1px 3px rgba(0, 0, 0, 0.2)', // Subtle shadow for depth
+  }}
+>
+  <LocalShippingIcon fontSize="small" sx={{ mr: 1 }} />
+  {order.orderStatus}
+</Typography>
 
+
+
+
+        {/* Order Details */}
+        <Box sx={{ textAlign: 'left', paddingRight: '100px', marginTop: '20px' }}>
+          <Typography variant="h6" sx={{ fontWeight: 'bold', marginBottom: '10px' }}>
+            Order #{order.orderNumber}
+          </Typography>
+          <Typography
+            variant="body2"
+            sx={{
+              display: 'flex',
+              fontSize: '18px',
+              alignItems: 'center',
+              marginTop: '8px',
+            }}
+          >
+            <CalendarTodayIcon fontSize="small" sx={{ mr: 1 }} />
+            {new Date(order.orderDate).toLocaleDateString()}
+          </Typography>
+        </Box>
+
+        {/* Product Details Table */}
+        <Box
+          sx={{
+            marginTop: '20px',
+            border: '1px solid #ccc',
+            borderRadius: '8px',
+            padding: '10px',
+            backgroundColor: '#f9f9f9',
+          }}
+        >
+          {/* Table Header */}
+          <Box
+            sx={{
+              display: 'grid',
+              gridTemplateColumns: '1fr 0.5fr 0.5fr 0.5fr', // Adjust column widths
+              borderBottom: '1px solid #ddd',
+              paddingBottom: '8px', // Reduce padding
+              marginBottom: '10px',
+            }}
+          >
+            <Typography
+              variant="body2"
+              sx={{
+                fontWeight: 'bold',
+                textAlign: 'left', // Align text to the left
+                marginRight: '10px',
+              }}
+            >
+              Product
+            </Typography>
+            <Typography
+              variant="body2"
+              sx={{
+                fontWeight: 'bold',
+                textAlign: 'center', // Keep other labels centered for consistency
+              }}
+            >
+              Price
+            </Typography>
+            <Typography
+              variant="body2"
+              sx={{
+                fontWeight: 'bold',
+                textAlign: 'center', // Keep other labels centered for consistency
+              }}
+            >
+              Quantity
+            </Typography>
+            <Typography
+              variant="body2"
+              sx={{
+                fontWeight: 'bold',
+                textAlign: 'center', // Keep other labels centered for consistency
+              }}
+            >
+              Total
+            </Typography>
+          </Box>
+
+          {/* Table Rows */}
+          {order.productsPurchased.map((product, idx) => (
+            <Box
+              key={idx}
+              sx={{
+                display: 'grid',
+                gridTemplateColumns: '1fr 0.5fr 0.5fr 0.5fr', // Keep aligned with header
+                alignItems: 'center',
+                padding: '5px 0', // Reduce padding between rows
+                borderBottom: idx !== order.productsPurchased.length - 1 ? '1px solid #ddd' : 'none',
+              }}
+            >
+              {/* Product Name and Image */}
+              <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                <Box sx={{ flexShrink: 0, marginRight: '10px' }}>
+                  <img
+                    src={
+                      product.productDetails?.Picture
+                        ? `http://localhost:8000${product.productDetails.Picture}`
+                        : '/placeholder.jpg'
+                    }
+                    alt="Product"
+                    style={{ width: '50px', height: '50px', objectFit: 'cover', borderRadius: '8px' }}
+                  />
+                </Box>
+                <Typography variant="body2">{product.productDetails?.Name || 'N/A'}</Typography>
+              </Box>
+              {/* Product Price */}
+              <Typography variant="body2">{product.price} EGP</Typography>
+              {/* Product Quantity */}
+              <Typography variant="body2">{product.quantity}</Typography>
+              {/* Product Total */}
+              <Typography variant="body2">
+                {product.price * product.quantity} EGP
+              </Typography>
+            </Box>
+          ))}
+        </Box>
+
+        {/* Payment Status and Total Price */}
+        <Box
+          sx={{
+            textAlign: 'right',
+            marginTop: '10px',
+            marginRight: '30px',
+          }}
+        >
+          {/* Payment Status */}
+          <Typography
+            variant="body2"
+            sx={{
+              fontWeight: 'bold',
+              color: '#808080', // Changed to grey
+              marginRight: '20px',
+            }}
+          >
+            Payment Status: {order.paymentStatus}
+          </Typography>
+
+          {/* Total Price */}
+          <Typography
+            variant="body2"
+            sx={{
+              fontWeight: 'bold',
+              fontSize: '18px',
+              marginTop: '5px',
+            }}
+          >
+            Total Price: {order.productsPurchased.reduce((sum, product) => sum + product.price * product.quantity, 0)}{' '}
+            EGP
+          </Typography>
+        </Box>
       </Box>
     ))
   ) : (
@@ -1400,6 +1531,249 @@ const fetchOrders = async () => {
     </DialogActions>
   </Dialog>
 </Box>
+
+
+{/* Past Orders */}
+<Box sx={styles.activitiesContainer}>
+  <Typography variant="h5" sx={{ fontWeight: 'bold', marginBottom: '20px' }}>
+    Past Orders
+  </Typography>
+  {pastOrders.length > 0 ? (
+    pastOrders.map((order, index) => (
+      <Box
+        key={index}
+        sx={{
+          backgroundColor: 'white',
+          borderRadius: '10px',
+          padding: '20px',
+          boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.1)',
+          marginBottom: '20px',
+          position: 'relative', // Added for absolute positioning
+        }}
+      >
+        {/* Cancel Order Button */}
+        {/* <Button
+          disabled // Disable the cancel button for past orders
+          variant="contained"
+          startIcon={<CancelOutlinedIcon />}
+          sx={{
+            position: 'absolute',
+            top: '10px',
+            right: '10px',
+            backgroundColor: '#ccc', // Grey color to indicate disabled
+            color: '#fff',
+          }}
+        >
+          Cancel Order
+        </Button> */}
+
+        {/* Order Status */}
+        <Typography
+          variant="body2"
+          sx={{
+            position: 'absolute',
+            top: '100px',
+            right: '40px',
+            fontSize: '16px',
+            color: '#808080',
+            fontWeight: 'bold',
+            display: 'flex',
+            alignItems: 'center',
+          }}
+        >
+          <LocalShippingIcon fontSize="small" sx={{ mr: 1 }} />
+          {order.orderStatus}
+        </Typography>
+
+        {/* Order Details */}
+        <Box sx={{ textAlign: 'left', paddingRight: '100px', marginTop: '20px' }}>
+          <Typography variant="h6" sx={{ fontWeight: 'bold', marginBottom: '10px' }}>
+            Order #{order.orderNumber}
+          </Typography>
+          <Typography
+            variant="body2"
+            sx={{
+              display: 'flex',
+              fontSize: '18px',
+              alignItems: 'center',
+              marginTop: '8px',
+            }}
+          >
+            <CalendarTodayIcon fontSize="small" sx={{ mr: 1 }} />
+            {new Date(order.orderDate).toLocaleDateString()}
+          </Typography>
+        </Box>
+
+        {/* Product Details Table */}
+        <Box
+          sx={{
+            marginTop: '20px',
+            border: '1px solid #ccc',
+            borderRadius: '8px',
+            padding: '10px',
+            backgroundColor: '#f9f9f9',
+          }}
+        >
+          {/* Table Header */}
+          <Box
+            sx={{
+              display: 'grid',
+              gridTemplateColumns: '1fr 0.5fr 0.5fr 0.5fr',
+              borderBottom: '1px solid #ddd',
+              paddingBottom: '8px',
+              marginBottom: '10px',
+            }}
+          >
+            <Typography
+              variant="body2"
+              sx={{
+                fontWeight: 'bold',
+                textAlign: 'left',
+                marginRight: '10px',
+              }}
+            >
+              Product
+            </Typography>
+            <Typography
+              variant="body2"
+              sx={{
+                fontWeight: 'bold',
+                textAlign: 'center',
+              }}
+            >
+              Price
+            </Typography>
+            <Typography
+              variant="body2"
+              sx={{
+                fontWeight: 'bold',
+                textAlign: 'center',
+              }}
+            >
+              Quantity
+            </Typography>
+            <Typography
+              variant="body2"
+              sx={{
+                fontWeight: 'bold',
+                textAlign: 'center',
+              }}
+            >
+              Total
+            </Typography>
+          </Box>
+
+          {/* Table Rows */}
+          {order.productsPurchased.map((product, idx) => (
+            <Box
+              key={idx}
+              sx={{
+                display: 'grid',
+                gridTemplateColumns: '1fr 0.5fr 0.5fr 0.5fr',
+                alignItems: 'center',
+                padding: '5px 0',
+                borderBottom: idx !== order.productsPurchased.length - 1 ? '1px solid #ddd' : 'none',
+              }}
+            >
+              {/* Product Name and Image */}
+              <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                <Box sx={{ flexShrink: 0, marginRight: '10px' }}>
+                  <img
+                    src={
+                      product.productDetails?.Picture
+                        ? `http://localhost:8000${product.productDetails.Picture}`
+                        : '/placeholder.jpg'
+                    }
+                    alt="Product"
+                    style={{ width: '50px', height: '50px', objectFit: 'cover', borderRadius: '8px' }}
+                  />
+                </Box>
+                <Typography variant="body2">{product.productDetails?.Name || 'N/A'}</Typography>
+              </Box>
+              {/* Product Price */}
+              <Typography variant="body2">{product.price} EGP</Typography>
+              {/* Product Quantity */}
+              <Typography variant="body2">{product.quantity}</Typography>
+              {/* Product Total */}
+              <Typography variant="body2">
+                {product.price * product.quantity} EGP
+              </Typography>
+            </Box>
+          ))}
+        </Box>
+
+        {/* Payment Status and Total Price */}
+        <Box
+          sx={{
+            textAlign: 'right',
+            marginTop: '10px',
+            marginRight: '30px',
+          }}
+        >
+          {/* Payment Status
+          <Typography
+            variant="body2"
+            sx={{
+              fontWeight: 'bold',
+              color: '#808080',
+              marginRight: '20px',
+            }}
+          >
+            Payment Status: {order.paymentStatus}
+          </Typography> */}
+
+          {/* Total Price */}
+          <Typography
+            variant="body2"
+            sx={{
+              fontWeight: 'bold',
+              fontSize: '18px',
+              marginTop: '5px',
+            }}
+          >
+            Total Price: {order.productsPurchased.reduce((sum, product) => sum + product.price * product.quantity, 0)}{' '}
+            EGP
+          </Typography>
+        </Box>
+      </Box>
+    ))
+  ) : (
+    <Typography>No past orders available.</Typography>
+  )}
+</Box>
+
+
+
+
+
+
+
+
+{/* Cancel Order Dialog
+<Dialog open={openDialog} onClose={handleCloseDialog}>
+    <DialogContent>
+      <DialogContentText sx={{ fontWeight: 'bold', color: '#192959', fontSize: '20px' }}>
+        Do you want to confirm order cancellation?
+      </DialogContentText>
+      <DialogContentText sx={{ fontWeight: 'bold', color: '#33416b', marginTop: '10px' }}>
+        This action is non-reversible, and the order will be canceled.
+      </DialogContentText>
+    </DialogContent>
+    <DialogActions>
+      <Button
+        onClick={handleCloseDialog}
+        sx={{ color: '#192959', '&:hover': { backgroundColor: '#192959', color: '#e6e7ed' } }}
+      >
+        Cancel
+      </Button>
+      <Button
+        onClick={handleConfirmDeletion}
+        sx={{ color: '#192959', '&:hover': { backgroundColor: '#192959', color: '#e6e7ed' } }}
+      >
+        Confirm
+      </Button>
+    </DialogActions>
+  </Dialog> */}
 
 
 
@@ -1683,6 +2057,13 @@ const styles = {
     backgroundColor: '#e6e7ed',
     color: '#192959',
   },
+  productImage: {
+    width: '80%', // Ensure the image fills the container
+    height: '80%',
+    objectFit: 'cover', // Maintain aspect ratio while filling the container
+    border: 'none', // Remove any border around the image
+  },
+  
   orderCard: {
     display: 'flex',
     flexDirection: 'column',
@@ -1782,6 +2163,20 @@ const styles = {
     padding: '20px 70px 20px 90px',
     marginLeft: '60px',
     transition: 'margin-left 0.3s ease',
+  },
+  productImageContainer: {
+    position: 'relative',
+    width: '90px', // Adjust image size
+    height: '90px',
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: '10px',
+    overflow: 'hidden',
+    marginRight: '20px',
+    backgroundColor: 'transparent',
+    flexShrink: 0, // Prevent image from shrinking
+    transform: 'translateY(10px)', // Move the image up by 10px
   },
   discountContainer: {
     position: 'absolute',
