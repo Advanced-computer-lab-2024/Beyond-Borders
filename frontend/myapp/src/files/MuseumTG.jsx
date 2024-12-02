@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import {
+  Modal,
   Box,
   Typography,
   Button,
@@ -31,10 +32,122 @@ const MuseumTG = () => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const urlParams = new URLSearchParams(window.location.search);
   const [editing, setEditing] = useState({});  // Initialize it as an empty object, or with indices if needed
-
+  const [isMuseumModalOpen, setIsMuseumModalOpen] = useState(false);
   const museumName = urlParams.get('name');
+  const navigate = useNavigate();
+  const [museumData, setMuseumData] = useState({
+    name: '',
+    description: '',
+    location: '',
+    openingHours: '',
+    ticketPrices: {
+      foreigner: '',
+      native: '',
+      student: ''
+    },
+    historicalTags: '',
+    dateOfEvent: ''
+  });
+  const [errors, setErrors] = useState({
+    name: '',
+    description: '',
+    location: '',
+    ticketPrices: {
+      foreigner: '',
+      native: '',
+      student: ''
+    },
+    historicalTags: '',
+    dateOfEvent: ''
+  });
 
-    const navigate = useNavigate();
+  const validate = () => {
+    let formErrors = {};
+    let isValid = true;
+  
+    // Check for name
+    if (!museumData.name) {
+      formErrors.name = 'Museum name is required';
+      isValid = false;
+    }
+  
+    // Check for description
+    if (!museumData.description) {
+      formErrors.description = 'Description is required';
+      isValid = false;
+    }
+  
+    // Check for location
+    if (!museumData.location) {
+      formErrors.location = 'Location is required';
+      isValid = false;
+    }
+  
+    // Check ticket prices for each field
+    for (const key in museumData.ticketPrices) {
+      if (!museumData.ticketPrices[key]) {
+        formErrors.ticketPrices = formErrors.ticketPrices || {};
+        formErrors.ticketPrices[key] = `${key} ticket price is required`;
+        isValid = false;
+      }
+    }
+  
+    // Check for valid tags (comma-separated and non-empty)
+    if (museumData.historicalTags && museumData.historicalTags.split(',').some(tag => tag.trim() === '')) {
+      formErrors.historicalTags = 'Tags must be comma-separated and non-empty';
+      isValid = false;
+    }
+  
+    // Check for date
+    if (!museumData.dateOfEvent) {
+      formErrors.dateOfEvent = 'Date of event is required';
+      isValid = false;
+    }
+  
+    setErrors(formErrors);
+    return isValid;
+  };
+  
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+
+    // Check if the field is a ticket price field
+    if (name === 'foreigner' || name === 'native' || name === 'student') {
+      setMuseumData((prevData) => ({
+        ...prevData,
+        ticketPrices: {
+          ...prevData.ticketPrices,
+          [name]: value // Directly updating the correct ticket price
+        }
+      }));
+    } else {
+      setMuseumData((prevData) => ({
+        ...prevData,
+        [name]: value
+      }));
+    }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const AuthorUsername = localStorage.getItem("username");
+    const historicalTags = museumData.historicalTags.split(',').map(tag => tag.trim());
+
+    const dataToSubmit = {
+      ...museumData,
+      AuthorUsername,
+      HistoricalTags: historicalTags
+    };
+
+    try {
+      const response = await axios.post('/addMuseum', dataToSubmit);
+      alert("Museum created successfully!");
+      window.location.href = "/MuseumTG"; // Redirect to museumsTG.html
+    } catch (error) {
+      alert(`An error occurred: ${error.response?.data?.error || 'Please try again.'}`);
+
+    }
+  };
   // Fetch museums
   const fetchMuseumsByAuthor = async () => {
     const AuthorUsername = localStorage.getItem("username");
@@ -154,17 +267,18 @@ const MuseumTG = () => {
         <Box>
             <Button
               sx={styles.menuButton}
-              onClick={() => (window.location.href = "/createMuseum")}
+              onClick={() => setIsMuseumModalOpen(true)}
             >
               Add New Museum
             </Button>
+            
             <IconButton onClick={() => alert("Logged out!")} sx={styles.iconButton}>
               <LogoutIcon />
             </IconButton>
           </Box>
         </Box>
       </Box>
-
+    
       {/* Collapsible Sidebar */}
       <Box
         sx={{
@@ -402,16 +516,157 @@ const MuseumTG = () => {
       
     </Box>
   ))}
+  
 </Box>
+<Modal open={isMuseumModalOpen} onClose={() => setIsMuseumModalOpen(false)}>
+  <Box
+    sx={{
+      position: "absolute",
+      top: "50%",
+      left: "50%",
+      transform: "translate(-50%, -50%)",
+      width: "90%", // Adjusted for smaller screens
+      maxWidth: "600px",
+      maxHeight: "90vh", // Limit height to viewport height
+      overflowY: "auto", // Enable vertical scrolling
+      bgcolor: "background.paper",
+      borderRadius: "10px",
+      boxShadow: 24,
+      p: 4,
+    }}
+  >
+    <Typography variant="h4" align="center" sx={{ marginBottom: "20px" }}>
+      Create New Museum
+    </Typography>
+    <form onSubmit={handleSubmit}>
+      <TextField
+        fullWidth
+        margin="normal"
+        label="Museum Name"
+        name="name"
+        value={museumData.name}
+        onChange={handleChange}
+        error={!!errors.name}
+        helperText={errors.name}
+        required
+      />
+      <TextField
+        fullWidth
+        margin="normal"
+        label="Description"
+        name="description"
+        rows="4"
+        required
+        value={museumData.description} // Corrected value here
+        error={!!errors.description}
+        helperText={errors.description}
+        onChange={handleChange}
+      />
+      <TextField
+        fullWidth
+        margin="normal"
+        label="Location"
+        name="location"
+        value={museumData.location}
+        onChange={handleChange}
+        required
+      />
+      <TextField
+        fullWidth
+        margin="normal"
+        label="Opening Hours"
+        name="openingHours"
+        value={museumData.openingHours}
+        onChange={handleChange}
+        error={!!errors.location}
+        helperText={errors.location}
+        required
+      />
+      <Typography variant="h6" align="left" sx={{ marginBottom: "0px" }}>
+        Ticket Prices in USD($):
+      </Typography>
+      <TextField
+  fullWidth
+  margin="normal"
+  label="Foreigner"
+  name="foreigner"
+  value={museumData.ticketPrices.foreigner}
+  onChange={handleChange}
+  error={!!errors.ticketPrices?.foreigner}
+  helperText={errors.ticketPrices?.foreigner}
+  required
+/>
+<TextField
+  fullWidth
+  margin="normal"
+  label="Native"
+  name="native"
+  value={museumData.ticketPrices.native}
+  onChange={handleChange}
+  error={!!errors.ticketPrices?.native}
+  helperText={errors.ticketPrices?.native}
+  required
+/>
+<TextField
+  fullWidth
+  margin="normal"
+  label="Student"
+  name="student"
+  value={museumData.ticketPrices.student}
+  onChange={handleChange}
+  error={!!errors.ticketPrices?.student}
+  helperText={errors.ticketPrices?.student}
+  required
+/>
 
+      <TextField
+      fullWidth
+      margin="normal"
+      label="Historical Tags (comma-separated)"
+      name="historicalTags"
+      value={museumData.historicalTags}
+      onChange={handleChange}
+      error={!!errors.historicalTags}  // Check for historicalTags error
+      helperText={errors.historicalTags}  // Show error message for historicalTags
+      required
+      />
 
-
-
-      
-
-      
-      
-    </Box>
+      <TextField
+        fullWidth
+        margin="normal"
+        name="dateOfEvent"
+        type="date"
+        value={museumData.dateOfEvent}
+        onChange={handleChange}
+        error={!!errors.dateOfEvent}
+        helperText={errors.dateOfEvent}
+        required 
+      />
+      {setErrorMessage && (
+        <Typography color="error" sx={{ marginBottom: "10px" }}>
+          {setErrorMessage}
+        </Typography>
+      )}
+      <Button
+        type="submit"
+        variant="contained"
+        sx={{
+          backgroundColor: "#192959",
+          color: "white",
+          padding: "10px",
+          borderRadius: "4px",
+          width: "100%",
+          "&:hover": { backgroundColor: "#4b5a86" },
+          marginTop: "20px",
+        }}
+      >
+        Create Museum
+      </Button>
+    </form>
+  </Box>
+</Modal>
+</Box>
+    
   );
 }
 
