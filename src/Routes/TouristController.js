@@ -6069,6 +6069,7 @@ const payOrderWallet = async (req, res) => {
       orderDate: new Date(),
       paymentStatus: "Paid",
       orderStatus: "Out for Delivery",
+      TotalPrice:totalPrice
     });
 
     tourist.Orders.push({ OrderNumber: order.orderNumber });
