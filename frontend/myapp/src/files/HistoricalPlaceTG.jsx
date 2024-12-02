@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import {
+  Modal,
   Box,
   Typography,
   Button,
   IconButton,
+  TextField,
   Divider,
 } from "@mui/material";
 import MenuIcon from "@mui/icons-material/Menu";
@@ -22,14 +24,123 @@ import ImageIcon from "@mui/icons-material/Image";
 import TagIcon from "@mui/icons-material/Label";
 import { useNavigate } from 'react-router-dom';
 import DashboardIcon from '@mui/icons-material/Dashboard';
-
+import SaveIcon from '@mui/icons-material/Save';
 
 const HistoricalPlaceTG = () => {
-  const [places, setPlaces] = useState([]);
-  const [errorMessage, setErrorMessage] = useState('');
-  const [sidebarOpen, setSidebarOpen] = useState(true);
-  const navigate = useNavigate();
-  const fetchHistoricalPlacesByAuthor = async () => {
+const [places, setPlaces] = useState([]);
+const [errorMessage, setErrorMessage] = useState('');
+const [sidebarOpen, setSidebarOpen] = useState(true);
+const navigate = useNavigate();
+const urlParams = new URLSearchParams(window.location.search);
+const [editing, setEditing] = useState({});  // Initialize it as an empty object, or with indices if needed
+const [isHistoricalModalOpen, setIsHistoricalModalOpen] = useState(false);
+const [formData, setFormData] = useState({
+    name: '',
+    description: '',
+    location: '',
+    openingHours: '',
+    ticketPriceForeigner: '',
+    ticketPriceNative: '',
+    ticketPriceStudent: '',
+    tag: '',
+  });
+  const [errors, setErrors] = useState({
+    name: '',
+    description: '',
+    location: '',
+    openingHours: '',
+    ticketPriceForeigner: '',
+    ticketPriceNative: '',
+    ticketPriceStudent: '',
+    tag: '',
+  });
+
+  // Validation function to check the input fields
+  const validate = () => {
+    let formErrors = {};
+    let isValid = true;
+
+    // Check for name
+    if (!formData.name) {
+      formErrors.name = 'Historical Place name is required';
+      isValid = false;
+    }
+
+    // Check for description
+    if (!formData.description) {
+      formErrors.description = 'Description is required';
+      isValid = false;
+    }
+
+    // Check for location
+    if (!formData.location) {
+      formErrors.location = 'Location is required';
+      isValid = false;
+    }
+
+    // Check ticket prices for each field
+    if (!formData.ticketPriceForeigner) {
+        formErrors.ticketPriceForeigner = 'Price for Foreigner is required';
+        isValid = false;
+      }
+    if (!formData.ticketPriceNative) {
+        formErrors.ticketPriceNative = 'Price for Native is required';
+        isValid = false;
+      }
+    if (!formData.ticketPriceStudent) {
+        formErrors.ticketPriceStudent = 'Price for Student is required';
+        isValid = false;
+      }
+    // Check for valid tags (comma-separated and no empty values)
+    if (formData.tag && formData.tag.split(',').some(tag => tag.trim() === '')) {
+      formErrors.tag = 'Tags must be comma-separated and non-empty';
+      isValid = false;
+    }
+
+    setErrors(formErrors);
+    return isValid;
+  };
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+  const AuthorUsername = localStorage.getItem('username');
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    const tagsArray = formData.tag.split(',').map(tag => tag.trim());
+
+    const payload = {
+      name: formData.name,
+      description: formData.description,
+      location: formData.location,
+      openingHours: formData.openingHours,
+      ticketPrices: {
+        foreigner: formData.ticketPriceForeigner,
+        native: formData.ticketPriceNative,
+        student: formData.ticketPriceStudent,
+      },
+      HistoricalTags: tagsArray,
+      AuthorUsername,
+    };
+
+    try {
+      const response = await axios.post('/addHistoricalPlace', payload);
+
+      if (response.status === 201) {
+        alert('Historical place created successfully!');
+        navigate('/HistoricalPlaceTg');
+      } else {
+        alert('Error: ${response.data.error}');
+      }
+    } catch (error) {
+        alert(`An error occurred: ${error.response?.data?.error || 'Please try again.'}`);
+   } };
+
+   const fetchHistoricalPlacesByAuthor = async () => {
     const AuthorUsername = localStorage.getItem('username');
 
     if (!AuthorUsername) {
@@ -56,14 +167,20 @@ const HistoricalPlaceTG = () => {
       setErrorMessage('An error occurred while fetching historical places. Please try again.');
     }
   };
-
-  const editHistoricalPlace = (placeName) => {
-    const AuthorUsername = localStorage.getItem('username');
-    if (!AuthorUsername) {
-      alert('Author username not found. Please log in again.');
-      return;
+  const handleUpdatePlace = async (index) => {
+    const updatedPlace = places[index]; // Get the updated museum data
+  
+    // Log to ensure the data is correct
+    console.log("Updated HIstorical Place:", updatedPlace);
+  
+    try {
+      const response = await axios.put('/updateHistoricalPlace', updatedPlace);
+      alert(response.data.msg || "Historical Place updated successfully.");
+      window.location.href = "/HistoricalPlaceTG"; // Redirect or reload page after update
+    } catch (error) {
+      console.error("Error updating Historical Place:", error);
+      alert(`An error occurred while updating the Historical Place: ${error.response?.data?.error || "Unknown error"}`);
     }
-    window.location.href = '/EditHistoricalPlace?name=${encodeURIComponent(placeName)}&author=${encodeURIComponent(AuthorUsername)}';
   };
 
   const removeHistoricalPlace = async (placeName) => {
@@ -92,6 +209,24 @@ const HistoricalPlaceTG = () => {
   useEffect(() => {
     fetchHistoricalPlacesByAuthor();
   }, []);
+  const handleEditFieldChange = (index, field, value) => {
+    setPlaces((prev) => {
+      const updatedPlaces = [...prev];
+      const place = { ...updatedPlaces[index] };
+      
+      // Update the specific field in the museum object
+      if (field.includes(".")) {
+        // For nested fields (like ticketPrices.foreigner), split the field path
+        const fieldParts = field.split(".");
+        place[fieldParts[0]][fieldParts[1]] = value;
+      } else {
+        place[field] = value;
+      }
+      
+      updatedPlaces[index] = place; // Replace the old museum data with updated one
+      return updatedPlaces;
+    });
+  };
 
   return (
     <Box sx={styles.container}>
@@ -112,17 +247,18 @@ const HistoricalPlaceTG = () => {
         <Box>
             <Button
               sx={styles.menuButton}
-              onClick={() => (window.location.href = "/HistoricalPlace")}
+              onClick={() => setIsHistoricalModalOpen(true)}
             >
               Add New Historical Place
             </Button>
+            
             <IconButton onClick={() => alert("Logged out!")} sx={styles.iconButton}>
               <LogoutIcon />
             </IconButton>
           </Box>
         </Box>
       </Box>
-
+    
       {/* Collapsible Sidebar */}
       <Box
         sx={{
@@ -166,82 +302,176 @@ const HistoricalPlaceTG = () => {
       >
         
 
-        {/* Activity Content */}
         <Box sx={styles.activityContent}>
-          {/* Left Side */}
-          <Box sx={styles.activityLeft}>
-            <Typography variant="h6" sx={{ display: 'flex',fontWeight: 'bold', fontSize: '24px', marginBottom: '5px' }}>
-              {place.name}
-            </Typography>
-            <Typography variant="body2" sx={{ display: 'flex', fontSize: '18px', alignItems: 'left' }}>
-              <LocationOnIcon fontSize="small" sx={{ mr: 1 }} />
-              {place.location || 'N/A'}
-            </Typography>
-            {/* Other musuem details */}
-              {/* Tags */}
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
-                  Tags:
-                </Typography>
-                <Box sx={styles.tagContainer}>
-                  {place.Tags.map((tag, tagIndex) => (
-                    <Typography
-                      key={tagIndex}
-                      sx={{
-                        ...styles.tag,
-                        backgroundColor: '#cccfda',
-                        color: '#192959',
-                      }}
-                    >
-                      {tag}
-                    </Typography>
-                  ))}
-                </Box>
-              </Box>
-
-                
+  {/* Left Side */}
+  <Box sx={styles.activityLeft}>
+    {editing[index] ? (
+      <>
+        {/* Editable Name */}
+        <TextField
+          label="Historical Place Name"
+          value={place.name}
+          onChange={(e) =>
+            handleEditFieldChange(index, 'name', e.target.value)
+          }
+          fullWidth
+          sx={{ marginBottom: '10px' }}
+        />
+        {/* Editable Location */}
+        <TextField
+          label="Location"
+          value={place.location}
+          onChange={(e) =>
+            handleEditFieldChange(index, 'location', e.target.value)
+          }
+          fullWidth
+          sx={{ marginBottom: '10px' }}
+        />
+         {/* Editable Description */}
+        <TextField
+          label="Description"
+          value={place.description}
+          onChange={(e) =>
+            handleEditFieldChange(index, 'description', e.target.value)
+          }
+          fullWidth
+          multiline
+          rows={4}
+          sx={{ marginBottom: '10px' }}
+        />
+        {/* Editable Tags */}
+        <TextField
+          label="Tags"
+          value={place.Tags.join(', ')} // Join tags into a single comma-separated string
+          onChange={(e) =>
+            handleEditFieldChange(index, 'Tags', e.target.value.split(',').map((tag) => tag.trim())) // Split input into array
+          }
+          fullWidth
+          sx={{ marginBottom: '10px' }}
+        />
+      </>
+    ) : (
+      <>
+        {/* Display Museum Name */}
+        <Typography variant="h6" sx={{ display: 'flex', fontWeight: 'bold', fontSize: '24px', marginBottom: '5px' }}>
+          {place.name}
+        </Typography>
+        {/* Display Location */}
+        <Typography variant="body2" sx={{ display: 'flex', fontSize: '18px', alignItems: 'left' }}>
+          <LocationOnIcon fontSize="small" sx={{ mr: 1 }} />
+          {place.location || 'N/A'}
+        </Typography>
+        {/* Display Tags */}
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
+            Tags:
+          </Typography>
+          <Box sx={styles.tagContainer}>
+            {place.Tags.map((tag, tagIndex) => (
+              <Typography
+                key={tagIndex}
+                sx={{
+                  ...styles.tag,
+                  backgroundColor: '#cccfda',
+                  color: '#192959',
+                }}
+              >
+                {tag}
+              </Typography>
+            ))}
           </Box>
-
-          {/* Divider Line */}
-          <Divider orientation="vertical" flexItem sx={styles.verticalDivider} />
-
-          {/* Right Side */}
-          <Box sx={styles.activityRight}>
-          <Typography variant="body2" sx={{ display: 'flex', fontSize: '18px', alignItems: 'right' }}>
-              <AttachMoneyIcon fontSize="small" sx={{ mr: 1 }} />
-              Foreigner  ${place.ticketPrices.foreigner}, Native  ${place.ticketPrices.native}, Student  ${place.ticketPrices.student}
-            </Typography>
-            <Typography variant="body2" sx={{ fontSize: '16px'}}>
-            <strong>Description:</strong> {place.description || "No description provided."}
-            </Typography>
-            <Typography variant="body2" sx={styles.info}>
-                      <ImageIcon fontSize="small" sx={{ mr: 1 }} />
-                      Pictures: {place.pictures ? place.pictures.length : 0} available
-            </Typography>
-            {/* <Typography variant="body2" sx={{ fontSize: '16px' }}>
-              <strong>Booking Open:</strong> {activity.isBooked ? 'Yes' : 'No'}
-            </Typography> */}
-          </Box>
-          {/* Edit/Delete Buttons */}
-          <Box sx={styles.museumActions}>
-                  <IconButton
-                    onClick={() =>
-                      (window.location.href = `/editHistoricalPlace?name=${encodeURIComponent(
-                        place.name
-                      )}&author=${encodeURIComponent(localStorage.getItem("username"))}`)
-                    }
-                    sx={styles.actionButton}
-                  >
-                    <EditIcon />
-                  </IconButton>
-                  <IconButton
-                    onClick={() => removeHistoricalPlace(place.name)}
-                    sx={{ ...styles.actionButton, ...styles.deleteButton }}
-                  >
-                    <DeleteIcon />
-                  </IconButton>
-                </Box>
         </Box>
+      </>
+    )}
+  </Box>
+
+  {/* Divider Line */}
+  <Divider orientation="vertical" flexItem sx={styles.verticalDivider} />
+
+  {/* Right Side */}
+  <Box sx={styles.activityRight}>
+    {editing[index] ? (
+      <>
+        {/* Editable Ticket Prices */}
+        <TextField
+          label="Foreigner Ticket Price"
+          value={place.ticketPrices.foreigner}
+          onChange={(e) =>
+            handleEditFieldChange(index, 'ticketPrices.foreigner', e.target.value)
+          }
+          fullWidth
+          sx={{ marginBottom: '10px', maxWidth: '400px' }}
+        />
+        <TextField
+          label="Native Ticket Price"
+          value={place.ticketPrices.native}
+          onChange={(e) =>
+            handleEditFieldChange(index, 'ticketPrices.native', e.target.value)
+          }
+          fullWidth
+          sx={{ marginBottom: '10px', maxWidth: '400px' }}
+        />
+        <TextField
+          label="Student Ticket Price"
+          value={place.ticketPrices.student}
+          onChange={(e) =>
+            handleEditFieldChange(index, 'ticketPrices.student', e.target.value)
+          }
+          fullWidth
+          sx={{ marginBottom: '10px', maxWidth: '400px' }}
+        />
+      </>
+    ) : (
+      <>
+        {/* Display Ticket Prices */}
+        <Typography variant="body2" sx={{ display: 'flex', fontSize: '18px', alignItems: 'right' }}>
+          <AttachMoneyIcon fontSize="small" sx={{ mr: 1 }} />
+          Foreigner  ${place.ticketPrices.foreigner}, Native  $
+          {place.ticketPrices.native}, Student  ${place.ticketPrices.student}
+        </Typography>
+        {/* Display Description */}
+        <Typography variant="body2" sx={{ fontSize: '16px' }}>
+          <strong>Description:</strong> {place.description || 'No description provided.'}
+        </Typography>
+        {/* Display Picture Count */}
+        <Typography variant="body2" sx={styles.info}>
+          <ImageIcon fontSize="small" sx={{ mr: 1 }} />
+          Pictures: {place.pictures ? place.pictures.length : 0} available
+        </Typography>
+      </>
+    )}
+  </Box>
+
+  {/* Edit/Delete Buttons */}
+  <Box sx={styles.museumActions}>
+    <IconButton
+      onClick={() => {
+        if (editing[index]) {
+            handleUpdatePlace(index);
+        }
+        setEditing((prev) => ({ ...prev, [index]: !prev[index] }));
+      }}
+      sx={{
+        color: '#192959', // Icon color
+        backgroundColor: '#f0f0f0', // Greyish background
+        '&:hover': {
+          backgroundColor: '#e6e7ed', // Lighter hover background
+        },
+        width: '40px', // Ensure square icon button
+        height: '40px',
+      }}
+    >
+      {editing[index] ? <SaveIcon /> : <EditIcon />}
+    </IconButton>
+    <IconButton
+      onClick={() => removeHistoricalPlace(place.name)}
+      sx={{ ...styles.actionButton, ...styles.deleteButton }}
+    >
+      <DeleteIcon />
+    </IconButton>
+  </Box>
+</Box>
+
 
       
       </Box>
@@ -249,16 +479,145 @@ const HistoricalPlaceTG = () => {
       
     </Box>
   ))}
+  
 </Box>
-
-
-
-
+<Modal open={isHistoricalModalOpen} onClose={() => setIsHistoricalModalOpen(false)}>
+  <Box
+    sx={{
+      position: "absolute",
+      top: "50%",
+      left: "50%",
+      transform: "translate(-50%, -50%)",
+      width: "90%", // Adjusted for smaller screens
+      maxWidth: "600px",
+      maxHeight: "90vh", // Limit height to viewport height
+      overflowY: "auto", // Enable vertical scrolling
+      bgcolor: "background.paper",
+      borderRadius: "10px",
+      boxShadow: 24,
+      p: 4,
+    }}
+  >
+    <Typography variant="h4" align="center" sx={{ marginBottom: "20px" }}>
+      Create New Historical Place
+    </Typography>
+    <form onSubmit={handleSubmit}>
+      <TextField
+        fullWidth
+        margin="normal"
+        label="Historical Place Name"
+        name="name"
+        value={formData.name}
+        onChange={handleChange}
+        error={!!errors.name}
+        helperText={errors.name}
+        required
+      />
+      <TextField
+        fullWidth
+        margin="normal"
+        label="Description"
+        name="description"
+        rows="4"
+        required
+        value={formData.description} // Corrected value here
+        error={!!errors.description}
+        helperText={errors.description}
+        onChange={handleChange}
+      />
+      <TextField
+        fullWidth
+        margin="normal"
+        label="Location"
+        name="location"
+        value={formData.location}
+        onChange={handleChange}
+        required
+      />
+      <TextField
+        fullWidth
+        margin="normal"
+        label="Opening Hours"
+        name="openingHours"
+        value={formData.openingHours}
+        onChange={handleChange}
+        error={!!errors.location}
+        helperText={errors.location}
+        required
+      />
+      <Typography variant="h6" align="left" sx={{ marginBottom: "0px" }}>
+        Ticket Prices in USD($):
+      </Typography>
+      <TextField
+        fullWidth
+        margin="normal"
+        label="Foreigner"
+        name="ticketPriceForeigner"
+        value={formData.ticketPriceForeigner}
+        onChange={handleChange}
+        error={!!errors.ticketPrice?.foreigner}
+        helperText={errors.ticketPrice?.foreigner}
+        required
+      />
+      <TextField
+        fullWidth
+        margin="normal"
+        label="Native"
+        name="ticketPriceNative"
+        value={formData.ticketPriceNative}
+        onChange={handleChange}
+        error={!!errors.ticketPrice?.native}
+        helperText={errors.ticketPrice?.native}
+        required
+      />
+      <TextField
+        fullWidth
+        margin="normal"
+        label="Student"
+        name="ticketPriceStudent"
+        value={formData.ticketPriceStudent}
+        onChange={handleChange}
+        error={!!errors.ticketPrice?.student}
+        helperText={errors.ticketPrice?.student}
+        required
+      />
+      <TextField
+        fullWidth
+        margin="normal"
+        label="Tags (comma-separated)"
+        name="tag"
+        value={formData.tag}
+        onChange={handleChange}
+        error={!!errors.tag}
+        helperText={errors.tag}
+        required
+      />
       
-
-      
-      
-    </Box>
+      {setErrorMessage && (
+        <Typography color="error" sx={{ marginBottom: "10px" }}>
+          {setErrorMessage}
+        </Typography>
+      )}
+      <Button
+        type="submit"
+        variant="contained"
+        sx={{
+          backgroundColor: "#192959",
+          color: "white",
+          padding: "10px",
+          borderRadius: "4px",
+          width: "100%",
+          "&:hover": { backgroundColor: "#4b5a86" },
+          marginTop: "20px",
+        }}
+      >
+        Create Historical Place
+      </Button>
+    </form>
+  </Box>
+</Modal>
+</Box>
+    
   );
 }
 
@@ -609,3 +968,5 @@ const styles = {
 };
 
 export default HistoricalPlaceTG;
+
+
