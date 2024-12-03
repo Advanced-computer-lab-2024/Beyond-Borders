@@ -106,6 +106,10 @@ const [isCartSidebarOpen, setIsCartSidebarOpen] = useState(false);
 const [cartData, setCartData] = useState([]);
 const [isLoadingCart, setIsLoadingCart] = useState(false);
   
+const [wishlistData, setWishlistData] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isWishlistOpen, setIsWishlistOpen] = useState(false);
+
   const [itineraryData, setItineraryData] = useState({
     title: '',
     activities: '',
@@ -146,6 +150,12 @@ const [isLoadingCart, setIsLoadingCart] = useState(false);
   // Method to handle closing the modal
   const handleModalClose = () => {
     setIsModalOpen(false);
+  };
+  const toggleWishlistDrawer = () => {
+    setIsWishlistOpen(!isWishlistOpen);
+    if (!isWishlistOpen) {
+      fetchWishlist(); // Fetch wishlist data when opening the drawer
+    }
   };
 
   const handleChange = (e) => {
@@ -535,6 +545,30 @@ const handleOpenPreferencesModal = async () => {
 };
 
 
+  // Fetch wishlist data
+  const fetchWishlist = async () => {
+    const touristUsername = localStorage.getItem("username"); // Replace with your username logic
+    setIsLoading(true);
+    try {
+      const response = await axios.get("/api/viewMyWishlist", {
+        params: { touristUsername },
+      });
+      setWishlistData(response.data.WishList);
+    } catch (error) {
+      console.error("Error fetching wishlist:", error);
+      setWishlistData([]);
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  // Trigger fetching the wishlist data when the drawer opens
+  const handleDrawerOpen = () => {
+    if (!isWishlistOpen) return;
+    fetchWishlist();
+  }
+
+
 const togglePreference = (preference) => {
   if (profileData.preferences.includes(preference)) {
     // Remove the preference
@@ -684,17 +718,6 @@ const removeProductFromCart = async (productName) => {
     alert("Failed to remove product from cart.");
   }
 };
-
-
-
-
-
-
-
-
-
-
-
 
 // Reject request function
 const handleRejectRequest = async (username) => {
@@ -1049,22 +1072,188 @@ const closeDeleteRequestsModal = () => {
 
 
 <Tooltip title="Wishlist" arrow>
-            <IconButton
-                sx={{
-                ...styles.menuButton,
-                
-                '&:hover': {
-                    backgroundColor: '#e6e7ed', // Lighter hover background
-                color: '#192959',           // Text color on hover
-
-                },
-                width: '40px', // Ensure square icon button
-                height: '40px',
-                }}
-            >
-    <BookmarkBorderOutlinedIcon/>
+  <IconButton
+    onClick={toggleWishlistDrawer}
+    sx={{
+      ...styles.menuButton,
+      '&:hover': {
+        backgroundColor: '#e6e7ed',
+        color: '#192959',
+      },
+      width: '40px',
+      height: '40px',
+    }}
+  >
+    <BookmarkBorderOutlinedIcon />
   </IconButton>
 </Tooltip>
+<Drawer
+  anchor="right"
+  open={isWishlistOpen}
+  onClose={toggleWishlistDrawer}
+  sx={{ zIndex: 1300 }}
+>
+  <Box
+    sx={{
+      width: 400,
+      p: 3,
+      backgroundColor: "#f9f9f9",
+      height: "100%",
+      display: "flex",
+      flexDirection: "column",
+      justifyContent: "space-between",
+    }}
+  >
+    {/* Header */}
+    <Box>
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          mb: 3,
+        }}
+      >
+        <Typography
+          variant="h6"
+          sx={{ color: "#192959", fontWeight: "bold" }}
+        >
+          My Wishlist
+        </Typography>
+        <IconButton onClick={toggleWishlistDrawer}>
+          <CloseIcon />
+        </IconButton>
+      </Box>
+
+      {/* Wishlist Items */}
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          gap: 2,
+          maxHeight: "calc(100vh - 170px)",
+          overflowY: "auto",
+        }}
+      >
+        {isLoading ? (
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              height: "100%",
+            }}
+          >
+            <CircularProgress />
+          </Box>
+        ) : wishlistData.length > 0 ? (
+          wishlistData.map((item, index) => (
+            <Box
+              key={index}
+              sx={{
+                display: "flex",
+                gap: 2,
+                p: 2,
+                backgroundColor: "#ffffff",
+                borderRadius: 2,
+                boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
+                position: "relative",
+                alignItems: "center",
+              }}
+            >
+              <Avatar
+                variant="square"
+                src={item.Picture || "/placeholder.jpg"}
+                alt={item.Name || "Product"}
+                sx={{
+                  width: 80,
+                  height: 80,
+                  borderRadius: 2,
+                  flexShrink: 0,
+                }}
+              />
+              <Box sx={{ flex: 1, position: "relative" }}>
+                <Typography
+                  variant="subtitle1"
+                  sx={{
+                    fontWeight: "bold",
+                    color: "#333",
+                    mb: 0.5,
+                    whiteSpace: "nowrap",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                  }}
+                >
+                  {item.Name}
+                </Typography>
+                <Typography
+                  variant="body2"
+                  color="textSecondary"
+                  sx={{ mb: 1 }}
+                >
+                  EGP {item.Price?.toFixed(2)}
+                </Typography>
+                <Typography
+                  variant="body2"
+                  sx={{
+                    fontSize: "12px",
+                    color: "#555",
+                  }}
+                >
+                  {item.Description}
+                </Typography>
+              </Box>
+              <Tooltip title="Remove from Wishlist" arrow>
+                <IconButton
+                  sx={{
+                    color: "#192959",
+                    position: "absolute",
+                    top: 8,
+                    right: 8,
+                    transition: "background-color 0.3s",
+                    "&:hover": {
+                      backgroundColor: "rgba(85, 85, 85, 0.1)",
+                    },
+                  }}
+                  onClick={() => {
+                    // Logic for removing the product from the wishlist
+                  }}
+                >
+                  <DeleteIcon />
+                </IconButton>
+              </Tooltip>
+            </Box>
+          ))
+        ) : (
+          <Typography
+            variant="body2"
+            sx={{ textAlign: "center", color: "#555" }}
+          >
+            Your wishlist is empty.
+          </Typography>
+        )}
+      </Box>
+    </Box>
+
+    {/* Footer */}
+    <Box sx={{ mt: 1 }}>
+      <Button
+        variant="contained"
+        fullWidth
+        sx={{
+          backgroundColor: "#192959",
+          color: "white",
+          fontWeight: "bold",
+          "&:hover": {
+            backgroundColor: "#3a4a90",
+          },
+        }}
+      >
+        Go Shopping
+      </Button>
+    </Box>
+  </Box>
+</Drawer>
 
 
           <Tooltip title="Logout" arrow>
