@@ -57,7 +57,11 @@ const TouristSchema = new Schema({
         type: Boolean, 
         default: true, 
         required: false 
-      } 
+      },
+      DateOfBooking: {
+        type: Date,
+        required: true,
+      }
     }
   ],
   BookedMuseums: [

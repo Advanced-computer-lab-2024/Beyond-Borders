@@ -3025,7 +3025,8 @@ const payItinerary = async (req, res) => {
 
     tourist.BookedItineraries.push({
       ItineraryName: itinerary.Title,  
-      booked: true 
+      booked: true,
+      DateOfBooking: new Date() // Add today's date
     });
 
     // Check if the itinerary is in the booked itineraries list
@@ -3136,7 +3137,8 @@ const payItineraryByCard = async (req, res) => {
 
     tourist.BookedItineraries.push({
       ItineraryName: itinerary.Title,  
-      booked: true 
+      booked: true,
+      DateOfBooking: new Date()
     });
 
     // Check if the itinerary is in the booked itineraries list
@@ -3258,6 +3260,7 @@ const payItineraryStripe = async (req, res) => {
     tourist.BookedItineraries.push({
       ItineraryName: itinerary.Title,
       booked: true,
+      DateOfBooking: new Date()
     });
 
     // Update points and badge level
