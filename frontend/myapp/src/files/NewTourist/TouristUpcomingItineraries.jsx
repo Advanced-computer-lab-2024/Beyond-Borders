@@ -255,7 +255,10 @@ const [bookmarkStatuses, setBookmarkStatuses] = useState({});
   
       if (isCurrentlyBookmarked) {
         // Handle removing the bookmark
-        await axios.put("/addBookmark", { touristUsername: username, eventName });
+        await axios.post("/removeFromBookmarkedEvents", {
+          touristUsername: username,
+          eventName,
+        });
       } else {
         // Handle adding the bookmark
         await axios.put("/addBookmark", { touristUsername: username, eventName });
