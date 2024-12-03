@@ -1,5 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Button, Typography,Menu, MenuItem,Tooltip, IconButton, Modal, TextField, InputAdornment, Dialog, DialogActions, DialogContent, DialogContentText } from '@mui/material';
+import { Box, Button, Typography,Menu, MenuItem,Tooltip, IconButton, Modal, TextField, InputAdornment, Dialog, DialogActions, DialogContent, DialogContentText, Drawer,
+  CircularProgress,
+  List,
+  ListItem,
+  ListItemText,
+  ListItemAvatar,
+  Avatar, } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import MenuIcon from '@mui/icons-material/Menu';
 import NotificationsIcon from '@mui/icons-material/Notifications';
@@ -95,6 +101,9 @@ const [availablePreferences, setAvailablePreferences] = useState([]); // Holds a
 const [isPreferencesModalOpen, setIsPreferencesModalOpen] = useState(false); // Controls preference selection modal visibility
 const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
+const [isCartSidebarOpen, setIsCartSidebarOpen] = useState(false);
+const [cartData, setCartData] = useState([]);
+const [isLoadingCart, setIsLoadingCart] = useState(false);
   
   const [itineraryData, setItineraryData] = useState({
     title: '',
@@ -602,6 +611,34 @@ const handleRedeemPoints = async () => {
   }
 };
 
+const fetchCartData = async () => {
+  const username = localStorage.getItem('username');
+  if (!username) {
+    alert('You need to log in first.');
+    return;
+  }
+
+  try {
+    setIsLoadingCart(true);
+    const response = await axios.get('/api/getTouristCartDetails', {
+      params: { username },
+    });
+    setCartData(response.data);
+    setIsLoadingCart(false);
+  } catch (error) {
+    console.error('Error fetching cart data:', error);
+    alert('Failed to load cart data.');
+    setIsLoadingCart(false);
+  }
+};
+
+const toggleCartSidebar = () => {
+  setIsCartSidebarOpen(!isCartSidebarOpen);
+  if (!isCartSidebarOpen) {
+    fetchCartData();
+  }
+};
+
 
 
 
@@ -683,22 +720,203 @@ const closeDeleteRequestsModal = () => {
          
         
           <Tooltip title="Shopping Cart" arrow>
+  {/* Shopping Cart Button */}
   <IconButton
+        onClick={toggleCartSidebar}
+        sx={{
+          ...styles.menuButton,
+          '&:hover': {
+            backgroundColor: '#e6e7ed',
+            color: '#192959',
+          },
+          width: '40px',
+          height: '40px',
+        }}
+      >
+        <ShoppingCartOutlinedIcon />
+      </IconButton>
+</Tooltip>
+{/* Cart Sidebar */}
+<Drawer
+  anchor="right"
+  open={isCartSidebarOpen}
+  onClose={toggleCartSidebar}
+  sx={{ zIndex: 1300 }}
+>
+  <Box
     sx={{
-      ...styles.menuButton,
-      
-      '&:hover': {
-        backgroundColor: '#e6e7ed', // Lighter hover background
-      color: '#192959',           // Text color on hover
-
-      },
-      width: '40px', // Ensure square icon button
-      height: '40px',
+      width: 400,
+      p: 3,
+      backgroundColor: '#f9f9f9',
+      height: '100%',
+      display: 'flex',
+      flexDirection: 'column',
+      justifyContent: 'space-between',
     }}
   >
-    <ShoppingCartOutlinedIcon />
-  </IconButton>
-</Tooltip>
+    {/* Cart Header */}
+    <Box>
+      <Box
+        sx={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          mb: 3,
+        }}
+      >
+        <Typography variant="h6" sx={{ color: '#192959', fontWeight: 'bold' }}>
+          Shopping Bag
+        </Typography>
+        <IconButton onClick={toggleCartSidebar}>
+          <CloseIcon />
+        </IconButton>
+      </Box>
+
+      {/* Column Titles */}
+      <Box
+        sx={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          backgroundColor: '#f0f0f0',
+          p: 2,
+          borderRadius: 1,
+          mb: 2,
+        }}
+      >
+        <Typography variant="subtitle2" sx={{ fontWeight: 'bold', flex: 1 }}>
+          Product
+        </Typography>
+        <Typography variant="subtitle2" sx={{ fontWeight: 'bold', flex: 1, textAlign: 'center' }}>
+          Quantity
+        </Typography>
+        <Typography variant="subtitle2" sx={{ fontWeight: 'bold', flex: 1, textAlign: 'center' }}>
+          Price
+        </Typography>
+        <Typography variant="subtitle2" sx={{ fontWeight: 'bold', flex: 1, textAlign: 'right' }}>
+          Total Price
+        </Typography>
+      </Box>
+
+      {/* Cart Items */}
+      <List>
+        {isLoadingCart ? (
+          <Box
+            sx={{
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              height: '100%',
+            }}
+          >
+            <CircularProgress />
+          </Box>
+        ) : cartData.length > 0 ? (
+          cartData.map((item, index) => (
+            <Box
+              key={index}
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                backgroundColor: '#ffffff',
+                borderRadius: 1,
+                boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                p: 2,
+                mb: 2,
+              }}
+            >
+              {/* Product Details */}
+              <Box sx={{ display: 'flex', alignItems: 'center', flex: 1 }}>
+                <Avatar
+                  variant="square"
+                  src={item.productDetails.Picture}
+                  alt={item.productDetails.Name}
+                  sx={{
+                    width: 60,
+                    height: 60,
+                    borderRadius: 2,
+                    marginRight: 2,
+                  }}
+                />
+                <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
+                  {item.productDetails.Name}
+                </Typography>
+              </Box>
+              {/* Quantity */}
+              <Typography
+                variant="body2"
+                sx={{ flex: 1, textAlign: 'center', color: '#555' }}
+              >
+                {item.quantity}
+              </Typography>
+              {/* Price */}
+              <Typography
+                variant="body2"
+                sx={{ flex: 1, textAlign: 'center', color: '#555' }}
+              >
+                EGP {item.productDetails.Price.toFixed(2)}
+              </Typography>
+              {/* Total Price */}
+              <Typography
+                variant="body2"
+                sx={{
+                  flex: 1,
+                  textAlign: 'right',
+                  fontWeight: 'bold',
+                  color: '#192959',
+                }}
+              >
+                EGP {(item.productDetails.Price * item.quantity).toFixed(2)}
+              </Typography>
+            </Box>
+          ))
+        ) : (
+          <Typography
+            variant="body2"
+            sx={{ textAlign: 'center', color: '#555' }}
+          >
+            Your cart is empty.
+          </Typography>
+        )}
+      </List>
+    </Box>
+
+    {/* Cart Total */}
+    <Box>
+      <Typography
+        variant="h6"
+        sx={{
+          textAlign: 'right',
+          color: '#192959',
+          fontWeight: 'bold',
+          mb: 2,
+        }}
+      >
+        Cart Total: EGP{' '}
+        {cartData.reduce(
+          (total, item) =>
+            total + item.productDetails.Price * item.quantity,
+          0
+        ).toFixed(2)}
+      </Typography>
+      <Button
+        variant="contained"
+        fullWidth
+        sx={{
+          backgroundColor: '#192959',
+          color: 'white',
+          fontWeight: 'bold',
+          '&:hover': {
+            backgroundColor: '#3a4a90',
+          },
+        }}
+      >
+        Checkout
+      </Button>
+    </Box>
+  </Box>
+</Drawer>
+
+
 
 <Tooltip title="Wishlist" arrow>
             <IconButton

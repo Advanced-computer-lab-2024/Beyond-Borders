@@ -6999,9 +6999,56 @@ const getTouristNotifications = async (req, res) => {
   }
 };
 
+const getTouristCartDetails = async (req, res) => {
+  const { username } = req.query;
+
+  if (!username) {
+    return res.status(400).json({ msg: "Tourist username is required." });
+  }
+
+  try {
+    // Fetch the tourist by username
+    const tourist = await TouristModel.findOne({ Username: username });
+
+    if (!tourist) {
+      return res.status(404).json({ msg: "Tourist not found." });
+    }
+
+    const cartDetails = await Promise.all(
+      tourist.Cart.map(async (cartItem) => {
+        const product = await ProductModel.findOne({ Name: cartItem.productName });
+        if (product) {
+          return {
+            productName: cartItem.productName,
+            quantity: cartItem.Quantity,
+            productDetails: {
+              Name: product.Name,
+              Description: product.Description,
+              Price: product.Price,
+              Picture: product.Picture,
+              Seller: product.Seller,
+              Ratings: product.Ratings,
+              RatingCount: product.RatingCount,
+            },
+          };
+        }
+        return null; // Skip if product is not found
+      })
+    );
+
+    // Filter out null values (for products not found)
+    const filteredCartDetails = cartDetails.filter((item) => item !== null);
+
+    res.status(200).json(filteredCartDetails);
+  } catch (error) {
+    console.error("Error fetching cart details:", error);
+    res.status(500).json({ msg: "An error occurred while fetching the cart details.", error: error.message });
+  }
+};
+
 
 
 module.exports = {createTourist, getTourist, updateTourist, searchProductTourist, filterActivities, filterProductByPriceTourist, ActivityRating, sortProductsDescendingTourist, sortProductsAscendingTourist, ViewAllUpcomingActivities, ViewAllUpcomingMuseumEventsTourist, getMuseumsByTagTourist, getHistoricalPlacesByTagTourist, ViewAllUpcomingHistoricalPlacesEventsTourist,viewProductsTourist, sortActivitiesPriceAscendingTourist, sortActivitiesPriceDescendingTourist, sortActivitiesRatingAscendingTourist, sortActivitiesRatingDescendingTourist, loginTourist, ViewAllUpcomingItinerariesTourist, sortItinerariesPriceAscendingTourist, sortItinerariesPriceDescendingTourist, filterItinerariesTourist, ActivitiesSearchAll, ItinerarySearchAll, MuseumSearchAll, HistoricalPlacesSearchAll, ProductRating, createComplaint, getComplaintsByTouristUsername,ChooseActivitiesByCategoryTourist,bookActivity,bookItinerary,bookMuseum,bookHistoricalPlace, ratePurchasedProduct, addPurchasedProducts, reviewPurchasedProduct, addCompletedItinerary, rateTourGuide, commentOnTourGuide, rateCompletedItinerary, commentOnItinerary, addCompletedActivities, addCompletedMuseumEvents, addCompletedHPEvents, rateCompletedActivity, rateCompletedMuseum, rateCompletedHP, commentOnActivity, commentOnMuseum, commentOnHP,deleteBookedActivity,deleteBookedItinerary,deleteBookedMuseum,deleteBookedHP,payActivity,updateWallet,updatepoints,payItinerary,payMuseum,payHP,redeemPoints, convertEgp, fetchFlights,viewBookedItineraries, requestDeleteAccountTourist,convertCurr,getActivityDetails,getHistoricalPlaceDetails,getMuseumDetails,GetCopyLink, bookFlight
   ,fetchHotelsByCity, fetchHotels, bookHotel,bookTransportation,addPreferences, viewMyCompletedActivities, viewMyCompletedItineraries, viewMyCompletedMuseums, viewMyCompletedHistoricalPlaces,viewMyBookedActivities,viewMyBookedItineraries,viewMyBookedMuseums,viewMyBookedHistoricalPlaces,viewTourGuidesCompleted,viewAllTransportation, getItineraryDetails, viewPreferenceTags,viewPurchasedProducts,viewBookedActivities,viewMyBookedTransportation,addBookmark
 , payActivityByCard, payItineraryByCard, payMuseumByCard, payHPByCard, sendOtp, loginTouristOTP,viewBookmarks, addToWishList, viewMyWishlist, removeFromWishlist, addToCartFromWishlist, addToCart, removeFromCart, changeProductQuantityInCart, checkout, addDeliveryAddress, viewDeliveryAddresses,chooseDeliveryAddress,payOrderWallet,payOrderCash,viewOrderDetails,cancelOrder,cancelOrder,markOrdersAsDelivered,viewAllOrders,sendUpcomingEventNotifications,payOrderStripe
-,payItineraryStripe,payActivityStripe,payMuseumStripe,payHPStripe, fetchCityCode, checkIfInWishlist, getTourGuideComments,addNotificationSubscriberHP,addNotificationSubscriberMuseum,addNotificationSubscriberActivity,addNotificationSubscriberItinerary,allNotificationsTouristRead,areAllTouristNotificationsRead,getTouristNotifications};
+,payItineraryStripe,payActivityStripe,payMuseumStripe,payHPStripe, fetchCityCode, checkIfInWishlist, getTourGuideComments,addNotificationSubscriberHP,addNotificationSubscriberMuseum,addNotificationSubscriberActivity,addNotificationSubscriberItinerary,allNotificationsTouristRead,areAllTouristNotificationsRead,getTouristNotifications, getTouristCartDetails};
