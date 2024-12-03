@@ -1115,13 +1115,13 @@ const [currency, setCurrency] = useState('EGP'); // Default currency is EGP
                 {renderRating(activity.Rating)}
               </Box>
               <Box sx={styles.discountContainer}>
-                <Box sx={{...styles.infoContainer, backgroundColor: activity.flagged ? '#b3b8c8' : '#f3f4f6'}}>
+                <Box sx={{...styles.infoContainer, backgroundColor: '#f3f4f6'}}>
                   <Typography variant="body2" sx={{ fontWeight: 'bold' }}>Special Discount:</Typography>
                   <Typography variant="body2">{activity.SpecialDiscount}</Typography>
                 </Box>
               </Box>
               <Box sx={styles.bookingOpenContainer}>
-                <Box sx={{...styles.infoContainer, backgroundColor: activity.flagged ? '#b3b8c8' : '#f3f4f6'}}>
+                <Box sx={{...styles.infoContainer, backgroundColor: '#f3f4f6'}}>
                   <Typography variant="body2" sx={{ fontWeight: 'bold' }}>Booking Open:</Typography>
                   <Typography variant="body2">{activity.BookingOpen ? 'Yes' : 'No'}</Typography>
                 </Box>

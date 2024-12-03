@@ -48,6 +48,7 @@ import LanguageIcon from '@mui/icons-material/Language';
 import PriorityHighIcon from '@mui/icons-material/PriorityHigh'; // Icon for generic user type
 import NotificationImportantIcon from '@mui/icons-material/NotificationImportant';
 import DoneAllIcon from '@mui/icons-material/DoneAll';
+import NotificationsActiveOutlinedIcon from '@mui/icons-material/NotificationsActiveOutlined';
 import axios from 'axios';
 
 function TouristUpcomingHP() {
@@ -510,6 +511,27 @@ const navigate = useNavigate();
     } catch (error) {
       console.error('Error marking notifications as read:', error);
       alert('An error occurred while marking notifications as read.');
+    }
+  };
+  
+  const handleNotifyMe = async (historicalPlaceName) => {
+    const username = localStorage.getItem('username'); // Replace this with the actual username (e.g., from context or state)
+  
+    if (!username) {
+      alert('Please log in to subscribe to notifications.');
+      return;
+    }
+  
+    try {
+      const response = await axios.put('/addNotificationSubscriberHP', {
+        username,
+        historicalPlaceName,
+      });
+  
+      alert(response.data.message); // Show success message
+    } catch (error) {
+      console.error('Error subscribing to notifications:', error);
+      alert(error.response?.data?.error || 'An error occurred while subscribing to notifications.');
     }
   };
   
@@ -1386,11 +1408,17 @@ const navigate = useNavigate();
       {hp.dateOfEvent ? new Date(hp.dateOfEvent).toLocaleDateString() : 'N/A'}
     </Typography>
     <Box sx={{ ...styles.quickFacts, marginTop: '10px' /* Added spacing above quick facts */ }}>
-    <Box sx={{ ...styles.infoContainer, backgroundColor: '#b3b8c8'  }}>
+    <Box sx={{ ...styles.infoContainer, backgroundColor: '#f3f4f6'  }}>
                     <Typography variant="body2" sx={{ fontWeight: 'bold' }}>Tags:</Typography>
                     <Typography variant="body2">{hp.Tags.join(', ')}</Typography>
                   </Box>
     </Box>
+    <Box sx={styles.bookingOpenContainer}>
+                <Box sx={{...styles.infoContainer, backgroundColor: '#f3f4f6'}}>
+                  <Typography variant="body2" sx={{ fontWeight: 'bold' }}>Booking Open:</Typography>
+                  <Typography variant="body2">{hp.BookingOpen ? 'Yes' : 'No'}</Typography>
+                </Box>
+              </Box>
   </Box>
 
 {/* Divider */}
@@ -1455,34 +1483,59 @@ const navigate = useNavigate();
         </Box>
 
 
+        <Box
+  sx={{
+    position: 'absolute',
+    top: '60px',
+    right: '60px',
+    display: 'flex',
+    flexDirection: 'row', // Stack buttons vertically
+    alignItems: 'flex-end',  // Align buttons to the right
+    gap: 1, // Add spacing between buttons
+  }}
+>
+
+<Tooltip title="Share" arrow>
+    <IconButton
+      onClick={() => handleOpenShareModal(hp.name)}
+      sx={{
+        color: '#192959',
+        '&:hover': { color: '#33416b' },
+      }}
+    >
+      <IosShareIcon />
+    </IconButton>
+  </Tooltip>
+
+  {hp.BookingOpen ? (
+    <Button
+      variant="contained"
+      onClick={() => handleBookHistoricalPlace(hp.name)}
+      sx={{
+        backgroundColor: '#192959',
+        color: '#fff',
+        '&:hover': { backgroundColor: '#33416b' },
+      }}
+    >
+      Book
+    </Button>
+  ) : (
         <Button
-          variant="contained"
-          onClick={() => handleBookHistoricalPlace(hp.name)}
-          sx={{
-            position: 'absolute',
-            top: '60px',
-            right: '60px',
-            backgroundColor: '#192959',
-            color: '#fff',
-            '&:hover': { backgroundColor: '#33416b' },
-          }}
-        >
-          Book
-        </Button>
-        <Tooltip title="Share" arrow>
-          <IconButton
-            onClick={() => handleOpenShareModal(hp.name)}
-            sx={{
-              position: 'absolute',
-              top: '60px',
-              right: '140px',
-              color: '#192959',
-              '&:hover': { color: '#33416b' },
-            }}
-          >
-            <IosShareIcon />
-          </IconButton>
-        </Tooltip>
+      variant="outlined"
+      startIcon={<NotificationsActiveOutlinedIcon />} // Add icon to the left of the text
+      onClick={() => handleNotifyMe(hp.name)}
+      sx={{
+        backgroundColor: '#192959',
+        color: '#fff',
+        '&:hover': { backgroundColor: '#33416b' },
+      }}
+    >
+      Notify Me
+    </Button>
+  )}
+
+</Box>
+
 
 
 
@@ -1848,7 +1901,7 @@ const styles = {
   },
   activityRating: {
     position: 'absolute',
-    bottom: '60px',
+    bottom: '80px',
     right: '60px',
     display: 'flex',
     flexDirection: 'column',

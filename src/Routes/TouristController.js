@@ -7051,7 +7051,60 @@ const getTouristCartDetails = async (req, res) => {
 
 
 
+
+
+// Function to check if the tourist is subscribed to notifications
+const checkTouristSubscription = async (req, res) => {
+  const { username, eventName, eventType } = req.body; // Get values from req.body
+
+  if (!username || !eventName || !eventType) {
+    return res.status(400).json({ error: 'Username, event name, and event type are required.' });
+  }
+
+  try {
+    let event;
+
+    // Check the event type and find the appropriate model
+    if (eventType === 'Itinerary') {
+      event = await ItineraryModel.findOne({ Title: eventName });
+    } else if (eventType === 'Activity') {
+      event = await ActivityModel.findOne({ Name: eventName });
+    } else if (eventType === 'HistoricalPlace') {
+      event = await HistoricalPlacesModel.findOne({ name: eventName });
+    } else if (eventType === 'Museum') {
+      event = await MuseumModel.findOne({ name: eventName });
+    } else {
+      return res.status(400).json({ error: `Invalid event type: ${eventType}` });
+    }
+
+    if (!event) {
+      return res.status(404).json({ message: `${eventType} with name "${eventName}" not found.` });
+    }
+
+    // Check if the username is present in the SendNotificationTo array
+    const isSubscribed = event.SendNotificationTo.some(
+      (subscriber) => subscriber.username === username
+    );
+
+    if (isSubscribed) {
+      return res.status(200).json({
+        message: `${username} is subscribed to notifications for ${eventName} (${eventType}).`
+      });
+    } else {
+      return res.status(404).json({
+        message: `${username} is not subscribed to notifications for ${eventName} (${eventType}).`
+      });
+    }
+  } catch (error) {
+    console.error('Error checking tourist subscription:', error.message);
+    return res.status(500).json({ error: 'An error occurred while checking subscription.', details: error.message });
+  }
+};
+
+
+
+
 module.exports = {createTourist, getTourist, updateTourist, searchProductTourist, filterActivities, filterProductByPriceTourist, ActivityRating, sortProductsDescendingTourist, sortProductsAscendingTourist, ViewAllUpcomingActivities, ViewAllUpcomingMuseumEventsTourist, getMuseumsByTagTourist, getHistoricalPlacesByTagTourist, ViewAllUpcomingHistoricalPlacesEventsTourist,viewProductsTourist, sortActivitiesPriceAscendingTourist, sortActivitiesPriceDescendingTourist, sortActivitiesRatingAscendingTourist, sortActivitiesRatingDescendingTourist, loginTourist, ViewAllUpcomingItinerariesTourist, sortItinerariesPriceAscendingTourist, sortItinerariesPriceDescendingTourist, filterItinerariesTourist, ActivitiesSearchAll, ItinerarySearchAll, MuseumSearchAll, HistoricalPlacesSearchAll, ProductRating, createComplaint, getComplaintsByTouristUsername,ChooseActivitiesByCategoryTourist,bookActivity,bookItinerary,bookMuseum,bookHistoricalPlace, ratePurchasedProduct, addPurchasedProducts, reviewPurchasedProduct, addCompletedItinerary, rateTourGuide, commentOnTourGuide, rateCompletedItinerary, commentOnItinerary, addCompletedActivities, addCompletedMuseumEvents, addCompletedHPEvents, rateCompletedActivity, rateCompletedMuseum, rateCompletedHP, commentOnActivity, commentOnMuseum, commentOnHP,deleteBookedActivity,deleteBookedItinerary,deleteBookedMuseum,deleteBookedHP,payActivity,updateWallet,updatepoints,payItinerary,payMuseum,payHP,redeemPoints, convertEgp, fetchFlights,viewBookedItineraries, requestDeleteAccountTourist,convertCurr,getActivityDetails,getHistoricalPlaceDetails,getMuseumDetails,GetCopyLink, bookFlight
   ,fetchHotelsByCity, fetchHotels, bookHotel,bookTransportation,addPreferences, viewMyCompletedActivities, viewMyCompletedItineraries, viewMyCompletedMuseums, viewMyCompletedHistoricalPlaces,viewMyBookedActivities,viewMyBookedItineraries,viewMyBookedMuseums,viewMyBookedHistoricalPlaces,viewTourGuidesCompleted,viewAllTransportation, getItineraryDetails, viewPreferenceTags,viewPurchasedProducts,viewBookedActivities,viewMyBookedTransportation,addBookmark
 , payActivityByCard, payItineraryByCard, payMuseumByCard, payHPByCard, sendOtp, loginTouristOTP,viewBookmarks, addToWishList, viewMyWishlist, removeFromWishlist, addToCartFromWishlist, addToCart, removeFromCart, changeProductQuantityInCart, checkout, addDeliveryAddress, viewDeliveryAddresses,chooseDeliveryAddress,payOrderWallet,payOrderCash,viewOrderDetails,cancelOrder,cancelOrder,markOrdersAsDelivered,viewAllOrders,sendUpcomingEventNotifications,payOrderStripe
-,payItineraryStripe,payActivityStripe,payMuseumStripe,payHPStripe, fetchCityCode, checkIfInWishlist, getTourGuideComments,addNotificationSubscriberHP,addNotificationSubscriberMuseum,addNotificationSubscriberActivity,addNotificationSubscriberItinerary,allNotificationsTouristRead,areAllTouristNotificationsRead,getTouristNotifications, getTouristCartDetails};
+,payItineraryStripe,payActivityStripe,payMuseumStripe,payHPStripe, fetchCityCode, checkIfInWishlist, getTourGuideComments,addNotificationSubscriberHP,addNotificationSubscriberMuseum,addNotificationSubscriberActivity,addNotificationSubscriberItinerary,allNotificationsTouristRead,areAllTouristNotificationsRead,getTouristNotifications, getTouristCartDetails,checkTouristSubscription};
