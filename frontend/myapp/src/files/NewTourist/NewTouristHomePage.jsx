@@ -44,6 +44,7 @@ import StarsIcon from '@mui/icons-material/Stars';
 import MilitaryTechIcon from '@mui/icons-material/MilitaryTech';
 import RemoveIcon from '@mui/icons-material/Remove';
 import ShoppingBagIcon from '@mui/icons-material/ShoppingBag';
+import DeleteIcon from '@mui/icons-material/Delete';
 
 
 
@@ -593,6 +594,35 @@ const handleAccountDeletion = async () => {
   }
 };
 
+const updateProductQuantity = async (productName, newQuantity) => {
+  if (newQuantity <= 0) {
+    alert("Quantity must be greater than zero.");
+    return;
+  }
+
+  try {
+    const touristUsername = localStorage.getItem("username"); // Assuming tourist's username is stored in localStorage
+    const response = await axios.post("/changeProductQuantityInCart", {
+      touristUsername,
+      productName,
+      amount: newQuantity,
+    });
+
+    // Update the cart data with the new response
+    setCartData((prevCartData) => 
+      prevCartData.map((item) =>
+        item.productDetails.Name === productName
+          ? { ...item, quantity: newQuantity }
+          : item
+      )
+    );
+  } catch (error) {
+    console.error("Error updating product quantity:", error);
+    alert("Failed to update product quantity.");
+  }
+};
+
+
 const handleRedeemPoints = async () => {
   try {
     const response = await axios.put('/redeemPoints', {
@@ -638,6 +668,26 @@ const toggleCartSidebar = () => {
     fetchCartData();
   }
 };
+
+const removeProductFromCart = async (productName) => {
+  try {
+    const touristUsername = localStorage.getItem("username");
+    await axios.post("/removeFromCart", {
+      touristUsername,
+      productName,
+    });
+
+    // Re-fetch the updated cart data
+    fetchCartData();
+  } catch (error) {
+    console.error("Error removing product from cart:", error);
+    alert("Failed to remove product from cart.");
+  }
+};
+
+
+
+
 
 
 
@@ -747,65 +797,51 @@ const closeDeleteRequestsModal = () => {
     sx={{
       width: 400,
       p: 3,
-      backgroundColor: '#f9f9f9',
-      height: '100%',
-      display: 'flex',
-      flexDirection: 'column',
-      justifyContent: 'space-between',
+      backgroundColor: "#f9f9f9",
+      height: "100%",
+      display: "flex",
+      flexDirection: "column",
+      justifyContent: "space-between",
     }}
   >
-    {/* Cart Header */}
+    {/* Header */}
     <Box>
       <Box
         sx={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
           mb: 3,
         }}
       >
-        <Typography variant="h6" sx={{ color: '#192959', fontWeight: 'bold' }}>
-          Shopping Bag
+        <Typography
+          variant="h6"
+          sx={{ color: "#192959", fontWeight: "bold" }}
+        >
+          My Cart
         </Typography>
         <IconButton onClick={toggleCartSidebar}>
           <CloseIcon />
         </IconButton>
       </Box>
 
-      {/* Column Titles */}
+      {/* Cart Items */}
       <Box
         sx={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          backgroundColor: '#f0f0f0',
-          p: 2,
-          borderRadius: 1,
-          mb: 2,
+          display: "flex",
+          flexDirection: "column",
+          gap: 2,
+          maxHeight: "calc(100vh - 170px)", // Adjust height to reduce gap
+          overflowY: "auto", // Enable scrolling for long lists
         }}
       >
-        <Typography variant="subtitle2" sx={{ fontWeight: 'bold', flex: 1 }}>
-          Product
-        </Typography>
-        <Typography variant="subtitle2" sx={{ fontWeight: 'bold', flex: 1, textAlign: 'center' }}>
-          Quantity
-        </Typography>
-        <Typography variant="subtitle2" sx={{ fontWeight: 'bold', flex: 1, textAlign: 'center' }}>
-          Price
-        </Typography>
-        <Typography variant="subtitle2" sx={{ fontWeight: 'bold', flex: 1, textAlign: 'right' }}>
-          Total Price
-        </Typography>
-      </Box>
-
-      {/* Cart Items */}
-      <List>
         {isLoadingCart ? (
           <Box
             sx={{
-              display: 'flex',
-              justifyContent: 'center',
-              alignItems: 'center',
-              height: '100%',
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              height: "100%",
             }}
           >
             <CircularProgress />
@@ -815,98 +851,187 @@ const closeDeleteRequestsModal = () => {
             <Box
               key={index}
               sx={{
-                display: 'flex',
-                alignItems: 'center',
-                backgroundColor: '#ffffff',
-                borderRadius: 1,
-                boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                display: "flex",
+                gap: 2,
                 p: 2,
-                mb: 2,
+                backgroundColor: "#ffffff",
+                borderRadius: 2,
+                boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
+                position: "relative",
+                alignItems: "center",
               }}
             >
-              {/* Product Details */}
-              <Box sx={{ display: 'flex', alignItems: 'center', flex: 1 }}>
-                <Avatar
-                  variant="square"
-                  src={item.productDetails.Picture}
-                  alt={item.productDetails.Name}
+              {/* Remove Icon */}
+              <Tooltip title="Remove Product" arrow>
+                <IconButton
+                  onClick={() => removeProductFromCart(item.productDetails.Name)}
                   sx={{
-                    width: 60,
-                    height: 60,
-                    borderRadius: 2,
-                    marginRight: 2,
+                    color: "#192959", // Dark grey color
+                    position: "absolute",
+                    top: 8,
+                    right: 8,
+                    transition: "background-color 0.3s",
+                    "&:hover": {
+                      backgroundColor: "rgba(85, 85, 85, 0.1)", // Background on hover
+                    },
                   }}
-                />
-                <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
-                  {item.productDetails.Name}
+                >
+                  <DeleteIcon />
+                </IconButton>
+              </Tooltip>
+
+              {/* Product Image */}
+              <Avatar
+                variant="square"
+                src={item.productDetails?.Picture || "/placeholder.jpg"}
+                alt={item.productDetails?.Name || "Product"}
+                sx={{
+                  width: 80,
+                  height: 80,
+                  borderRadius: 2,
+                  flexShrink: 0,
+                }}
+              />
+
+              {/* Product Details */}
+              <Box sx={{ flex: 1, position: "relative" }}>
+                <Typography
+                  variant="subtitle1"
+                  sx={{
+                    fontWeight: "bold",
+                    color: "#333",
+                    mb: 0.5,
+                    whiteSpace: "nowrap",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                  }}
+                >
+                  {item.productDetails?.Name}
+                </Typography>
+                <Typography
+                  variant="body2"
+                  color="textSecondary"
+                  sx={{ mb: 1 }}
+                >
+                  EGP {item.productDetails?.Price?.toFixed(2)}
+                </Typography>
+
+                {/* Quantity Controls */}
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 1,
+                  }}
+                >
+                  <IconButton
+                    onClick={() =>
+                      updateProductQuantity(
+                        item.productDetails?.Name,
+                        item.quantity - 1
+                      )
+                    }
+                    size="small"
+                    sx={{
+                      width: 24,
+                      height: 24,
+                      backgroundColor: "#e0e0e0",
+                      "&:hover": {
+                        backgroundColor: "#d0d0d0",
+                      },
+                    }}
+                  >
+                    <RemoveIcon fontSize="small" />
+                  </IconButton>
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      fontWeight: "bold",
+                      color: "#333",
+                      paddingX: 1,
+                      fontSize: "14px",
+                    }}
+                  >
+                    {item.quantity}
+                  </Typography>
+                  <IconButton
+                    onClick={() =>
+                      updateProductQuantity(
+                        item.productDetails?.Name,
+                        item.quantity + 1
+                      )
+                    }
+                    size="small"
+                    sx={{
+                      width: 24,
+                      height: 24,
+                      backgroundColor: "#e0e0e0",
+                      "&:hover": {
+                        backgroundColor: "#d0d0d0",
+                      },
+                    }}
+                  >
+                    <AddIcon fontSize="small" />
+                  </IconButton>
+                </Box>
+
+                {/* Total Price */}
+                <Typography
+                  variant="body2"
+                  sx={{
+                    fontWeight: "bold",
+                    color: "#192959",
+                    position: "absolute",
+                    bottom: 8,
+                    right: 8,
+                  }}
+                >
+                  Total: EGP{" "}
+                  {(item.productDetails?.Price * item.quantity || 0).toFixed(2)}
                 </Typography>
               </Box>
-              {/* Quantity */}
-              <Typography
-                variant="body2"
-                sx={{ flex: 1, textAlign: 'center', color: '#555' }}
-              >
-                {item.quantity}
-              </Typography>
-              {/* Price */}
-              <Typography
-                variant="body2"
-                sx={{ flex: 1, textAlign: 'center', color: '#555' }}
-              >
-                EGP {item.productDetails.Price.toFixed(2)}
-              </Typography>
-              {/* Total Price */}
-              <Typography
-                variant="body2"
-                sx={{
-                  flex: 1,
-                  textAlign: 'right',
-                  fontWeight: 'bold',
-                  color: '#192959',
-                }}
-              >
-                EGP {(item.productDetails.Price * item.quantity).toFixed(2)}
-              </Typography>
             </Box>
           ))
         ) : (
           <Typography
             variant="body2"
-            sx={{ textAlign: 'center', color: '#555' }}
+            sx={{ textAlign: "center", color: "#555" }}
           >
             Your cart is empty.
           </Typography>
         )}
-      </List>
+      </Box>
     </Box>
 
-    {/* Cart Total */}
-    <Box>
+    {/* Footer */}
+    <Box sx={{ mt: 1 }}>
       <Typography
         variant="h6"
         sx={{
-          textAlign: 'right',
-          color: '#192959',
-          fontWeight: 'bold',
+          textAlign: "right",
+          color: "#192959",
+          fontWeight: "bold",
           mb: 2,
         }}
       >
-        Cart Total: EGP{' '}
-        {cartData.reduce(
-          (total, item) =>
-            total + item.productDetails.Price * item.quantity,
-          0
-        ).toFixed(2)}
+        Total: EGP{" "}
+        {cartData
+          .reduce(
+            (total, item) =>
+              total + item.productDetails?.Price * item.quantity,
+            0
+          )
+          .toFixed(2)}
       </Typography>
       <Button
         variant="contained"
         fullWidth
         sx={{
-          backgroundColor: '#192959',
-          color: 'white',
-          fontWeight: 'bold',
-          '&:hover': {
-            backgroundColor: '#3a4a90',
+          backgroundColor: "#192959",
+          color: "white",
+          fontWeight: "bold",
+          "&:hover": {
+            backgroundColor: "#3a4a90",
           },
         }}
       >
@@ -915,6 +1040,11 @@ const closeDeleteRequestsModal = () => {
     </Box>
   </Box>
 </Drawer>
+
+
+
+
+
 
 
 
