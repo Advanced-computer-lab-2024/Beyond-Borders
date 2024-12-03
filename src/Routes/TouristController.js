@@ -5419,7 +5419,7 @@ const loginTouristOTP = async (req, res) => {
 };
 
 
-const addBookmark = async (req, res) => {
+/*const addBookmark = async (req, res) => {
   const { touristUsername, eventName } = req.body;
 
   try {
@@ -5450,7 +5450,52 @@ const addBookmark = async (req, res) => {
     console.error('Error saving bookmark:', error);
     res.status(500).json({ error: error.message });
   }
+};*/
+
+const addBookmark = async (req, res) => {
+  const { touristUsername, eventName } = req.body;
+
+  try {
+    // Find the tourist by username
+    const tourist = await TouristModel.findOne({ Username: touristUsername });
+
+    if (!tourist) {
+      return res.status(404).json({ msg: 'Tourist not found' });
+    }
+
+    // Check if the event is already bookmarked
+    const isAlreadyBookmarked = tourist.BookmarkedEvents.some(
+      (event) => event.EventName === eventName
+    );
+
+    if (isAlreadyBookmarked) {
+      return res.status(400).json({ msg: 'Event is already bookmarked' });
+    }
+
+    // Check if the event exists in any model
+    const activity = await ActivityModel.findOne({ Name: eventName });
+    const itinerary = await ItineraryModel.findOne({ Title: eventName });
+    const hp = await HistoricalPlacesModel.findOne({ name: eventName });
+    const museum = await MuseumModel.findOne({ name: eventName });
+
+    if (!activity && !itinerary && !hp && !museum) {
+      return res.status(404).json({ msg: 'Event not found' });
+    }
+
+    // Add the event to the bookmarks
+    tourist.BookmarkedEvents.push({
+      EventName: eventName,
+    });
+
+    await tourist.save();
+
+    res.status(201).json({ msg: 'Event saved!', EventName: eventName });
+  } catch (error) {
+    console.error('Error saving bookmark:', error);
+    res.status(500).json({ error: error.message });
+  }
 };
+
 
 const viewBookmarks = async (req, res) => {
   const { touristUsername } = req.query;
@@ -5552,6 +5597,30 @@ const checkIfInWishlist = async (req, res) => {
   } catch (error) {
     console.error("Error checking wishlist:", error);
     res.status(500).json({ error: "Failed to check wishlist status" });
+  }
+};
+
+const checkIfInBookmarkedEvents = async (req, res) => {
+  const { touristUsername, eventName } = req.query; // Retrieve parameters from the query
+
+  try {
+    // Find the tourist by username
+    const tourist = await TouristModel.findOne({ Username: touristUsername });
+
+    if (!tourist) {
+      return res.status(404).json({ error: "Tourist not found" });
+    }
+
+    // Check if the event is in the bookmarked events array
+    const isInBookmarkedEvents = tourist.BookmarkedEvents.some(
+      (event) => event.EventName === eventName
+    );
+
+    // Return the result
+    res.status(200).json({ inBookmarkedEvents: isInBookmarkedEvents });
+  } catch (error) {
+    console.error("Error checking bookmarked events:", error);
+    res.status(500).json({ error: "Failed to check bookmarked events status" });
   }
 };
 
@@ -7128,4 +7197,4 @@ const checkTouristSubscription = async (req, res) => {
 module.exports = {createTourist, getTourist, updateTourist, searchProductTourist, filterActivities, filterProductByPriceTourist, ActivityRating, sortProductsDescendingTourist, sortProductsAscendingTourist, ViewAllUpcomingActivities, ViewAllUpcomingMuseumEventsTourist, getMuseumsByTagTourist, getHistoricalPlacesByTagTourist, ViewAllUpcomingHistoricalPlacesEventsTourist,viewProductsTourist, sortActivitiesPriceAscendingTourist, sortActivitiesPriceDescendingTourist, sortActivitiesRatingAscendingTourist, sortActivitiesRatingDescendingTourist, loginTourist, ViewAllUpcomingItinerariesTourist, sortItinerariesPriceAscendingTourist, sortItinerariesPriceDescendingTourist, filterItinerariesTourist, ActivitiesSearchAll, ItinerarySearchAll, MuseumSearchAll, HistoricalPlacesSearchAll, ProductRating, createComplaint, getComplaintsByTouristUsername,ChooseActivitiesByCategoryTourist,bookActivity,bookItinerary,bookMuseum,bookHistoricalPlace, ratePurchasedProduct, addPurchasedProducts, reviewPurchasedProduct, addCompletedItinerary, rateTourGuide, commentOnTourGuide, rateCompletedItinerary, commentOnItinerary, addCompletedActivities, addCompletedMuseumEvents, addCompletedHPEvents, rateCompletedActivity, rateCompletedMuseum, rateCompletedHP, commentOnActivity, commentOnMuseum, commentOnHP,deleteBookedActivity,deleteBookedItinerary,deleteBookedMuseum,deleteBookedHP,payActivity,updateWallet,updatepoints,payItinerary,payMuseum,payHP,redeemPoints, convertEgp, fetchFlights,viewBookedItineraries, requestDeleteAccountTourist,convertCurr,getActivityDetails,getHistoricalPlaceDetails,getMuseumDetails,GetCopyLink, bookFlight
   ,fetchHotelsByCity, fetchHotels, bookHotel,bookTransportation,addPreferences, viewMyCompletedActivities, viewMyCompletedItineraries, viewMyCompletedMuseums, viewMyCompletedHistoricalPlaces,viewMyBookedActivities,viewMyBookedItineraries,viewMyBookedMuseums,viewMyBookedHistoricalPlaces,viewTourGuidesCompleted,viewAllTransportation, getItineraryDetails, viewPreferenceTags,viewPurchasedProducts,viewBookedActivities,viewMyBookedTransportation,addBookmark
 , payActivityByCard, payItineraryByCard, payMuseumByCard, payHPByCard, sendOtp, loginTouristOTP,viewBookmarks, addToWishList, viewMyWishlist, removeFromWishlist, addToCartFromWishlist, addToCart, removeFromCart, changeProductQuantityInCart, checkout, addDeliveryAddress, viewDeliveryAddresses,chooseDeliveryAddress,payOrderWallet,payOrderCash,viewOrderDetails,cancelOrder,cancelOrder,markOrdersAsDelivered,viewAllOrders,sendUpcomingEventNotifications,payOrderStripe
-,payItineraryStripe,payActivityStripe,payMuseumStripe,payHPStripe, fetchCityCode, checkIfInWishlist, getTourGuideComments,addNotificationSubscriberHP,addNotificationSubscriberMuseum,addNotificationSubscriberActivity,addNotificationSubscriberItinerary,allNotificationsTouristRead,areAllTouristNotificationsRead,getTouristNotifications, getTouristCartDetails,checkTouristSubscription};
+,payItineraryStripe,payActivityStripe,payMuseumStripe,payHPStripe, fetchCityCode, checkIfInWishlist, getTourGuideComments,addNotificationSubscriberHP,addNotificationSubscriberMuseum,addNotificationSubscriberActivity,addNotificationSubscriberItinerary,allNotificationsTouristRead,areAllTouristNotificationsRead,getTouristNotifications, getTouristCartDetails,checkTouristSubscription, checkIfInBookmarkedEvents};
