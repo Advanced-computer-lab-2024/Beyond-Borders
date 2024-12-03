@@ -553,6 +553,7 @@ const handleOpenPreferencesModal = async () => {
       const response = await axios.get("/api/viewMyWishlist", {
         params: { touristUsername },
       });
+      console.log(response);
       setWishlistData(response.data.WishList);
     } catch (error) {
       console.error("Error fetching wishlist:", error);
