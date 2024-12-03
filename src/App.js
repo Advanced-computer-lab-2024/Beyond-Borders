@@ -19,7 +19,7 @@ const {loginTransportationAdvertiser,ReadTransportationAdvertiserProfile,createN
 
 const {createUnregisteredTourGuide} = require("./Routes/UnregisteredTourGuideController");
 const {createUnregisteredSeller} = require("./Routes/UnregisteredSellerController");
-const {createNewTourismGoverner, createNewAdmin, createNewProduct, editProduct, acceptSeller, rejectSeller, createNewCategory, readAllActivityCategories,updateCategory, deleteActivityCategory, deleteAccount, searchProductAdmin, createNewTag, readAllTags, updateTag, deleteTag, acceptTourGuide, rejectTourGuide, acceptAdvertiser, rejectAdvertiser, filterProductByPriceAdmin, sortProductsAscendingAdmin, sortProductsDescendingAdmin,viewProducts,loginAdmin, viewAllProductsAdmin, updateAdminPassword, getAllComplaints, updateComplaintStatus, replyToComplaint, getComplaintDetails, filterComplaintsByStatus, sortComplaintsByRecent, sortComplaintsByOldest, archiveProduct, unarchiveProduct, flagItinerary, viewArchivedProductsAdmin, flagActivity ,viewAllActivitiesAdmin , viewAllItinerariesAdmin, acceptTranspAdvertiser,rejectTranspAdvertiser, readAllDeleteRequests,rejectRequestDeleteAccout, getAdminPassword,viewAdvertiserDocument,viewTourGuideDocuments,viewSellerDocument,getAllUnregisteredAdvertisers,getAllUnregisteredTourGuides,getAllUnregisteredSellers,getAllUnregisteredTransportationAdvertisers,createPromoCode} = require("./Routes/AdminController");
+const {createNewTourismGoverner, createNewAdmin, createNewProduct, editProduct, acceptSeller, rejectSeller, createNewCategory, readAllActivityCategories,updateCategory, deleteActivityCategory, deleteAccount, searchProductAdmin, createNewTag, readAllTags, updateTag, deleteTag, acceptTourGuide, rejectTourGuide, acceptAdvertiser, rejectAdvertiser, filterProductByPriceAdmin, sortProductsAscendingAdmin, sortProductsDescendingAdmin,viewProducts,loginAdmin, viewAllProductsAdmin, updateAdminPassword, getAllComplaints, updateComplaintStatus, replyToComplaint, getComplaintDetails, filterComplaintsByStatus, sortComplaintsByRecent, sortComplaintsByOldest, archiveProduct, unarchiveProduct, flagItinerary, viewArchivedProductsAdmin, flagActivity ,viewAllActivitiesAdmin , viewAllItinerariesAdmin, acceptTranspAdvertiser,rejectTranspAdvertiser, readAllDeleteRequests,rejectRequestDeleteAccout, getAdminPassword,viewAdvertiserDocument,viewTourGuideDocuments,viewSellerDocument,getAllUnregisteredAdvertisers,getAllUnregisteredTourGuides,getAllUnregisteredSellers,getAllUnregisteredTransportationAdvertisers,createPromoCode, getTotalTourists, getTouristsByMonth, getTotalTourismGovernors, getTourismGovernorsByMonth, getTotalTourGuides, getTourGuidesByMonth, getTotalSellers, getSellersByMonth, getTotalAdvertisers, getAdvertisersByMonth, getTotalTransportationAdvertisers, getTransportationAdvertisersByMonth, getTotalUsers, getTotalUsersByMonth} = require("./Routes/AdminController");
 const {readSellerProfile, updateSeller, editProductSeller, createNewProductSeller, searchProductSeller,filterProductByPriceSeller, sortProductsAscendingSeller, sortProductsDescendingSeller,viewProductsSeller,loginSeller,viewAllProductsSeller,getProductsBySeller, viewMyArchivedProductsSeller, requestDeleteAccountSeller, decrementLoginCount} = require("./Routes/AcceptedSellerController");
 const {createNewHistoricalTag,createMuseumsAsTourismGoverner,getMuseumsByAuthorAsTourismGoverner
   ,createHistoricalPlaceAsTourismGoverner , getHistoricalPlaceByNameAsTourismGoverner , updateHistoricalPlaceAsTourismGoverner , deletePlaceAsTourismGoverner , getHistoricalByAuthorAsTourismGoverner, getMuseumByNameAsTourismGoverner, updateMuseumByNameAsTourismGoverner, deleteMuseumByNameAsTourismGoverner,
@@ -253,8 +253,21 @@ app.get("/api/calculateTourGuideRevenue", calculateTourGuideRevenue);
 app.get("/api/getUsersWhoBookedItinerary", getUsersWhoBookedItinerary);
 app.get("/api/getRevenueFromItinerary", getRevenueFromItinerary);
 app.get("/api/filterTourGuideItineraries", filterTourGuideItineraries);
-app.get("/api/getTouristsByItineraryAndMonth", getTouristsByItineraryAndMonth);
-
+app.get("/api/getTouristsByItineraryAndMonth", getTouristsByItineraryAndMonth); 
+app.get("/api/getTotalTourists", getTotalTourists);  
+app.get("/api/getTouristsByMonth", getTouristsByMonth);  
+app.get("/api/getTotalTourismGovernors", getTotalTourismGovernors);  
+app.get("/api/getTourismGovernorsByMonth", getTourismGovernorsByMonth); 
+app.get("/api/getTotalTourGuides", getTotalTourGuides);  
+app.get("/api/getTourGuidesByMonth", getTourGuidesByMonth); 
+app.get("/api/getTotalSellers", getTotalSellers);  
+app.get("/api/getSellersByMonth", getSellersByMonth); 
+app.get("/api/getTotalAdvertisers", getTotalAdvertisers);  
+app.get("/api/getAdvertisersByMonth", getAdvertisersByMonth); 
+app.get("/api/getTotalTransportationAdvertisers", getTotalTransportationAdvertisers);  
+app.get("/api/getTransportationAdvertisersByMonth", getTransportationAdvertisersByMonth); 
+app.get("/api/getTotalUsers", getTotalUsers); 
+app.get("/api/getTotalUsersByMonth", getTotalUsersByMonth); 
 
 
 
