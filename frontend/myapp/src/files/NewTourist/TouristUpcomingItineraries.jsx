@@ -88,6 +88,8 @@ const [currentActivityName, setCurrentActivityName] = useState(''); // Trac
 const [convertedPrices, setConvertedPrices] = useState({});
 const [currency, setCurrency] = useState('EGP'); // Default currency is EGP
 const [expanded, setExpanded] = useState(false);
+const [bookmarkStatuses, setBookmarkStatuses] = useState({});
+
 
   const navigate = useNavigate();
 
@@ -154,11 +156,22 @@ const [expanded, setExpanded] = useState(false);
   const fetchItineraries = async () => {
     try {
       const response = await axios.get('/api/ViewAllUpcomingItinerariesTourist');
-      setActivities(response.data); // Assuming you're using `setActivities` to populate the UI
+      const fetchedItineraries = response.data;
+  
+      // Fetch bookmark status for each itinerary
+      const bookmarkStatuses = {};
+      for (const itinerary of fetchedItineraries) {
+        const isBookmarked = await checkBookmarkStatus(itinerary.Title);
+        bookmarkStatuses[itinerary._id] = isBookmarked; // Use itinerary ID to track status
+      }
+  
+      setBookmarkStatuses(bookmarkStatuses); // Update state with bookmark statuses
+      setActivities(fetchedItineraries); // Set activities state
     } catch (error) {
-      console.error('Error fetching itineraries:', error);
+      console.error("Error fetching itineraries:", error);
     }
   };
+  
 
   const searchItineraries = async (query) => {
     try {
@@ -211,6 +224,61 @@ const [expanded, setExpanded] = useState(false);
       alert(error.response?.data?.msg || 'An error occurred while bookmarking the event.');
     }
   };
+
+
+  const checkBookmarkStatus = async (eventName) => {
+    const username = localStorage.getItem("username"); // Retrieve username
+    try {
+      const response = await axios.get("/api/checkIfInBookmarkedEvents", {
+        params: { touristUsername: username, eventName }, // Pass username and event name as query params
+      });
+      return response.data.inBookmarkedEvents; // Return true/false
+    } catch (error) {
+      console.error("Error checking bookmark status:", error);
+      return false; // Default to not bookmarked if an error occurs
+    }
+  };
+
+
+
+  const handleToggleBookmark = async (eventName, activityId) => {
+    const username = localStorage.getItem("username");
+  
+    if (!username) {
+      alert("Please log in to bookmark itineraries.");
+      return;
+    }
+  
+    try {
+      // Check current bookmark status
+      const isCurrentlyBookmarked = bookmarkStatuses[activityId];
+  
+      if (isCurrentlyBookmarked) {
+        // Handle removing the bookmark
+        await axios.put("/addBookmark", { touristUsername: username, eventName });
+      } else {
+        // Handle adding the bookmark
+        await axios.put("/addBookmark", { touristUsername: username, eventName });
+      }
+  
+      // Update bookmark status dynamically
+      setBookmarkStatuses((prev) => ({
+        ...prev,
+        [activityId]: !isCurrentlyBookmarked, // Toggle status
+      }));
+  
+      alert(
+        isCurrentlyBookmarked
+          ? "Bookmark removed successfully!"
+          : "Bookmark added successfully!"
+      );
+    } catch (error) {
+      console.error("Error toggling bookmark:", error);
+      alert("An error occurred while updating your bookmark.");
+    }
+  };
+  
+  
   
   // Fetch categories from backend
   const fetchCategories = async () => {
@@ -1442,20 +1510,28 @@ const [expanded, setExpanded] = useState(false);
 
 
 {/* Bookmark Icon with Tooltip */}
-<Tooltip title="Bookmark" arrow>
+<Tooltip
+  title={bookmarkStatuses[activity._id] ? "Remove Bookmark" : "Add to Bookmark"}
+  arrow
+>
   <IconButton
-    onClick={() => handleBookmark(activity.Title)} // Handle bookmark functionality
+    onClick={() => handleToggleBookmark(activity.Title, activity._id)}
     sx={{
-      position: 'absolute',
-      top: '63px', // Position next to the Book button
-      right: '190px', // Position left of the Book button
-      color: '#192959',
-      '&:hover': { color: '#33416b' },
+      position: "absolute",
+      top: "63px",
+      right: "190px",
+      color: "#192959",
+      "&:hover": { color: "#33416b" },
     }}
   >
-    < BookmarkBorderOutlinedIcon />
+    {bookmarkStatuses[activity._id] ? (
+      <BookmarkIcon /> // Filled icon if bookmarked
+    ) : (
+      <BookmarkBorderOutlinedIcon /> // Outlined icon if not bookmarked
+    )}
   </IconButton>
 </Tooltip>
+
 
 
 
