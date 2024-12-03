@@ -5566,8 +5566,29 @@ const viewMyWishlist = async (req, res) => {
       return res.status(404).json({ error: "Tourist not found" });
     }
 
-    // Retrieve and send the wishlist
-    res.status(200).json({ WishList: tourist.WishList });
+    // Initialize an array to store detailed product information
+    const detailedWishList = [];
+
+    // Traverse the wishlist array and fetch product details
+    for (const item of tourist.WishList) {
+      const productDetails = await ProductModel.findOne({ Name: item.productName });
+      if (productDetails) {
+        detailedWishList.push({
+          Name: productDetails.Name,
+          Description: productDetails.Description,
+          Price: productDetails.Price,
+          Picture: productDetails.Picture,
+          Quantity: productDetails.Quantity,
+          Seller: productDetails.Seller,
+          Ratings: productDetails.Ratings,
+          RatingCount: productDetails.RatingCount,
+          Reviews: productDetails.Reviews,
+        });
+      }
+    }
+
+    // Send the detailed wishlist
+    res.status(200).json({ WishList: detailedWishList });
   } catch (error) {
     console.error("Error retrieving wishlist:", error);
     res.status(500).json({ error: "Failed to retrieve wishlist" });

@@ -426,7 +426,7 @@ app.post("/loginTouristOTP",loginTouristOTP);
 app.put("/addBookmark",addBookmark);
 app.get("/viewBookmarks",viewBookmarks);
 app.post("/addToWishList",addToWishList);
-app.get("/viewMyWishlist",viewMyWishlist);
+app.get("/api/viewMyWishlist",viewMyWishlist);
 app.post("/removeFromWishlist",removeFromWishlist);
 app.post("/addToCartFromWishlist",addToCartFromWishlist);
 app.get("/api/checkIfInWishlist",checkIfInWishlist);

@@ -685,17 +685,6 @@ const removeProductFromCart = async (productName) => {
   }
 };
 
-
-
-
-
-
-
-
-
-
-
-
 // Reject request function
 const handleRejectRequest = async (username) => {
   try {
