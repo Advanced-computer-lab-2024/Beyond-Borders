@@ -637,6 +637,76 @@ const getRevenueFromItinerary = async (req, res) => {
   }
 };
 
+const filterTourGuideItineraries = async (req, res) => {
+  const { username, title, date, month } = req.query;
 
+  if (!username) {
+    return res.status(400).json({ error: 'Tour guide username is required' });
+  }
 
-module.exports = {ReadTourGuideProfile , UpdateTourGuideEmail , UpdateTourGuidePassword, UpdateTourGuideMobileNum , UpdateTourGuideYearsofExperience ,UpdateTourGuidePreviousWork ,createItineraryAsTourGuide,readItineraryAsTourGuide,updateItineraryAsTourGuide,deleteItineraryAsTourGuide, updateTourGuideProfile,loginTourGuide,getItenrarysByTourGuide, deactivateItinerary,activateItinerary, viewMyDeactivatedItinerariesTourGuide, decrementLoginCountTourGuide,requestDeleteAccountTourGuide, allNotificationsReadtg, areAllNotificationsReadtg, getAdvertiserNotificationstg, calculateTourGuideRevenue, getUsersWhoBookedItinerary, getRevenueFromItinerary};
+  try {
+    // Build the query dynamically
+    const query = { AuthorUsername: username };
+
+    if (title) {
+      query.Title = { $regex: title, $options: 'i' }; // Case-insensitive match
+    }
+
+    if (date) {
+      query.Date = new Date(date); // Exact date match
+    }
+
+    if (month) {
+      const year = new Date().getFullYear(); // Default to current year
+      const startOfMonth = new Date(year, month - 1, 1); // Start of the month
+      const endOfMonth = new Date(year, month, 0); // End of the month
+      query.Date = { $gte: startOfMonth, $lte: endOfMonth }; // Match the month range
+    }
+
+    // Execute the query
+    const itineraries = await Itinerary.find(query);
+
+    if (itineraries.length === 0) {
+      return res.status(404).json({ message: 'No itineraries found matching the criteria' });
+    }
+
+    // Return the filtered itineraries
+    res.status(200).json(itineraries);
+  } catch (error) {
+    console.error('Error filtering itineraries:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+const getTouristsByItineraryAndMonth = async (req, res) => {
+  try {
+    const { itineraryTitle, month } = req.query; // Extract query parameters
+    if (!itineraryTitle || !month) {
+      return res.status(400).json({ error: 'Itinerary title and month are required' });
+    }
+
+    // Convert month to integer (0-11, where 0 is January, 11 is December)
+    const monthNumber = parseInt(month) - 1; // Adjust the month value (0-based index)
+
+    // Get all tourists that booked itineraries with the specified title in the given month
+    const tourists = await Tourist.find({
+      'BookedItineraries.ItineraryName': itineraryTitle,
+      'BookedItineraries.DateOfBooking': {
+        $gte: new Date(new Date().getFullYear(), monthNumber, 1), // Start of the month
+        $lt: new Date(new Date().getFullYear(), monthNumber + 1, 1), // Start of the next month
+      },
+    });
+
+    // Count how many tourists booked the specified itinerary
+    const count = tourists.length;
+
+    // Send the count of tourists as the response
+    return res.json({ totalTourists: count });
+
+  } catch (error) {
+    console.error('Error fetching tourists:', error);
+    return res.status(500).json({ error: 'Internal Server Error' });
+  }
+};
+
+module.exports = {ReadTourGuideProfile , UpdateTourGuideEmail , UpdateTourGuidePassword, UpdateTourGuideMobileNum , UpdateTourGuideYearsofExperience ,UpdateTourGuidePreviousWork ,createItineraryAsTourGuide,readItineraryAsTourGuide,updateItineraryAsTourGuide,deleteItineraryAsTourGuide, updateTourGuideProfile,loginTourGuide,getItenrarysByTourGuide, deactivateItinerary,activateItinerary, viewMyDeactivatedItinerariesTourGuide, decrementLoginCountTourGuide,requestDeleteAccountTourGuide, allNotificationsReadtg, areAllNotificationsReadtg, getAdvertiserNotificationstg, calculateTourGuideRevenue, getUsersWhoBookedItinerary, getRevenueFromItinerary, filterTourGuideItineraries, getTouristsByItineraryAndMonth};

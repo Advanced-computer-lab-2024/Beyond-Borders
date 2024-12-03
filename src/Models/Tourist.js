@@ -60,7 +60,7 @@ const TouristSchema = new Schema({
       },
       DateOfBooking: {
         type: Date,
-        required: true,
+        required: false,
       }
     }
   ],

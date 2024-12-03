@@ -28,7 +28,7 @@ const{ReadAdvertiserProfile , updateAdvertiser, createNewActivity, readActivity,
 const {filterActivitiesGuest, getMuseumsByTagGuest, ViewAllUpcomingActivitiesGuest, ViewAllUpcomingMuseumEventsGuest, getHistoricalPlacesByTagGuest, ViewAllUpcomingHistoricalPlacesEventsGuest, sortActivitiesPriceAscendingGuest, sortActivitiesPriceDescendingGuest, sortActivitiesRatingDescendingGuest, sortActivitiesRatingAscendingGuest, ViewAllUpcomingItinerariesGuest, sortItinerariesPriceDescendingGuest, sortItinerariesPriceAscendingGuest, filterItinerariesGuest,ChooseActivitiesByCategoryGuest} = require("./Routes/GuestController");
 
 //const {createNewTourismGoverner, createNewAdmin, createNewProduct, editProduct} = require("./Routes/AdminController");
-const{ReadTourGuideProfile , UpdateTourGuideEmail , UpdateTourGuidePassword, UpdateTourGuideMobileNum , UpdateTourGuideYearsofExperience ,UpdateTourGuidePreviousWork, createItineraryAsTourGuide, readItineraryAsTourGuide, updateItineraryAsTourGuide, deleteItineraryAsTourGuide, updateTourGuideProfile,loginTourGuide,getItenrarysByTourGuide, deactivateItinerary,activateItinerary, viewMyDeactivatedItinerariesTourGuide, decrementLoginCountTourGuide,requestDeleteAccountTourGuide, allNotificationsReadtg, areAllNotificationsReadtg, getAdvertiserNotificationstg, calculateTourGuideRevenue, getUsersWhoBookedItinerary, getRevenueFromItinerary} = require("./Routes/TourGuideController")
+const{ReadTourGuideProfile , UpdateTourGuideEmail , UpdateTourGuidePassword, UpdateTourGuideMobileNum , UpdateTourGuideYearsofExperience ,UpdateTourGuidePreviousWork, createItineraryAsTourGuide, readItineraryAsTourGuide, updateItineraryAsTourGuide, deleteItineraryAsTourGuide, updateTourGuideProfile,loginTourGuide,getItenrarysByTourGuide, deactivateItinerary,activateItinerary, viewMyDeactivatedItinerariesTourGuide, decrementLoginCountTourGuide,requestDeleteAccountTourGuide, allNotificationsReadtg, areAllNotificationsReadtg, getAdvertiserNotificationstg, calculateTourGuideRevenue, getUsersWhoBookedItinerary, getRevenueFromItinerary, filterTourGuideItineraries, getTouristsByItineraryAndMonth} = require("./Routes/TourGuideController")
 //importing a set of functions
 const MongoURI = process.env.MONGO_URI ;
 
@@ -252,6 +252,9 @@ app.get("/api/getAdvertiserNotificationstg", getAdvertiserNotificationstg);
 app.get("/api/calculateTourGuideRevenue", calculateTourGuideRevenue);
 app.get("/api/getUsersWhoBookedItinerary", getUsersWhoBookedItinerary);
 app.get("/api/getRevenueFromItinerary", getRevenueFromItinerary);
+app.get("/api/filterTourGuideItineraries", filterTourGuideItineraries);
+app.get("/api/getTouristsByItineraryAndMonth", getTouristsByItineraryAndMonth);
+
 
 
 
