@@ -45,7 +45,7 @@ import MilitaryTechIcon from '@mui/icons-material/MilitaryTech';
 import RemoveIcon from '@mui/icons-material/Remove';
 import ShoppingBagIcon from '@mui/icons-material/ShoppingBag';
 import DeleteIcon from '@mui/icons-material/Delete';
-
+import ShoppingCartCheckoutIcon from '@mui/icons-material/ShoppingCartCheckout';
 
 
 
@@ -553,15 +553,22 @@ const handleOpenPreferencesModal = async () => {
       const response = await axios.get("/api/viewMyWishlist", {
         params: { touristUsername },
       });
-      console.log(response);
-      setWishlistData(response.data.WishList);
+  
+      if (response.status === 200 && response.data.WishList) {
+        setWishlistData(response.data.WishList);
+      } else {
+        setWishlistData([]); // Clear the wishlist if the response is not valid
+        console.warn("Unexpected response format:", response);
+      }
     } catch (error) {
       console.error("Error fetching wishlist:", error);
-      setWishlistData([]);
+      setWishlistData([]); // Clear wishlist on error
     } finally {
       setIsLoading(false);
     }
-  }
+  };
+  
+  
 
   // Trigger fetching the wishlist data when the drawer opens
   const handleDrawerOpen = () => {
@@ -675,6 +682,69 @@ const handleRedeemPoints = async () => {
     );
   }
 };
+
+const handleRemoveFromWishlist = async (productName) => {
+  const touristUsername = localStorage.getItem("username"); // Assuming the username is stored in localStorage
+  if (!touristUsername) {
+    alert("You need to log in first.");
+    return;
+  }
+
+  try {
+    // Call the backend to remove the item
+    const response = await axios.post("/removeFromWishlist", {
+      touristUsername,
+      productName,
+    });
+
+    if (response.status === 200) {
+      // Fetch the updated wishlist after successful removal
+      fetchWishlist();
+    } else {
+      alert("Failed to remove the product from wishlist.");
+    }
+  } catch (error) {
+    console.error("Error removing product from wishlist:", error);
+    alert("Failed to remove product from wishlist.");
+  }
+};
+
+const handleAddToCartFromWishlist = async (productName) => {
+  const touristUsername = localStorage.getItem("username");
+  try {
+    // Send request to add the product to the cart and remove from wishlist
+    const response = await fetch("/addToCartFromWishlist", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        touristUsername, // Replace with the actual logged-in user's username
+        productName: productName,
+      }),
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
+      // Fetch the updated wishlist data after adding the product to the cart
+      fetchWishlist();
+
+      // Optionally, you can fetch the cart data too
+      // fetchCartData();
+
+      console.log(data.msg);
+    } else {
+      console.error(data.error || "Failed to add product to cart.");
+    }
+  } catch (error) {
+    console.error("Error adding product to cart:", error);
+  }
+};
+
+
+
+
 
 const fetchCartData = async () => {
   const username = localStorage.getItem('username');
@@ -1088,6 +1158,7 @@ const closeDeleteRequestsModal = () => {
     <BookmarkBorderOutlinedIcon />
   </IconButton>
 </Tooltip>
+
 <Drawer
   anchor="right"
   open={isWishlistOpen}
@@ -1102,159 +1173,153 @@ const closeDeleteRequestsModal = () => {
       height: "100%",
       display: "flex",
       flexDirection: "column",
-      justifyContent: "space-between",
     }}
   >
     {/* Header */}
-    <Box>
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          mb: 3,
-        }}
+    <Box
+      sx={{
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center",
+        mb: 2,
+      }}
+    >
+      <Typography
+        variant="h6"
+        sx={{ color: "#192959", fontWeight: "bold" }}
       >
-        <Typography
-          variant="h6"
-          sx={{ color: "#192959", fontWeight: "bold" }}
-        >
-          My Wishlist
-        </Typography>
-        <IconButton onClick={toggleWishlistDrawer}>
-          <CloseIcon />
-        </IconButton>
-      </Box>
+        My Wishlist
+      </Typography>
+      <IconButton onClick={toggleWishlistDrawer}>
+        <CloseIcon />
+      </IconButton>
+    </Box>
 
-      {/* Wishlist Items */}
-      <Box
-        sx={{
-          display: "flex",
-          flexDirection: "column",
-          gap: 2,
-          maxHeight: "calc(100vh - 170px)",
-          overflowY: "auto",
-        }}
-      >
-        {isLoading ? (
+    {/* Wishlist Items */}
+    <Box
+      sx={{
+        display: "flex",
+        flexDirection: "column",
+        gap: 2,
+        flexGrow: 1,
+        overflowY: "auto",
+      }}
+    >
+      {isLoading ? (
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            height: "100%",
+          }}
+        >
+          <CircularProgress />
+        </Box>
+      ) : wishlistData.length > 0 ? (
+        wishlistData.map((item, index) => (
           <Box
+            key={index}
             sx={{
               display: "flex",
-              justifyContent: "center",
+              gap: 2,
+              p: 2,
+              backgroundColor: "#ffffff",
+              borderRadius: 2,
+              boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
               alignItems: "center",
-              height: "100%",
+              position: "relative",
             }}
           >
-            <CircularProgress />
-          </Box>
-        ) : wishlistData.length > 0 ? (
-          wishlistData.map((item, index) => (
-            <Box
-              key={index}
+            {/* Product Image */}
+            <Avatar
+              variant="square"
+              src={item.Picture || "/placeholder.jpg"}
+              alt={item.Name || "Product"}
               sx={{
-                display: "flex",
-                gap: 2,
-                p: 2,
-                backgroundColor: "#ffffff",
+                width: 80,
+                height: 80,
                 borderRadius: 2,
-                boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
-                position: "relative",
-                alignItems: "center",
+                flexShrink: 0,
               }}
-            >
-              <Avatar
-                variant="square"
-                src={item.Picture || "/placeholder.jpg"}
-                alt={item.Name || "Product"}
+            />
+
+            {/* Product Details */}
+            <Box sx={{ flex: 1 }}>
+              <Typography
+                variant="subtitle1"
                 sx={{
-                  width: 80,
-                  height: 80,
-                  borderRadius: 2,
-                  flexShrink: 0,
+                  fontWeight: "bold",
+                  color: "#333",
+                  mb: 0.5,
+                  whiteSpace: "nowrap",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
                 }}
-              />
-              <Box sx={{ flex: 1, position: "relative" }}>
-                <Typography
-                  variant="subtitle1"
+              >
+                {item.Name}
+              </Typography>
+              <Typography
+                variant="body2"
+                color="textSecondary"
+                sx={{ mb: 1 }}
+              >
+                EGP {item.Price?.toFixed(2)}
+              </Typography>
+            </Box>
+
+            {/* Icons: Add to Cart and Remove */}
+            <Box sx={{ display: "flex", gap: 1 }}>
+              <Tooltip title="Move to Cart" arrow>
+                <IconButton
                   sx={{
-                    fontWeight: "bold",
-                    color: "#333",
-                    mb: 0.5,
-                    whiteSpace: "nowrap",
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
+                    color: "#192959",
+                    transition: "background-color 0.3s",
+                    "&:hover": {
+                      backgroundColor: "rgba(76, 175, 80, 0.1)",
+                    },
                   }}
+                  onClick={() => handleAddToCartFromWishlist(item.Name)}
                 >
-                  {item.Name}
-                </Typography>
-                <Typography
-                  variant="body2"
-                  color="textSecondary"
-                  sx={{ mb: 1 }}
-                >
-                  EGP {item.Price?.toFixed(2)}
-                </Typography>
-                <Typography
-                  variant="body2"
-                  sx={{
-                    fontSize: "12px",
-                    color: "#555",
-                  }}
-                >
-                  {item.Description}
-                </Typography>
-              </Box>
+                  <ShoppingCartCheckoutIcon />
+                </IconButton>
+              </Tooltip>
+
               <Tooltip title="Remove from Wishlist" arrow>
                 <IconButton
                   sx={{
                     color: "#192959",
-                    position: "absolute",
-                    top: 8,
-                    right: 8,
                     transition: "background-color 0.3s",
                     "&:hover": {
                       backgroundColor: "rgba(85, 85, 85, 0.1)",
                     },
                   }}
-                  onClick={() => {
-                    // Logic for removing the product from the wishlist
-                  }}
+                  onClick={() => handleRemoveFromWishlist(item.Name)}
                 >
                   <DeleteIcon />
                 </IconButton>
               </Tooltip>
             </Box>
-          ))
-        ) : (
-          <Typography
-            variant="body2"
-            sx={{ textAlign: "center", color: "#555" }}
-          >
-            Your wishlist is empty.
-          </Typography>
-        )}
-      </Box>
-    </Box>
-
-    {/* Footer */}
-    <Box sx={{ mt: 1 }}>
-      <Button
-        variant="contained"
-        fullWidth
-        sx={{
-          backgroundColor: "#192959",
-          color: "white",
-          fontWeight: "bold",
-          "&:hover": {
-            backgroundColor: "#3a4a90",
-          },
-        }}
-      >
-        Go Shopping
-      </Button>
+          </Box>
+        ))
+      ) : (
+        <Typography
+          variant="body2"
+          sx={{ textAlign: "center", color: "#555" }}
+        >
+          Your wishlist is empty.
+        </Typography>
+      )}
     </Box>
   </Box>
 </Drawer>
+
+
+
+
+
+
+
 
 
           <Tooltip title="Logout" arrow>
