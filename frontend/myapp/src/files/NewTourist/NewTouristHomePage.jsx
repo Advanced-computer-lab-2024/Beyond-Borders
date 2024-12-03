@@ -804,7 +804,7 @@ const closeDeleteRequestsModal = () => {
       justifyContent: "space-between",
     }}
   >
-    {/* Cart Header */}
+    {/* Header */}
     <Box>
       <Box
         sx={{
@@ -826,59 +826,59 @@ const closeDeleteRequestsModal = () => {
       </Box>
 
       {/* Cart Items */}
-      {isLoadingCart ? (
-        <Box
-          sx={{
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            height: "100%",
-          }}
-        >
-          <CircularProgress />
-        </Box>
-      ) : cartData.length > 0 ? (
-        <Box
-          sx={{
-            display: "flex",
-            flexDirection: "column",
-            gap: 2,
-          }}
-        >
-          {cartData.map((item, index) => (
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          gap: 2,
+          maxHeight: "calc(100vh - 170px)", // Adjust height to reduce gap
+          overflowY: "auto", // Enable scrolling for long lists
+        }}
+      >
+        {isLoadingCart ? (
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              height: "100%",
+            }}
+          >
+            <CircularProgress />
+          </Box>
+        ) : cartData.length > 0 ? (
+          cartData.map((item, index) => (
             <Box
               key={index}
               sx={{
-                position: "relative",
                 display: "flex",
                 gap: 2,
                 p: 2,
                 backgroundColor: "#ffffff",
-                borderRadius: 1,
-                boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
+                borderRadius: 2,
+                boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
+                position: "relative",
+                alignItems: "center",
               }}
             >
               {/* Remove Icon */}
               <Tooltip title="Remove Product" arrow>
-  <IconButton
-    onClick={() => removeProductFromCart(item.productDetails.Name)}
-    sx={{
-      color: "#d0d0d0", // Dark grey color
-      backgroundColor: "transparent", // No background initially
-      borderRadius: "50%", // Circle on hover
-      transition: "background-color 0.3s, transform 0.2s",
-      position: "absolute",
-      top: 8,
-      right: 8,
-      "&:hover": {
-        backgroundColor: "rgba(85, 85, 85, 0.1)", // Subtle grey background on hover
-      },
-    }}
-  >
-    <DeleteIcon />
-  </IconButton>
-</Tooltip>
-
+                <IconButton
+                  onClick={() => removeProductFromCart(item.productDetails.Name)}
+                  sx={{
+                    color: "#192959", // Dark grey color
+                    position: "absolute",
+                    top: 8,
+                    right: 8,
+                    transition: "background-color 0.3s",
+                    "&:hover": {
+                      backgroundColor: "rgba(85, 85, 85, 0.1)", // Background on hover
+                    },
+                  }}
+                >
+                  <DeleteIcon />
+                </IconButton>
+              </Tooltip>
 
               {/* Product Image */}
               <Avatar
@@ -889,97 +889,122 @@ const closeDeleteRequestsModal = () => {
                   width: 80,
                   height: 80,
                   borderRadius: 2,
+                  flexShrink: 0,
                 }}
               />
 
               {/* Product Details */}
-              <Box sx={{ flex: 1 }}>
+              <Box sx={{ flex: 1, position: "relative" }}>
                 <Typography
                   variant="subtitle1"
-                  sx={{ fontWeight: "bold" }}
+                  sx={{
+                    fontWeight: "bold",
+                    color: "#333",
+                    mb: 0.5,
+                    whiteSpace: "nowrap",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                  }}
                 >
                   {item.productDetails?.Name}
                 </Typography>
-                <Typography variant="body2" color="textSecondary">
-                  Price: EGP {item.productDetails?.Price?.toFixed(2)}
+                <Typography
+                  variant="body2"
+                  color="textSecondary"
+                  sx={{ mb: 1 }}
+                >
+                  EGP {item.productDetails?.Price?.toFixed(2)}
                 </Typography>
+
+                {/* Quantity Controls */}
                 <Box
                   sx={{
                     display: "flex",
                     alignItems: "center",
                     gap: 1,
-                    mt: 1,
                   }}
                 >
-                  {/* Quantity Controls */}
                   <IconButton
-  onClick={() =>
-    updateProductQuantity(item.productDetails?.Name, item.quantity - 1)
-  }
-  size="small"
-  sx={{
-    width: 24, // Smaller size
-    height: 24,
-    backgroundColor: "#e0e0e0",
-    "&:hover": {
-      backgroundColor: "#d0d0d0",
-    },
-  }}
->
-  <RemoveIcon fontSize="small" />
-</IconButton>
-<Typography
-  variant="body2"
-  sx={{
-    fontWeight: "bold",
-    color: "#333",
-    paddingX: 1,
-    fontSize: "14px", // Smaller font size for consistency
-  }}
->
-  {item.quantity}
-</Typography>
-<IconButton
-  onClick={() =>
-    updateProductQuantity(item.productDetails?.Name, item.quantity + 1)
-  }
-  size="small"
-  sx={{
-    width: 24, // Smaller size
-    height: 24,
-    backgroundColor: "#e0e0e0",
-    "&:hover": {
-      backgroundColor: "#d0d0d0",
-    },
-  }}
->
-  <AddIcon fontSize="small" />
-</IconButton>
-
+                    onClick={() =>
+                      updateProductQuantity(
+                        item.productDetails?.Name,
+                        item.quantity - 1
+                      )
+                    }
+                    size="small"
+                    sx={{
+                      width: 24,
+                      height: 24,
+                      backgroundColor: "#e0e0e0",
+                      "&:hover": {
+                        backgroundColor: "#d0d0d0",
+                      },
+                    }}
+                  >
+                    <RemoveIcon fontSize="small" />
+                  </IconButton>
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      fontWeight: "bold",
+                      color: "#333",
+                      paddingX: 1,
+                      fontSize: "14px",
+                    }}
+                  >
+                    {item.quantity}
+                  </Typography>
+                  <IconButton
+                    onClick={() =>
+                      updateProductQuantity(
+                        item.productDetails?.Name,
+                        item.quantity + 1
+                      )
+                    }
+                    size="small"
+                    sx={{
+                      width: 24,
+                      height: 24,
+                      backgroundColor: "#e0e0e0",
+                      "&:hover": {
+                        backgroundColor: "#d0d0d0",
+                      },
+                    }}
+                  >
+                    <AddIcon fontSize="small" />
+                  </IconButton>
                 </Box>
+
+                {/* Total Price */}
                 <Typography
                   variant="body2"
-                  sx={{ fontWeight: "bold", color: "#192959", mt: 1 }}
+                  sx={{
+                    fontWeight: "bold",
+                    color: "#192959",
+                    position: "absolute",
+                    bottom: 8,
+                    right: 8,
+                  }}
                 >
-                  Total Price: EGP{" "}
+                  Total: EGP{" "}
                   {(item.productDetails?.Price * item.quantity || 0).toFixed(2)}
                 </Typography>
               </Box>
             </Box>
-          ))}
-        </Box>
-      ) : (
-        <Typography
-          variant="body2"
-          sx={{ textAlign: "center", color: "#555" }}
-        >
-          Your cart is empty.
-        </Typography>
-      )}
+          ))
+        ) : (
+          <Typography
+            variant="body2"
+            sx={{ textAlign: "center", color: "#555" }}
+          >
+            Your cart is empty.
+          </Typography>
+        )}
+      </Box>
     </Box>
 
-    {/* Cart Total */}
-    <Box>
+    {/* Footer */}
+    <Box sx={{ mt: 1 }}>
       <Typography
         variant="h6"
         sx={{
@@ -989,7 +1014,7 @@ const closeDeleteRequestsModal = () => {
           mb: 2,
         }}
       >
-        Cart Total: EGP{" "}
+        Total: EGP{" "}
         {cartData
           .reduce(
             (total, item) =>
@@ -1015,6 +1040,9 @@ const closeDeleteRequestsModal = () => {
     </Box>
   </Box>
 </Drawer>
+
+
+
 
 
 

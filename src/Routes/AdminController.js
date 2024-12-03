@@ -1594,12 +1594,320 @@ const createPromoCode = async (req, res) => {
   }
 };
 
+const getTotalTourists = async (req, res) => {
+  try {
+    // Query the database to count all tourists
+    const count = await AllTouristModel.countDocuments();
 
+    // Return the total count of tourists
+    res.json({ totalTourists: count });
+  } catch (error) {
+    console.error('Error fetching total tourists:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+};
 
+const getTouristsByMonth = async (req, res) => {
+  try {
+    const { month } = req.body;
+
+    if (!month) {
+      return res.status(400).json({ error: 'Month is required' });
+    }
+
+    const monthNumber = parseInt(month) - 1; // Convert to 0-based index (e.g., 0 = January)
+
+    // Get the current year
+    const year = new Date().getFullYear();
+
+    // Define the start and end dates of the month
+    const startOfMonth = new Date(year, monthNumber, 1);
+    const endOfMonth = new Date(year, monthNumber + 1, 0);
+
+    // Query the database for tourists created in the specified month
+    const count = await AllTouristModel.countDocuments({
+      createdAt: { $gte: startOfMonth, $lt: endOfMonth },
+    });
+
+    // Return the count of tourists
+    res.json({ month, touristsCount: count });
+  } catch (error) {
+    console.error('Error fetching tourists by month:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+};
+
+const getTotalTourismGovernors = async (req, res) => {
+  try {
+    const count = await NewTourismGoverner.countDocuments();
+    res.json({ totalGovernors: count });
+  } catch (error) {
+    console.error('Error fetching total tourism governors:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+};
+
+const getTourismGovernorsByMonth = async (req, res) => {
+  try {
+    const { month } = req.body;
+
+    if (!month) {
+      return res.status(400).json({ error: 'Month is required' });
+    }
+
+    const monthNumber = parseInt(month) - 1;
+    const year = new Date().getFullYear();
+    const startOfMonth = new Date(year, monthNumber, 1);
+    const endOfMonth = new Date(year, monthNumber + 1, 0);
+
+    const count = await NewTourismGoverner.countDocuments({
+      createdAt: { $gte: startOfMonth, $lt: endOfMonth },
+    });
+
+    res.json({ month, governorsCount: count });
+  } catch (error) {
+    console.error('Error fetching tourism governors by month:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+};
+
+const getTotalTourGuides = async (req, res) => {
+  try {
+    const count = await NewAcceptedTourGuideModel.countDocuments();
+    res.json({ totalTourGuides: count });
+  } catch (error) {
+    console.error('Error fetching total tour guides:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+};
+
+const getTourGuidesByMonth = async (req, res) => {
+  try {
+    const { month } = req.body;
+
+    if (!month) {
+      return res.status(400).json({ error: 'Month is required' });
+    }
+
+    const monthNumber = parseInt(month) - 1;
+    const year = new Date().getFullYear();
+    const startOfMonth = new Date(year, monthNumber, 1);
+    const endOfMonth = new Date(year, monthNumber + 1, 0);
+
+    const count = await NewAcceptedTourGuideModel.countDocuments({
+      createdAt: { $gte: startOfMonth, $lt: endOfMonth },
+    });
+
+    res.json({ month, tourGuidesCount: count });
+  } catch (error) {
+    console.error('Error fetching tour guides by month:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+};
+
+const getTotalSellers = async (req, res) => {
+  try {
+    const count = await NewAcceptedSellerModel.countDocuments();
+    res.json({ totalSellers: count });
+  } catch (error) {
+    console.error('Error fetching total sellers:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+};
+
+const getSellersByMonth = async (req, res) => {
+  try {
+    const { month } = req.body;
+
+    if (!month) {
+      return res.status(400).json({ error: 'Month is required' });
+    }
+
+    const monthNumber = parseInt(month) - 1;
+    const year = new Date().getFullYear();
+    const startOfMonth = new Date(year, monthNumber, 1);
+    const endOfMonth = new Date(year, monthNumber + 1, 0);
+
+    const count = await NewAcceptedSellerModel.countDocuments({
+      createdAt: { $gte: startOfMonth, $lt: endOfMonth },
+    });
+
+    res.json({ month, sellersCount: count });
+  } catch (error) {
+    console.error('Error fetching sellers by month:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+};
+
+const getTotalAdvertisers = async (req, res) => {
+  try {
+    const count = await NewAcceptedAdvertiserModel.countDocuments();
+    res.json({ totalAdvertisers: count });
+  } catch (error) {
+    console.error('Error fetching total advertisers:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+};
+
+const getAdvertisersByMonth = async (req, res) => {
+  try {
+    const { month } = req.body;
+
+    if (!month) {
+      return res.status(400).json({ error: 'Month is required' });
+    }
+
+    const monthNumber = parseInt(month) - 1;
+    const year = new Date().getFullYear();
+    const startOfMonth = new Date(year, monthNumber, 1);
+    const endOfMonth = new Date(year, monthNumber + 1, 0);
+
+    const count = await NewAcceptedAdvertiserModel.countDocuments({
+      createdAt: { $gte: startOfMonth, $lt: endOfMonth },
+    });
+
+    res.json({ month, advertisersCount: count });
+  } catch (error) {
+    console.error('Error fetching advertisers by month:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+};
+
+const getTotalTransportationAdvertisers = async (req, res) => {
+  try {
+    const count = await NewAcceptedTransportationAdvertiserModel.countDocuments();
+    res.json({ totalTransportationAdvertisers: count });
+  } catch (error) {
+    console.error('Error fetching total transportation advertisers:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+};
+
+const getTransportationAdvertisersByMonth = async (req, res) => {
+  try {
+    const { month } = req.body;
+
+    if (!month) {
+      return res.status(400).json({ error: 'Month is required' });
+    }
+
+    const monthNumber = parseInt(month) - 1;
+    const year = new Date().getFullYear();
+    const startOfMonth = new Date(year, monthNumber, 1);
+    const endOfMonth = new Date(year, monthNumber + 1, 0);
+
+    const count = await NewAcceptedTransportationAdvertiserModel.countDocuments({
+      createdAt: { $gte: startOfMonth, $lt: endOfMonth },
+    });
+
+    res.json({ month, transportationAdvertisersCount: count });
+  } catch (error) {
+    console.error('Error fetching transportation advertisers by month:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+};
+
+const getTotalUsers = async (req, res) => {
+  try {
+    // Get counts for each category using their respective models
+    const totalTourists = await AllTouristModel.countDocuments();
+    const totalGovernors = await NewTourismGoverner.countDocuments();
+    const totalAdvertisers = await NewAcceptedAdvertiserModel.countDocuments();
+    const totalSellers = await NewAcceptedSellerModel.countDocuments();
+    const totalTourGuides = await NewAcceptedTourGuideModel.countDocuments();
+    const totalTransportationAdvertisers = await NewAcceptedTransportationAdvertiserModel.countDocuments();
+
+    // Calculate the total number of users
+    const totalUsers =
+      totalTourists +
+      totalGovernors +
+      totalAdvertisers +
+      totalSellers +
+      totalTourGuides +
+      totalTransportationAdvertisers;
+
+    // Return the total count of users and individual counts
+    res.json({
+      totalUsers,
+      counts: {
+        tourists: totalTourists,
+        governors: totalGovernors,
+        advertisers: totalAdvertisers,
+        sellers: totalSellers,
+        tourGuides: totalTourGuides,
+        transportationAdvertisers: totalTransportationAdvertisers,
+      },
+    });
+  } catch (error) {
+    console.error('Error fetching total users:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+};
+
+const getTotalUsersByMonth = async (req, res) => {
+  try {
+    const { month } = req.body;
+
+    if (!month) {
+      return res.status(400).json({ error: 'Month is required' });
+    }
+
+    const monthNumber = parseInt(month) - 1; // Convert to 0-based index (0 = January)
+    const year = new Date().getFullYear();
+    const startOfMonth = new Date(year, monthNumber, 1);
+    const endOfMonth = new Date(year, monthNumber + 1, 1);
+
+    // Get counts for each category in parallel
+    const [
+      touristsCount,
+      governorsCount,
+      advertisersCount,
+      sellersCount,
+      tourGuidesCount,
+      transportationAdvertisersCount,
+    ] = await Promise.all([
+      AllTouristModel.countDocuments({ createdAt: { $gte: startOfMonth, $lt: endOfMonth } }),
+      NewTourismGoverner.countDocuments({ createdAt: { $gte: startOfMonth, $lt: endOfMonth } }),
+      NewAcceptedAdvertiserModel.countDocuments({ createdAt: { $gte: startOfMonth, $lt: endOfMonth } }),
+      NewAcceptedSellerModel.countDocuments({ createdAt: { $gte: startOfMonth, $lt: endOfMonth } }),
+      NewAcceptedTourGuideModel.countDocuments({ createdAt: { $gte: startOfMonth, $lt: endOfMonth } }),
+      NewAcceptedTransportationAdvertiserModel.countDocuments({
+        createdAt: { $gte: startOfMonth, $lt: endOfMonth },
+      }),
+    ]);
+
+    // Calculate total users for the month
+    const totalUsers = 
+      touristsCount + 
+      governorsCount + 
+      advertisersCount + 
+      sellersCount + 
+      tourGuidesCount + 
+      transportationAdvertisersCount;
+
+    // Return the total and individual counts
+    res.json({
+      month,
+      totalUsers,
+      counts: {
+        tourists: touristsCount,
+        governors: governorsCount,
+        advertisers: advertisersCount,
+        sellers: sellersCount,
+        tourGuides: tourGuidesCount,
+        transportationAdvertisers: transportationAdvertisersCount,
+      },
+    });
+  } catch (error) {
+    console.error('Error fetching total users by month:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+};
 
 
 module.exports = {createNewAdmin, createNewTourismGoverner, createNewProduct, editProduct, acceptSeller, rejectSeller, createNewCategory, readAllActivityCategories, updateCategory, deleteActivityCategory, deleteAccount, searchProductAdmin, createNewTag, readAllTags, updateTag, deleteTag, 
     acceptTourGuide, rejectTourGuide, acceptAdvertiser, rejectAdvertiser, filterProductByPriceAdmin, sortProductsDescendingAdmin, sortProductsAscendingAdmin,viewProducts, loginAdmin, viewAllProductsAdmin, updateAdminPassword, getAllComplaints, updateComplaintStatus, replyToComplaint, getComplaintDetails, 
     filterComplaintsByStatus, sortComplaintsByRecent, sortComplaintsByOldest, archiveProduct, unarchiveProduct, flagItinerary, flagActivity, viewArchivedProductsAdmin , viewAllActivitiesAdmin ,viewAllItinerariesAdmin,acceptTranspAdvertiser,rejectTranspAdvertiser, readAllDeleteRequests,rejectRequestDeleteAccout,
-    getAdminPassword,viewAdvertiserDocument,viewTourGuideDocuments,viewSellerDocument,getAllUnregisteredAdvertisers,getAllUnregisteredTourGuides,getAllUnregisteredSellers,getAllUnregisteredTransportationAdvertisers,  createPromoCode
+    getAdminPassword,viewAdvertiserDocument,viewTourGuideDocuments,viewSellerDocument,getAllUnregisteredAdvertisers,getAllUnregisteredTourGuides,getAllUnregisteredSellers,getAllUnregisteredTransportationAdvertisers,  createPromoCode, getTotalTourists, getTouristsByMonth
+    , getTotalTourismGovernors, getTourismGovernorsByMonth, getTotalTourGuides, getTourGuidesByMonth, getTotalSellers, getSellersByMonth, getTotalAdvertisers, getAdvertisersByMonth, getTotalTransportationAdvertisers, getTransportationAdvertisersByMonth, getTotalUsers, getTotalUsersByMonth
   };
