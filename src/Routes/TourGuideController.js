@@ -570,5 +570,73 @@ const calculateTourGuideRevenue = async (req, res) => {
     res.status(500).json({ error: 'Internal server error' });
   }
 };
+const getUsersWhoBookedItinerary = async (req, res) => {
+  const { username, title } = req.query;
 
-module.exports = {ReadTourGuideProfile , UpdateTourGuideEmail , UpdateTourGuidePassword, UpdateTourGuideMobileNum , UpdateTourGuideYearsofExperience ,UpdateTourGuidePreviousWork ,createItineraryAsTourGuide,readItineraryAsTourGuide,updateItineraryAsTourGuide,deleteItineraryAsTourGuide, updateTourGuideProfile,loginTourGuide,getItenrarysByTourGuide, deactivateItinerary,activateItinerary, viewMyDeactivatedItinerariesTourGuide, decrementLoginCountTourGuide,requestDeleteAccountTourGuide, allNotificationsReadtg, areAllNotificationsReadtg, getAdvertiserNotificationstg, calculateTourGuideRevenue};
+  if (!username || !title) {
+    return res.status(400).json({ error: 'Tour guide username and itinerary title are required' });
+  }
+
+  try {
+    // Find the itinerary authored by the given tour guide and matching the title
+    const itinerary = await Itinerary.findOne({ AuthorUsername: username, Title: title });
+
+    if (!itinerary) {
+      return res.status(404).json({ message: 'Itinerary not found' });
+    }
+
+    // Find all tourists who have booked this itinerary
+    const tourists = await Tourist.find({
+      'BookedItineraries.ItineraryName': title,
+      'BookedItineraries.booked': true,
+    });
+
+    const numberOfBookings = tourists.length;
+
+    res.status(200).json({
+      itineraryTitle: title,
+      numberOfUsersBooked: numberOfBookings,
+    });
+  } catch (error) {
+    console.error('Error fetching booking data:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+const getRevenueFromItinerary = async (req, res) => {
+  const { username, title } = req.query;
+
+  if (!username || !title) {
+    return res.status(400).json({ error: 'Tour guide username and itinerary title are required' });
+  }
+
+  try {
+    // Find the itinerary authored by the given tour guide and matching the title
+    const itinerary = await Itinerary.findOne({ AuthorUsername: username, Title: title });
+
+    if (!itinerary) {
+      return res.status(404).json({ message: 'Itinerary not found' });
+    }
+
+    // Find all tourists who have booked this itinerary
+    const tourists = await Tourist.find({
+      'BookedItineraries.ItineraryName': title,
+      'BookedItineraries.booked': true,
+    });
+
+    // Calculate total revenue
+    const totalRevenue = tourists.length * itinerary.Price;
+
+    res.status(200).json({
+      itineraryTitle: title,
+      totalRevenue,
+    });
+  } catch (error) {
+    console.error('Error calculating revenue:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+
+
+module.exports = {ReadTourGuideProfile , UpdateTourGuideEmail , UpdateTourGuidePassword, UpdateTourGuideMobileNum , UpdateTourGuideYearsofExperience ,UpdateTourGuidePreviousWork ,createItineraryAsTourGuide,readItineraryAsTourGuide,updateItineraryAsTourGuide,deleteItineraryAsTourGuide, updateTourGuideProfile,loginTourGuide,getItenrarysByTourGuide, deactivateItinerary,activateItinerary, viewMyDeactivatedItinerariesTourGuide, decrementLoginCountTourGuide,requestDeleteAccountTourGuide, allNotificationsReadtg, areAllNotificationsReadtg, getAdvertiserNotificationstg, calculateTourGuideRevenue, getUsersWhoBookedItinerary, getRevenueFromItinerary};
