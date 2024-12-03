@@ -1373,7 +1373,7 @@ const [expanded, setExpanded] = useState(false);
               <Box sx={styles.bookingOpenContainer}>
                 <Box sx={{...styles.infoContainer, backgroundColor: activity.flagged ? '#b3b8c8' : '#f3f4f6'}}>
                   <Typography variant="body2" sx={{ fontWeight: 'bold' }}>Booking Open:</Typography>
-                  <Typography variant="body2">{activity.isBooked ? 'Yes' : 'No'}</Typography>
+                  <Typography variant="body2">{activity.BookingOpen ? 'Yes' : 'No'}</Typography>
                 </Box>
               </Box>
 
@@ -1381,7 +1381,7 @@ const [expanded, setExpanded] = useState(false);
 
               <Button
           variant="contained"
-          disabled={!activity.isBooked} // Disable button if booking is not open
+          disabled={!activity.BookingOpen} // Disable button if booking is not open
           onClick={() => handleBookItinerary(activity.Title)}
 
           sx={{
