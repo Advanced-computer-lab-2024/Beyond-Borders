@@ -45,6 +45,8 @@ import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import IosShareIcon from '@mui/icons-material/IosShare';
 import ShareIcon from '@mui/icons-material/Share';
 import LanguageIcon from '@mui/icons-material/Language';
+import BookmarkIcon from '@mui/icons-material/Bookmark';
+
 import axios from 'axios';
 
 function TouristUpcomingItineraries() {
@@ -188,7 +190,28 @@ const [expanded, setExpanded] = useState(false);
     searchItineraries(query); // Trigger the search functionality
   };
   
-
+  const handleBookmark = async (eventName) => {
+    const touristUsername = localStorage.getItem('username'); // Get the logged-in username from local storage
+  
+    if (!touristUsername) {
+      alert('Please log in to save bookmarks.');
+      return;
+    }
+  
+    try {
+      // Call the backend API to save the bookmark
+      const response = await axios.put('/addBookmark', {
+        touristUsername,
+        eventName,
+      });
+  
+      alert(response.data.msg || 'Event bookmarked successfully!'); // Show success message
+    } catch (error) {
+      console.error('Error bookmarking event:', error);
+      alert(error.response?.data?.msg || 'An error occurred while bookmarking the event.');
+    }
+  };
+  
   // Fetch categories from backend
   const fetchCategories = async () => {
     try {
@@ -1398,6 +1421,7 @@ const [expanded, setExpanded] = useState(false);
           Book
         </Button>
         <Tooltip title="Share" arrow>
+          
 
         <IconButton
     onClick={() => handleOpenShareModal(activity.Title)} // Pass activity name
@@ -1414,6 +1438,23 @@ const [expanded, setExpanded] = useState(false);
     <IosShareIcon />
   </IconButton>
   
+</Tooltip>
+
+
+{/* Bookmark Icon with Tooltip */}
+<Tooltip title="Bookmark" arrow>
+  <IconButton
+    onClick={() => handleBookmark(activity.Title)} // Handle bookmark functionality
+    sx={{
+      position: 'absolute',
+      top: '63px', // Position next to the Book button
+      right: '190px', // Position left of the Book button
+      color: '#192959',
+      '&:hover': { color: '#33416b' },
+    }}
+  >
+    < BookmarkBorderOutlinedIcon />
+  </IconButton>
 </Tooltip>
 
 
