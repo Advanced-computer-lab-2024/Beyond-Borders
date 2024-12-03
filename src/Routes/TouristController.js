@@ -5496,6 +5496,40 @@ const addBookmark = async (req, res) => {
   }
 };
 
+const removeFromBookmarkedEvents = async (req, res) => {
+  const { touristUsername, eventName } = req.body; // Retrieve parameters from the request body
+
+  try {
+    // Find the tourist by username
+    const tourist = await TouristModel.findOne({ Username: touristUsername });
+
+    if (!tourist) {
+      return res.status(404).json({ error: "Tourist not found" });
+    }
+
+    // Find the index of the event in the BookmarkedEvents array
+    const eventIndex = tourist.BookmarkedEvents.findIndex(
+      (event) => event.EventName === eventName
+    );
+
+    if (eventIndex === -1) {
+      return res.status(404).json({ error: "Event not found in bookmarks" });
+    }
+
+    // Remove the event from the BookmarkedEvents array
+    tourist.BookmarkedEvents.splice(eventIndex, 1);
+
+    // Save the updated tourist document
+    await tourist.save();
+
+    res.status(200).json({ message: "Event removed from bookmarks", eventName });
+  } catch (error) {
+    console.error("Error removing event from bookmarks:", error);
+    res.status(500).json({ error: "Failed to remove event from bookmarks" });
+  }
+};
+
+
 
 const viewBookmarks = async (req, res) => {
   const { touristUsername } = req.query;
@@ -7197,4 +7231,4 @@ const checkTouristSubscription = async (req, res) => {
 module.exports = {createTourist, getTourist, updateTourist, searchProductTourist, filterActivities, filterProductByPriceTourist, ActivityRating, sortProductsDescendingTourist, sortProductsAscendingTourist, ViewAllUpcomingActivities, ViewAllUpcomingMuseumEventsTourist, getMuseumsByTagTourist, getHistoricalPlacesByTagTourist, ViewAllUpcomingHistoricalPlacesEventsTourist,viewProductsTourist, sortActivitiesPriceAscendingTourist, sortActivitiesPriceDescendingTourist, sortActivitiesRatingAscendingTourist, sortActivitiesRatingDescendingTourist, loginTourist, ViewAllUpcomingItinerariesTourist, sortItinerariesPriceAscendingTourist, sortItinerariesPriceDescendingTourist, filterItinerariesTourist, ActivitiesSearchAll, ItinerarySearchAll, MuseumSearchAll, HistoricalPlacesSearchAll, ProductRating, createComplaint, getComplaintsByTouristUsername,ChooseActivitiesByCategoryTourist,bookActivity,bookItinerary,bookMuseum,bookHistoricalPlace, ratePurchasedProduct, addPurchasedProducts, reviewPurchasedProduct, addCompletedItinerary, rateTourGuide, commentOnTourGuide, rateCompletedItinerary, commentOnItinerary, addCompletedActivities, addCompletedMuseumEvents, addCompletedHPEvents, rateCompletedActivity, rateCompletedMuseum, rateCompletedHP, commentOnActivity, commentOnMuseum, commentOnHP,deleteBookedActivity,deleteBookedItinerary,deleteBookedMuseum,deleteBookedHP,payActivity,updateWallet,updatepoints,payItinerary,payMuseum,payHP,redeemPoints, convertEgp, fetchFlights,viewBookedItineraries, requestDeleteAccountTourist,convertCurr,getActivityDetails,getHistoricalPlaceDetails,getMuseumDetails,GetCopyLink, bookFlight
   ,fetchHotelsByCity, fetchHotels, bookHotel,bookTransportation,addPreferences, viewMyCompletedActivities, viewMyCompletedItineraries, viewMyCompletedMuseums, viewMyCompletedHistoricalPlaces,viewMyBookedActivities,viewMyBookedItineraries,viewMyBookedMuseums,viewMyBookedHistoricalPlaces,viewTourGuidesCompleted,viewAllTransportation, getItineraryDetails, viewPreferenceTags,viewPurchasedProducts,viewBookedActivities,viewMyBookedTransportation,addBookmark
 , payActivityByCard, payItineraryByCard, payMuseumByCard, payHPByCard, sendOtp, loginTouristOTP,viewBookmarks, addToWishList, viewMyWishlist, removeFromWishlist, addToCartFromWishlist, addToCart, removeFromCart, changeProductQuantityInCart, checkout, addDeliveryAddress, viewDeliveryAddresses,chooseDeliveryAddress,payOrderWallet,payOrderCash,viewOrderDetails,cancelOrder,cancelOrder,markOrdersAsDelivered,viewAllOrders,sendUpcomingEventNotifications,payOrderStripe
-,payItineraryStripe,payActivityStripe,payMuseumStripe,payHPStripe, fetchCityCode, checkIfInWishlist, getTourGuideComments,addNotificationSubscriberHP,addNotificationSubscriberMuseum,addNotificationSubscriberActivity,addNotificationSubscriberItinerary,allNotificationsTouristRead,areAllTouristNotificationsRead,getTouristNotifications, getTouristCartDetails,checkTouristSubscription, checkIfInBookmarkedEvents};
+,payItineraryStripe,payActivityStripe,payMuseumStripe,payHPStripe, fetchCityCode, checkIfInWishlist, getTourGuideComments,addNotificationSubscriberHP,addNotificationSubscriberMuseum,addNotificationSubscriberActivity,addNotificationSubscriberItinerary,allNotificationsTouristRead,areAllTouristNotificationsRead,getTouristNotifications, getTouristCartDetails,checkTouristSubscription, checkIfInBookmarkedEvents, removeFromBookmarkedEvents};
