@@ -1291,6 +1291,7 @@ const markAllAsRead = async () => {
             backgroundColor: "#3a4a90",
           },
         }}
+        onClick={() => navigate("/TouristProductPaymentPage")}
       >
         Checkout
       </Button>
