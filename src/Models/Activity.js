@@ -26,7 +26,7 @@ const ActivitySchema = new Schema({
     type: Boolean,
     required: true,
   },
-  isBooked: {type:Boolean, required: true },
+  isBooked: {type:Boolean, required: false },
   Price: {
     type: Number,
     required: true

@@ -46,6 +46,7 @@ import IosShareIcon from '@mui/icons-material/IosShare';
 import ShareIcon from '@mui/icons-material/Share';
 import LanguageIcon from '@mui/icons-material/Language';
 import BookmarkIcon from '@mui/icons-material/Bookmark';
+import NotificationsActiveOutlinedIcon from '@mui/icons-material/NotificationsActiveOutlined';
 
 import axios from 'axios';
 
@@ -88,7 +89,7 @@ const [currentActivityName, setCurrentActivityName] = useState(''); // Trac
 const [convertedPrices, setConvertedPrices] = useState({});
 const [currency, setCurrency] = useState('EGP'); // Default currency is EGP
 const [bookmarkStatuses, setBookmarkStatuses] = useState({});
-
+const [subscriptionStatus, setSubscriptionStatus] = useState({});
 
   const navigate = useNavigate();
 
@@ -123,7 +124,39 @@ const [bookmarkStatuses, setBookmarkStatuses] = useState({});
     return () => window.removeEventListener('scroll', handleScroll);
   }, [searchQuery]); // Depend on `searchQuery` to refetch activities when it changes
 
+  const fetchSubscriptionStatus = async () => {
+    const username = localStorage.getItem('username'); // Current user's username
+    if (!username) return;
+  
+    const newSubscriptionStatus = {};
+  
+    await Promise.all(
+      activities.map(async (activity) => {
+        try {
+          const response = await axios.get('/api/checkTouristSubscription', {
+            params:{username:username,
+            eventName: activity.Name,
+            eventType: "Activity"},
+          });
+  
+          // Save subscription status with hp._id as the key
+          newSubscriptionStatus[activity._id] = response.data.message.includes('is subscribed');
+        } catch (error) {
+          console.error(`Error checking subscription for ${activity._id}:`, error);
+          newSubscriptionStatus[activity._id] = false; // Default to not subscribed in case of error
+        }
+      })
+    );
+  
+    setSubscriptionStatus(newSubscriptionStatus);
+  };
 
+  useEffect(() => {
+    if (activities.length > 0) {
+      fetchSubscriptionStatus();
+    }
+  }, [activities]);
+    
   useEffect(() => {
     if (currency !== 'EGP') {
       convertActivityPrices();
@@ -442,7 +475,29 @@ const [bookmarkStatuses, setBookmarkStatuses] = useState({});
 
 
 
- 
+  const handleNotifyMe = async (activityName,eventId) => {
+    const username = localStorage.getItem('username'); // Replace this with the actual username (e.g., from context or state)
+  
+    if (!username) {
+      alert('Please log in to subscribe to notifications.');
+      return;
+    }
+  
+    try {
+      const response = await axios.put('/addNotificationSubscriberActivity', {
+        username,
+        activityName,
+      });
+      setSubscriptionStatus((prevStatus) => ({
+        ...prevStatus,
+        [eventId]: true, // Mark this event as subscribed
+      }));
+      //alert(response.data.message); // Show success message
+    } catch (error) {
+      console.error('Error subscribing to notifications:', error);
+      alert(error.response?.data?.error || 'An error occurred while subscribing to notifications.');
+    }
+  };
   
   return (
     <Box sx={styles.container}>
@@ -1195,72 +1250,86 @@ const [bookmarkStatuses, setBookmarkStatuses] = useState({});
 
               
 
-              <Button
-          variant="contained"
-          disabled={!activity.BookingOpen} // Disable button if booking is not open
-          onClick={() => handleBookActivity(activity.Name)}
-          sx={{
-            position: 'absolute',
-            top: '60px', // Position at the top
-            right: '60px', // Position at the right
-            
-            backgroundColor: '#192959',
-
-            color: '#fff',
-            '&:hover': { backgroundColor: '#33416b' },
-          }}
-        >
-          Book
-        </Button>
-        <Tooltip title="Share" arrow>
+              <Box
+  sx={{
+    position: 'absolute',
+    top: '60px',
+    right: '60px',
+    display: 'flex',
+    flexDirection: 'row', // Arrange buttons in a row
+    alignItems: 'center', // Align buttons vertically centered
+    gap: 5, // Add spacing between icons
+  }}
+>
 
 
-
-        <IconButton
-    onClick={() => handleOpenShareModal(activity.Name)} // Pass activity name
-    sx={{
-      position: 'absolute',
-      top: '60px',
-      right: '140px',
-      color: '#192959', // Icon color
-      '&:hover': {
-        color: '#33416b', // Hover color for the icon
-      },
-    }}
-  >
-    <IosShareIcon />
-  </IconButton>
-  
-</Tooltip>
-
-
-
-          {/* Bookmark Button */}
-          <Tooltip
-    title={
-      bookmarkStatuses[activity._id]
-        ? "Remove Bookmark"
-        : "Add to Bookmark"
-    }
-    arrow
-  >
+<Tooltip title="Share" arrow>
     <IconButton
-      onClick={() => handleToggleBookmark(activity.Name, activity._id)}
+      onClick={() => handleOpenShareModal(activity.Name)}
       sx={{
-        position: "absolute",
-        top: "63px",
-        right: "190px",
-        color: "#192959",
-        "&:hover": { color: "#33416b" },
+        color: '#192959',
+        left:"35px",
+        '&:hover': { color: '#33416b' },
       }}
     >
-      {bookmarkStatuses[activity._id] ? (
-        <BookmarkIcon /> // Filled icon for bookmarked
-      ) : (
-        <BookmarkBorderOutlinedIcon /> // Outlined icon for not bookmarked
-      )}
+      <IosShareIcon />
     </IconButton>
   </Tooltip>
+
+   {/* Bookmark Button */}
+ <Tooltip
+      title={bookmarkStatuses[activity._id] ? 'Remove Bookmark' : 'Add to Bookmark'}
+      arrow
+    >
+      <IconButton
+        onClick={() => handleToggleBookmark(activity.Name, activity._id)}
+        sx={{
+          position: 'absolute',
+          top:"3px", // Adjust the position as needed
+          color: '#192959',
+         
+          
+          '&:hover': { color: '#33416b' },
+        }}
+      >
+        {bookmarkStatuses[activity._id] ? (
+          <BookmarkIcon /> // Filled icon if bookmarked
+        ) : (
+          <BookmarkBorderOutlinedIcon /> // Outlined icon if not bookmarked
+        )}
+      </IconButton>
+    </Tooltip>
+
+  {activity.BookingOpen ? (
+    <Button
+      variant="contained"
+      onClick={() => handleBookActivity(activity.Name)}
+      sx={{
+        backgroundColor: '#192959',
+        color: '#fff',
+        '&:hover': { backgroundColor: '#33416b' },
+      }}
+    >
+      Book
+    </Button>
+  ) : (
+    <Button
+    variant="outlined"
+    startIcon={<NotificationsActiveOutlinedIcon />}
+    onClick={() => handleNotifyMe(activity.Name,activity._id)}
+    disabled={subscriptionStatus[activity._id]} // Access status by hp._id
+    sx={{
+      backgroundColor: !subscriptionStatus[activity._id] ? '#192959' : '#f3f4f6', // Dynamic color
+      color: !subscriptionStatus[activity._id] ? '#fff' : '#aaa', // Dynamic text color
+      '&:hover': { backgroundColor: !subscriptionStatus[activity._id] ? '#33416b' : '#f3f4f6' },
+    }}
+  >
+    Notify Me
+  </Button>
+  )}
+
+
+</Box>
 
 
 

@@ -46,6 +46,8 @@ import IosShareIcon from '@mui/icons-material/IosShare';
 import ShareIcon from '@mui/icons-material/Share';
 import LanguageIcon from '@mui/icons-material/Language';
 import BookmarkIcon from '@mui/icons-material/Bookmark';
+import NotificationsActiveOutlinedIcon from '@mui/icons-material/NotificationsActiveOutlined';
+
 import axios from 'axios';
 
 function TouristUpcomingMuseums() {
@@ -88,7 +90,7 @@ const [convertedPrices, setConvertedPrices] = useState({});
 const [currency, setCurrency] = useState('EGP'); // Default currency is EGP
 const [expanded, setExpanded] = useState({});
 const [bookmarkStatuses, setBookmarkStatuses] = useState({});
-
+const [subscriptionStatus, setSubscriptionStatus] = useState({});
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -120,6 +122,39 @@ const [bookmarkStatuses, setBookmarkStatuses] = useState({});
     return () => window.removeEventListener('scroll', handleScroll);
   }, [searchQuery]); // Depend on `searchQuery` to refetch activities when it changes
 
+  const fetchSubscriptionStatus = async () => {
+    const username = localStorage.getItem('username'); // Current user's username
+    if (!username) return;
+  
+    const newSubscriptionStatus = {};
+  
+    await Promise.all(
+      museums.map(async (museum) => {
+        try {
+          const response = await axios.get('/api/checkTouristSubscription', {
+            params:{username:username,
+            eventName: museum.name,
+            eventType: "Museum"},
+          });
+  
+          // Save subscription status with hp._id as the key
+          newSubscriptionStatus[museum._id] = response.data.message.includes('is subscribed');
+        } catch (error) {
+          console.error(`Error checking subscription for ${museum._id}:`, error);
+          newSubscriptionStatus[museum._id] = false; // Default to not subscribed in case of error
+        }
+      })
+    );
+  
+    setSubscriptionStatus(newSubscriptionStatus);
+  };
+
+  useEffect(() => {
+    if (museums.length > 0) {
+      fetchSubscriptionStatus();
+    }
+  }, [museums]);
+    
 
   useEffect(() => {
     if (currency !== 'EGP') {
@@ -424,7 +459,29 @@ const [bookmarkStatuses, setBookmarkStatuses] = useState({});
   };
 
 
-
+  const handleNotifyMe = async (museumName,eventId) => {
+    const username = localStorage.getItem('username'); // Replace this with the actual username (e.g., from context or state)
+  
+    if (!username) {
+      alert('Please log in to subscribe to notifications.');
+      return;
+    }
+  
+    try {
+      const response = await axios.put('/addNotificationSubscriberMuseum', {
+        username,
+        museumName,
+      });
+      setSubscriptionStatus((prevStatus) => ({
+        ...prevStatus,
+        [eventId]: true, // Mark this event as subscribed
+      }));
+      //alert(response.data.message); // Show success message
+    } catch (error) {
+      console.error('Error subscribing to notifications:', error);
+      alert(error.response?.data?.error || 'An error occurred while subscribing to notifications.');
+    }
+  };
  
   
   return (
@@ -1151,6 +1208,12 @@ const [bookmarkStatuses, setBookmarkStatuses] = useState({});
               </Typography>
             </Box>
           </Box>
+          <Box sx={styles.bookingOpenContainer}>
+                <Box sx={{...styles.infoContainer, backgroundColor: '#f3f4f6'}}>
+                  <Typography variant="body2" sx={{ fontWeight: 'bold' }}>Booking Open:</Typography>
+                  <Typography variant="body2">{museum.BookingOpen ? 'Yes' : 'No'}</Typography>
+                </Box>
+              </Box>
         </Box>
 
         {/* Divider */}
@@ -1220,67 +1283,87 @@ const [bookmarkStatuses, setBookmarkStatuses] = useState({});
           {renderRating(museum.Ratings || 0)}
         </Box>
 
-        {/* Book Button */}
-        <Button
-          variant="contained"
-          onClick={() => handleBookMuseum(museum.name)}
-          sx={{
-            position: 'absolute',
-            top: '60px', // Position at the top
-            right: '60px', // Position at the right
-            backgroundColor: '#192959',
-            color: '#fff',
-            '&:hover': { backgroundColor: '#33416b' },
-          }}
-        >
-          Book
-        </Button>
-
-        {/* Share Button */}
-        <Tooltip title="Share" arrow>
-          <IconButton
-            onClick={() => handleOpenShareModal(museum.name)}
-            sx={{
-              position: 'absolute',
-              top: '60px',
-              right: '140px',
-              color: '#192959',
-              '&:hover': {
-                color: '#33416b',
-              },
-            }}
-          >
-            <IosShareIcon />
-          </IconButton>
-        </Tooltip>
+    
+        <Box
+  sx={{
+    position: 'absolute',
+    top: '60px',
+    right: '60px',
+    display: 'flex',
+    flexDirection: 'row', // Arrange buttons in a row
+    alignItems: 'center', // Align buttons vertically centered
+    gap: 5, // Add spacing between icons
+  }}
+>
 
 
-         
-         {/* Bookmark Button */}
-  <Tooltip
-    title={bookmarkStatuses[museum._id] ? 'Remove Bookmark' : 'Add to Bookmark'}
-    arrow
-  >
+<Tooltip title="Share" arrow>
     <IconButton
-      onClick={() => handleToggleBookmark(museum.name, museum._id)}
+      onClick={() => handleOpenShareModal(museum.name)}
       sx={{
-        position: 'absolute',
-        top: '62px',
-        right: '180px',
         color: '#192959',
-        '&:hover': {
-          color: '#33416b',
-        },
+        left:"35px",
+        '&:hover': { color: '#33416b' },
       }}
     >
-      {bookmarkStatuses[museum._id] ? (
-        <BookmarkIcon />
-      ) : (
-        <BookmarkBorderOutlinedIcon />
-      )}
+      <IosShareIcon />
     </IconButton>
   </Tooltip>
 
+   {/* Bookmark Button */}
+ <Tooltip
+      title={bookmarkStatuses[museum._id] ? 'Remove Bookmark' : 'Add to Bookmark'}
+      arrow
+    >
+      <IconButton
+        onClick={() => handleToggleBookmark(museum.name, museum._id)}
+        sx={{
+          position: 'absolute',
+          top:"3px", // Adjust the position as needed
+          color: '#192959',
+         
+          
+          '&:hover': { color: '#33416b' },
+        }}
+      >
+        {bookmarkStatuses[museum._id] ? (
+          <BookmarkIcon /> // Filled icon if bookmarked
+        ) : (
+          <BookmarkBorderOutlinedIcon /> // Outlined icon if not bookmarked
+        )}
+      </IconButton>
+    </Tooltip>
+
+  {museum.BookingOpen ? (
+    <Button
+      variant="contained"
+      onClick={() => handleBookMuseum(museum.name)}
+      sx={{
+        backgroundColor: '#192959',
+        color: '#fff',
+        '&:hover': { backgroundColor: '#33416b' },
+      }}
+    >
+      Book
+    </Button>
+  ) : (
+    <Button
+    variant="outlined"
+    startIcon={<NotificationsActiveOutlinedIcon />}
+    onClick={() => handleNotifyMe(museum.name,museum._id)}
+    disabled={subscriptionStatus[museum._id]} // Access status by hp._id
+    sx={{
+      backgroundColor: !subscriptionStatus[museum._id] ? '#192959' : '#f3f4f6', // Dynamic color
+      color: !subscriptionStatus[museum._id] ? '#fff' : '#aaa', // Dynamic text color
+      '&:hover': { backgroundColor: !subscriptionStatus[museum._id] ? '#33416b' : '#f3f4f6' },
+    }}
+  >
+    Notify Me
+  </Button>
+  )}
+
+
+</Box>
 
       
       </Box>
@@ -1659,7 +1742,7 @@ const styles = {
   },
   museumRating: {
     position: 'absolute',
-    bottom: '60px',
+    bottom: '80px',
     right: '60px',
     display: 'flex',
     flexDirection: 'column',

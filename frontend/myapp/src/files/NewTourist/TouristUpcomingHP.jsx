@@ -567,7 +567,7 @@ const navigate = useNavigate();
     }
   };
   
-  const handleNotifyMe = async (historicalPlaceName) => {
+  const handleNotifyMe = async (historicalPlaceName,eventId) => {
     const username = localStorage.getItem('username'); // Replace this with the actual username (e.g., from context or state)
   
     if (!username) {
@@ -580,8 +580,11 @@ const navigate = useNavigate();
         username,
         historicalPlaceName,
       });
-  
-      alert(response.data.message); // Show success message
+      setSubscriptionStatus((prevStatus) => ({
+        ...prevStatus,
+        [eventId]: true, // Mark this event as subscribed
+      }));
+      //alert(response.data.message); // Show success message
     } catch (error) {
       console.error('Error subscribing to notifications:', error);
       alert(error.response?.data?.error || 'An error occurred while subscribing to notifications.');
@@ -1598,10 +1601,6 @@ const navigate = useNavigate();
 >
 
 
-  
-  
-
-
 <Tooltip title="Share" arrow>
     <IconButton
       onClick={() => handleOpenShareModal(hp.name)}
@@ -1655,7 +1654,7 @@ const navigate = useNavigate();
     <Button
     variant="outlined"
     startIcon={<NotificationsActiveOutlinedIcon />}
-    onClick={() => handleNotifyMe(hp.name)}
+    onClick={() => handleNotifyMe(hp.name,hp._id)}
     disabled={subscriptionStatus[hp._id]} // Access status by hp._id
     sx={{
       backgroundColor: !subscriptionStatus[hp._id] ? '#192959' : '#f3f4f6', // Dynamic color
