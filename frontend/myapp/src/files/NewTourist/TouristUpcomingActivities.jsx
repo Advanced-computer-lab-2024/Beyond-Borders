@@ -45,6 +45,8 @@ import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import IosShareIcon from '@mui/icons-material/IosShare';
 import ShareIcon from '@mui/icons-material/Share';
 import LanguageIcon from '@mui/icons-material/Language';
+import BookmarkIcon from '@mui/icons-material/Bookmark';
+
 import axios from 'axios';
 
 function TouristUpcomingActivities() {
@@ -85,6 +87,8 @@ const [sharedLink, setSharedLink] = useState(''); // Shared link state
 const [currentActivityName, setCurrentActivityName] = useState(''); // Trac
 const [convertedPrices, setConvertedPrices] = useState({});
 const [currency, setCurrency] = useState('EGP'); // Default currency is EGP
+const [bookmarkStatuses, setBookmarkStatuses] = useState({});
+
 
   const navigate = useNavigate();
 
@@ -145,17 +149,79 @@ const [currency, setCurrency] = useState('EGP'); // Default currency is EGP
     setConvertedPrices(newConvertedPrices);
   };
   
-  
-  
-
-  const fetchActivities = async () => {
+  const checkBookmarkStatus = async (eventName) => {
+    const username = localStorage.getItem("username");
     try {
-      const response = await axios.get('/api/ViewAllUpcomingActivities');
-      setActivities(response.data);
+      const response = await axios.get("/api/checkIfInBookmarkedEvents", {
+        params: { touristUsername: username, eventName },
+      });
+      return response.data.inBookmarkedEvents;
     } catch (error) {
-      console.error('Error fetching activities:', error);
+      console.error("Error checking bookmark status:", error);
+      return false;
     }
   };
+  
+  const handleToggleBookmark = async (eventName, activityId) => {
+    const username = localStorage.getItem("username");
+  
+    if (!username) {
+      alert("Please log in to bookmark activities.");
+      return;
+    }
+  
+    try {
+      // Check current bookmark status
+      const isCurrentlyBookmarked = bookmarkStatuses[activityId];
+  
+      if (isCurrentlyBookmarked) {
+        // Handle removing the bookmark
+        await axios.post("/removeFromBookmarkedEvents", {
+          touristUsername: username,
+          eventName,
+        });
+      } else {
+        // Handle adding the bookmark
+        await axios.put("/addBookmark", { touristUsername: username, eventName });
+      }
+  
+      // Update bookmark status dynamically
+      setBookmarkStatuses((prev) => ({
+        ...prev,
+        [activityId]: !isCurrentlyBookmarked,
+      }));
+  
+      alert(
+        isCurrentlyBookmarked
+          ? "Bookmark removed successfully!"
+          : "Bookmark added successfully!"
+      );
+    } catch (error) {
+      console.error("Error toggling bookmark:", error);
+      alert("An error occurred while updating your bookmark.");
+    }
+  };
+  
+  
+  const fetchActivities = async () => {
+    try {
+      const response = await axios.get("/api/ViewAllUpcomingActivities");
+      const fetchedActivities = response.data;
+  
+      // Fetch bookmark status for each activity
+      const bookmarkStatuses = {};
+      for (const activity of fetchedActivities) {
+        const isBookmarked = await checkBookmarkStatus(activity.Name);
+        bookmarkStatuses[activity._id] = isBookmarked; // Use activity ID to track status
+      }
+  
+      setBookmarkStatuses(bookmarkStatuses); // Update state with bookmark statuses
+      setActivities(fetchedActivities); // Set activities state
+    } catch (error) {
+      console.error("Error fetching activities:", error);
+    }
+  };
+  
 
   const searchActivities = async (query) => {
     try {
@@ -1148,6 +1214,8 @@ const [currency, setCurrency] = useState('EGP'); // Default currency is EGP
         </Button>
         <Tooltip title="Share" arrow>
 
+
+
         <IconButton
     onClick={() => handleOpenShareModal(activity.Name)} // Pass activity name
     sx={{
@@ -1164,6 +1232,35 @@ const [currency, setCurrency] = useState('EGP'); // Default currency is EGP
   </IconButton>
   
 </Tooltip>
+
+
+
+          {/* Bookmark Button */}
+          <Tooltip
+    title={
+      bookmarkStatuses[activity._id]
+        ? "Remove Bookmark"
+        : "Add to Bookmark"
+    }
+    arrow
+  >
+    <IconButton
+      onClick={() => handleToggleBookmark(activity.Name, activity._id)}
+      sx={{
+        position: "absolute",
+        top: "63px",
+        right: "190px",
+        color: "#192959",
+        "&:hover": { color: "#33416b" },
+      }}
+    >
+      {bookmarkStatuses[activity._id] ? (
+        <BookmarkIcon /> // Filled icon for bookmarked
+      ) : (
+        <BookmarkBorderOutlinedIcon /> // Outlined icon for not bookmarked
+      )}
+    </IconButton>
+  </Tooltip>
 
 
 

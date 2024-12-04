@@ -45,6 +45,7 @@ import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import IosShareIcon from '@mui/icons-material/IosShare';
 import ShareIcon from '@mui/icons-material/Share';
 import LanguageIcon from '@mui/icons-material/Language';
+import BookmarkIcon from '@mui/icons-material/Bookmark';
 import axios from 'axios';
 
 function TouristUpcomingMuseums() {
@@ -86,6 +87,7 @@ const [currentMuseumName, setCurrentMuseumName] = useState(''); // Trac
 const [convertedPrices, setConvertedPrices] = useState({});
 const [currency, setCurrency] = useState('EGP'); // Default currency is EGP
 const [expanded, setExpanded] = useState({});
+const [bookmarkStatuses, setBookmarkStatuses] = useState({});
 
   const navigate = useNavigate();
 
@@ -162,12 +164,23 @@ const [expanded, setExpanded] = useState({});
 
   const fetchMuseums = async () => {
     try {
-      const response = await axios.get('/api/ViewAllUpcomingMuseumEventsTourist');
-      setMuseums(response.data);
+      const response = await axios.get("/api/ViewAllUpcomingMuseumEventsTourist");
+      const fetchedMuseums = response.data;
+  
+      // Fetch bookmark status for each museum
+      const bookmarkStatuses = {};
+      for (const museum of fetchedMuseums) {
+        const isBookmarked = await checkBookmarkStatus(museum.name);
+        bookmarkStatuses[museum._id] = isBookmarked; // Use museum ID to track status
+      }
+  
+      setBookmarkStatuses(bookmarkStatuses); // Update state with bookmark statuses
+      setMuseums(fetchedMuseums); // Set museums state
     } catch (error) {
-      console.error('Error fetching museums:', error);
+      console.error("Error fetching museums:", error);
     }
   };
+  
 
   const toggleReadMore = (index) => {
     setExpanded((prev) => ({
@@ -301,6 +314,61 @@ const [expanded, setExpanded] = useState({});
       alert('Failed to copy link.');
     });
   };
+
+
+  //bookmark
+  const checkBookmarkStatus = async (eventName) => {
+    const username = localStorage.getItem("username");
+    try {
+      const response = await axios.get("/api/checkIfInBookmarkedEvents", {
+        params: { touristUsername: username, eventName },
+      });
+      return response.data.inBookmarkedEvents; // Returns true/false
+    } catch (error) {
+      console.error("Error checking bookmark status:", error);
+      return false;
+    }
+  };
+
+  const handleToggleBookmark = async (eventName, museumId) => {
+    const username = localStorage.getItem("username");
+  
+    if (!username) {
+      alert("Please log in to bookmark museums.");
+      return;
+    }
+  
+    try {
+      const isCurrentlyBookmarked = bookmarkStatuses[museumId];
+  
+      if (isCurrentlyBookmarked) {
+        // Remove bookmark
+        await axios.post("/removeFromBookmarkedEvents", {
+          touristUsername: username,
+          eventName,
+        });
+      } else {
+        // Add bookmark
+        await axios.put("/addBookmark", { touristUsername: username, eventName });
+      }
+  
+      // Update bookmark statuses dynamically
+      setBookmarkStatuses((prev) => ({
+        ...prev,
+        [museumId]: !isCurrentlyBookmarked,
+      }));
+  
+      alert(
+        isCurrentlyBookmarked
+          ? "Bookmark removed successfully!"
+          : "Bookmark added successfully!"
+      );
+    } catch (error) {
+      console.error("Error toggling bookmark:", error);
+      alert("An error occurred while updating your bookmark.");
+    }
+  };
+  
   
 
   
@@ -1102,7 +1170,7 @@ const [expanded, setExpanded] = useState({});
             display: 'flex',
             flexDirection: 'column',
             gap: '10px',
-            paddingRight: '100px', // Add padding to avoid overlap with buttons
+            paddingRight: '80px', // Add padding to avoid overlap with buttons
             alignItems: 'flex-start',
           }}
         >
@@ -1185,7 +1253,39 @@ const [expanded, setExpanded] = useState({});
             <IosShareIcon />
           </IconButton>
         </Tooltip>
+
+
+         
+         {/* Bookmark Button */}
+  <Tooltip
+    title={bookmarkStatuses[museum._id] ? 'Remove Bookmark' : 'Add to Bookmark'}
+    arrow
+  >
+    <IconButton
+      onClick={() => handleToggleBookmark(museum.name, museum._id)}
+      sx={{
+        position: 'absolute',
+        top: '62px',
+        right: '180px',
+        color: '#192959',
+        '&:hover': {
+          color: '#33416b',
+        },
+      }}
+    >
+      {bookmarkStatuses[museum._id] ? (
+        <BookmarkIcon />
+      ) : (
+        <BookmarkBorderOutlinedIcon />
+      )}
+    </IconButton>
+  </Tooltip>
+
+
+      
       </Box>
+
+
 
       {/* Comments Section */}
       <Box sx={styles.commentsSection}>
