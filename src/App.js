@@ -424,7 +424,7 @@ app.put("/payHPStripe",payHPStripe);
 app.post("/sendOtp",sendOtp);
 app.post("/loginTouristOTP",loginTouristOTP);
 app.put("/addBookmark",addBookmark);
-app.get("/viewBookmarks",viewBookmarks);
+app.get("/api/viewBookmarks",viewBookmarks);
 app.post("/addToWishList",addToWishList);
 app.get("/api/viewMyWishlist",viewMyWishlist);
 app.post("/removeFromWishlist",removeFromWishlist);
