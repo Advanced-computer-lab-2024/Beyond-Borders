@@ -49,6 +49,7 @@ import PriorityHighIcon from '@mui/icons-material/PriorityHigh'; // Icon for gen
 import NotificationImportantIcon from '@mui/icons-material/NotificationImportant';
 import DoneAllIcon from '@mui/icons-material/DoneAll';
 import NotificationsActiveOutlinedIcon from '@mui/icons-material/NotificationsActiveOutlined';
+import BookmarkIcon from '@mui/icons-material/Bookmark';
 import axios from 'axios';
 
 function TouristUpcomingHP() {
@@ -68,6 +69,7 @@ function TouristUpcomingHP() {
   const [transportationOpen, setTransportationOpen] = useState(false);
   const [productsOpen, setProductsOpen] = useState(false);
   const [complaintsOpen, setComplaintsOpen] = useState(false);
+  const [bookmarkStatuses, setBookmarkStatuses] = useState({});
   //search bar
   const [searchQuery, setSearchQuery] = useState(''); // Search query state
   //filter activities
@@ -193,12 +195,23 @@ const navigate = useNavigate();
   
   const fetchHistoricalPlaces = async () => {
     try {
-      const response = await axios.get('/api/ViewAllUpcomingHistoricalPlacesEventsTourist');
-      setHPs(response.data);
+      const response = await axios.get("/api/ViewAllUpcomingHistoricalPlacesEventsTourist");
+      const fetchedHistoricalPlaces = response.data;
+  
+      // Fetch bookmark status for each historical place
+      const bookmarkStatuses = {};
+      for (const hp of fetchedHistoricalPlaces) {
+        const isBookmarked = await checkBookmarkStatus(hp.name);
+        bookmarkStatuses[hp._id] = isBookmarked; // Use historical place ID to track status
+      }
+  
+      setBookmarkStatuses(bookmarkStatuses); // Update state with bookmark statuses
+      setHPs(fetchedHistoricalPlaces); // Set historical places state
     } catch (error) {
-      console.error('Error fetching hps:', error);
+      console.error("Error fetching historical places:", error);
     }
   };
+  
 
   const handleToggleDescription = (index) => {
     setExpanded((prev) => ({
@@ -274,6 +287,10 @@ const navigate = useNavigate();
       setFilterModalOpen(false);
     }
   };
+
+
+  
+    
 
 
   // const handleSortChange = async (event) => {
@@ -532,6 +549,55 @@ const navigate = useNavigate();
     } catch (error) {
       console.error('Error subscribing to notifications:', error);
       alert(error.response?.data?.error || 'An error occurred while subscribing to notifications.');
+    }
+  };
+
+  //bookmark
+  const handleToggleBookmark = async (eventName, activityId) => {
+    const username = localStorage.getItem('username');
+  
+    if (!username) {
+      alert('Please log in to bookmark historical places.');
+      return;
+    }
+  
+    try {
+      const isCurrentlyBookmarked = bookmarkStatuses[activityId];
+  
+      if (isCurrentlyBookmarked) {
+        await axios.post('/removeFromBookmarkedEvents', {
+          touristUsername: username,
+          eventName,
+        });
+      } else {
+        await axios.put('/addBookmark', { touristUsername: username, eventName });
+      }
+  
+      setBookmarkStatuses((prev) => ({
+        ...prev,
+        [activityId]: !isCurrentlyBookmarked,
+      }));
+  
+      alert(
+        isCurrentlyBookmarked
+          ? 'Bookmark removed successfully!'
+          : 'Bookmark added successfully!'
+      );
+    } catch (error) {
+      console.error('Error toggling bookmark:', error);
+      alert('An error occurred while updating your bookmark.');
+    }
+  };
+  const checkBookmarkStatus = async (eventName) => {
+    const username = localStorage.getItem('username'); // Retrieve username
+    try {
+      const response = await axios.get('/api/checkIfInBookmarkedEvents', {
+        params: { touristUsername: username, eventName }, // Pass username and event name as query params
+      });
+      return response.data.inBookmarkedEvents; // Return true/false
+    } catch (error) {
+      console.error('Error checking bookmark status:', error);
+      return false; // Default to not bookmarked if an error occurs
     }
   };
   
@@ -1489,23 +1555,53 @@ const navigate = useNavigate();
     top: '60px',
     right: '60px',
     display: 'flex',
-    flexDirection: 'row', // Stack buttons vertically
-    alignItems: 'flex-end',  // Align buttons to the right
-    gap: 1, // Add spacing between buttons
+    flexDirection: 'row', // Arrange buttons in a row
+    alignItems: 'center', // Align buttons vertically centered
+    gap: 5, // Add spacing between icons
   }}
 >
+
+
+  
+  
+
 
 <Tooltip title="Share" arrow>
     <IconButton
       onClick={() => handleOpenShareModal(hp.name)}
       sx={{
         color: '#192959',
+        left:"35px",
         '&:hover': { color: '#33416b' },
       }}
     >
       <IosShareIcon />
     </IconButton>
   </Tooltip>
+
+   {/* Bookmark Button */}
+ <Tooltip
+      title={bookmarkStatuses[hp._id] ? 'Remove Bookmark' : 'Add to Bookmark'}
+      arrow
+    >
+      <IconButton
+        onClick={() => handleToggleBookmark(hp.name, hp._id)}
+        sx={{
+          position: 'absolute',
+          top:"3px", // Adjust the position as needed
+          color: '#192959',
+         
+          
+          '&:hover': { color: '#33416b' },
+        }}
+      >
+        {bookmarkStatuses[hp._id] ? (
+          <BookmarkIcon /> // Filled icon if bookmarked
+        ) : (
+          <BookmarkBorderOutlinedIcon /> // Outlined icon if not bookmarked
+        )}
+      </IconButton>
+    </Tooltip>
 
   {hp.BookingOpen ? (
     <Button
@@ -1534,7 +1630,11 @@ const navigate = useNavigate();
     </Button>
   )}
 
+
 </Box>
+
+
+
 
 
 
