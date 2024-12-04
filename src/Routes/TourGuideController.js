@@ -709,4 +709,157 @@ const getTouristsByItineraryAndMonth = async (req, res) => {
   }
 };
 
-module.exports = {ReadTourGuideProfile , UpdateTourGuideEmail , UpdateTourGuidePassword, UpdateTourGuideMobileNum , UpdateTourGuideYearsofExperience ,UpdateTourGuidePreviousWork ,createItineraryAsTourGuide,readItineraryAsTourGuide,updateItineraryAsTourGuide,deleteItineraryAsTourGuide, updateTourGuideProfile,loginTourGuide,getItenrarysByTourGuide, deactivateItinerary,activateItinerary, viewMyDeactivatedItinerariesTourGuide, decrementLoginCountTourGuide,requestDeleteAccountTourGuide, allNotificationsReadtg, areAllNotificationsReadtg, getAdvertiserNotificationstg, calculateTourGuideRevenue, getUsersWhoBookedItinerary, getRevenueFromItinerary, filterTourGuideItineraries, getTouristsByItineraryAndMonth};
+const getHighestRevenueItinerary = async (req, res) => {
+  const { username } = req.query;
+
+  if (!username) {
+    return res.status(400).json({ error: 'Tour guide username is required' });
+  }
+
+  try {
+    // Step 1: Get the current month and year
+    const now = new Date();
+    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1); // Start of current month
+    const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0); // End of current month
+
+    // Step 2: Find all itineraries authored by the tour guide
+    const itineraries = await Itinerary.find({
+      AuthorUsername: username,
+      Date: { $gte: monthStart, $lte: monthEnd }, // Filter itineraries for the current month
+    });
+
+    if (itineraries.length === 0) {
+      return res.status(404).json({ message: 'No itineraries found for this tour guide in the current month' });
+    }
+
+    let highestRevenueItinerary = null;
+    let highestRevenue = 0;
+
+    // Step 3: Iterate through each itinerary to calculate its revenue
+    for (const itinerary of itineraries) {
+      const bookedItineraryName = itinerary.Title;
+
+      // Find all tourists who booked this itinerary
+      const tourists = await Tourist.find({
+        'BookedItineraries.ItineraryName': bookedItineraryName,
+        'BookedItineraries.booked': true,
+        'BookedItineraries.DateOfBooking': {
+          $gte: monthStart,
+          $lte: monthEnd, // Filter bookings within the current month
+        },
+      });
+
+      // Calculate revenue for the itinerary
+      const revenue = tourists.length * itinerary.Price;
+
+      // Check if this is the highest revenue-generating itinerary
+      if (revenue > highestRevenue) {
+        highestRevenue = revenue;
+        highestRevenueItinerary = itinerary.Title;
+      }
+    }
+
+    // Step 4: Respond with the highest revenue itinerary
+    res.status(200).json({
+      tourGuideUsername: username,
+      highestRevenueItinerary,
+      revenue: highestRevenue,
+    });
+  } catch (error) {
+    console.error('Error fetching highest revenue itinerary:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+const calculateCurrentMonthRevenue = async (req, res) => {
+  const { username } = req.query;
+
+  if (!username) {
+    return res.status(400).json({ error: 'Tour guide username is required' });
+  }
+
+  try {
+    // Step 1: Get the current month and year
+    const now = new Date();
+    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1); // Start of the current month
+    const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0); // End of the current month
+
+    // Step 2: Find all itineraries authored by the tour guide
+    const itineraries = await Itinerary.find({
+      AuthorUsername: username,
+      Date: { $gte: monthStart, $lte: monthEnd }, // Filter itineraries for the current month
+    });
+
+    if (itineraries.length === 0) {
+      return res.status(404).json({ message: 'No itineraries found for this tour guide in the current month' });
+    }
+
+    let totalRevenue = 0;
+
+    // Step 3: Iterate through each itinerary to calculate revenue
+    for (const itinerary of itineraries) {
+      const bookedItineraryName = itinerary.Title;
+
+      // Find all tourists who booked this itinerary
+      const tourists = await Tourist.find({
+        'BookedItineraries.ItineraryName': bookedItineraryName,
+        'BookedItineraries.booked': true,
+        'BookedItineraries.DateOfBooking': {
+          $gte: monthStart,
+          $lte: monthEnd, // Filter bookings within the current month
+        },
+      });
+
+      // Calculate revenue for the itinerary
+      const revenue = tourists.length * itinerary.Price;
+      totalRevenue += revenue; // Add to the total revenue
+    }
+
+    // Step 4: Respond with the total revenue
+    res.status(200).json({
+      tourGuideUsername: username,
+      totalRevenue,
+    });
+  } catch (error) {
+    console.error('Error calculating revenue for the current month:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+const getTotalTouristsForTourGuide = async (req, res) => {
+  const { username } = req.query;
+
+  if (!username) {
+    return res.status(400).json({ error: 'Tour guide username is required' });
+  }
+
+  try {
+    // Step 1: Find all itineraries created by the tour guide
+    const itineraries = await Itinerary.find({ AuthorUsername: username });
+
+    if (!itineraries.length) {
+      return res.status(404).json({ message: 'No itineraries found for this tour guide' });
+    }
+
+    // Step 2: Get the titles of all itineraries created by this tour guide
+    const itineraryTitles = itineraries.map(itinerary => itinerary.Title);
+
+    // Step 3: Count the total number of tourists who booked any of these itineraries
+    const totalTourists = await Tourist.countDocuments({
+      'BookedItineraries.ItineraryName': { $in: itineraryTitles },
+      'BookedItineraries.booked': true,
+    });
+
+    // Step 4: Respond with the total number of tourists
+    res.status(200).json({
+      tourGuideUsername: username,
+      totalTourists,
+    });
+  } catch (error) {
+    console.error('Error fetching tourist count:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+module.exports = {ReadTourGuideProfile , UpdateTourGuideEmail , UpdateTourGuidePassword, UpdateTourGuideMobileNum , UpdateTourGuideYearsofExperience ,UpdateTourGuidePreviousWork ,createItineraryAsTourGuide,readItineraryAsTourGuide,updateItineraryAsTourGuide,deleteItineraryAsTourGuide, updateTourGuideProfile,loginTourGuide,getItenrarysByTourGuide, deactivateItinerary,activateItinerary, viewMyDeactivatedItinerariesTourGuide, 
+  decrementLoginCountTourGuide,requestDeleteAccountTourGuide, allNotificationsReadtg, areAllNotificationsReadtg, getAdvertiserNotificationstg, calculateTourGuideRevenue, getUsersWhoBookedItinerary, getRevenueFromItinerary, filterTourGuideItineraries, getTouristsByItineraryAndMonth, getHighestRevenueItinerary, calculateCurrentMonthRevenue, getTotalTouristsForTourGuide};
