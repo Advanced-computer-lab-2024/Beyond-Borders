@@ -99,6 +99,7 @@ const [expanded, setExpanded] = React.useState({});
 const [notifications, setNotifications] = useState([]);
 const [isNotificationsSidebarOpen, setNotificationsSidebarOpen] = useState(false);
 const [allNotificationsRead, setAllNotificationsRead] = useState(true);
+const [subscriptionStatus, setSubscriptionStatus] = useState({});
 const navigate = useNavigate();
   useEffect(() => {
     // Function to handle fetching or searching activities
@@ -160,6 +161,41 @@ const navigate = useNavigate();
   //   );
   //   setConvertedPrices(newConvertedPrices);
   // };
+
+  const fetchSubscriptionStatus = async () => {
+    const username = localStorage.getItem('username'); // Current user's username
+    if (!username) return;
+  
+    const newSubscriptionStatus = {};
+  
+    await Promise.all(
+      HPs.map(async (hp) => {
+        try {
+          const response = await axios.get('/api/checkTouristSubscription', {
+            params:{username:username,
+            eventName: hp.name,
+            eventType: "HistoricalPlace"},
+          });
+  
+          // Save subscription status with hp._id as the key
+          newSubscriptionStatus[hp._id] = response.data.message.includes('is subscribed');
+        } catch (error) {
+          console.error(`Error checking subscription for ${hp._id}:`, error);
+          newSubscriptionStatus[hp._id] = false; // Default to not subscribed in case of error
+        }
+      })
+    );
+  
+    setSubscriptionStatus(newSubscriptionStatus);
+  };
+
+  useEffect(() => {
+    if (HPs.length > 0) {
+      fetchSubscriptionStatus();
+    }
+  }, [HPs]);
+    
+
 
   const convertActivityPrices = async () => {
     const newConvertedPrices = {};
@@ -1616,18 +1652,19 @@ const navigate = useNavigate();
       Book
     </Button>
   ) : (
-        <Button
-      variant="outlined"
-      startIcon={<NotificationsActiveOutlinedIcon />} // Add icon to the left of the text
-      onClick={() => handleNotifyMe(hp.name)}
-      sx={{
-        backgroundColor: '#192959',
-        color: '#fff',
-        '&:hover': { backgroundColor: '#33416b' },
-      }}
-    >
-      Notify Me
-    </Button>
+    <Button
+    variant="outlined"
+    startIcon={<NotificationsActiveOutlinedIcon />}
+    onClick={() => handleNotifyMe(hp.name)}
+    disabled={subscriptionStatus[hp._id]} // Access status by hp._id
+    sx={{
+      backgroundColor: !subscriptionStatus[hp._id] ? '#192959' : '#f3f4f6', // Dynamic color
+      color: !subscriptionStatus[hp._id] ? '#fff' : '#aaa', // Dynamic text color
+      '&:hover': { backgroundColor: !subscriptionStatus[hp._id] ? '#33416b' : '#f3f4f6' },
+    }}
+  >
+    Notify Me
+  </Button>
   )}
 
 
