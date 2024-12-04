@@ -47,6 +47,7 @@ import ShareIcon from '@mui/icons-material/Share';
 import LanguageIcon from '@mui/icons-material/Language';
 import DescriptionIcon from '@mui/icons-material/Description';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
+import ShoppingBagIcon from '@mui/icons-material/ShoppingBag';
 import axios from 'axios';
 
 function TouristComplaints() {
@@ -599,6 +600,16 @@ const [newComplaint, setNewComplaint] = useState({
           <BedIcon sx={styles.icon} />
           {sidebarOpen && 'Hotels'}
         </Button>
+
+        <Button onClick={() => navigate('/TouristComplaints')} sx={styles.sidebarButton}>
+          <AssignmentIcon sx={styles.icon} />
+          {sidebarOpen && 'Complaints'}
+        </Button>
+
+        <Button onClick={() => navigate('/TouristOrders')} sx={styles.sidebarButton}>
+          <ShoppingBagIcon sx={styles.icon} />
+          {sidebarOpen && 'Orders'}
+        </Button>
         <Box>
   <Button
     onClick={() => setProductsOpen(!productsOpen)} // Toggle dropdown for products
@@ -941,54 +952,7 @@ const [newComplaint, setNewComplaint] = useState({
   )}
 </Box>
 <Box>
-  <Button
-    onClick={() => setComplaintsOpen(!complaintsOpen)} // Toggle dropdown for complaints
-    sx={styles.sidebarButton}
-  >
-    <AssignmentIcon sx={styles.icon} /> {/* Complaints Icon */}
-    {sidebarOpen && (
-      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
-        Complaints
-        {complaintsOpen ? (
-          <KeyboardArrowUpIcon sx={{ fontSize: '18px', marginLeft: '5px' }} />
-        ) : (
-          <KeyboardArrowDownIcon sx={{ fontSize: '18px', marginLeft: '5px' }} />
-        )}
-      </Box>
-    )}
-  </Button>
-  {complaintsOpen && (
-    <Box sx={{ display: 'flex', flexDirection: 'column', marginLeft: sidebarOpen ? '20px' : '0px' }}>
-      {/* View All Complaints */}
-      <Button
-        onClick={() => navigate('/view-all-complaints')}
-        sx={{
-          ...styles.sidebarButton,
-          fontSize: '14px',
-          paddingLeft: sidebarOpen ? '20px' : '10px',
-          padding: '5px 20px',
-        }}
-      >
-        <AddIcon sx={{ fontSize: '18px', marginRight: '10px' }} />
-        {sidebarOpen && 'File Complaint'}
-      </Button>
-      
-      {/* My Submitted Complaints */}
-      <Button
-        onClick={() => navigate('/my-submitted-complaints')}
-        sx={{
-          ...styles.sidebarButton,
-          fontSize: '14px',
-          paddingLeft: sidebarOpen ? '20px' : '10px',
-          padding: '5px 20px',
-        }}
-      >
-        <FeedbackIcon sx={{ fontSize: '18px', marginRight: '10px' }} /> {/* Feedback Icon */}
-        {sidebarOpen && 'My Complaints'}
-      </Button>
-    </Box>
-    
-  )}
+
   <Button onClick={() => navigate('/NewTouristHomePage')} sx={styles.sidebarButton}>
           <DashboardIcon sx={styles.icon} />
           {sidebarOpen && 'Back to Dashboard'}

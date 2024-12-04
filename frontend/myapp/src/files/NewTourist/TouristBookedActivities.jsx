@@ -47,6 +47,7 @@ import ShareIcon from '@mui/icons-material/Share';
 import LanguageIcon from '@mui/icons-material/Language';
 import CancelIcon from '@mui/icons-material/Cancel';
 import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined';
+import ShoppingBagIcon from '@mui/icons-material/ShoppingBag';
 
 
 import axios from 'axios';
@@ -558,6 +559,18 @@ const [selectedActivity, setSelectedActivity] = useState(null);
           <BedIcon sx={styles.icon} />
           {sidebarOpen && 'Hotels'}
         </Button>
+
+        <Button onClick={() => navigate('/TouristComplaints')} sx={styles.sidebarButton}>
+          <AssignmentIcon sx={styles.icon} />
+          {sidebarOpen && 'Complaints'}
+        </Button>
+
+        <Button onClick={() => navigate('/TouristOrders')} sx={styles.sidebarButton}>
+          <ShoppingBagIcon sx={styles.icon} />
+          {sidebarOpen && 'Orders'}
+        </Button>
+
+        
         <Box>
   <Button
     onClick={() => setProductsOpen(!productsOpen)} // Toggle dropdown for products
@@ -579,7 +592,7 @@ const [selectedActivity, setSelectedActivity] = useState(null);
     <Box sx={{ display: 'flex', flexDirection: 'column', marginLeft: sidebarOpen ? '20px' : '0px' }}>
       {/* My Purchased Products */}
       <Button
-        onClick={() => navigate('/my-purchased-products')}
+        onClick={() => navigate('/TouristPurchasedProducts')}
         sx={{
           ...styles.sidebarButton,
           fontSize: '14px',
@@ -593,7 +606,7 @@ const [selectedActivity, setSelectedActivity] = useState(null);
       
       {/* View All Products */}
       <Button
-        onClick={() => navigate('/view-all-products')}
+       onClick={() => navigate('/TouristAllProducts')}
         sx={{
           ...styles.sidebarButton,
           fontSize: '14px',
@@ -654,7 +667,7 @@ const [selectedActivity, setSelectedActivity] = useState(null);
                 </Button>
 
                 <Button
-                onClick={() => navigate('/my-booked-activities')}
+                onClick={() => navigate('/TouristBookedActivities')}
                 sx={{
                     ...styles.sidebarButton,
                     fontSize: '14px',
@@ -702,7 +715,7 @@ const [selectedActivity, setSelectedActivity] = useState(null);
         {sidebarOpen && 'Upcoming '}
       </Button>
       <Button
-        onClick={() => navigate('/completed-itineraries')}
+        onClick={() => navigate('/TouristCompletedItineraries')}
         sx={{
           ...styles.sidebarButton,
           fontSize: '14px',
@@ -714,7 +727,7 @@ const [selectedActivity, setSelectedActivity] = useState(null);
         {sidebarOpen && 'Completed '}
       </Button>
       <Button
-        onClick={() => navigate('/my-booked-itineraries')}
+         onClick={() => navigate('TouristBookedItineraries')}
         sx={{
           ...styles.sidebarButton,
           fontSize: '14px',
@@ -749,7 +762,7 @@ const [selectedActivity, setSelectedActivity] = useState(null);
   {historicalPlacesOpen && (
     <Box sx={{ display: 'flex', flexDirection: 'column', marginLeft: sidebarOpen ? '20px' : '0px' }}>
       <Button
-        onClick={() => navigate('/upcoming-historical-places')}
+         onClick={() => navigate('/TouristUpcomingHP')}
         sx={{
           ...styles.sidebarButton,
           fontSize: '14px',
@@ -761,7 +774,7 @@ const [selectedActivity, setSelectedActivity] = useState(null);
         {sidebarOpen && 'Upcoming '}
       </Button>
       <Button
-        onClick={() => navigate('/visited-historical-places')}
+         onClick={() => navigate('/TouristCompletedHPs')}
         sx={{
           ...styles.sidebarButton,
           fontSize: '14px',
@@ -773,7 +786,7 @@ const [selectedActivity, setSelectedActivity] = useState(null);
         {sidebarOpen && 'Visited '}
       </Button>
       <Button
-        onClick={() => navigate('/saved-historical-places')}
+        onClick={() => navigate('/TouristBookedHP')}
         sx={{
           ...styles.sidebarButton,
           fontSize: '14px',
@@ -836,7 +849,7 @@ const [selectedActivity, setSelectedActivity] = useState(null);
       
       {/* Saved Museums */}
       <Button
-        onClick={() => navigate('/saved-museums')}
+        onClick={() => navigate('/TouristBookedMuseum')}
         sx={{
           ...styles.sidebarButton,
           fontSize: '14px',
@@ -871,7 +884,7 @@ const [selectedActivity, setSelectedActivity] = useState(null);
     <Box sx={{ display: 'flex', flexDirection: 'column', marginLeft: sidebarOpen ? '20px' : '0px' }}>
       {/* Available Transportation */}
       <Button
-        onClick={() => navigate('/available-transportation')}
+        onClick={() => navigate('/TouristAllTransportation')}
         sx={{
           ...styles.sidebarButton,
           fontSize: '14px',
@@ -885,7 +898,7 @@ const [selectedActivity, setSelectedActivity] = useState(null);
       
       {/* Booked Transportation */}
       <Button
-        onClick={() => navigate('/booked-transportation')}
+         onClick={() => navigate('/TouristBookedTransportation')}
         sx={{
           ...styles.sidebarButton,
           fontSize: '14px',
@@ -900,54 +913,8 @@ const [selectedActivity, setSelectedActivity] = useState(null);
   )}
 </Box>
 <Box>
-  <Button
-    onClick={() => setComplaintsOpen(!complaintsOpen)} // Toggle dropdown for complaints
-    sx={styles.sidebarButton}
-  >
-    <AssignmentIcon sx={styles.icon} /> {/* Complaints Icon */}
-    {sidebarOpen && (
-      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
-        Complaints
-        {complaintsOpen ? (
-          <KeyboardArrowUpIcon sx={{ fontSize: '18px', marginLeft: '5px' }} />
-        ) : (
-          <KeyboardArrowDownIcon sx={{ fontSize: '18px', marginLeft: '5px' }} />
-        )}
-      </Box>
-    )}
-  </Button>
-  {complaintsOpen && (
-    <Box sx={{ display: 'flex', flexDirection: 'column', marginLeft: sidebarOpen ? '20px' : '0px' }}>
-      {/* View All Complaints */}
-      <Button
-        onClick={() => navigate('/view-all-complaints')}
-        sx={{
-          ...styles.sidebarButton,
-          fontSize: '14px',
-          paddingLeft: sidebarOpen ? '20px' : '10px',
-          padding: '5px 20px',
-        }}
-      >
-        <AddIcon sx={{ fontSize: '18px', marginRight: '10px' }} />
-        {sidebarOpen && 'File Complaint'}
-      </Button>
-      
-      {/* My Submitted Complaints */}
-      <Button
-        onClick={() => navigate('/my-submitted-complaints')}
-        sx={{
-          ...styles.sidebarButton,
-          fontSize: '14px',
-          paddingLeft: sidebarOpen ? '20px' : '10px',
-          padding: '5px 20px',
-        }}
-      >
-        <FeedbackIcon sx={{ fontSize: '18px', marginRight: '10px' }} /> {/* Feedback Icon */}
-        {sidebarOpen && 'My Complaints'}
-      </Button>
-    </Box>
-    
-  )}
+  
+  
   <Button onClick={() => navigate('/NewTouristHomePage')} sx={styles.sidebarButton}>
           <DashboardIcon sx={styles.icon} />
           {sidebarOpen && 'Back to Dashboard'}
