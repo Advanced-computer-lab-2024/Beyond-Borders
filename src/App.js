@@ -354,7 +354,7 @@ app.put("/api/allNotificationsTouristRead", allNotificationsTouristRead);
 app.get("/api/areAllTouristNotificationsRead", areAllTouristNotificationsRead);
 app.get("/api/getTouristNotifications", getTouristNotifications);
 app.get("/api/getTouristCartDetails", getTouristCartDetails);
-app.get("/checkTouristSubscription",checkTouristSubscription);
+app.get("/api/checkTouristSubscription",checkTouristSubscription);
 //app.post("/createNewActivity", createNewActivity);
 //Tour Guide
 //app.post("/addTourGuide",createTourGuide);

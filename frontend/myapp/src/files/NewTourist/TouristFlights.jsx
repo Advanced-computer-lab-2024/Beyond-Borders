@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Box,Checkbox, Button, Typography, IconButton, Dialog, DialogActions, DialogContent, DialogContentText, Modal, TextField, Divider, FormControlLabel  } from '@mui/material';
+import { Box,Checkbox, Button, Typography, IconButton, Dialog, DialogActions, DialogContent, DialogContentText, Modal, TextField, Divider, FormControlLabel, CircularProgress,  } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import MenuIcon from '@mui/icons-material/Menu';
 import NotificationsIcon from '@mui/icons-material/Notifications';
@@ -97,6 +97,8 @@ const [errorMessage, setErrorMessage] = useState('');
   const [adults, setAdults] = useState('');
   const [directFlight, setDirectFlight] = useState(false); // Single state for the checkbox
   const [flightOffers, setFlightOffers] = useState([]);
+  const [loading, setLoading] = useState(false);
+
 
   const [productsOpen, setProductsOpen] = useState(false);
   const [activitiesOpen, setActivitiesOpen] = useState(false);
@@ -136,9 +138,9 @@ const [errorMessage, setErrorMessage] = useState('');
   };
 
   const handleSearchFlights = async () => {
+    setLoading(true);
+    setErrorMessage(""); // Clear previous errors
     try {
-      setErrorMessage(""); // Clear previous errors
-  
       // Fetch city codes for origin and destination
       const [originCode, destinationCode] = await Promise.all([
         fetchCityCode(origin),
@@ -158,6 +160,8 @@ const [errorMessage, setErrorMessage] = useState('');
       setFlightOffers(response.data); // Set the flight offers to the state
     } catch (error) {
       setErrorMessage(error.response?.data?.msg || "An error occurred while searching for flights.");
+    } finally {
+      setLoading(false);
     }
   };
   
@@ -614,23 +618,40 @@ const [errorMessage, setErrorMessage] = useState('');
 </Tooltip>
         </Box>
       </Box>
+      {loading && (
+  <Box
+    sx={{
+      position: 'fixed',
+      top: '70%',
+      left: '50%',
+      transform: 'translate(-50%, -50%)',
+      zIndex: 999, // Ensure it overlays other elements
+    }}
+  >
+    <CircularProgress />
+  </Box>
+)}
   
       {/* Search Box */}
       <Box
         sx={{
           padding: '20px',
-          maxWidth: '1200px',
-          margin: '0 auto',
-          backgroundColor: '#fff',
-          borderRadius: '10px',
-          boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.2)',
-          marginTop: '40px', // Space between search box and containers
+  maxWidth: '90%',
+  margin: '0 auto',
+  backgroundColor: 'rgba(255, 255, 255, 0.2)', // Translucent white background
+  borderRadius: '10px',
+  boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.2)',
+  position: 'relative',
+  marginTop: flightOffers.length > 0 ? '20px' : '300px',
+  transition: 'margin-top 0.5s ease',
+  zIndex: 2,
+  backdropFilter: 'blur(5px)', 
         }}
       >
-        <Typography
-          variant="h5"
-          sx={{ marginBottom: '20px', color: '#192959', fontWeight: 'bold', textAlign: 'center' }}
-        >
+       <Typography
+      variant="h5"
+      sx={{ marginBottom: '20px', color: '#192959', fontWeight: 'bold', textAlign: 'center' }}
+    >
           Flights
         </Typography>
         <Box
@@ -717,13 +738,15 @@ const [errorMessage, setErrorMessage] = useState('');
           </Typography>
         )}
       </Box>
+      
   
 {/* Flight Offers */}
 <Box
   sx={{
-    marginTop: '70px', // Additional space from the top
+    marginTop: '150px', // Adjust based on space requirement
     width: '80%',
     margin: '0 auto',
+    backdropFilter: 'blur(10px)',
   }}
 >
   {flightOffers.length > 0 && (
@@ -880,7 +903,7 @@ const [errorMessage, setErrorMessage] = useState('');
         color: '#192959',
       }}
     >
-      Total Price: {flightGroup[0].price} {flightGroup[0].currency}
+    {flightGroup[0].price} {flightGroup[0].currency}
     </Typography>
   </Box>
   <Button
@@ -2297,6 +2320,7 @@ const styles = {
     textAlign: 'center',
     boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.1)',
   },
+  
   
 };
 
