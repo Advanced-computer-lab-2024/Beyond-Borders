@@ -7179,7 +7179,7 @@ const getTouristCartDetails = async (req, res) => {
 
 // Function to check if the tourist is subscribed to notifications
 const checkTouristSubscription = async (req, res) => {
-  const { username, eventName, eventType } = req.body; // Get values from req.body
+  const { username, eventName, eventType } = req.query; // Get values from req.body
 
   if (!username || !eventName || !eventType) {
     return res.status(400).json({ error: 'Username, event name, and event type are required.' });
