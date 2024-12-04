@@ -108,6 +108,8 @@ import YTourGuideDashboard from './files/TourGuide/YTourGuideDashboard';
 
 import YAdminProductsPage from './files/Admin/YAdminProductsPage';
 import AddProductModal from './files/Admin/AddProductModal';
+import YTourGuideSalesPage from './files/TourGuide/YTourGuideSalesPage';
+
 
 import GuestItinerariesPage from './files/Guest/GuestItinerariesPage';
 import YSellerDashboard from './files/Seller/YSellerDashboard';
@@ -187,6 +189,8 @@ function App() {
           <Route path="/AdminComplaintsModal" element={<AdminComplaintsModal/>}/>
           <Route path="/AdminArchivedProducts" element={<AdminArchivedProducts/>}/>
           <Route path="/AdminDeleteRequest" element={<AdminDeleteRequestsModal/>}/>
+          <Route path="/YTourGuideSalesPage" element={<YTourGuideSalesPage/>}/>
+
 
           <Route path="/CompletedItineraries" element={<CompletedItineraries/>}/>
           <Route path="/CompletedActivity" element={<CompletedActivity/>}/>
