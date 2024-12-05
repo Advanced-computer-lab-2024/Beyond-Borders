@@ -395,7 +395,7 @@ const [subscriptionStatus, setSubscriptionStatus] = useState({});
     }
   };
   //book
-  const handleBookItinerary = async (itineraryName) => {
+  const handleBookItinerary = async (itinerary) => {
     const touristUsername = localStorage.getItem('username'); // Assuming username is stored in localStorage
     
     if (!touristUsername) {
@@ -405,10 +405,20 @@ const [subscriptionStatus, setSubscriptionStatus] = useState({});
   
     try {
       // Make a POST request to book the itinerary
-      const response = await axios.put('/bookItinerary', { touristUsername, itineraryName });
-  
-      // Navigate to the payment page on success
-      navigate('/TouristPaymentPage');
+      const response = await axios.put('/bookItinerary', { touristUsername, itineraryName :itinerary.Title});
+      if (response.status === 201) {
+        const { ticketPrice } = response.data;
+       // alert(`Event booked successfully!`);
+        navigate('/TouristEventsPrePaymentPage', {
+          state: {
+            type: 'itinerary', // Specify type as activity
+            name: itinerary.Title, // Pass the activity name
+            totalCost: itinerary.Price, // Include the total cost for payment processing
+          },
+        });
+      } else {
+        alert(response.data.msg || 'Failed to book activity.');
+      }
     } catch (error) {
       alert(error.response?.data?.msg || 'An error occurred while booking the itinerary.');
     }
@@ -1587,7 +1597,7 @@ const [subscriptionStatus, setSubscriptionStatus] = useState({});
   {activity.BookingOpen ? (
     <Button
       variant="contained"
-      onClick={() => handleBookItinerary(activity.Title)}
+      onClick={() => handleBookItinerary(activity)}
       sx={{
         backgroundColor: '#192959',
         color: '#fff',

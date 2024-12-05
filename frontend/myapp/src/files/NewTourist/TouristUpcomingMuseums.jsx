@@ -286,7 +286,7 @@ const [subscriptionStatus, setSubscriptionStatus] = useState({});
   };
   
   //book
-  const handleBookMuseum = async (museumName) => {
+  const handleBookMuseum = async (museum) => {
     const touristUsername = localStorage.getItem('username'); // Assuming username is stored in localStorage
   
     if (!touristUsername) {
@@ -295,8 +295,21 @@ const [subscriptionStatus, setSubscriptionStatus] = useState({});
     }
   
     try {
-      const response = await axios.put('/bookMuseum', { touristUsername, museumName });
-      navigate('/TouristPaymentPage');
+      const response = await axios.put('/bookMuseum', { touristUsername, museumName:museum.name});
+      if (response.status === 201) {
+        const { ticketPrice } = response.data;
+       // alert(`Event booked successfully!`);
+        navigate('/TouristEventsPrePaymentPage', {
+          state: {
+            type: 'museum', // Specify type as activity
+            name: museum.name, // Pass the activity name
+            totalCost:ticketPrice, // Include the total cost for payment processing
+          },
+        });
+      } else {
+        alert(response.data.msg || 'Failed to book activity.');
+      }
+      
     } catch (error) {
       alert(error.response?.data?.msg || 'An error occurred while booking the activity.');
     }
@@ -1337,7 +1350,7 @@ const [subscriptionStatus, setSubscriptionStatus] = useState({});
   {museum.BookingOpen ? (
     <Button
       variant="contained"
-      onClick={() => handleBookMuseum(museum.name)}
+      onClick={() => handleBookMuseum(museum)}
       sx={{
         backgroundColor: '#192959',
         color: '#fff',
