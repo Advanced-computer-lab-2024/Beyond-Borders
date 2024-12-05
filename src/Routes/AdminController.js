@@ -1904,10 +1904,58 @@ const getTotalUsersByMonth = async (req, res) => {
   }
 };
 
+const loginUser = async (req, res) => {
+  try {
+    const { username, password } = req.body;
+
+    // Validate input
+    if (!username || !password) {
+      return res.status(400).json({ error: "Username and password are required." });
+    }
+
+    // List of models and their corresponding user types
+    const userModels = [
+      { model: AllTouristModel, type: "Tourist" },
+      { model: NewAcceptedAdvertiserModel, type: "Advertiser" },
+      { model: NewAcceptedTourGuideModel, type: "TourGuide" },
+      { model: NewAcceptedSellerModel, type: "Seller" },
+      { model: NewTourismGoverner, type: "TourismGovernor" },
+      { model: NewAdminModel, type: "Admin" },
+      { model: NewAcceptedTransportationAdvertiserModel, type: "TransportationAdvertiser" },
+    ];
+
+    // Loop through each model to find the user
+    for (const { model, type } of userModels) {
+      const user = await model.findOne({ Username: username });
+      if (user) {
+        // Check if the password matches
+        if (user.Password !== password) {
+          return res.status(401).json({ error: "Invalid password." });
+        }
+
+        // Increment LoginCount if it exists
+        if (user.LoginCount !== undefined) {
+          user.LoginCount = (user.LoginCount || 0) + 1;
+          await user.save();
+        }
+
+        // Successful authentication
+        return res.status(200).json({ message: "Login successful!", userType: type, user });
+      }
+    }
+
+    // If no user is found
+    return res.status(401).json({ error: "Invalid username." });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+};
+
+
 
 module.exports = {createNewAdmin, createNewTourismGoverner, createNewProduct, editProduct, acceptSeller, rejectSeller, createNewCategory, readAllActivityCategories, updateCategory, deleteActivityCategory, deleteAccount, searchProductAdmin, createNewTag, readAllTags, updateTag, deleteTag, 
     acceptTourGuide, rejectTourGuide, acceptAdvertiser, rejectAdvertiser, filterProductByPriceAdmin, sortProductsDescendingAdmin, sortProductsAscendingAdmin,viewProducts, loginAdmin, viewAllProductsAdmin, updateAdminPassword, getAllComplaints, updateComplaintStatus, replyToComplaint, getComplaintDetails, 
     filterComplaintsByStatus, sortComplaintsByRecent, sortComplaintsByOldest, archiveProduct, unarchiveProduct, flagItinerary, flagActivity, viewArchivedProductsAdmin , viewAllActivitiesAdmin ,viewAllItinerariesAdmin,acceptTranspAdvertiser,rejectTranspAdvertiser, readAllDeleteRequests,rejectRequestDeleteAccout,
     getAdminPassword,viewAdvertiserDocument,viewTourGuideDocuments,viewSellerDocument,getAllUnregisteredAdvertisers,getAllUnregisteredTourGuides,getAllUnregisteredSellers,getAllUnregisteredTransportationAdvertisers,  createPromoCode, getTotalTourists, getTouristsByMonth
-    , getTotalTourismGovernors, getTourismGovernorsByMonth, getTotalTourGuides, getTourGuidesByMonth, getTotalSellers, getSellersByMonth, getTotalAdvertisers, getAdvertisersByMonth, getTotalTransportationAdvertisers, getTransportationAdvertisersByMonth, getTotalUsers, getTotalUsersByMonth
+    , getTotalTourismGovernors, getTourismGovernorsByMonth, getTotalTourGuides, getTourGuidesByMonth, getTotalSellers, getSellersByMonth, getTotalAdvertisers, getAdvertisersByMonth, getTotalTransportationAdvertisers, getTransportationAdvertisersByMonth, getTotalUsers, getTotalUsersByMonth, loginUser
   };
