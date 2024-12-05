@@ -21,6 +21,9 @@ const stripe = Stripe('sk_test_51QLqHGP7Sjm96OcqEPPQmxSyVbLV9L7Rnj9v67b7lvTT37QG
 const ItineraryModel = require('../Models/Itinerary.js');
 const DeactivatedItinerariesModel = require('../Models/DeactivatedItineraries.js');
 const AdvertiserModel = require('../Models/Advertiser.js');
+const NewAcceptedSellerModel = require('../Models/AcceptedSeller.js');
+const NewAdminModel = require('../Models/Admin.js');
+const NewTourismGoverner = require('../Models/TourismGoverner.js');
 const OrderCounterModel = require('../Models/OrderCounter.js'); 
 const OrderModel = require('../Models/Orders.js');
 const UserOTPModel = require('../Models/UserOTP.js');
@@ -5321,72 +5324,345 @@ const viewMyBookedTransportation = async (req, res) => {
   }
 };
 
-const sendOtp = async (req, res) => {
-  const { touristUsername } = req.body;
+// const findUserTypeByUsername = async (req, res) => {
+//   const { username } = req.query;
+
+//   if (!username) {
+//     return res.status(400).json({ error: "Username is required." });
+//   }
+
+//   // List of models and their corresponding user types
+//   const userModels = [
+//     { model: TouristModel, type: "Tourist" },
+//     { model: AdvertiserModel, type: "Advertiser" },
+//     { model: TourGuideModel, type: "TourGuide" },
+//     { model: NewAcceptedSellerModel, type: "Seller" },
+//     { model: NewTourismGoverner, type: "TourismGovernor" },
+//     { model: NewAdminModel, type: "Admin" },
+//     { model: TransportationAdvertiserModel, type: "TransportationAdvertiser" },
+//   ];
+
+//   try {
+//     // Loop through each model
+//     for (const { model, type } of userModels) {
+//       const user = await model.findOne({ Username: username });
+//       if (user) {
+//         return res.status(200).json({ username, userType: type });
+//       }
+//     }
+
+//     // If the username is not found in any model
+//     return res.status(404).json({ error: "User not found." });
+//   } catch (error) {
+//     console.error("Error finding user type:", error);
+//     return res.status(500).json({ error: "Internal server error." });
+//   }
+// };
+
+// const sendOtp = async (req, res) => {
+//   const { touristUsername } = req.body;
+
+//   try {
+//     // Find the tourist by username to get their email
+//     const tourist = await TouristModel.findOne({ Username: touristUsername });
+//     if (!tourist) {
+//       throw new Error('Tourist not found');
+//     }
+
+//     const email = tourist.Email;
+
+//     // Generate a 6-digit OTP
+//     const otp = Math.floor(100000 + Math.random() * 900000);
+
+//     // Check if the Username already exists in UserOTP
+//     let userOtpEntry = await UserOTPModel.findOne({ Username: touristUsername });
+    
+//     if (userOtpEntry) {
+//       // Update the OTP if the Username exists
+//       userOtpEntry.OTP = otp;
+//       await userOtpEntry.save();
+//     } else {
+//       // Create a new UserOTP entry if the Username doesn't exist
+//       userOtpEntry = new UserOTPModel({
+//         Username: touristUsername,
+//         OTP: otp
+//       });
+//       await userOtpEntry.save();
+//     }
+
+//     // Set up the email transporter
+//     const transporter = nodemailer.createTransport({
+//       service: 'gmail', // Adjust based on your email provider
+//       auth: {
+//         user: 'malook25062003@gmail.com', // Your email
+//         pass: 'sxvo feuu woie gpfn'        // Your email password or app-specific password
+//       },
+//     });
+
+//     // Configure the email options
+//     const mailOptions = {
+//       from: process.env.EMAIL_USER,
+//       to: email,
+//       subject: 'Your OTP Code',
+//       text: `Dear ${touristUsername},
+
+//           Here is your OTP code: ${otp}
+
+//           Please use this code to proceed.
+
+//           Best regards,
+//           Beyond Borders`
+//     };
+
+//     // Send the email
+//     await transporter.sendMail(mailOptions);
+
+//     console.log('OTP sent:', otp);
+
+//     res.status(200).json({ msg: 'OTP sent successfully' });
+//   } catch (error) {
+//     console.error('Error sending OTP:', error);
+//     res.status(500).json({ error: 'Failed to send OTP' });
+//   }
+//};
+
+const findUserTypeAndModel = async (username) => {
+  if (!username) {
+    throw new Error("Username is required.");
+  }
+
+  // List of models and their corresponding user types
+  const userModels = [
+    { model: TouristModel, type: "Tourist" },
+    { model: AdvertiserModel, type: "Advertiser" },
+    { model: TourGuideModel, type: "TourGuide" },
+    { model: NewAcceptedSellerModel, type: "Seller" },
+    { model: NewTourismGoverner, type: "TourismGovernor" },
+    { model: NewAdminModel, type: "Admin" },
+    { model: TransportationAdvertiserModel, type: "TransportationAdvertiser" },
+  ];
+
+  for (const { model, type } of userModels) {
+    const user = await model.findOne({ Username: username });
+    if (user) {
+      return { user, userType: type };
+    }
+  }
+
+  throw new Error("User not found.");
+};
+
+// Route handler for HTTP requests
+const findUserTypeByUsername = async (req, res) => {
+  const { username } = req.query;
 
   try {
-    // Find the tourist by username to get their email
-    const tourist = await TouristModel.findOne({ Username: touristUsername });
-    if (!tourist) {
-      throw new Error('Tourist not found');
+    const { user, userType } = await findUserTypeAndModel(username);
+    res.status(200).json({ username: user.Username, userType });
+  } catch (error) {
+    console.error("Error finding user type:", error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+// const sendOtp = async (req, res) => {
+//   const { username } = req.body; // Use `username` instead of `touristUsername` for flexibility
+
+//   if (!username) {
+//     return res.status(400).json({ error: "Username is required." });
+//   }
+
+//   try {
+//     // Step 1: Call `findUserTypeByUsername` to get the user type and model
+//     const userResponse = await findUserTypeByUsername({ query: { username } });
+
+//     if (userResponse.status !== 200) {
+//       return res.status(userResponse.status).json({ error: userResponse.data.error });
+//     }
+
+//     const { userType } = userResponse.data;
+
+//     // Step 2: Handle email based on user type
+//     let email;
+//     if (userType === "Admin" || userType === "TourismGovernor") {
+//       email = "yassinotifa04@gmail.com"; // Hardcoded email for Admin and TourismGovernor
+//     } else {
+//       // Retrieve email dynamically for other user types
+//       const userModels = {
+//         Tourist: TouristModel,
+//         Advertiser: AdvertiserModel,
+//         TourGuide: TourGuideModel,
+//         Seller: NewAcceptedSellerModel,
+//         TransportationAdvertiser: TransportationAdvertiserModel,
+//       };
+
+//       const userModel = userModels[userType];
+//       if (!userModel) {
+//         return res.status(400).json({ error: "Unsupported user type." });
+//       }
+
+//       const user = await userModel.findOne({ Username: username });
+//       if (!user || !user.Email) {
+//         return res.status(404).json({ error: "User email not found." });
+//       }
+
+//       email = user.Email;
+//     }
+
+//     // Step 3: Generate OTP and store it
+//     const otp = Math.floor(100000 + Math.random() * 900000);
+
+//     let userOtpEntry = await UserOTPModel.findOne({ Username: username });
+//     if (userOtpEntry) {
+//       userOtpEntry.OTP = otp;
+//       await userOtpEntry.save();
+//     } else {
+//       userOtpEntry = new UserOTPModel({
+//         Username: username,
+//         OTP: otp,
+//       });
+//       await userOtpEntry.save();
+//     }
+
+//     // Step 4: Set up email transporter
+//     const transporter = nodemailer.createTransport({
+//       service: "gmail",
+//       auth: {
+//         user: "malook25062003@gmail.com",
+//         pass: "sxvo feuu woie gpfn", // Ensure this is an environment variable in production
+//       },
+//     });
+
+//     // Step 5: Configure and send the email
+//     const mailOptions = {
+//       from: process.env.EMAIL_USER || "malook25062003@gmail.com",
+//       to: email,
+//       subject: "Your OTP Code",
+//       text: `Dear ${username},
+
+//           Here is your OTP code: ${otp}
+
+//           Please use this code to proceed.
+
+//           Best regards,
+//           Beyond Borders`,
+//     };
+
+//     await transporter.sendMail(mailOptions);
+
+//     console.log("OTP sent:", otp);
+//     res.status(200).json({ msg: "OTP sent successfully" });
+//   } catch (error) {
+//     console.error("Error sending OTP:", error);
+//     res.status(500).json({ error: "Failed to send OTP" });
+//   }
+// };
+
+const sendOtp = async (req, res) => {
+  const { username } = req.body;
+
+  if (!username) {
+    return res.status(400).json({ error: "Username is required." });
+  }
+
+  try {
+    // Find user type and email
+    const { user, userType } = await findUserTypeAndModel(username);
+
+    // Determine email
+    let email;
+    if (userType === "Admin" || userType === "TourismGovernor") {
+      email = "yassinotifa04@gmail.com"; // Hardcoded email for Admin and TourismGovernor
+    } else if (user.Email) {
+      email = user.Email;
+    } else {
+      throw new Error("User email not found.");
     }
 
-    const email = tourist.Email;
-
-    // Generate a 6-digit OTP
+    // Generate OTP
     const otp = Math.floor(100000 + Math.random() * 900000);
 
     // Check if the Username already exists in UserOTP
-    let userOtpEntry = await UserOTPModel.findOne({ Username: touristUsername });
-    
+    let userOtpEntry = await UserOTPModel.findOne({ Username: username });
     if (userOtpEntry) {
-      // Update the OTP if the Username exists
       userOtpEntry.OTP = otp;
       await userOtpEntry.save();
     } else {
-      // Create a new UserOTP entry if the Username doesn't exist
       userOtpEntry = new UserOTPModel({
-        Username: touristUsername,
-        OTP: otp
+        Username: username,
+        OTP: otp,
       });
       await userOtpEntry.save();
     }
 
-    // Set up the email transporter
+    // Set up email transporter
     const transporter = nodemailer.createTransport({
-      service: 'gmail', // Adjust based on your email provider
+      service: "gmail",
       auth: {
-        user: 'malook25062003@gmail.com', // Your email
-        pass: 'sxvo feuu woie gpfn'        // Your email password or app-specific password
+        user: "malook25062003@gmail.com",
+        pass: "sxvo feuu woie gpfn", // Use an environment variable in production
       },
     });
 
-    // Configure the email options
+    // Configure and send the email
     const mailOptions = {
-      from: process.env.EMAIL_USER,
+      from: process.env.EMAIL_USER || "malook25062003@gmail.com",
       to: email,
-      subject: 'Your OTP Code',
-      text: `Dear ${touristUsername},
+      subject: "Your OTP Code",
+      text: `Dear ${username},
 
           Here is your OTP code: ${otp}
 
           Please use this code to proceed.
 
           Best regards,
-          Beyond Borders`
+          Beyond Borders`,
     };
 
-    // Send the email
     await transporter.sendMail(mailOptions);
 
-    console.log('OTP sent:', otp);
-
-    res.status(200).json({ msg: 'OTP sent successfully' });
+    console.log("OTP sent:", otp);
+    res.status(200).json({ msg: "OTP sent successfully" });
   } catch (error) {
-    console.error('Error sending OTP:', error);
-    res.status(500).json({ error: 'Failed to send OTP' });
+    console.error("Error sending OTP:", error);
+    res.status(500).json({ error: error.message });
   }
 };
+
+
+
+// const loginTouristOTP = async (req, res) => {
+//   try {
+//     const { username, OTP } = req.body;
+
+//     // Validate input
+//     if (!username || !OTP) {
+//       return res.status(400).json({ error: "Username and OTP are required." });
+//     }
+
+//     // Find the tourist by username
+//     const tourist = await TouristModel.findOne({ Username: username });
+//     if (!tourist) {
+//       return res.status(401).json({ error: "Invalid username." });
+//     }
+
+//     // Find the OTP entry for the username
+//     const userOTP = await UserOTPModel.findOne({ Username: username });
+//     if (!userOTP) {
+//       return res.status(401).json({ error: "OTP not found. Please request a new one." });
+//     }
+
+//     // Check if the OTP matches
+//     if (userOTP.OTP !== parseInt(OTP)) { // Ensure both are numbers for comparison
+//       return res.status(401).json({ error: "Invalid OTP." });
+//     }
+
+//     // Successful authentication
+//     res.status(200).json({ message: "Login successful!", tourist });
+//   } catch (error) {
+//     res.status(400).json({ error: error.message });
+//   }
+// };
 
 const loginTouristOTP = async (req, res) => {
   try {
@@ -5395,12 +5671,6 @@ const loginTouristOTP = async (req, res) => {
     // Validate input
     if (!username || !OTP) {
       return res.status(400).json({ error: "Username and OTP are required." });
-    }
-
-    // Find the tourist by username
-    const tourist = await TouristModel.findOne({ Username: username });
-    if (!tourist) {
-      return res.status(401).json({ error: "Invalid username." });
     }
 
     // Find the OTP entry for the username
@@ -5415,7 +5685,7 @@ const loginTouristOTP = async (req, res) => {
     }
 
     // Successful authentication
-    res.status(200).json({ message: "Login successful!", tourist });
+    res.status(200).json({ message: "Login successful!"});
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
