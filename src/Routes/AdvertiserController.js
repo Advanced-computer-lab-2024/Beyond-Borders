@@ -615,5 +615,191 @@ const getAdvertiserNotifications = async (req, res) => {
   }
 };
 
+const calculateAdvertiserRevenue = async (req, res) => {
+  const { username } = req.query;
+
+  if (!username) {
+    return res.status(400).json({ error: 'Advertiser username is required' });
+  }
+
+  try {
+    // Step 1: Find all activities created by the advertiser
+    const activities = await ActivityModel.find({ AdvertiserName: username });
+
+    if (activities.length === 0) {
+      return res.status(404).json({ message: 'No activities found for this advertiser' });
+    }
+
+    let totalRevenue = 0;
+
+    // Step 2: Traverse through each activity to calculate revenue
+    for (const activity of activities) {
+      const activityName = activity.Name;
+
+      // Find all tourists who have booked this activity
+      const tourists = await TouristModel.find({
+        'BookedActivities.activityName': activityName,
+        'BookedActivities.booked': true,
+      });
+
+      // Calculate revenue for this activity
+      const activityRevenue = tourists.length * activity.Price;
+      totalRevenue += activityRevenue;
+    }
+
+    // Step 3: Respond with the total revenue
+    res.status(200).json({
+      advertiserUsername: username,
+      totalRevenue,
+    });
+  } catch (error) {
+    console.error('Error calculating revenue:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+const getUsersWhoBookedActivity = async (req, res) => {
+  const { username, name } = req.query;
+
+  if (!username || !name) {
+    return res.status(400).json({ error: 'Advertiser username and activity name are required' });
+  }
+
+  try {
+    // Find the activity created by the given advertiser and matching the name
+    const activity = await ActivityModel.findOne({ AdvertiserName: username, Name: name });
+
+    if (!activity) {
+      return res.status(404).json({ message: 'Activity not found' });
+    }
+
+    // Find all tourists who have booked this activity
+    const tourists = await TouristModel.find({
+      'BookedActivities.activityName': name,
+      'BookedActivities.booked': true,
+    });
+
+    res.status(200).json({
+      activityName: name,
+      numberOfUsersBooked: tourists.length,
+    });
+  } catch (error) {
+    console.error('Error fetching booking data:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+const getRevenueFromActivity = async (req, res) => {
+  const { username, name } = req.query;
+
+  if (!username || !name) {
+    return res.status(400).json({ error: 'Advertiser username and activity name are required' });
+  }
+
+  try {
+    // Find the activity created by the given advertiser and matching the name
+    const activity = await ActivityModel.findOne({ AdvertiserName: username, Name: name });
+
+    if (!activity) {
+      return res.status(404).json({ message: 'Activity not found' });
+    }
+
+    // Find all tourists who have booked this activity
+    const tourists = await TouristModel.find({
+      'BookedActivities.activityName': name,
+      'BookedActivities.booked': true,
+    });
+
+    // Calculate total revenue
+    const totalRevenue = tourists.length * activity.Price;
+
+    res.status(200).json({
+      activityName: name,
+      totalRevenue,
+    });
+  } catch (error) {
+    console.error('Error calculating revenue:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+const filterAdvertiserActivities = async (req, res) => {
+  const { username, name, date, month } = req.query;
+
+  if (!username) {
+    return res.status(400).json({ error: 'Advertiser username is required' });
+  }
+
+  try {
+    // Build the query dynamically
+    const query = { AdvertiserName: username };
+
+    if (name) {
+      query.Name = { $regex: name, $options: 'i' }; // Case-insensitive match
+    }
+
+    if (date) {
+      query.Date = new Date(date); // Exact date match
+    }
+
+    if (month) {
+      const year = new Date().getFullYear(); // Default to current year
+      const startOfMonth = new Date(year, month - 1, 1); // Start of the month
+      const endOfMonth = new Date(year, month, 0); // End of the month
+      query.Date = { $gte: startOfMonth, $lte: endOfMonth }; // Match the month range
+    }
+
+    // Execute the query
+    const activities = await ActivityModel.find(query);
+
+    if (activities.length === 0) {
+      return res.status(404).json({ message: 'No activities found matching the criteria' });
+    }
+
+    // Return the filtered activities
+    res.status(200).json(activities);
+  } catch (error) {
+    console.error('Error filtering activities:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+const getTotalTouristsForAdvertiser = async (req, res) => {
+  const { username } = req.query;
+
+  if (!username) {
+    return res.status(400).json({ error: 'Advertiser username is required' });
+  }
+
+  try {
+    // Step 1: Find all activities created by the advertiser
+    const activities = await ActivityModel.find({ AdvertiserName: username });
+
+    if (activities.length === 0) {
+      return res.status(404).json({ message: 'No activities found for this advertiser' });
+    }
+
+    // Step 2: Get the names of all activities created by this advertiser
+    const activityNames = activities.map(activity => activity.Name);
+
+    // Step 3: Count the total number of tourists who booked any of these activities
+    const totalTourists = await Tourist.countDocuments({
+      'BookedActivities.activityName': { $in: activityNames },
+      'BookedActivities.booked': true,
+    });
+
+    res.status(200).json({
+      advertiserUsername: username,
+      totalTourists,
+    });
+  } catch (error) {
+    console.error('Error fetching tourist count:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+
+
+
 
       module.exports = {ReadAdvertiserProfile , updateAdvertiser, createNewActivity, readActivity, updateActivity, deleteActivity, getActivitiesByAuthor, loginAdvertiser, updateAdvertiserPassword, decrementLoginCountAdvertiser,requestDeleteAccountAdvertiser, allNotificationsRead, areAllNotificationsRead, getAdvertiserNotifications};

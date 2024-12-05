@@ -2636,7 +2636,8 @@ const payActivity = async (req, res) => {
 
     tourist.BookedActivities.push({
       activityName: activity.Name,
-      confirmed: true 
+      booked: true ,
+      DateOfBooking: new Date()
     });
 
     activity.isBooked = true;
@@ -2757,7 +2758,8 @@ const payActivityByCard = async (req, res) => {
     }
     tourist.BookedActivities.push({
       activityName: activity.Name,
-      confirmed: true 
+      booked: true,
+      DateOfBooking: new Date()
     });
 
     activity.isBooked = true;
@@ -2883,7 +2885,8 @@ const payActivityStripe = async (req, res) => {
     // Update activity as booked
     tourist.BookedActivities.push({
       activityName: activity.Name,
-      confirmed: true,
+      booked: true,
+      DateOfBooking: new Date()
     });
 
     activity.isBooked = true;
@@ -3420,7 +3423,7 @@ const mailOptions = {
   subject: 'Payment Receipt',
   text: `Dear ${touristUsername},
 
-Thank you for your payment for the itinerary "${museumName}".
+Thank you for your payment for the museum "${museumName}".
 
 Here are the details of your transaction:
 - Activity Name: ${museumName}
@@ -3528,7 +3531,7 @@ const mailOptions = {
   subject: 'Payment Receipt',
   text: `Dear ${touristUsername},
 
-Thank you for your payment for the itinerary "${museumName}".
+Thank you for your payment for the museum "${museumName}".
 
 Here are the details of your transaction:
 - Activity Name: ${museumName}
@@ -3866,7 +3869,7 @@ const payHPByCard = async (req, res) => {
       subject: 'Payment Receipt',
       text: `Dear ${touristUsername},
     
-    Thank you for your payment for the itinerary "${HPName}".
+    Thank you for your payment for the hp "${HPName}".
     
     Here are the details of your transaction:
     - Activity Name: ${HPName}
