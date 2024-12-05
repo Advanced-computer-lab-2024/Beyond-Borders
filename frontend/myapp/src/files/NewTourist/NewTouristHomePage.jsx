@@ -1531,10 +1531,24 @@ const markAllAsRead = async () => {
           {sidebarOpen && 'Complaints'}
         </Button>
 
-        <Button onClick={() => navigate('/TouristOrders')} sx={styles.sidebarButton}>
-          <ShoppingBagIcon sx={styles.icon} />
-          {sidebarOpen && 'Orders'}
-        </Button>
+        <Button
+  onClick={async () => {
+    try {
+      // Call the markOrdersAsDelivered function via an API request
+      await axios.put('/markOrdersAsDelivered'); // Assuming your API route is '/markOrdersAsDelivered'
+      
+      // Navigate to the orders page after successfully marking orders as delivered
+      navigate('/TouristOrders');
+    } catch (error) {
+      console.error('Error marking orders as delivered:', error);
+      alert('Failed to update orders. Please try again.');
+    }
+  }}
+  sx={styles.sidebarButton}
+>
+  <ShoppingBagIcon sx={styles.icon} />
+  {sidebarOpen && 'Orders'}
+</Button>
 
        
         <Box>
@@ -1590,21 +1604,48 @@ const markAllAsRead = async () => {
          {/* Activities Dropdown */}
         <Box>
         <Button
-            onClick={() => setActivitiesOpen(!activitiesOpen)}
-            sx={styles.sidebarButton}
-        >
-            <LocalActivityIcon sx={styles.icon} />
-            {sidebarOpen && (
-            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
-                Activities
-                {activitiesOpen ? (
-                <KeyboardArrowUpIcon sx={{ fontSize: '18px', marginLeft: '5px' }} />
-                ) : (
-                <KeyboardArrowDownIcon sx={{ fontSize: '18px', marginLeft: '5px' }} />
-                )}
-            </Box>
-            )}
-        </Button>
+  onClick={async () => {
+    try {
+      // First, toggle the activities open/close state
+      setActivitiesOpen(!activitiesOpen);
+
+      // Get the username from localStorage
+      const username = localStorage.getItem('username');
+
+      if (!username) {
+        alert('User not logged in.');
+        return;
+      }
+
+      // Call the `addCompletedActivities` function via an API request
+      const response = await axios.put('/addCompletedActivities', { touristUsername: username });
+
+      if (response.status === 200) {
+        // Handle success, maybe show a success message or update local state
+        //alert('Completed activities updated successfully!');
+      } else {
+        //alert('Failed to update completed activities.');
+      }
+    } catch (error) {
+      console.error('Error updating completed activities:', error);
+      alert('An error occurred while updating completed activities.');
+    }
+  }}
+  sx={styles.sidebarButton}
+>
+  <LocalActivityIcon sx={styles.icon} />
+  {sidebarOpen && (
+    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+      Activities
+      {activitiesOpen ? (
+        <KeyboardArrowUpIcon sx={{ fontSize: '18px', marginLeft: '5px' }} />
+      ) : (
+        <KeyboardArrowDownIcon sx={{ fontSize: '18px', marginLeft: '5px' }} />
+      )}
+    </Box>
+  )}
+</Button>
+
         {activitiesOpen && (
             <Box sx={{ display: 'flex', flexDirection: 'column', marginLeft: sidebarOpen ? '20px' : '0px' }}>
             <Button
@@ -1652,22 +1693,49 @@ const markAllAsRead = async () => {
 
        {/* Itineraries Dropdown */}
 <Box>
-  <Button
-    onClick={() => setItinerariesOpen(!itinerariesOpen)} // Toggle dropdown for itineraries
-    sx={styles.sidebarButton}
-  >
-    <MapIcon sx={styles.icon} />
-    {sidebarOpen && (
-      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
-        Itineraries
-        {itinerariesOpen ? (
-          <KeyboardArrowUpIcon sx={{ fontSize: '18px', marginLeft: '5px' }} />
-        ) : (
-          <KeyboardArrowDownIcon sx={{ fontSize: '18px', marginLeft: '5px' }} />
-        )}
-      </Box>
-    )}
-  </Button>
+<Button
+  onClick={async () => {
+    try {
+      // Toggle the itineraries dropdown open/close
+      setItinerariesOpen(!itinerariesOpen);
+
+      // Get the username from localStorage
+      const username = localStorage.getItem('username');
+
+      if (!username) {
+        alert('User not logged in.');
+        return;
+      }
+
+      // Call the `addCompletedItinerary` function via an API request
+      const response = await axios.put('/addCompletedItinerary', { touristUsername: username });
+
+      if (response.status === 200) {
+        // Handle success, maybe show a success message or update local state
+        //alert('Completed itineraries updated successfully!');
+      } else {
+        //alert('Failed to update completed itineraries.');
+      }
+    } catch (error) {
+      console.error('Error updating completed itineraries:', error);
+      alert('An error occurred while updating completed itineraries.');
+    }
+  }}
+  sx={styles.sidebarButton}
+>
+  <MapIcon sx={styles.icon} />
+  {sidebarOpen && (
+    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+      Itineraries
+      {itinerariesOpen ? (
+        <KeyboardArrowUpIcon sx={{ fontSize: '18px', marginLeft: '5px' }} />
+      ) : (
+        <KeyboardArrowDownIcon sx={{ fontSize: '18px', marginLeft: '5px' }} />
+      )}
+    </Box>
+  )}
+</Button>
+
   {itinerariesOpen && (
     <Box sx={{ display: 'flex', flexDirection: 'column', marginLeft: sidebarOpen ? '20px' : '0px' }}>
       <Button
@@ -1711,22 +1779,49 @@ const markAllAsRead = async () => {
 </Box>
 {/* Historical Places Dropdown */}
 <Box>
-  <Button
-    onClick={() => setHistoricalPlacesOpen(!historicalPlacesOpen)} // Toggle dropdown for historical places
-    sx={styles.sidebarButton}
-  >
-    <ChurchIcon sx={styles.icon} />
-    {sidebarOpen && (
-      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
-        Historical Places
-        {historicalPlacesOpen ? (
-          <KeyboardArrowUpIcon sx={{ fontSize: '18px', marginLeft: '5px' }} />
-        ) : (
-          <KeyboardArrowDownIcon sx={{ fontSize: '18px', marginLeft: '5px' }} />
-        )}
-      </Box>
-    )}
-  </Button>
+<Button
+  onClick={async () => {
+    try {
+      // Toggle the historical places dropdown open/close
+      setHistoricalPlacesOpen(!historicalPlacesOpen);
+
+      // Get the username from localStorage
+      const username = localStorage.getItem('username');
+
+      if (!username) {
+        alert('User not logged in.');
+        return;
+      }
+
+      // Call the `addCompletedHPEvents` function via an API request
+      const response = await axios.put('/addCompletedHPEvents', { touristUsername: username });
+
+      if (response.status === 200) {
+        // Handle success, maybe show a success message or update local state
+        //alert('Historical Place events updated successfully!');
+      } else {
+        //alert('Failed to update historical place events.');
+      }
+    } catch (error) {
+      console.error('Error updating historical place events:', error);
+      alert('An error occurred while updating historical place events.');
+    }
+  }}
+  sx={styles.sidebarButton}
+>
+  <ChurchIcon sx={styles.icon} />
+  {sidebarOpen && (
+    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+      Historical Places
+      {historicalPlacesOpen ? (
+        <KeyboardArrowUpIcon sx={{ fontSize: '18px', marginLeft: '5px' }} />
+      ) : (
+        <KeyboardArrowDownIcon sx={{ fontSize: '18px', marginLeft: '5px' }} />
+      )}
+    </Box>
+  )}
+</Button>
+
   {historicalPlacesOpen && (
     <Box sx={{ display: 'flex', flexDirection: 'column', marginLeft: sidebarOpen ? '20px' : '0px' }}>
       <Button
@@ -1771,22 +1866,49 @@ const markAllAsRead = async () => {
 
 
 <Box>
-  <Button
-    onClick={() => setMuseumsOpen(!museumsOpen)} // Toggle dropdown for museums
-    sx={styles.sidebarButton}
-  >
-    <AccountBalanceIcon sx={styles.icon} /> {/* Suitable icon for Museums */}
-    {sidebarOpen && (
-      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
-        Museums
-        {museumsOpen ? (
-          <KeyboardArrowUpIcon sx={{ fontSize: '18px', marginLeft: '5px' }} />
-        ) : (
-          <KeyboardArrowDownIcon sx={{ fontSize: '18px', marginLeft: '5px' }} />
-        )}
-      </Box>
-    )}
-  </Button>
+<Button
+  onClick={async () => {
+    try {
+      // Toggle the museums dropdown open/close
+      setMuseumsOpen(!museumsOpen);
+
+      // Get the username from localStorage
+      const username = localStorage.getItem('username');
+
+      if (!username) {
+        alert('User not logged in.');
+        return;
+      }
+
+      // Call the `addCompletedMuseumEvents` function via an API request
+      const response = await axios.put('/addCompletedMuseumEvents', { touristUsername: username });
+
+      if (response.status === 200) {
+        // Handle success, maybe show a success message or update local state
+        //alert('Museum events updated successfully!');
+      } else {
+        //alert('Failed to update museum events.');
+      }
+    } catch (error) {
+      console.error('Error updating museum events:', error);
+      alert('An error occurred while updating museum events.');
+    }
+  }}
+  sx={styles.sidebarButton}
+>
+  <AccountBalanceIcon sx={styles.icon} /> {/* Suitable icon for Museums */}
+  {sidebarOpen && (
+    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+      Museums
+      {museumsOpen ? (
+        <KeyboardArrowUpIcon sx={{ fontSize: '18px', marginLeft: '5px' }} />
+      ) : (
+        <KeyboardArrowDownIcon sx={{ fontSize: '18px', marginLeft: '5px' }} />
+      )}
+    </Box>
+  )}
+</Button>
+
   {museumsOpen && (
     <Box sx={{ display: 'flex', flexDirection: 'column', marginLeft: sidebarOpen ? '20px' : '0px' }}>
       {/* Upcoming Museums */}
