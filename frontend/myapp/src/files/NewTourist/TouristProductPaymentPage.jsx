@@ -33,6 +33,8 @@ import { useNavigate } from "react-router-dom";
 const steps = ["Shopping Cart", "Payment Details", "Payment Complete"];
 
 const TouristProductPaymentPage = () => {
+  const [addressError, setAddressError] = useState(""); // Error for the new address
+
   const [cartItems, setCartItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -57,7 +59,19 @@ const TouristProductPaymentPage = () => {
     expiryDate: "",
     cvv: "",
   });
-
+  const [userInfoErrors, setUserInfoErrors] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    phoneNumber: "",
+  });
+  
+  const [cardInfoErrors, setCardInfoErrors] = useState({
+    cardNumber: "",
+    cardholderName: "",
+    expiryDate: "",
+    cvv: "",
+  });
   const [activeStep, setActiveStep] = useState(1); // Set the active step (index-based)
 
   useEffect(() => {
@@ -92,10 +106,52 @@ const TouristProductPaymentPage = () => {
     }, []);
 
     const handleCompletePayment = async () => {
-        if (!selectedAddress) {
-          alert("Please select a delivery address.");
-          return;
-        }
+
+      setUserInfoErrors({
+        firstName: "",
+        lastName: "",
+        email: "",
+        phoneNumber: "",
+      });
+      setCardInfoErrors({
+        cardNumber: "",
+        cardholderName: "",
+        expiryDate: "",
+        cvv: "",
+      });
+      setAddressError("");
+    
+      let hasErrors = false;
+    
+      // Validate user info
+      const newUserInfoErrors = {};
+      if (!userInfo.firstName.trim()) {
+        newUserInfoErrors.firstName = "First name is required.";
+        hasErrors = true;
+      }
+      if (!userInfo.lastName.trim()) {
+        newUserInfoErrors.lastName = "Last name is required.";
+        hasErrors = true;
+      }
+      if (!userInfo.email.trim()) {
+        newUserInfoErrors.email = "Email is required.";
+        hasErrors = true;
+      }
+      if (!userInfo.phoneNumber.trim()) {
+        newUserInfoErrors.phoneNumber = "Phone number is required.";
+        hasErrors = true;
+      }
+      setUserInfoErrors(newUserInfoErrors);
+    
+      if (!selectedAddress && !addingNewAddress) {
+        setAddressError("Please select a delivery address.");
+        hasErrors = true;
+      }
+    
+        // if (!selectedAddress) {
+        //   alert("Please select a delivery address.");
+        //   return;
+        // }
     
         if (!paymentMethod) {
           alert("Please select a payment method.");
@@ -107,6 +163,29 @@ const TouristProductPaymentPage = () => {
           alert("User is not logged in.");
           return;
         }
+
+        if (paymentMethod === "Card") {
+          const newCardInfoErrors = {};
+          if (!cardInfo.cardNumber.trim()) {
+            newCardInfoErrors.cardNumber = "Card number is required.";
+            hasErrors = true;
+          }
+          if (!cardInfo.cardholderName.trim()) {
+            newCardInfoErrors.cardholderName = "Cardholder name is required.";
+            hasErrors = true;
+          }
+          if (!cardInfo.expiryDate.trim()) {
+            newCardInfoErrors.expiryDate = "Expiry date is required.";
+            hasErrors = true;
+          }
+          if (!cardInfo.cvv.trim()) {
+            newCardInfoErrors.cvv = "CVV is required.";
+            hasErrors = true;
+          }
+          setCardInfoErrors(newCardInfoErrors);
+        }
+      
+        if (hasErrors) return; // Stop if there are errors
         setPaymentLoading(true);
         try {
           let paymentResponse;
@@ -250,19 +329,23 @@ const TouristProductPaymentPage = () => {
             }}
           >
             <TextField
-              label="First Name"
-              variant="outlined"
-              fullWidth
-              value={userInfo.firstName}
-              onChange={(e) => setUserInfo({ ...userInfo, firstName: e.target.value })}
-            />
-            <TextField
-              label="Last Name"
-              variant="outlined"
-              fullWidth
-              value={userInfo.lastName}
-              onChange={(e) => setUserInfo({ ...userInfo, lastName: e.target.value })}
-            />
+    label="First Name"
+    variant="outlined"
+    fullWidth
+    value={userInfo.firstName}
+    onChange={(e) => setUserInfo({ ...userInfo, firstName: e.target.value })}
+    error={!!userInfoErrors.firstName} // Highlight error
+    helperText={userInfoErrors.firstName} // Display error message
+  />
+  <TextField
+    label="Last Name"
+    variant="outlined"
+    fullWidth
+    value={userInfo.lastName}
+    onChange={(e) => setUserInfo({ ...userInfo, lastName: e.target.value })}
+    error={!!userInfoErrors.lastName} // Highlight error
+    helperText={userInfoErrors.lastName} // Display error message
+  />
           </Box>
           <Box
             sx={{
@@ -273,24 +356,33 @@ const TouristProductPaymentPage = () => {
             }}
           >
             <TextField
-              label="Email"
-              variant="outlined"
-              fullWidth
-              value={userInfo.email}
-              onChange={(e) => setUserInfo({ ...userInfo, email: e.target.value })}
-            />
-            <TextField
-              label="Phone Number"
-              variant="outlined"
-              fullWidth
-              value={userInfo.phoneNumber}
-              onChange={(e) => setUserInfo({ ...userInfo, phoneNumber: e.target.value })}
-            />
+    label="Email"
+    variant="outlined"
+    fullWidth
+    value={userInfo.email}
+    onChange={(e) => setUserInfo({ ...userInfo, email: e.target.value })}
+    error={!!userInfoErrors.email} // Highlight error
+    helperText={userInfoErrors.email} // Display error message
+  />
+  <TextField
+    label="Phone Number"
+    variant="outlined"
+    fullWidth
+    value={userInfo.phoneNumber}
+    onChange={(e) => setUserInfo({ ...userInfo, phoneNumber: e.target.value })}
+    error={!!userInfoErrors.phoneNumber} // Highlight error
+    helperText={userInfoErrors.phoneNumber} // Display error message
+  />
           </Box>
 
 
 {/* Address Containers */}
 <Box>
+{!addingNewAddress && addressError && (
+  <Typography color="error" variant="body2" sx={{ marginBottom: "10px" }}>
+    {addressError}
+  </Typography>
+)}
           <Typography variant="h5" sx={{ fontWeight: "bold", marginBottom: "20px", textAlign: "left" }}>
             Delivery Address
           </Typography>
@@ -444,35 +536,49 @@ const TouristProductPaymentPage = () => {
 
           {paymentMethod === "Card" && (
             <Box sx={{ marginTop: "20px" }}>
-              <TextField
-                label="Card Number"
-                variant="outlined"
-                fullWidth
-                value={cardInfo.cardNumber}
-                onChange={(e) => setCardInfo({ ...cardInfo, cardNumber: e.target.value })}
-                sx={{ marginBottom: "20px" }}
-              />
-              <TextField
-                label="Cardholder Name"
-                variant="outlined"
-                fullWidth
-                value={cardInfo.cardholderName}
-                onChange={(e) => setCardInfo({ ...cardInfo, cardholderName: e.target.value })}
-                sx={{ marginBottom: "20px" }}
-              />
+             <TextField
+      label="Card Number"
+      variant="outlined"
+      fullWidth
+      value={cardInfo.cardNumber}
+      onChange={(e) =>
+        setCardInfo({ ...cardInfo, cardNumber: e.target.value })
+      }
+      error={!!cardInfoErrors.cardNumber} // Highlight error
+      helperText={cardInfoErrors.cardNumber} // Display error message
+      sx={{ marginBottom: "20px" }}
+    />
+    <TextField
+      label="Cardholder Name"
+      variant="outlined"
+      fullWidth
+      value={cardInfo.cardholderName}
+      onChange={(e) =>
+        setCardInfo({ ...cardInfo, cardholderName: e.target.value })
+      }
+      error={!!cardInfoErrors.cardholderName} // Highlight error
+      helperText={cardInfoErrors.cardholderName} // Display error message
+      sx={{ marginBottom: "20px" }}
+    />
               <Box sx={{ display: "flex", gap: "20px", marginBottom: "20px" }}>
-                <TextField
-                  label="Expiry Date (MM/YY)"
-                  variant="outlined"
-                  value={cardInfo.expiryDate}
-                  onChange={(e) => setCardInfo({ ...cardInfo, expiryDate: e.target.value })}
-                />
-                <TextField
-                  label="CVV"
-                  variant="outlined"
-                  value={cardInfo.cvv}
-                  onChange={(e) => setCardInfo({ ...cardInfo, cvv: e.target.value })}
-                />
+              <TextField
+        label="Expiry Date (MM/YY)"
+        variant="outlined"
+        value={cardInfo.expiryDate}
+        onChange={(e) =>
+          setCardInfo({ ...cardInfo, expiryDate: e.target.value })
+        }
+        error={!!cardInfoErrors.expiryDate} // Highlight error
+        helperText={cardInfoErrors.expiryDate} // Display error message
+      />
+      <TextField
+        label="CVV"
+        variant="outlined"
+        value={cardInfo.cvv}
+        onChange={(e) => setCardInfo({ ...cardInfo, cvv: e.target.value })}
+        error={!!cardInfoErrors.cvv} // Highlight error
+        helperText={cardInfoErrors.cvv} // Display error message
+      />
               </Box>
             </Box>
           )}

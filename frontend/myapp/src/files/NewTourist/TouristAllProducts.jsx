@@ -1189,7 +1189,6 @@ const fetchProducts = async () => {
 
 
 
-      
 {/* Main Content Area with Products */}
 <Box sx={styles.activitiesContainer}>
   {products.map((product, index) => (
@@ -1197,60 +1196,69 @@ const fetchProducts = async () => {
       <Box
         sx={{
           ...styles.activityCard,
-          backgroundColor: 'white', // No flagged logic for products
+          backgroundColor: 'white',
+          display: 'flex',          // Flexbox for image and content
+          gap: '20px',              // Space between image and content
+          alignItems: 'flex-start', // Align items to the top
+          position: 'relative',     // Enable absolute positioning for icons
         }}
       >
-         {/* Icons for Add to Cart and Add to Wishlist */}
-<Box
-  sx={{
-    position: 'absolute',
-    top: '40px', // Align to top
-    right: '55px', // Align to right
-    display: 'flex'
-  }}
->
-  {/* Add to Cart Icon */}
-  <Tooltip title="Add to Cart" arrow>
-    <IconButton
-      onClick={() => handleAddToCart(product.Name)}
-      sx={{
-        color: '#192959', // Icon color
-        '&:hover': {
-          color: '#33416b', // Hover color
-        },
-      }}
-    >
-      <AddShoppingCartIcon />
-    </IconButton>
-  </Tooltip>
+        {/* Icons for Add to Cart and Add to Wishlist */}
+        <Box
+          sx={{
+            position: 'absolute',
+            top: '10px',
+            right: '10px',
+            display: 'flex',
+            gap: '10px', // Space between icons
+          }}
+        >
+          {/* Add to Cart Icon */}
+          <Tooltip title="Add to Cart" arrow>
+            <IconButton
+              onClick={() => handleAddToCart(product.Name)}
+              sx={{
+                color: '#192959',
+                '&:hover': { color: '#33416b' },
+              }}
+            >
+              <AddShoppingCartIcon />
+            </IconButton>
+          </Tooltip>
 
-  {/* Wishlist Icon */}
-  <Tooltip
-    title={
-      wishlist[product._id]
-        ? "Remove from Wishlist"
-        : "Add to Wishlist"
-    }
-    arrow
-  >
-    <IconButton
-      onClick={() => handleToggleWishlist(product.Name, product._id)}
-      sx={{
-        color: '#192959', // Icon color
-        '&:hover': { color: '#33416b' }, // Hover color
-      }}
-    >
-      {wishlist[product._id] ? (
-        <FavoriteIcon />
-      ) : (
-        <FavoriteBorderIcon />
-      )}
-    </IconButton>
-  </Tooltip>
-</Box>
+          {/* Wishlist Icon */}
+          <Tooltip
+            title={wishlist[product._id] ? "Remove from Wishlist" : "Add to Wishlist"}
+            arrow
+          >
+            <IconButton
+              onClick={() => handleToggleWishlist(product.Name, product._id)}
+              sx={{
+                color: '#192959',
+                '&:hover': { color: '#33416b' },
+              }}
+            >
+              {wishlist[product._id] ? <FavoriteIcon /> : <FavoriteBorderIcon />}
+            </IconButton>
+          </Tooltip>
+        </Box>
+
+        {/* Product Image */}
+        <Box
+          component="img"
+          src={product.Picture}
+          alt={product.Name}
+          sx={{
+            width: '150px',
+            height: '150px',
+            objectFit: 'cover',
+            borderRadius: '10px',
+            flexShrink: 0, // Prevent the image from shrinking
+          }}
+        />
 
         {/* Product Info */}
-        <Box sx={styles.activityInfo}>
+        <Box sx={{ flex: 1 }}>
           {/* Product Name */}
           <Typography
             variant="h6"
@@ -1258,149 +1266,119 @@ const fetchProducts = async () => {
               fontWeight: 'bold',
               fontSize: '24px',
               marginBottom: '5px',
-              textAlign: 'left', // Align to the left
+              textAlign: 'left', // Ensure left alignment
             }}
           >
             {product.Name}
           </Typography>
 
           {/* Product Seller */}
-          <Typography variant="body2" sx={{ display: 'flex', fontSize: '18px', alignItems: 'center' }}>
+          <Typography variant="body2" sx={{ fontSize: '18px', marginBottom: '5px', textAlign: 'left' }}>
             <PersonIcon fontSize="small" sx={{ mr: 1 }} />
             {product.Seller || 'N/A'}
           </Typography>
 
           {/* Product Price */}
-          <Typography variant="body2" sx={{ display: 'flex', fontSize: '18px', alignItems: 'center' }}>
+          <Typography variant="body2" sx={{ fontSize: '18px', marginBottom: '5px', textAlign: 'left' }}>
             <PaymentIcon fontSize="small" sx={{ mr: 1 }} />
             {currency === 'EGP'
-                  ? `${product.Price} EGP`
-                  : `${convertedPrices[product._id] || 'Loading...'} ${currency}`}
+              ? `${product.Price} EGP`
+              : `${convertedPrices[product._id] || 'Loading...'} ${currency}`}
           </Typography>
 
-          {/* Right Side: Description */}
-          <Box sx={{ flex: 1, paddingLeft: '2px', textAlign: 'left', display: 'flex', alignItems: 'center', gap: '10px' }}>
-  {/* Description Label */}
-  <Typography 
-    variant="body2" 
-    sx={{ fontSize: '18px', fontWeight: 'bold' }}
-  >
-    Description:
-  </Typography>
-
-  {/* Description Content */}
-  <Typography
-    variant="body2"
-    sx={{
-      fontSize: '18px',
-      wordWrap: 'break-word', // Break long words
-      whiteSpace: 'normal',  // Wrap text normally
-      maxWidth: '550px',     // Ensure width consistency
-    }}
-  >
-    {expanded[index] || (product.Description && product.Description.length <= 25) ? (
-      <span>
-        {product.Description || 'No description available'}
-        {product.Description && product.Description.length > 25 && (
-          <span
-            style={{
-              color: '#8088a3',
-              marginLeft: '5px',
-              fontWeight: 'bold',
-              cursor: 'pointer',
+          {/* Product Description */}
+          <Box
+            sx={{
+              display: 'flex',          // Flexbox to align label and description in one row
+              gap: '10px',              // Spacing between label and description
+              alignItems: 'top',     // Align text vertically
+              marginTop: '10px',
+    
             }}
-            onClick={() => handleToggleDescription(index)}
           >
-            {" "}Read Less
-          </span>
-        )}
-      </span>
-    ) : (
-      <span>
-        {(product.Description || 'No description available').substring(0, 25)}...
-        <span
-          style={{
-            color: '#8088a3',
-            marginLeft: '5px',
-            fontWeight: 'bold',
-            cursor: 'pointer',
-          }}
-          onClick={() => handleToggleDescription(index)}
-        >
-          {" "}Read More
-        </span>
-      </span>
-    )}
-  </Typography>
-</Box>
-
+            <Typography
+              variant="body2"
+              sx={{
+                fontSize: '18px',
+                fontWeight: 'bold',
+              }}
+            >
+              Description:
+            </Typography>
+            <Typography
+              variant="body2"
+              sx={{
+                fontSize: '18px',
+                whiteSpace: 'normal',
+                wordWrap: 'break-word',
+                textAlign: 'left', // Ensure left alignment
+                flex: 1, // Take up remaining space
+              }}
+            >
+              {expanded[index] || (product.Description && product.Description.length <= 25) ? (
+                <span>
+                  {product.Description || 'No description available'}
+                  {product.Description && product.Description.length > 25 && (
+                    <span
+                      style={{
+                        color: '#8088a3',
+                        marginLeft: '5px',
+                        fontWeight: 'bold',
+                        cursor: 'pointer',
+                      }}
+                      onClick={() => handleToggleDescription(index)}
+                    >
+                      {" "}Read Less
+                    </span>
+                  )}
+                </span>
+              ) : (
+                <span>
+                  {(product.Description || 'No description available').substring(0, 25)}...
+                  <span
+                    style={{
+                      color: '#8088a3',
+                      marginLeft: '5px',
+                      fontWeight: 'bold',
+                      cursor: 'pointer',
+                    }}
+                    onClick={() => handleToggleDescription(index)}
+                  >
+                    {" "}Read More
+                  </span>
+                </span>
+              )}
+            </Typography>
+          </Box>
         </Box>
-
-        {/* Product Ratings */}
-        <Box sx={styles.activityRating}>{renderRating(product.Ratings)}</Box>
       </Box>
 
       {/* Reviews Section */}
-      <Box
-        sx={{
-          ...styles.commentsSection,
-          marginTop: '20px', // Adds space above reviews
-          //padding: '15px', // Optional padding for better visuals
-          //backgroundColor: '#f9f9f9', // Slight background color to separate reviews
-          borderRadius: '10px', // Rounded corners for reviews container
-          //boxShadow: '0px 2px 6px rgba(0, 0, 0, 0.1)', // Optional shadow
-        }}
-      >
+      <Box sx={styles.commentsSection}>
         {product.Reviews && product.Reviews.length > 0 ? (
           <>
-            {/* Scroll Left Button */}
-            {scrollPositions[index] > 0 && (
-              <IconButton
-                sx={styles.scrollButton}
-                onClick={() => scrollCommentsLeft(index)}
-              >
-                <ArrowBackIcon />
-              </IconButton>
-            )}
-
             <Box
-              sx={styles.commentsContainer}
-              id={`commentsContainer-${index}`}
-              onScroll={(e) =>
-                updateScrollPosition(index, e.target.scrollLeft)
-              }
+              sx={{
+                display: 'flex',
+                overflowX: 'auto',
+                gap: '10px',
+              }}
             >
               {product.Reviews.map((review, idx) => (
-                <Box key={idx} sx={styles.commentCard}>
-                  <Typography variant="body2">
-                    {review.Review || 'No review available'}
-                  </Typography>
-                  <Typography variant="caption">
-                    @ {review.touristUsername || 'Anonymous'}
-                  </Typography>
+                <Box key={idx} sx={{ minWidth: '200px', padding: '10px', backgroundColor: '#fff', borderRadius: '5px' }}>
+                  <Typography variant="body2">{review.Review || 'No comment available'}</Typography>
+                  <Typography variant="caption">@{review.touristUsername || 'Anonymous'}</Typography>
                 </Box>
               ))}
             </Box>
-
-            {/* Scroll Right Button */}
-            {product.Reviews.length >= 3 && (
-              <IconButton
-                sx={styles.scrollButton}
-                onClick={() => scrollCommentsRight(index)}
-              >
-                <ArrowForwardIcon />
-              </IconButton>
-            )}
           </>
         ) : (
-          <Typography variant="body2">No reviews available</Typography>
+          <Typography variant="body2">No comments available</Typography>
         )}
       </Box>
     </Box>
   ))}
 </Box>
-
-
 
 <Box sx={styles.activitiesContainer}>
   {loading ? (
@@ -1857,6 +1835,20 @@ const styles = {
     display: 'flex',
     gap: 2,
     mt: 2,
+  },
+  productImageContainer: {
+    position: 'relative',
+    width: '200px', // Adjust image size
+    height: '200px',
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: '10px',
+    overflow: 'hidden',
+    marginRight: '20px',
+    backgroundColor: 'transparent',
+    flexShrink: 0, // Prevent image from shrinking
+    transform: 'translateY(40px)', // Move the image down by 10px
   },
   actionButton: {
     backgroundColor: '#e6e7ed', // Background color on hover
