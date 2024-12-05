@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Box,Checkbox, Button, Typography, IconButton, Dialog, DialogActions, DialogContent, DialogContentText, Modal, TextField, Divider, FormControlLabel  } from '@mui/material';
+import { Box,Checkbox, Button,CircularProgress, Typography, IconButton, Dialog, DialogActions, DialogContent, DialogContentText, Modal, TextField, Divider, FormControlLabel  } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import MenuIcon from '@mui/icons-material/Menu';
 import NotificationsIcon from '@mui/icons-material/Notifications';
@@ -100,6 +100,7 @@ const [errorMessage, setErrorMessage] = useState('');
   const [adults, setAdults] = useState('');
   const [directFlight, setDirectFlight] = useState(false); // Single state for the checkbox
   const [flightOffers, setFlightOffers] = useState([]);
+  const [loading, setLoading] = useState(false);
 
   const [productsOpen, setProductsOpen] = useState(false);
   const [activitiesOpen, setActivitiesOpen] = useState(false);
@@ -147,6 +148,7 @@ const [errorMessage, setErrorMessage] = useState('');
   };
 
   const handleSearchHotels = async () => {
+    setLoading(true);
     try {
       setErrorMessage(""); // Clear previous errors
 
@@ -168,6 +170,8 @@ const [errorMessage, setErrorMessage] = useState('');
       setHotelOffers(offersResponse.data); // Set the hotel offers
     } catch (error) {
       setErrorMessage(error.response?.data?.msg || "An error occurred while searching for hotels.");
+    } finally{
+      setLoading(false);
     }
   };
 
@@ -636,16 +640,32 @@ const [errorMessage, setErrorMessage] = useState('');
 </Tooltip>
         </Box>
       </Box>
-  
+      {loading && (
+  <Box
+    sx={{
+      position: 'fixed',
+      top: '70%',
+      left: '50%',
+      transform: 'translate(-50%, -50%)',
+      zIndex: 999, // Ensure it overlays other elements
+    }}
+  >
+    <CircularProgress />
+  </Box>
+)}
       <Box
       sx={{
-        padding: "20px",
-        maxWidth: "1200px",
-        margin: "0 auto",
-        backgroundColor: "#fff",
-        borderRadius: "10px",
-        boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.2)",
-        marginTop: "40px", // Space between search box and other components
+        padding: '20px',
+  maxWidth: '90%',
+  margin: '0 auto',
+  backgroundColor: 'rgba(255, 255, 255, 0.2)', // Translucent white background
+  borderRadius: '10px',
+  boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.2)',
+  position: 'relative',
+  marginTop: hotelOffers.length > 0 ? '20px' : '300px',
+  transition: 'margin-top 0.5s ease',
+  zIndex: 2,
+  backdropFilter: 'blur(5px)', 
       }}
     >
       <Typography

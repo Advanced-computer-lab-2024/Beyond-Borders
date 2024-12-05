@@ -3,6 +3,10 @@ const AcceptedSellerModel = require('../Models/AcceptedSeller.js');
 const NewProduct = require('../Models/Product.js');
 const ArchivedProductsModel = require('../Models/ArchivedProducts.js');
 const DeleteRequestsModel = require('../Models/DeleteRequests.js')
+const AllTouristModel = require('../Models/Tourist.js');
+const Order = require('../Models/Orders.js');
+
+
 const { default: mongoose } = require('mongoose');
 
 
@@ -403,5 +407,141 @@ const decrementLoginCount = async (req, res) => {
   }
 };
 
+const calculateSellerRevenue = async (req, res) => {
+  const { username } = req.query;
 
-module.exports = {readSellerProfile, updateSeller, editProductSeller, createNewProductSeller, searchProductSeller, filterProductByPriceSeller, sortProductsAscendingSeller, sortProductsDescendingSeller,viewProductsSeller,viewAllProductsSeller,loginSeller,getProductsBySeller, viewMyArchivedProductsSeller, requestDeleteAccountSeller, decrementLoginCount};
+  if (!username) {
+    return res.status(400).json({ error: 'Seller username is required' });
+  }
+
+  try {
+    // Step 1: Find all products sold by the seller
+    const products = await NewProduct.find({ Seller: username });
+
+    if (products.length === 0) {
+      return res.status(404).json({ message: 'No products found for this seller' });
+    }
+
+    let totalRevenue = 0;
+
+    // Step 2: Traverse the tourists to find purchased products for this seller
+    for (const product of products) {
+      const productName = product.Name;
+
+      // Find all tourists who have purchased this product
+      const tourists = await AllTouristModel.find({
+        'purchasedProducts.productName': productName,
+      });
+
+      // Calculate revenue for this product
+      for (const tourist of tourists) {
+        const purchasedProduct = tourist.purchasedProducts.find(
+          (item) => item.productName === productName
+        );
+
+        if (purchasedProduct) {
+          totalRevenue += purchasedProduct.quantity * product.Price;
+        }
+      }
+    }
+
+    // Step 3: Respond with the total revenue
+    res.status(200).json({
+      sellerUsername: username,
+      totalRevenue: totalRevenue.toFixed(2),
+    });
+  } catch (error) {
+    console.error('Error calculating revenue:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+const filterSellerProducts = async (req, res) => {
+  const { username, date, month, name } = req.query;
+
+  if (!username) {
+    return res.status(400).json({ error: 'Seller username is required' });
+  }
+
+  try {
+    // Build query for seller's products
+    const productQuery = { Seller: username };
+
+    if (name) {
+      productQuery.Name = { $regex: name, $options: 'i' }; // Case-insensitive product name search
+    }
+
+    // Find all products associated with the seller
+    const sellerProducts = await NewProduct.find(productQuery);
+
+    if (sellerProducts.length === 0) {
+      return res.status(404).json({ message: 'No products found for this seller' });
+    }
+
+    // Extract product names for the seller
+    const sellerProductNames = sellerProducts.map((product) => product.Name);
+
+    // Build the query dynamically for orders
+    const query = {
+      'productsPurchased.productName': { $in: sellerProductNames }, // Match products sold by the seller
+    };
+
+    if (date) {
+      query.orderDate = new Date(date); // Exact date match
+    }
+
+    if (month) {
+      const year = new Date().getFullYear(); // Default to the current year
+      const startOfMonth = new Date(year, month - 1, 1); // Start of the month
+      const endOfMonth = new Date(year, month, 0); // End of the month
+      query.orderDate = { $gte: startOfMonth, $lte: endOfMonth }; // Match orders within the month
+    }
+
+    // Find orders matching the criteria
+    const orders = await Order.find(query);
+
+    if (orders.length === 0) {
+      // If no orders are found, calculate revenue solely from products
+      return res.status(200).json({
+        totalRevenue: "0.00",
+        filteredProducts: [],
+        message: "No orders found matching the criteria, but products exist for the seller.",
+      });
+    }
+
+    // Calculate total revenue and prepare filtered products
+    let totalRevenue = 0;
+    const filteredProducts = [];
+    orders.forEach((order) => {
+      order.productsPurchased.forEach((product) => {
+        if (sellerProductNames.includes(product.productName)) {
+          const revenue = product.quantity * product.price;
+          totalRevenue += revenue;
+          filteredProducts.push({
+            productName: product.productName,
+            quantity: product.quantity,
+            price: product.price,
+            orderDate: order.orderDate,
+            revenue: revenue,
+          });
+        }
+      });
+    });
+
+    // Return the filtered products and total revenue
+    res.status(200).json({
+      totalRevenue: totalRevenue.toFixed(2),
+      filteredProducts,
+    });
+  } catch (error) {
+    console.error('Error filtering products:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+
+
+
+
+
+module.exports = {readSellerProfile, updateSeller, editProductSeller, createNewProductSeller, searchProductSeller, filterProductByPriceSeller, sortProductsAscendingSeller, sortProductsDescendingSeller,viewProductsSeller,viewAllProductsSeller,loginSeller,getProductsBySeller, viewMyArchivedProductsSeller, requestDeleteAccountSeller, decrementLoginCount,calculateSellerRevenue,filterSellerProducts};
