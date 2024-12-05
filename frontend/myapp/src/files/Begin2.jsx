@@ -2,10 +2,15 @@ import React, { useState, useEffect } from 'react';
 import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
 import Box from '@mui/material/Box';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import axios from 'axios'; // To make API calls
 
 const Begin2 = () => {
   const [text, setText] = useState(''); // State for the animated text
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState(''); // For error messages
+  const navigate = useNavigate(); // Hook for navigation
   const fullText = 'Welcome to Beyond Borders!'; // Full text to display
 
   useEffect(() => {
@@ -22,13 +27,63 @@ const Begin2 = () => {
     return () => clearInterval(interval); // Cleanup the interval
   }, []);
 
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
+  // const [username, setUsername] = useState('');
+  // const [password, setPassword] = useState('');
 
-  const handleLogin = () => {
-    // Add login logic here
-    console.log('Username:', username);
-    console.log('Password:', password);
+  // const handleLogin = () => {
+  //   // Add login logic here
+  //   console.log('Username:', username);
+  //   console.log('Password:', password);
+  // };
+  const handleLogin = async () => {
+    try {
+      // Validate input fields
+    if (!username) {
+      setError("Please enter your username and password");
+      return;
+    }
+    // Validate input fields
+    if (!password) {
+      setError("Please enter your password");
+      return;
+    }
+      const response = await axios.post('/loginUser', { username,password});
+
+      // Check user type and navigate accordingly
+      const { userType } = response.data;
+
+      switch (userType) {
+        case 'Tourist':
+          navigate('/NewTouristHomePage');
+          break;
+        case 'Advertiser':
+          navigate('/YAdvertiserDashboard');
+          break;
+        case 'TourGuide':
+          navigate('/YTourGuideDashboard');
+          break;
+        case 'Seller':
+          navigate('/YSellerDashboard');
+          break;
+        case 'TourismGovernor':
+          navigate('/TourismGovernorDashboard');
+          break;
+        case 'Admin':
+          navigate('/YAdminDashboard');
+          break;
+        case 'TransportationAdvertiser':
+          navigate('/transportAdvertiserHome');
+          break;
+        default:
+          throw new Error('Unknown user type');
+      }
+    } catch (err) {
+      if (err.response?.status === 401) {
+        setError("The username and password you have entered don't match");
+      } else {
+        setError(err.response?.data?.error || 'Login failed. Please try again.');
+      }
+    }
   };
 
   return (
@@ -114,6 +169,13 @@ const Begin2 = () => {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
           />
+
+          {/* Error Message */}
+          {error && (
+            <p style={{ color: 'red', marginTop: '-10px',marginBottom: '-15px', textAlign: 'left'}}>
+              {error}
+            </p>
+          )}
 
           {/* Forgot Password Link */}
           <Box sx={{ textAlign: 'left', marginTop: '2px', marginRight: '20px' }}>
