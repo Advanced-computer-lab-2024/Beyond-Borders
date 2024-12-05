@@ -381,7 +381,7 @@ const navigate = useNavigate();
 
 
   //book
-  const handleBookHistoricalPlace = async (historicalPlaceName) => {
+  const handleBookHistoricalPlace = async (hp) => {
     const touristUsername = localStorage.getItem('username'); // Assuming username is stored in localStorage
   
     if (!touristUsername) {
@@ -390,8 +390,21 @@ const navigate = useNavigate();
     }
   
     try {
-      const response = await axios.put('/bookHistoricalPlace', { touristUsername, historicalPlaceName });
-      navigate('/TouristPaymentPage');
+      const response = await axios.put('/bookHistoricalPlace', { touristUsername, historicalPlaceName: hp.name });
+      if (response.status === 201) {
+        const { ticketPrice } = response.data;
+        alert(`Event booked successfully!`);
+        navigate('/TouristEventsPrePaymentPage', {
+          state: {
+            type: 'historicalPlace', // Specify type as activity
+            name: hp.name, // Pass the activity name
+            totalCost:ticketPrice, // Include the total cost for payment processing
+          },
+        });
+      } else {
+        alert(response.data.msg || 'Failed to book activity.');
+      }
+      
     } catch (error) {
       alert(error.response?.data?.msg || 'An error occurred while booking the HP.');
     }
@@ -1532,7 +1545,7 @@ const navigate = useNavigate();
   {hp.BookingOpen ? (
     <Button
       variant="contained"
-      onClick={() => handleBookHistoricalPlace(hp.name)}
+      onClick={() => handleBookHistoricalPlace(hp)}
       sx={{
         backgroundColor: '#192959',
         color: '#fff',

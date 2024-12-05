@@ -57,7 +57,9 @@ const TouristEventsPaymentPage = () => {
       // Determine the endpoint based on the type
       const endpoint =
         type === "historicalPlace"
-          ? "/payHP"
+          ?  paymentMethod === "Wallet"
+            ? "/payHP"
+            : "/payHPStripe"
           : type === "museum"
           ? "/payMuseum"
           : type === "itinerary"
