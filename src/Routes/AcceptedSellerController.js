@@ -457,64 +457,60 @@ const calculateSellerRevenue = async (req, res) => {
 };
 
 const filterSellerProducts = async (req, res) => {
-  const { username, date, month, name } = req.query;
+  const { username, name, date, month } = req.query;
 
+  // Ensure seller username is provided
   if (!username) {
     return res.status(400).json({ error: 'Seller username is required' });
   }
 
   try {
-    // Build query for seller's products
-    const productQuery = { Seller: username };
-
-    if (name) {
-      productQuery.Name = { $regex: name, $options: 'i' }; // Case-insensitive product name search
-    }
-
-    // Find all products associated with the seller
-    const sellerProducts = await NewProduct.find(productQuery);
+    // Step 1: Find all products sold by the seller
+    const sellerProducts = await NewProduct.find({ Seller: username });
 
     if (sellerProducts.length === 0) {
-      return res.status(404).json({ message: 'No products found for this seller' });
+      return res.status(404).json({ message: 'No products found for this seller.' });
     }
 
     // Extract product names for the seller
     const sellerProductNames = sellerProducts.map((product) => product.Name);
 
-    // Build the query dynamically for orders
+    // Step 2: Build query dynamically for orders
     const query = {
-      'productsPurchased.productName': { $in: sellerProductNames }, // Match products sold by the seller
+      'productsPurchased.productName': { $in: sellerProductNames },
     };
 
     if (date) {
-      query.orderDate = new Date(date); // Exact date match
+      query.orderDate = new Date(date); // Exact match for the provided date
     }
 
     if (month) {
-      const year = new Date().getFullYear(); // Default to the current year
+      const year = new Date().getFullYear();
       const startOfMonth = new Date(year, month - 1, 1); // Start of the month
       const endOfMonth = new Date(year, month, 0); // End of the month
-      query.orderDate = { $gte: startOfMonth, $lte: endOfMonth }; // Match orders within the month
+      query.orderDate = { $gte: startOfMonth, $lte: endOfMonth }; // Match within the month range
     }
 
-    // Find orders matching the criteria
+    // Step 3: Find orders matching the query
     const orders = await Order.find(query);
 
     if (orders.length === 0) {
-      // If no orders are found, calculate revenue solely from products
-      return res.status(200).json({
+      return res.status(404).json({
         totalRevenue: "0.00",
         filteredProducts: [],
-        message: "No orders found matching the criteria, but products exist for the seller.",
+        message: "No matching orders found.",
       });
     }
 
-    // Calculate total revenue and prepare filtered products
+    // Step 4: Filter products within the orders and calculate total revenue
     let totalRevenue = 0;
     const filteredProducts = [];
     orders.forEach((order) => {
       order.productsPurchased.forEach((product) => {
-        if (sellerProductNames.includes(product.productName)) {
+        if (
+          sellerProductNames.includes(product.productName) &&
+          (!name || product.productName.toLowerCase().includes(name.toLowerCase())) // Match product name if provided
+        ) {
           const revenue = product.quantity * product.price;
           totalRevenue += revenue;
           filteredProducts.push({
@@ -522,22 +518,25 @@ const filterSellerProducts = async (req, res) => {
             quantity: product.quantity,
             price: product.price,
             orderDate: order.orderDate,
-            revenue: revenue,
+            revenue,
           });
         }
       });
     });
 
-    // Return the filtered products and total revenue
+    // Step 5: Return filtered products and total revenue
     res.status(200).json({
       totalRevenue: totalRevenue.toFixed(2),
       filteredProducts,
     });
   } catch (error) {
-    console.error('Error filtering products:', error);
+    console.error('Error filtering ordered products:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 };
+
+
+
 
 
 
