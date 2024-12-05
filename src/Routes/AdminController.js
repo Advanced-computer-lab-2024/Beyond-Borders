@@ -1951,11 +1951,213 @@ const loginUser = async (req, res) => {
   }
 };
 
+const findUserTypeByUsername = async (req, res) => {
+  const { username } = req.query;
+
+  if (!username) {
+    return res.status(400).json({ error: "Username is required." });
+  }
+
+  // List of models and their corresponding user types
+  const userModels = [
+    { model: AllTouristModel, type: "Tourist" },
+    { model: NewAcceptedAdvertiserModel, type: "Advertiser" },
+    { model: NewAcceptedTourGuideModel, type: "TourGuide" },
+    { model: NewAcceptedSellerModel, type: "Seller" },
+    { model: NewTourismGoverner, type: "TourismGovernor" },
+    { model: NewAdminModel, type: "Admin" },
+    { model: NewAcceptedTransportationAdvertiserModel, type: "TransportationAdvertiser" },
+  ];
+
+  try {
+    // Loop through each model
+    for (const { model, type } of userModels) {
+      const user = await model.findOne({ Username: username });
+      if (user) {
+        return res.status(200).json({ username, userType: type });
+      }
+    }
+
+    // If the username is not found in any model
+    return res.status(404).json({ error: "User not found." });
+  } catch (error) {
+    console.error("Error finding user type:", error);
+    return res.status(500).json({ error: "Internal server error." });
+  }
+};
+
+
+
+// Function to calculate total app revenue for booked itineraries
+const calculateAppRevenueItinerary = async (req, res) => {
+  try {
+    // Fetch all tourists with booked itineraries
+    const tourists = await AllTouristModel.find({ "BookedItineraries.booked": true });
+    
+    if (!tourists || tourists.length === 0) {
+      return res.status(404).json({ error: "No bookings found." });
+    }
+
+    let totalRevenue = 0;
+
+    // Iterate through each tourist's booked itineraries
+    for (const tourist of tourists) {
+      for (const booking of tourist.BookedItineraries) {
+        if (booking.booked) {
+          // Find the itinerary details from the Itinerary collection
+          const itinerary = await ItineraryrModel.findOne({ Title: booking.ItineraryName });
+          if (itinerary) {
+            totalRevenue += itinerary.Price * 0.10; // Add 10% of the itinerary price to total revenue
+          }
+        }
+      }
+    }
+
+    // Return the total calculated revenue
+    res.status(200).json({ totalAppRevenue: totalRevenue.toFixed(2) });
+  } catch (error) {
+    console.error("Error calculating app revenue:", error);
+    res.status(500).json({ error: "Failed to calculate app revenue. Please try again later." });
+  }
+};
+
+// Function to calculate total app revenue for booked activities
+const calculateAppRevenueActivity = async (req, res) => {
+  try {
+    // Fetch all tourists with booked activities
+    const tourists = await AllTouristModel.find({ "BookedActivities.booked": true });
+
+    if (!tourists || tourists.length === 0) {
+      return res.status(404).json({ error: "No activity bookings found." });
+    }
+
+    let totalRevenue = 0;
+
+    // Iterate through each tourist's booked activities
+    for (const tourist of tourists) {
+      for (const booking of tourist.BookedActivities) {
+        if (booking.booked) {
+          // Find the activity details from the Activity collection
+          const activity = await ActivityModel.findOne({ Name: booking.activityName });
+          if (activity) {
+            totalRevenue += activity.Price * 0.10; // Add 10% of the activity price to total revenue
+          }
+        }
+      }
+    }
+
+    // Return the total calculated revenue
+    res.status(200).json({ totalActivityRevenue: totalRevenue.toFixed(2) });
+  } catch (error) {
+    console.error("Error calculating activity revenue:", error);
+    res.status(500).json({ error: "Failed to calculate activity revenue. Please try again later." });
+  }
+};
+
+// Function to calculate total app revenue for purchased products
+const calculateAppRevenueProduct = async (req, res) => {
+  try {
+    // Fetch all tourists with purchased products
+    const tourists = await AllTouristModel.find({ "purchasedProducts.productName": { $exists: true } });
+
+    if (!tourists || tourists.length === 0) {
+      return res.status(404).json({ error: "No purchased products found." });
+    }
+
+    let totalRevenue = 0;
+
+    // Iterate through each tourist's purchased products
+    for (const tourist of tourists) {
+      for (const purchasedProduct of tourist.purchasedProducts) {
+        if (purchasedProduct.productName) {
+          // Find the product details from the Product collection
+          const product = await NewProduct.findOne({ Name: purchasedProduct.productName });
+          if (product) {
+            // Add 10% of the product's total sales to the total revenue
+            totalRevenue += (purchasedProduct.quantity || 0) * product.Price * 0.10;
+          }
+        }
+      }
+    }
+
+    // Return the total calculated revenue
+    res.status(200).json({ totalProductRevenue: totalRevenue.toFixed(2) });
+  } catch (error) {
+    console.error("Error calculating product revenue:", error);
+    res.status(500).json({ error: "Failed to calculate product revenue. Please try again later." });
+  }
+};
+
+const calculateTotalAppRevenue = async (req, res) => {
+  try {
+    let totalItineraryRevenue = 0;
+    let totalActivityRevenue = 0;
+    let totalProductRevenue = 0;
+
+    // Calculate revenue from booked itineraries
+    const itineraryTourists = await AllTouristModel.find({ "BookedItineraries.booked": true });
+    for (const tourist of itineraryTourists) {
+      for (const booking of tourist.BookedItineraries) {
+        if (booking.booked) {
+          const itinerary = await ItineraryrModel.findOne({ Title: booking.ItineraryName });
+          if (itinerary) {
+            totalItineraryRevenue += itinerary.Price * 0.10;
+          }
+        }
+      }
+    }
+
+    // Calculate revenue from booked activities
+    const activityTourists = await AllTouristModel.find({ "BookedActivities.booked": true });
+    for (const tourist of activityTourists) {
+      for (const booking of tourist.BookedActivities) {
+        if (booking.booked) {
+          const activity = await ActivityModel.findOne({ Name: booking.activityName });
+          if (activity) {
+            totalActivityRevenue += activity.Price * 0.10;
+          }
+        }
+      }
+    }
+
+    // Calculate revenue from purchased products
+    const productTourists = await AllTouristModel.find({ "purchasedProducts.productName": { $exists: true } });
+    for (const tourist of productTourists) {
+      for (const purchasedProduct of tourist.purchasedProducts) {
+        if (purchasedProduct.productName) {
+          const product = await NewProduct.findOne({ Name: purchasedProduct.productName });
+          if (product) {
+            totalProductRevenue += (purchasedProduct.quantity || 0) * product.Price * 0.10;
+          }
+        }
+      }
+    }
+
+    // Calculate total app revenue
+    const totalAppRevenue = totalItineraryRevenue + totalActivityRevenue + totalProductRevenue;
+
+    // Send the result as response
+    res.status(200).json({
+      totalItineraryRevenue: totalItineraryRevenue.toFixed(2),
+      totalActivityRevenue: totalActivityRevenue.toFixed(2),
+      totalProductRevenue: totalProductRevenue.toFixed(2),
+      totalAppRevenue: totalAppRevenue.toFixed(2),
+    });
+  } catch (error) {
+    console.error("Error calculating total app revenue:", error);
+    res.status(500).json({ error: "Failed to calculate total app revenue. Please try again later." });
+  }
+};
+
+
+
 
 
 module.exports = {createNewAdmin, createNewTourismGoverner, createNewProduct, editProduct, acceptSeller, rejectSeller, createNewCategory, readAllActivityCategories, updateCategory, deleteActivityCategory, deleteAccount, searchProductAdmin, createNewTag, readAllTags, updateTag, deleteTag, 
     acceptTourGuide, rejectTourGuide, acceptAdvertiser, rejectAdvertiser, filterProductByPriceAdmin, sortProductsDescendingAdmin, sortProductsAscendingAdmin,viewProducts, loginAdmin, viewAllProductsAdmin, updateAdminPassword, getAllComplaints, updateComplaintStatus, replyToComplaint, getComplaintDetails, 
     filterComplaintsByStatus, sortComplaintsByRecent, sortComplaintsByOldest, archiveProduct, unarchiveProduct, flagItinerary, flagActivity, viewArchivedProductsAdmin , viewAllActivitiesAdmin ,viewAllItinerariesAdmin,acceptTranspAdvertiser,rejectTranspAdvertiser, readAllDeleteRequests,rejectRequestDeleteAccout,
     getAdminPassword,viewAdvertiserDocument,viewTourGuideDocuments,viewSellerDocument,getAllUnregisteredAdvertisers,getAllUnregisteredTourGuides,getAllUnregisteredSellers,getAllUnregisteredTransportationAdvertisers,  createPromoCode, getTotalTourists, getTouristsByMonth
-    , getTotalTourismGovernors, getTourismGovernorsByMonth, getTotalTourGuides, getTourGuidesByMonth, getTotalSellers, getSellersByMonth, getTotalAdvertisers, getAdvertisersByMonth, getTotalTransportationAdvertisers, getTransportationAdvertisersByMonth, getTotalUsers, getTotalUsersByMonth, loginUser
+    , getTotalTourismGovernors, getTourismGovernorsByMonth, getTotalTourGuides, getTourGuidesByMonth, getTotalSellers, getSellersByMonth, getTotalAdvertisers, getAdvertisersByMonth, getTotalTransportationAdvertisers, getTransportationAdvertisersByMonth, getTotalUsers, getTotalUsersByMonth, loginUser,findUserTypeByUsername
+    ,calculateAppRevenueItinerary
+    ,calculateAppRevenueActivity,calculateAppRevenueProduct,calculateTotalAppRevenue
   };
