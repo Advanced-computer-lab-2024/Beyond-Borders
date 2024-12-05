@@ -1940,7 +1940,7 @@ const loginUser = async (req, res) => {
         }
 
         // Successful authentication
-        return res.status(200).json({ message: "Login successful!", userType: type, user });
+        return res.status(200).json({ message: "Login successful!", userType: type, user, LoginCount: user.LoginCount || 0, });
       }
     }
 
