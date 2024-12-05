@@ -93,6 +93,7 @@ function TouristCompletedHPs() {
   const [commentModalOpen, setCommentModalOpen] = useState(false);
   const [currentActivityId, setCurrentActivityId] = useState(null);
   const [commentText, setCommentText] = useState('');
+  const [showAverageRating, setShowAverageRating] = useState({}); // Track which activity shows average rating
 
   const navigate = useNavigate();
   const [expanded, setExpanded] = React.useState({});
@@ -356,88 +357,201 @@ function TouristCompletedHPs() {
     
     
   
+    // const renderRating = (activityId, userRating, averageRating, handleRatingClick) => {
+    //     const displayRating = userRating || averageRating || 0; // Use user rating first, then average
+    //     const fullStars = Math.floor(displayRating);
+    //     const halfStars = displayRating > fullStars ? 1 : 0;
+    //     const emptyStars = 5 - fullStars - halfStars;
+      
+    //     return (
+    //       <Box sx={styles.ratingContainer} display="flex" alignItems="center">
+    //         {/* Display Rating Number */}
+    //         <Typography
+    //           variant="body2"
+    //           sx={{
+    //             fontSize: '18px',
+    //             fontWeight: 'bold',
+    //             marginRight: '10px', // Spacing between number and stars
+    //           }}
+    //         >
+    //           {displayRating.toFixed(2)}
+    //         </Typography>
+      
+    //         {/* Render Full Stars */}
+    //         {[...Array(fullStars)].map((_, index) => (
+    //           <StarIcon
+    //             key={`full-${index}`}
+    //             sx={{ fontSize: '32px', cursor: 'pointer', color: '#192959' }}
+    //             onClick={() => handleRatingClick(activityId, index + 1)}
+    //           />
+    //         ))}
+      
+    //         {/* Render Half Stars */}
+    //         {[...Array(halfStars)].map((_, index) => (
+    //           <StarHalfIcon
+    //             key={`half-${index}`}
+    //             sx={{ fontSize: '32px', cursor: 'pointer', color: '#192959' }}
+    //             onClick={() => handleRatingClick(activityId, fullStars + 1)}
+    //           />
+    //         ))}
+      
+    //         {/* Render Empty Stars */}
+    //         {[...Array(emptyStars)].map((_, index) => (
+    //           <StarBorderIcon
+    //             key={`empty-${index}`}
+    //             sx={{ fontSize: '32px', cursor: 'pointer', color: '#192959' }}
+    //             onClick={() => handleRatingClick(activityId, fullStars + index + 1)}
+    //           />
+    //         ))}
+    //       </Box>
+    //     );
+    //   };
+
     const renderRating = (activityId, userRating, averageRating, handleRatingClick) => {
-        const displayRating = userRating || averageRating || 0; // Use user rating first, then average
-        const fullStars = Math.floor(displayRating);
-        const halfStars = displayRating > fullStars ? 1 : 0;
-        const emptyStars = 5 - fullStars - halfStars;
-      
-        return (
-          <Box sx={styles.ratingContainer} display="flex" alignItems="center">
-            {/* Display Rating Number */}
-            <Typography
-              variant="body2"
-              sx={{
-                fontSize: '18px',
-                fontWeight: 'bold',
-                marginRight: '10px', // Spacing between number and stars
-              }}
-            >
-              {displayRating.toFixed(2)}
-            </Typography>
-      
-            {/* Render Full Stars */}
-            {[...Array(fullStars)].map((_, index) => (
-              <StarIcon
-                key={`full-${index}`}
-                sx={{ fontSize: '32px', cursor: 'pointer', color: '#192959' }}
-                onClick={() => handleRatingClick(activityId, index + 1)}
-              />
-            ))}
-      
-            {/* Render Half Stars */}
-            {[...Array(halfStars)].map((_, index) => (
-              <StarHalfIcon
-                key={`half-${index}`}
-                sx={{ fontSize: '32px', cursor: 'pointer', color: '#192959' }}
-                onClick={() => handleRatingClick(activityId, fullStars + 1)}
-              />
-            ))}
-      
-            {/* Render Empty Stars */}
-            {[...Array(emptyStars)].map((_, index) => (
-              <StarBorderIcon
-                key={`empty-${index}`}
-                sx={{ fontSize: '32px', cursor: 'pointer', color: '#192959' }}
-                onClick={() => handleRatingClick(activityId, fullStars + index + 1)}
-              />
-            ))}
-          </Box>
-        );
-      };
+      const displayRating = userRating || 0; // Display user rating or default to 0
+      const fullStars = Math.floor(displayRating);
+      const halfStars = displayRating > fullStars ? 1 : 0;
+      const emptyStars = 5 - fullStars - halfStars;
     
-      const handleRatingClick = async (hpId, rating) => {
-        const username = localStorage.getItem('username');
-        const hp = HPs.find((hp) => hp._id === hpId); // Find the specific historical place by ID
-      
-        if (!username || !hp) {
-          alert('User not logged in or historical place not found.');
-          return;
-        }
-      
-        try {
-          const response = await axios.put('/rateCompletedHP', {
-            touristUsername: username,
-            HPname: hp.name, // Use the name of the historical place as expected by the backend
-            rating,
-          });
-      
-          const { newAverageRating } = response.data;
-      
-          // Update state: show user rating and "Add Comment" button
+      return (
+        <Box sx={styles.ratingContainer} display="flex" alignItems="center">
+          {/* Display Rating Number */}
+          <Typography
+            variant="body2"
+            sx={{
+              fontSize: '18px',
+              fontWeight: 'bold',
+              marginRight: '10px', // Spacing between number and stars
+            }}
+          >
+            {userRating ? displayRating.toFixed(2) : "Rate Now"} {/* Show "Rate Now" when no rating */}
+          </Typography>
+    
+          {/* Render Full Stars */}
+          {[...Array(fullStars)].map((_, index) => (
+            <StarIcon
+              key={`full-${index}`}
+              sx={{ fontSize: '32px', cursor: 'pointer', color: '#192959' }}
+              onClick={() => handleRatingClick(activityId, index + 1)}
+            />
+          ))}
+    
+          {/* Render Half Stars */}
+          {[...Array(halfStars)].map((_, index) => (
+            <StarHalfIcon
+              key={`half-${index}`}
+              sx={{ fontSize: '32px', cursor: 'pointer', color: '#192959' }}
+              onClick={() => handleRatingClick(activityId, fullStars + 1)}
+            />
+          ))}
+    
+          {/* Render Empty Stars */}
+          {[...Array(emptyStars)].map((_, index) => (
+            <StarBorderIcon
+              key={`empty-${index}`}
+              sx={{ fontSize: '32px', cursor: 'pointer', color: '#192959' }}
+              onClick={() => handleRatingClick(activityId, fullStars + index + 1)}
+            />
+          ))}
+        </Box>
+      );
+    };
+    
+    
+    const handleRatingClick = async (hpId, rating) => {
+      const username = localStorage.getItem('username');
+      const hp = HPs.find((hp) => hp._id === hpId); // Find the specific historical place by ID
+    
+      if (!username || !hp) {
+        alert('User not logged in or historical place not found.');
+        return;
+      }
+    
+      try {
+        const response = await axios.put('/rateCompletedHP', {
+          touristUsername: username,
+          HPname: hp.name, // Use the name of the historical place as expected by the backend
+          rating,
+        });
+    
+        const { newAverageRating } = response.data;
+    
+        // Temporarily show user rating
+        setHPs((prevHPs) =>
+          prevHPs.map((historicalPlace) =>
+            historicalPlace._id === hpId
+              ? { ...historicalPlace, userRating: rating }
+              : historicalPlace
+          )
+        );
+    
+        // Wait for 2 seconds, then switch to showing the average rating
+        setTimeout(() => {
           setHPs((prevHPs) =>
             prevHPs.map((historicalPlace) =>
               historicalPlace._id === hpId
-                ? { ...historicalPlace, userRating: rating, Ratings: newAverageRating, showCommentButton: true }
+                ? { ...historicalPlace, userRating: 0, Ratings: newAverageRating ,showCommentButton:true} // Reset userRating, show average
                 : historicalPlace
             )
           );
-        } catch (error) {
-          console.error('Error submitting rating:', error);
-          alert(error.response?.data?.msg || 'Failed to submit rating.');
-        }
-      };
-      
+    
+          // Update state to show average rating
+          setShowAverageRating((prev) => ({ ...prev, [hpId]: true }));
+        }, 2000); // 2-second delay
+      } catch (error) {
+        console.error('Error submitting rating:', error);
+        alert(error.response?.data?.msg || 'Failed to submit rating.');
+      }
+    };
+    
+
+    const renderAverageRating = (averageRating) => {
+      const fullStars = Math.floor(averageRating);
+      const halfStars = averageRating > fullStars ? 1 : 0;
+      const emptyStars = 5 - fullStars - halfStars;
+    
+      return (
+        <Box sx={styles.ratingContainer} display="flex" alignItems="center">
+          {/* Display Average Rating Number */}
+          <Typography
+            variant="body2"
+            sx={{
+              fontSize: '18px',
+              fontWeight: 'bold',
+              marginRight: '10px',
+            }}
+          >
+            {averageRating.toFixed(2)}
+          </Typography>
+    
+          {/* Render Full Stars */}
+          {[...Array(fullStars)].map((_, index) => (
+            <StarIcon
+              key={`full-average-${index}`}
+              sx={{ fontSize: '32px', color: '#192959' }}
+            />
+          ))}
+    
+          {/* Render Half Stars */}
+          {[...Array(halfStars)].map((_, index) => (
+            <StarHalfIcon
+              key={`half-average-${index}`}
+              sx={{ fontSize: '32px', color: '#192959' }}
+            />
+          ))}
+    
+          {/* Render Empty Stars */}
+          {[...Array(emptyStars)].map((_, index) => (
+            <StarBorderIcon
+              key={`empty-average-${index}`}
+              sx={{ fontSize: '32px', color: '#192959' }}
+            />
+          ))}
+        </Box>
+      );
+    };
+    
+    
 
       const handleCommentSubmit = async () => {
         const username = localStorage.getItem('username');
@@ -1299,13 +1413,11 @@ function TouristCompletedHPs() {
           </Box>
   
   
-          <Box sx={styles.activityRating}>
-  {renderRating(
-    hp._id,           // Pass hp._id for historical place
-    hp.userRating,    // Use userRating for the user-specific rating
-    hp.Ratings,        // Overall rating for the historical place
-    handleRatingClick // Rating click handler
-  )}
+       <Box sx={styles.activityRating}>
+  {showAverageRating[hp._id]
+    ? renderAverageRating(hp.Ratings) // Show average rating after submission
+    : renderRating(hp._id, hp.userRating, hp.Ratings, handleRatingClick)} {/* Initial render */}
+
 
   {/* Reserve space for the Add Comment button */}
   <Box
