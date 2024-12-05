@@ -1,6 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
+import Dialog from '@mui/material/Dialog';
+import DialogActions from '@mui/material/DialogActions';
+import DialogContent from '@mui/material/DialogContent';
+import DialogTitle from '@mui/material/DialogTitle';
 import Box from '@mui/material/Box';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios'; // To make API calls
@@ -9,7 +13,11 @@ const Begin2 = () => {
   const [text, setText] = useState(''); // State for the animated text
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [userTypeSaved, setUserType] = useState('');
   const [error, setError] = useState(''); // For error messages
+  const [otp, setOtp] = useState(new Array(6).fill('')); // For OTP input
+  const [dialogOpen, setDialogOpen] = useState(false); // To control the dialog
+  const otpRefs = useRef([]); // Array of refs for OTP fields
   const navigate = useNavigate(); // Hook for navigation
   const fullText = 'Welcome to Beyond Borders!'; // Full text to display
 
@@ -55,24 +63,31 @@ const Begin2 = () => {
       switch (userType) {
         case 'Tourist':
           navigate('/NewTouristHomePage');
+          localStorage.setItem('username',username);
           break;
         case 'Advertiser':
           navigate('/YAdvertiserDashboard');
+          localStorage.setItem('username',username);
           break;
         case 'TourGuide':
           navigate('/YTourGuideDashboard');
+          localStorage.setItem('username',username);
           break;
         case 'Seller':
           navigate('/YSellerDashboard');
+          localStorage.setItem('username',username);
           break;
         case 'TourismGovernor':
           navigate('/TourismGovernorDashboard');
+          localStorage.setItem('username',username);
           break;
         case 'Admin':
           navigate('/YAdminDashboard');
+          localStorage.setItem('username',username);
           break;
         case 'TransportationAdvertiser':
           navigate('/transportAdvertiserHome');
+          localStorage.setItem('username',username);
           break;
         default:
           throw new Error('Unknown user type');
@@ -84,6 +99,114 @@ const Begin2 = () => {
         setError(err.response?.data?.error || 'Login failed. Please try again.');
       }
     }
+  };
+
+  // const handleForgotPassword = async () => {
+  //   if (!username) {
+  //     setError('Please enter your username');
+  //     return;
+  //   }
+
+  //   try {
+  //     // Call the backend function to get the user type
+  //     const response = await axios.get('/api/findUserTypeByUsername', {
+  //       params: { username },
+  //     });
+  //     const { userType } = response.data;
+  //     //console.log(userType);
+  //     setUserType(userType);
+  //     //console.log(userTypeSaved.toString);
+
+  //     // Open the dialog for OTP entry
+  //     setDialogOpen(true);
+
+  //     // Navigate based on user type or show success message
+  //     //navigate(`/reset-password/${userType}`); // Example route for resetting password based on user type
+  //   } catch (err) {
+  //     if (err.response?.status === 404) {
+  //       setError('Username not found');
+  //     } else {
+  //       setError('Failed to process your request. Please try again.');
+  //     }
+  //   }
+  // };
+
+  const handleForgotPassword = async () => {
+    if (!username) {
+      setError('Please enter your username');
+      return;
+    }
+
+    try {
+      const response = await axios.get('/api/findUserTypeByUsername', {
+        params: { username },
+      });
+      const { userType } = response.data;
+      setUserType(userType);
+
+      // // Reset OTP and open dialog
+      // setOtp(new Array(6).fill(''));
+      // setDialogOpen(true);
+
+      if (userType === 'Tourist') {
+        // Step 2: Call the backend `sendOtp` function for tourists
+        try {
+          const otpResponse = await axios.post('/sendOtp', { touristUsername: username });
+          console.log(otpResponse.data.msg);
+  
+          // Step 3: Reset OTP, open the dialog, and focus on the first field
+          setOtp(new Array(6).fill(''));
+          setDialogOpen(true);
+  
+          // Focus on the first OTP field after a short delay
+          setTimeout(() => otpRefs.current[0]?.focus(), 0);
+        } catch (otpError) {
+          console.error('Failed to send OTP:', otpError);
+          setError('Failed to send OTP. Please try again.');
+        }
+      } else {
+        // If user type is not Tourist, display a message
+        setError('Forgot password is only available for tourists.');
+      }
+
+      // Focus on the first OTP field after a short delay
+      //setTimeout(() => otpRefs.current[0]?.focus(), 0);
+    } catch (err) {
+      if (err.response?.status === 404) {
+        setError('Username not found');
+      } else {
+        setError('Failed to process your request. Please try again.');
+      }
+    }
+  };
+
+  // const handleOtpChange = (value, index) => {
+  //   const newOtp = [...otp];
+  //   newOtp[index] = value;
+  //   setOtp(newOtp);
+  // };
+  const handleOtpChange = (value, index) => {
+    if (/^\d?$/.test(value)) {
+      const newOtp = [...otp];
+      newOtp[index] = value;
+      setOtp(newOtp);
+
+      if (value && index < otp.length - 1) {
+        otpRefs.current[index + 1]?.focus(); // Move to the next field
+      }
+    }
+  };
+
+  const handleKeyDown = (e, index) => {
+    if (e.key === 'Backspace' && !otp[index] && index > 0) {
+      otpRefs.current[index - 1]?.focus(); // Move to the previous field on delete
+    }
+  };
+
+  const handleOtpSubmit = () => {
+    console.log('OTP Submitted:', otp.join(''));
+    // Proceed with OTP verification logic
+    setDialogOpen(false); // Close the dialog after submission
   };
 
   return (
@@ -178,9 +301,16 @@ const Begin2 = () => {
           )}
 
           {/* Forgot Password Link */}
-          <Box sx={{ textAlign: 'left', marginTop: '2px', marginRight: '20px' }}>
-            <Link
-              to="/forgot-password"
+          <Box
+            sx={{
+              textAlign: 'left',
+              marginTop: '-5px',
+              marginRight: '20px',
+            }}
+            onClick={handleForgotPassword} // Call the function on click
+            style={{ cursor: 'pointer' }} // Add pointer cursor for a clickable effect
+          >
+            <span
               style={{
                 textDecoration: 'none',
                 color: '#192959',
@@ -189,8 +319,9 @@ const Begin2 = () => {
               onMouseLeave={(e) => (e.target.style.textDecoration = 'none')} // Remove underline when not hovering
             >
               Forgot password?
-            </Link>
+            </span>
           </Box>
+
 
           {/* Login Button */}
           <Button
@@ -209,8 +340,95 @@ const Begin2 = () => {
           </Button>
         </Box>
 
+        {/* <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)}>
+        <DialogTitle>Please enter the OTP sent to your email</DialogTitle>
+        <DialogContent>
+          <Box display="flex" justifyContent="center" gap="10px">
+            {otp.map((value, index) => (
+              <TextField
+                key={index}
+                value={value}
+                onChange={(e) => handleOtpChange(e.target.value, index)}
+                inputProps={{ maxLength: 1 }}
+                sx={{ width: '40px', textAlign: 'center' }}
+              />
+            ))}
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleOtpSubmit} variant="contained">
+            Submit
+          </Button>
+        </DialogActions>
+      </Dialog> */}
+      {/* <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)}>
+        <DialogTitle>Please enter the OTP sent to your email</DialogTitle>
+        <DialogContent>
+          <Box display="flex" justifyContent="center" gap="10px">
+            {otp.map((value, index) => (
+              <TextField
+                key={index}
+                value={value}
+                onChange={(e) => handleOtpChange(e.target.value, index)}
+                onKeyDown={(e) => handleKeyDown(e, index)}
+                inputProps={{ maxLength: 1 }}
+                sx={{ width: '40px', textAlign: 'center' }}
+                inputRef={(el) => (otpRefs.current[index] = el)}
+              />
+            ))}
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleOtpSubmit} variant="contained">
+            Submit
+          </Button>
+        </DialogActions>
+      </Dialog> */}
+
+      <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)}>
+        <DialogTitle>Please enter the OTP sent to your email</DialogTitle>
+        <DialogContent>
+          <Box display="flex" justifyContent="center" gap="10px">
+            {otp.map((value, index) => (
+              <TextField
+                key={index}
+                value={value}
+                onChange={(e) => handleOtpChange(e.target.value, index)}
+                onKeyDown={(e) => handleKeyDown(e, index)}
+                inputProps={{ maxLength: 1 }}
+                sx={{
+                  width: '40px',
+                  textAlign: 'center',
+                }}
+                inputRef={(el) => (otpRefs.current[index] = el)}
+              />
+            ))}
+          </Box>
+          {/* Centered "Sign In" button */}
+          <Box display="flex" justifyContent="center" mt={3}>
+            <Button
+              onClick={handleOtpSubmit}
+              variant="contained"
+              sx={{
+                backgroundColor: otp.every((digit) => digit !== '') ? '#192959' : 'gray',
+                color: 'white',
+                borderRadius: '10px',
+                width: '150px',
+                '&:hover': {
+                  backgroundColor: otp.every((digit) => digit !== '') ? '#4b5a86' : 'gray',
+                },
+              }}
+              disabled={!otp.every((digit) => digit !== '')} // Disable if OTP is incomplete
+            >
+              Sign In
+            </Button>
+          </Box>
+        </DialogContent>
+      </Dialog>
+
+
         {/* Forgot Password and Register Links */}
-        <Box sx={{ marginTop: '20px' }}>
+        {/* <Box sx={{ marginTop: '20px' }}>
           
           <p>
            Login for nowww{' '}
@@ -223,7 +441,7 @@ const Begin2 = () => {
               login Now
             </Link>
           </p>
-        </Box>
+        </Box> */}
 
         {/* Forgot Password and Register Links */}
         <Box sx={{ marginTop: '20px' }}>

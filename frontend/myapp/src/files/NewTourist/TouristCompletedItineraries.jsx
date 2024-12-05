@@ -99,6 +99,7 @@ const [selectedTourGuide, setSelectedTourGuide] = useState({
     rating: 0,
   }); // Track selected tour guide
   const [tourGuideCommentModalOpen, setTourGuideCommentModalOpen] = useState(false); // Manage modal visibility
+  const [showAverageRating, setShowAverageRating] = useState({}); // Track which activity shows average rating
 
   
 
@@ -356,8 +357,9 @@ const [selectedTourGuide, setSelectedTourGuide] = useState({
   
   
 
+   
   const renderRating = (activityId, userRating, averageRating, handleRatingClick) => {
-    const displayRating = userRating || averageRating || 0; // Use user rating first, then average
+    const displayRating = userRating || 0; // Display user rating or default to 0
     const fullStars = Math.floor(displayRating);
     const halfStars = displayRating > fullStars ? 1 : 0;
     const emptyStars = 5 - fullStars - halfStars;
@@ -373,7 +375,7 @@ const [selectedTourGuide, setSelectedTourGuide] = useState({
             marginRight: '10px', // Spacing between number and stars
           }}
         >
-          {displayRating.toFixed(2)}
+          {userRating ? displayRating.toFixed(2) : "Rate Now"} {/* Show "Rate Now" when no rating */}
         </Typography>
   
         {/* Render Full Stars */}
@@ -577,18 +579,76 @@ const [selectedTourGuide, setSelectedTourGuide] = useState({
   
       const { newAverageRating } = response.data;
   
-      // Update state: show user rating and "Add Comment" button
+      // Temporarily show user rating
       setActivities((prevActivities) =>
         prevActivities.map((act) =>
           act._id === activityId
-            ? { ...act, userRating: rating, averageRating: newAverageRating, showCommentButton: true }
+            ? { ...act, userRating: rating }
             : act
         )
       );
+  
+      // Wait for 2 seconds, then switch to showing the average rating
+      setTimeout(() => {
+        setActivities((prevActivities) =>
+          prevActivities.map((act) =>
+            act._id === activityId
+              ? { ...act, userRating: 0, averageRating: newAverageRating, showCommentButton: true } // Reset userRating, show average
+              : act
+          )
+        );
+        
+        setShowAverageRating((prev) => ({ ...prev, [activityId]: true }));}, 2000); // 2-second delay
     } catch (error) {
       console.error('Error submitting rating:', error);
       alert(error.response?.data?.msg || 'Failed to submit rating.');
     }
+  };
+
+  const renderAverageRating = (averageRating) => {
+    const fullStars = Math.floor(averageRating);
+    const halfStars = averageRating > fullStars ? 1 : 0;
+    const emptyStars = 5 - fullStars - halfStars;
+  
+    return (
+      <Box sx={styles.ratingContainer} display="flex" alignItems="center">
+        {/* Display Average Rating Number */}
+        <Typography
+          variant="body2"
+          sx={{
+            fontSize: '18px',
+            fontWeight: 'bold',
+            marginRight: '10px',
+          }}
+        >
+          {averageRating.toFixed(2)}
+        </Typography>
+  
+        {/* Render Full Stars */}
+        {[...Array(fullStars)].map((_, index) => (
+          <StarIcon
+            key={`full-average-${index}`}
+            sx={{ fontSize: '32px', color: '#192959' }}
+          />
+        ))}
+  
+        {/* Render Half Stars */}
+        {[...Array(halfStars)].map((_, index) => (
+          <StarHalfIcon
+            key={`half-average-${index}`}
+            sx={{ fontSize: '32px', color: '#192959' }}
+          />
+        ))}
+  
+        {/* Render Empty Stars */}
+        {[...Array(emptyStars)].map((_, index) => (
+          <StarBorderIcon
+            key={`empty-average-${index}`}
+            sx={{ fontSize: '32px', color: '#192959' }}
+          />
+        ))}
+      </Box>
+    );
   };
   
   
@@ -1237,13 +1297,15 @@ const [selectedTourGuide, setSelectedTourGuide] = useState({
   sx={{
     display: 'flex',
     fontSize: '18px',
+    fontWeight: 'bold',
     alignItems: 'center',
     cursor: 'pointer',
+    textDecoration: 'underline',
     transition: 'all 0.3s ease', // Smooth transition for hover effects
     '&:hover': {
-      //fontWeight: 'bold', // Make text bold on hover
+      fontWeight: 'bold', // Make text bold on hover
       textDecoration: 'underline', // Underline text on hover
-      color: '#192959', // Optional: Change color on hover
+      color: '#8088a3', // Optional: Change color on hover
     },
   }}
   onClick={() => {
@@ -1344,13 +1406,10 @@ const [selectedTourGuide, setSelectedTourGuide] = useState({
                 </Box>
               </Box>
              {/* Ratings and Add Comment */}
-        <Box sx={styles.activityRating}>
-          {renderRating(
-            activity._id,
-            activity.userRating,
-            activity.Ratings,
-            handleRatingClick
-          )}
+             <Box sx={styles.activityRating}>
+  {showAverageRating[activity._id]
+    ? renderAverageRating(activity.Ratings) // Show average rating after submission
+    : renderRating(activity._id, activity.userRating, activity.Ratings, handleRatingClick)}
 
           {/* Reserve space for the Add Comment button */}
           <Box
