@@ -4,7 +4,7 @@ import { Box, Button, Typography,Menu, MenuItem,Tooltip, IconButton, Modal, Text
   List,
   ListItem,
   ListItemText,
-  ListItemAvatar,
+  ListItemAvatar, Grid,
   Avatar, } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import MenuIcon from '@mui/icons-material/Menu';
@@ -1917,7 +1917,7 @@ const markAllAsRead = async () => {
       left: '50%',
       transform: 'translate(-50%, -50%)',
       width: '90%',
-      maxWidth: 500,
+      maxWidth: 900,
       bgcolor: 'background.paper',
       borderRadius: 1,
       boxShadow: 24,
@@ -1931,18 +1931,26 @@ const markAllAsRead = async () => {
         p: 4,
       }}
     >
-      {/* Header with Edit/Save Button */}
+      {/* Header with Profile Picture and Edit/Save Button */}
       <Box
         sx={{
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
-          mb: 2,
+          mb: 4,
         }}
       >
-        <Typography variant="h6" component="h2">
-          My Profile
-        </Typography>
+        {/* Profile Picture and Name */}
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+          <Avatar
+            src="/images/girl.jpg"
+            alt={profileData.username}
+            sx={{ width: 70, height: 70 }}
+          />
+          <Box>
+            <Typography variant="h6">{profileData.username}</Typography>
+          </Box>
+        </Box>
         <Button
           variant="outlined"
           onClick={() => {
@@ -1967,228 +1975,221 @@ const markAllAsRead = async () => {
 
       {/* Profile Fields */}
       <Box component="form">
-        <TextField
-          fullWidth
-          label="Username"
-          id="username"
-          value={profileData.username}
-          InputProps={{ readOnly: true }}
-          margin="dense"
-        />
-        <TextField
-          fullWidth
-          label="Email Address"
-          id="email"
-          type="email"
-          value={profileData.email}
-          onChange={(e) => setProfileData({ ...profileData, email: e.target.value })}
-          InputProps={{ readOnly: !isEditable }}
-          margin="dense"
-        />
-        <TextField
-          fullWidth
-          label="Password"
-          id="password"
-          type={showPassword ? 'text' : 'password'}
-          value={profileData.password}
-          onChange={(e) => setProfileData({ ...profileData, password: e.target.value })}
-          InputProps={{
-            readOnly: !isEditable,
-            endAdornment: (
-              <InputAdornment position="end">
-                <IconButton onClick={() => setShowPassword(!showPassword)} edge="end">
-                  {showPassword ? <VisibilityOff /> : <Visibility />}
-                </IconButton>
-              </InputAdornment>
-            ),
-          }}
-          margin="dense"
-        />
-        <TextField
-          fullWidth
-          label="Date of Birth"
-          id="dateOfBirth"
-          type="date"
-          value={profileData.dateOfBirth}
-          InputProps={{ readOnly: true }}
-          InputLabelProps={{
-            shrink: true,
-          }}
-          margin="dense"
-        />
-        <TextField
-          fullWidth
-          label="Mobile Number"
-          id="mobileNumber"
-          value={profileData.mobileNumber}
-          onChange={(e) => setProfileData({ ...profileData, mobileNumber: e.target.value })}
-          InputProps={{ readOnly: !isEditable }}
-          margin="dense"
-        />
-        <TextField
-          fullWidth
-          label="Nationality"
-          id="nationality"
-          value={profileData.nationality}
-          onChange={(e) => setProfileData({ ...profileData, nationality: e.target.value })}
-          InputProps={{ readOnly: !isEditable }}
-          margin="dense"
-        />
-        <TextField
-          fullWidth
-          label="Occupation"
-          id="occupation"
-          value={profileData.occupation}
-          onChange={(e) => setProfileData({ ...profileData, occupation: e.target.value })}
-          InputProps={{ readOnly: !isEditable }}
-          margin="dense"
-        />
-        <TextField
-          fullWidth
-          label="Wallet"
-          id="wallet"
-          value={`${profileData.wallet} EGP`}
-          InputProps={{ readOnly: true }}
-          margin="dense"
-        />
-        <Box
+        <Grid container spacing={3}>
+          <Grid item xs={12} sm={6}>
+            <TextField
+              fullWidth
+              label="Username"
+              id="username"
+              value={profileData.username}
+              InputProps={{ readOnly: true }}
+              margin="dense"
+            />
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <TextField
+              fullWidth
+              label="Email Address"
+              id="email"
+              type="email"
+              value={profileData.email}
+              onChange={(e) => setProfileData({ ...profileData, email: e.target.value })}
+              InputProps={{ readOnly: !isEditable }}
+              margin="dense"
+            />
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <TextField
+              fullWidth
+              label="Password"
+              id="password"
+              type={showPassword ? 'text' : 'password'}
+              value={profileData.password}
+              onChange={(e) => setProfileData({ ...profileData, password: e.target.value })}
+              InputProps={{
+                readOnly: !isEditable,
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton onClick={() => setShowPassword(!showPassword)} edge="end">
+                      {showPassword ? <VisibilityOff /> : <Visibility />}
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              }}
+              margin="dense"
+            />
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <TextField
+              fullWidth
+              label="Date of Birth"
+              id="dateOfBirth"
+              type="date"
+              value={profileData.dateOfBirth}
+              InputProps={{ readOnly: true }}
+              InputLabelProps={{
+                shrink: true,
+              }}
+              margin="dense"
+            />
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <TextField
+              fullWidth
+              label="Mobile Number"
+              id="mobileNumber"
+              value={profileData.mobileNumber}
+              onChange={(e) => setProfileData({ ...profileData, mobileNumber: e.target.value })}
+              InputProps={{ readOnly: !isEditable }}
+              margin="dense"
+            />
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <TextField
+              fullWidth
+              label="Nationality"
+              id="nationality"
+              value={profileData.nationality}
+              onChange={(e) => setProfileData({ ...profileData, nationality: e.target.value })}
+              InputProps={{ readOnly: !isEditable }}
+              margin="dense"
+            />
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <TextField
+              fullWidth
+              label="Occupation"
+              id="occupation"
+              value={profileData.occupation}
+              onChange={(e) => setProfileData({ ...profileData, occupation: e.target.value })}
+              InputProps={{ readOnly: !isEditable }}
+              margin="dense"
+            />
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <TextField
+              fullWidth
+              label="Wallet"
+              id="wallet"
+              value={`${profileData.wallet} EGP`}
+              InputProps={{ readOnly: true }}
+              margin="dense"
+            />
+          </Grid>
+        </Grid>
+
+        <Box sx={{ mt: 3 }}>
+  <Grid container spacing={2}>
+    {/* Points and Redeem Button */}
+    <Grid item xs={12} sm={6}>
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+      <TextField
+  fullWidth
+  label="Points"
+  id="points"
+  value={profileData.points}
+  InputProps={{
+    startAdornment: (
+      <InputAdornment position="start">
+        <StarsIcon sx={{ color: '#192959' }} />
+      </InputAdornment>
+    ),
+    endAdornment: (
+      <InputAdornment position="end">
+        <Button
+          onClick={handleRedeemPoints}
           sx={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
+            backgroundColor: 'white',
+            color: '#192959',
+            padding: '4px 8px',
+            fontSize: '12px',
+            borderRadius: '8px', // Rounded edges
+            boxShadow: 'none', // Removes any shadow
+            minWidth: '50px', // Ensures button is not too wide
+            '&:hover': {
+              backgroundColor: '#f0f0f0', // Slight grey on hover
+              boxShadow: 'none', // Prevents hover shadow
+            },
           }}
         >
-          <TextField
-            fullWidth
-            label="Points"
-            id="points"
-            value={profileData.points}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <StarsIcon sx={{ color: '#192959' }} />
-                </InputAdornment>
-              ),
-              readOnly: true,
-            }}
-            margin="dense"
-            sx={{ marginRight: '10px' }}
-          />
-          <Button
-            variant="outlined"
-            onClick={handleRedeemPoints}
-            sx={{
-              borderColor: '#192959',
-              color: '#192959',
-              backgroundColor: 'white',
-              fontWeight: 'bold',
-              '&:hover': {
-                backgroundColor: '#192959',
-                borderColor: 'white',
-                color: 'white',
-              },
-            }}
-          >
-            Redeem
-          </Button>
-        </Box>
-        <TextField
-          fullWidth
-          label="Badge Level"
-          id="badgeLevel"
-          value={profileData.badgeLevel}
-          InputProps={{
-            startAdornment: (
-              <InputAdornment position="start">
-                <MilitaryTechIcon sx={{ color: '#192959' }} />
-              </InputAdornment>
-            ),
-            readOnly: true,
-          }}
-          margin="dense"
-        />
+          Redeem
+        </Button>
+      </InputAdornment>
+    ),
+    readOnly: true,
+  }}
+  margin="dense"
+/>
 
-        {/* My Preferences Section */}
-        {profileData.preferences.length > 0 ? (
-          <Box sx={{ mt: 3 }}>
-            <Box
-              sx={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                mb: 1,
-              }}
-            >
-              <Typography variant="body1">My Preferences:</Typography>
-              {isEditable && (
-                <Tooltip title="Add Preferences">
-                  <IconButton
-                    onClick={handleOpenPreferencesModal}
-                    sx={{
-                      backgroundColor: '#192959',
-                      color: 'white',
-                      '&:hover': {
-                        backgroundColor: '#3a4a90',
-                      },
-                    }}
-                  >
-                    <AddIcon />
-                  </IconButton>
-                </Tooltip>
-              )}
-            </Box>
-            <Box
-              sx={{
-                display: 'flex',
-                flexWrap: 'wrap',
-                gap: '8px',
-              }}
-            >
-              {profileData.preferences.map((preference, index) => (
-                <Box
-                  key={index}
-                  sx={{
-                    padding: '5px 10px',
-                    borderRadius: '12px',
-                    backgroundColor: '#f0f0f0',
-                    color: '#192959',
-                    fontSize: '14px',
-                    border: '1px solid #192959',
-                  }}
-                >
-                  {preference}
-                </Box>
-              ))}
-            </Box>
-          </Box>
-        ) : (
-          <Button
-            variant="outlined"
-            onClick={handleOpenPreferencesModal}
-            sx={{
-              mt: 3,
-              borderColor: '#192959',
-              color: '#192959',
-              width: '100%',
-              '&:hover': {
-                backgroundColor: '#192959',
-                borderColor: 'white',
-                color: 'white',
-              },
-            }}
-            startIcon={<AddIcon />}
-          >
-            Select Preferences
-          </Button>
-        )}
       </Box>
+    </Grid>
 
-      {/* REQUEST TO DELETE ACCOUNT Button */}
+    {/* Badge Level */}
+    <Grid item xs={12} sm={6}>
+      <TextField
+        fullWidth
+        label="Badge Level"
+        id="badgeLevel"
+        value={profileData.badgeLevel}
+        InputProps={{
+          startAdornment: (
+            <InputAdornment position="start">
+              <MilitaryTechIcon sx={{ color: '#192959' }} />
+            </InputAdornment>
+          ),
+          readOnly: true,
+        }}
+        margin="dense"
+      />
+    </Grid>
+  </Grid>
+
+  {/* Preferences Section */}
+  <Box sx={{ mt: 3, display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+    <Typography variant="body1" sx={{ flexBasis: '100%' }}>
+      My Preferences:
+    </Typography>
+    {profileData.preferences.map((preference, index) => (
+      <Box
+        key={index}
+        sx={{
+          padding: '5px 10px',
+          borderRadius: '12px',
+          backgroundColor: '#f0f0f0',
+          color: '#192959',
+          fontSize: '14px',
+          border: '1px solid #192959',
+        }}
+      >
+        {preference}
+      </Box>
+    ))}
+    {isEditable && (
+      <Tooltip title="Add Preferences">
+        <IconButton
+          onClick={handleOpenPreferencesModal}
+          sx={{
+            backgroundColor: '#192959',
+            color: 'white',
+            padding: '6px',
+            '&:hover': {
+              backgroundColor: '#3a4a90',
+            },
+          }}
+        >
+          <AddIcon sx={{ fontSize: '20px' }} />
+        </IconButton>
+      </Tooltip>
+    )}
+  </Box>
+</Box>
+</Box>
+      {/* Delete Account Button */}
       <Button
         variant="contained"
         onClick={() => setIsDeleteDialogOpen(true)}
         sx={{
-          marginTop: '10px',
+          marginTop: '20px',
           backgroundColor: '#ff7b7b',
           color: '#a70000',
           fontWeight: 'bold',
@@ -2203,6 +2204,10 @@ const markAllAsRead = async () => {
     </Box>
   </Box>
 </Modal>
+
+
+
+
 
 
 
