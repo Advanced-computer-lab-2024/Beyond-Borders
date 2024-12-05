@@ -37,6 +37,13 @@ const TouristEventsPaymentPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const [successDialogOpen, setSuccessDialogOpen] = useState(false); // Success message dialog state
+  const [paymentLoading, setPaymentLoading] = useState(false); // Loading state for payment
+  const [cardInfo, setCardInfo] = useState({
+    cardNumber: "",
+    cardholderName: "",
+    expiryDate: "",
+    cvv: "",
+  });
 
   // Retrieve data from state
   const { type, name, totalCost } = location.state || {};
@@ -56,14 +63,18 @@ const TouristEventsPaymentPage = () => {
     try {
       // Determine the endpoint based on the type
       const endpoint =
-        type === "historicalPlace"
+            type === "historicalPlace"
           ?  paymentMethod === "Wallet"
             ? "/payHP"
             : "/payHPStripe"
           : type === "museum"
-          ? "/payMuseum"
+          ?  paymentMethod === "Wallet"
+            ? "/payMuseum"
+            : "/payMuseumStripe"
           : type === "itinerary"
-          ? "/payItinerary"
+         ? paymentMethod === "Wallet"
+            ? "/payItinerary"
+            : "/payItineraryStripe"
           : type === "activity"
           ? paymentMethod === "Wallet"
             ? "/payActivity"
@@ -92,7 +103,8 @@ const TouristEventsPaymentPage = () => {
         console.log(
           `Points: ${response.data.Points}, Badge Level: ${response.data.BadgeLevelOfPoints}`
         );
-        navigate("/NewTouristHomePage");
+        setPaymentLoading(false);
+        setSuccessDialogOpen(true);
       } else {
         alert(response.data.msg || "Failed to complete payment.");
       }
@@ -232,8 +244,43 @@ const TouristEventsPaymentPage = () => {
               }
             />
           </RadioGroup>
+          {paymentMethod === "Card" && (
+            <Box sx={{ marginTop: "20px" }}>
+              <TextField
+                label="Card Number"
+                variant="outlined"
+                fullWidth
+                value={cardInfo.cardNumber}
+                onChange={(e) => setCardInfo({ ...cardInfo, cardNumber: e.target.value })}
+                sx={{ marginBottom: "20px" }}
+              />
+              <TextField
+                label="Cardholder Name"
+                variant="outlined"
+                fullWidth
+                value={cardInfo.cardholderName}
+                onChange={(e) => setCardInfo({ ...cardInfo, cardholderName: e.target.value })}
+                sx={{ marginBottom: "20px" }}
+              />
+              <Box sx={{ display: "flex", gap: "20px", marginBottom: "20px" }}>
+                <TextField
+                  label="Expiry Date (MM/YY)"
+                  variant="outlined"
+                  value={cardInfo.expiryDate}
+                  onChange={(e) => setCardInfo({ ...cardInfo, expiryDate: e.target.value })}
+                />
+                <TextField
+                  label="CVV"
+                  variant="outlined"
+                  value={cardInfo.cvv}
+                  onChange={(e) => setCardInfo({ ...cardInfo, cvv: e.target.value })}
+                />
+              </Box>
+            </Box>
+          )}
         </Box>
-
+        
+       
         {/* Summary Section */}
         <Box
           sx={{
@@ -279,6 +326,7 @@ const TouristEventsPaymentPage = () => {
         variant="contained"
         fullWidth
         onClick={handlePayment}
+        disabled={paymentLoading}
         sx={{
           marginTop: "40px",
           backgroundColor: "#192959",
@@ -290,8 +338,9 @@ const TouristEventsPaymentPage = () => {
           },
         }}
       >
-        Submit Payment
+        {paymentLoading ? <CircularProgress size={24} sx={{ color: "#fff" }} /> : "Complete Payment"}
       </Button>
+      
       <Dialog open={successDialogOpen} onClose={() => navigate("/NewTouristHomePage")}>
   <DialogTitle
     sx={{
@@ -339,7 +388,7 @@ const TouristEventsPaymentPage = () => {
       backgroundColor: "#f1f8ff"
     }}
   >
-    Your order has been successfully placed. We hope you enjoy your items!
+    Your ticket has been successfully booked!
   </DialogContent>
   <DialogActions
     sx={{
