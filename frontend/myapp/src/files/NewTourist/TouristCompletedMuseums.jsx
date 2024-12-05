@@ -92,6 +92,7 @@ const [expanded, setExpanded] = useState({});
 const [commentModalOpen, setCommentModalOpen] = useState(false);
 const [currentMuseumId, setCurrentMuseumId] = useState(null);
 const [commentText, setCommentText] = useState('');
+const [showAverageRating, setShowAverageRating] = useState({}); // Track which activity shows average rating
 
   const navigate = useNavigate();
 
@@ -329,8 +330,58 @@ const fetchMuseums = async () => {
   
   
 
+  // const renderRating = (museumId, userRating, averageRating, handleRatingClick) => {
+  //   const displayRating = userRating || averageRating || 0; // Use user rating first, then average
+  //   const fullStars = Math.floor(displayRating);
+  //   const halfStars = displayRating > fullStars ? 1 : 0;
+  //   const emptyStars = 5 - fullStars - halfStars;
+  
+  //   return (
+  //     <Box sx={styles.ratingContainer} display="flex" alignItems="center">
+  //       {/* Display Rating Number */}
+  //       <Typography
+  //         variant="body2"
+  //         sx={{
+  //           fontSize: '18px',
+  //           fontWeight: 'bold',
+  //           marginRight: '10px', // Spacing between number and stars
+  //         }}
+  //       >
+  //         {displayRating.toFixed(2)}
+  //       </Typography>
+  
+  //       {/* Render Full Stars */}
+  //       {[...Array(fullStars)].map((_, index) => (
+  //         <StarIcon
+  //           key={`full-${index}`}
+  //           sx={{ fontSize: '32px', cursor: 'pointer', color: '#192959' }}
+  //           onClick={() => handleRatingClick(museumId, index + 1)}
+  //         />
+  //       ))}
+  
+  //       {/* Render Half Stars */}
+  //       {[...Array(halfStars)].map((_, index) => (
+  //         <StarHalfIcon
+  //           key={`half-${index}`}
+  //           sx={{ fontSize: '32px', cursor: 'pointer', color: '#192959' }}
+  //           onClick={() => handleRatingClick(museumId, fullStars + 1)}
+  //         />
+  //       ))}
+  
+  //       {/* Render Empty Stars */}
+  //       {[...Array(emptyStars)].map((_, index) => (
+  //         <StarBorderIcon
+  //           key={`empty-${index}`}
+  //           sx={{ fontSize: '32px', cursor: 'pointer', color: '#192959' }}
+  //           onClick={() => handleRatingClick(museumId, fullStars + index + 1)}
+  //         />
+  //       ))}
+  //     </Box>
+  //   );
+  // };
+  
   const renderRating = (museumId, userRating, averageRating, handleRatingClick) => {
-    const displayRating = userRating || averageRating || 0; // Use user rating first, then average
+    const displayRating = userRating || 0; // Display user rating or default to 0
     const fullStars = Math.floor(displayRating);
     const halfStars = displayRating > fullStars ? 1 : 0;
     const emptyStars = 5 - fullStars - halfStars;
@@ -346,7 +397,7 @@ const fetchMuseums = async () => {
             marginRight: '10px', // Spacing between number and stars
           }}
         >
-          {displayRating.toFixed(2)}
+          {userRating ? displayRating.toFixed(2) : 'Rate Now'} {/* Show "Rate Now" when no rating */}
         </Typography>
   
         {/* Render Full Stars */}
@@ -379,8 +430,38 @@ const fetchMuseums = async () => {
     );
   };
   
-  
 
+  // const handleRatingClick = async (museumId, rating) => {
+  //   const username = localStorage.getItem('username');
+  //   const museum = museums.find((museum) => museum._id === museumId);
+  
+  //   if (!username || !museum) {
+  //     alert('User not logged in or museum not found.');
+  //     return;
+  //   }
+  
+  //   try {
+  //     const response = await axios.put('/rateCompletedMuseum', {
+  //       touristUsername: username,
+  //       museumName: museum.name,
+  //       rating,
+  //     });
+  
+  //     const { newAverageRating } = response.data;
+  
+  //     // Update state: show user rating and "Add Comment" button
+  //     setMuseums((prevMuseums) =>
+  //       prevMuseums.map((mus) =>
+  //           mus._id === museumId
+  //           ? { ...mus, userRating: rating, averageRating: newAverageRating, showCommentButton: true }
+  //           : mus
+  //       )
+  //     );
+  //   } catch (error) {
+  //     console.error('Error submitting rating:', error);
+  //     alert(error.response?.data?.msg || 'Failed to submit rating.');
+  //   }
+  // };
   const handleRatingClick = async (museumId, rating) => {
     const username = localStorage.getItem('username');
     const museum = museums.find((museum) => museum._id === museumId);
@@ -399,20 +480,76 @@ const fetchMuseums = async () => {
   
       const { newAverageRating } = response.data;
   
-      // Update state: show user rating and "Add Comment" button
+      // Temporarily show user rating
       setMuseums((prevMuseums) =>
         prevMuseums.map((mus) =>
-            mus._id === museumId
-            ? { ...mus, userRating: rating, averageRating: newAverageRating, showCommentButton: true }
+          mus._id === museumId
+            ? { ...mus, userRating: rating }
             : mus
         )
       );
+  
+      // Wait for 2 seconds, then switch to showing the average rating
+      setTimeout(() => {
+        setMuseums((prevMuseums) =>
+          prevMuseums.map((mus) =>
+            mus._id === museumId
+              ? { ...mus, userRating: 0, Ratings: newAverageRating, showCommentButton: true }
+              : mus
+          )
+        );
+        setShowAverageRating((prev) => ({ ...prev, [museumId]: true }));}, 2000); // 2-second delay
     } catch (error) {
       console.error('Error submitting rating:', error);
       alert(error.response?.data?.msg || 'Failed to submit rating.');
     }
   };
+  const renderAverageRating = (averageRating) => {
+    const fullStars = Math.floor(averageRating);
+    const halfStars = averageRating > fullStars ? 1 : 0;
+    const emptyStars = 5 - fullStars - halfStars;
   
+    return (
+      <Box sx={styles.ratingContainer} display="flex" alignItems="center">
+        {/* Display Average Rating Number */}
+        <Typography
+          variant="body2"
+          sx={{
+            fontSize: '18px',
+            fontWeight: 'bold',
+            marginRight: '10px',
+          }}
+        >
+          {averageRating.toFixed(2)}
+        </Typography>
+  
+        {/* Render Full Stars */}
+        {[...Array(fullStars)].map((_, index) => (
+          <StarIcon
+            key={`full-average-${index}`}
+            sx={{ fontSize: '32px', color: '#192959' }}
+          />
+        ))}
+  
+        {/* Render Half Stars */}
+        {[...Array(halfStars)].map((_, index) => (
+          <StarHalfIcon
+            key={`half-average-${index}`}
+            sx={{ fontSize: '32px', color: '#192959' }}
+          />
+        ))}
+  
+        {/* Render Empty Stars */}
+        {[...Array(emptyStars)].map((_, index) => (
+          <StarBorderIcon
+            key={`empty-average-${index}`}
+            sx={{ fontSize: '32px', color: '#192959' }}
+          />
+        ))}
+      </Box>
+    );
+  };
+    
 
   const handleCommentSubmit = async () => {
     const username = localStorage.getItem('username');
@@ -1220,12 +1357,11 @@ const fetchMuseums = async () => {
 
         {/* Ratings and Add Comment */}
         <Box sx={styles.museumRating}>
-          {renderRating(
-            museum._id,
-            museum.userRating,
-            museum.Ratings,
-            handleRatingClick
-          )}
+  {showAverageRating[museum._id]
+    ? renderAverageRating(museum.Ratings) // Show average rating after submission
+    : renderRating(museum._id, museum.userRating, museum.Ratings, handleRatingClick)} {/* Initial render */}
+
+
 
           {/* Reserve space for the Add Comment button */}
           <Box
