@@ -47,7 +47,7 @@ import ShareIcon from '@mui/icons-material/Share';
 import LanguageIcon from '@mui/icons-material/Language';
 import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined';
 import ShoppingBagIcon from '@mui/icons-material/ShoppingBag';
-
+import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
 import axios from 'axios';
 
 function TouristBookedHP() {
@@ -583,7 +583,7 @@ const [expanded, setExpanded] = React.useState({});
                 height: '40px',
                 }}
             >
-    <BookmarkBorderOutlinedIcon/>
+    <FavoriteBorderIcon/>
   </IconButton>
 </Tooltip>
 <Tooltip title="Logout" arrow>

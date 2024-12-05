@@ -47,7 +47,8 @@ import ShareIcon from '@mui/icons-material/Share';
 import LanguageIcon from '@mui/icons-material/Language';
 import AddShoppingCartIcon from '@mui/icons-material/AddShoppingCart'; // For the shopping cart icon
 import BookmarkIcon from '@mui/icons-material/Bookmark';
-
+import FavoriteIcon from '@mui/icons-material/Favorite';
+import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
 import axios from 'axios';
 
 function TouristAllProducts() {
@@ -580,7 +581,7 @@ const fetchProducts = async () => {
                 height: '40px',
                 }}
             >
-    <BookmarkBorderOutlinedIcon/>
+    <FavoriteBorderIcon/>
   </IconButton>
 </Tooltip>
 <Tooltip title="Logout" arrow>
@@ -1240,9 +1241,9 @@ const fetchProducts = async () => {
       }}
     >
       {wishlist[product._id] ? (
-        <BookmarkIcon />
+        <FavoriteIcon />
       ) : (
-        <BookmarkBorderOutlinedIcon />
+        <FavoriteBorderIcon />
       )}
     </IconButton>
   </Tooltip>
