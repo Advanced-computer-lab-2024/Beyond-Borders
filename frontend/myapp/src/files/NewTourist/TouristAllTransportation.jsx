@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Button, Typography, IconButton,Tooltip, TextField, InputAdornment, Modal,MenuItem,Select,FormControl,InputLabel,} from '@mui/material';
+import { Box, Button, Typography, IconButton,Tooltip, TextField, InputAdornment, Modal,MenuItem,Select,FormControl,InputLabel,CircularProgress,} from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import MenuIcon from '@mui/icons-material/Menu';
 import NotificationsIcon from '@mui/icons-material/Notifications';
@@ -87,6 +87,8 @@ const [currentActivityName, setCurrentActivityName] = useState(''); // Trac
 const [convertedPrices, setConvertedPrices] = useState({});
 const [currency, setCurrency] = useState('EGP'); // Default currency is EGP
 const [transportation, setTransportation] = useState([]);
+const [loading, setLoading] = useState(true);
+
 
   const navigate = useNavigate();
 
@@ -96,6 +98,7 @@ const [transportation, setTransportation] = useState([]);
       if (!searchQuery) {
         // Fetch all activities when there's no search query
         await fetchTransportation();
+        setLoading(false);
       } else {
         // Perform search when there's a query
         await searchActivities(searchQuery);
@@ -1018,98 +1021,88 @@ const [transportation, setTransportation] = useState([]);
 
 
      {/* Main Content Area with Transportation */}
-<Box sx={styles.activitiesContainer}>
-  {transportation.map((transportation, index) => (
-    <Box key={index} sx={{ marginBottom: '20px' }}>
-      <Box
-        sx={{
-          ...styles.activityCard,
-          backgroundColor:  'white',
-        }}
-      >
-        <Box sx={styles.activityInfo}>
-          <Typography variant="h6" sx={{ fontWeight: 'bold', fontSize: '24px', marginBottom: '5px', display: 'flex', alignItems: 'center' }}>
-            {transportation.serviceName}
-          </Typography>
-          <Typography variant="body2" sx={{ display: 'flex', fontSize: '18px', alignItems: 'center' }}>
-            <LocationOnIcon fontSize="small" sx={{ mr: 1 }} />
-            {transportation.routeDetails.startLocation} to {transportation.routeDetails.endLocation}
-          </Typography>
-          <Typography variant="body2" sx={{ display: 'flex', fontSize: '18px', alignItems: 'center' }}>
-            <PersonIcon fontSize="small" sx={{ mr: 1 }} />
-            {transportation.advertiserName}
-          </Typography>
-          <Typography variant="body2" sx={{ display: 'flex', fontSize: '18px', alignItems: 'center' }}>
-            <PaymentIcon fontSize="small" sx={{ mr: 1 }} />
-            {currency === 'EGP'
-              ? `${transportation.price} EGP`
-              : `${convertedPrices[transportation._id] || 'Loading...'} ${currency}`}
-          </Typography>
-          <Typography variant="body2" sx={{ display: 'flex', fontSize: '18px', alignItems: 'center' }}>
-            <CalendarTodayIcon fontSize="small" sx={{ mr: 1 }} />
-            {transportation.schedule.map((s, i) => (
-              <span key={i}>
-                {s.day}: {s.departureTime} - {s.arrivalTime}
-                {i < transportation.schedule.length - 1 ? ', ' : ''}
-              </span>
-            ))}
-          </Typography>
-          <Typography variant="body2" sx={{ display: 'flex', fontSize: '18px', alignItems: 'center' }}>
-            <Box component="span" sx={{ fontWeight: 'bold' }}>
-                Capacity Available:
-            </Box> {" "}
-            {transportation.capacity}
-            </Typography>
-          <Box sx={styles.quickFacts}>
-            <Box sx={{ ...styles.infoContainer, backgroundColor: transportation.available ? '#f3f4f6' : '#b3b8c8' }}>
-              <Typography variant="body2" sx={{ fontWeight: 'bold' }}>Type:</Typography>
-              <Typography variant="body2">{transportation.serviceType}</Typography>
+     <Box sx={styles.activitiesContainer}>
+    {loading ? (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+        {/* Circular Progress for loading */}
+        <CircularProgress />
+      </Box>
+    ) : transportation.length > 0 ? (
+      transportation.map((transp, index) => (
+        <Box key={index} sx={{ marginBottom: '20px' }}>
+          <Box sx={{ ...styles.activityCard, backgroundColor: 'white' }}>
+            <Box sx={styles.activityInfo}>
+              <Typography variant="h6" sx={{ fontWeight: 'bold', fontSize: '24px', marginBottom: '5px', display: 'flex', alignItems: 'center' }}>
+                {transp.serviceName}
+              </Typography>
+              <Typography variant="body2" sx={{ display: 'flex', fontSize: '18px', alignItems: 'center' }}>
+                <LocationOnIcon fontSize="small" sx={{ mr: 1 }} />
+                {transp.routeDetails.startLocation} to {transp.routeDetails.endLocation}
+              </Typography>
+              <Typography variant="body2" sx={{ display: 'flex', fontSize: '18px', alignItems: 'center' }}>
+                <PersonIcon fontSize="small" sx={{ mr: 1 }} />
+                {transp.advertiserName}
+              </Typography>
+              <Typography variant="body2" sx={{ display: 'flex', fontSize: '18px', alignItems: 'center' }}>
+                <PaymentIcon fontSize="small" sx={{ mr: 1 }} />
+                {currency === 'EGP'
+                  ? `${transp.price} EGP`
+                  : `${convertedPrices[transp._id] || 'Loading...'} ${currency}`}
+              </Typography>
+              <Typography variant="body2" sx={{ display: 'flex', fontSize: '18px', alignItems: 'center' }}>
+                <CalendarTodayIcon fontSize="small" sx={{ mr: 1 }} />
+                {transp.schedule.map((s, i) => (
+                  <span key={i}>
+                    {s.day}: {s.departureTime} - {s.arrivalTime}
+                    {i < transp.schedule.length - 1 ? ', ' : ''}
+                  </span>
+                ))}
+              </Typography>
+              <Typography variant="body2" sx={{ display: 'flex', fontSize: '18px', alignItems: 'center' }}>
+                <Box component="span" sx={{ fontWeight: 'bold' }}>
+                  Capacity Available:
+                </Box> {" "}
+                {transp.capacity}
+              </Typography>
+              <Box sx={styles.quickFacts}>
+                <Box sx={{ ...styles.infoContainer, backgroundColor: transp.available ? '#f3f4f6' : '#b3b8c8' }}>
+                  <Typography variant="body2" sx={{ fontWeight: 'bold' }}>Type:</Typography>
+                  <Typography variant="body2">{transp.serviceType}</Typography>
+                </Box>
+              </Box>
             </Box>
+
+            <Box sx={styles.discountContainer}>
+              <Box sx={{ ...styles.infoContainer, backgroundColor: transp.available ? '#f3f4f6' : '#b3b8c8' }}>
+                <Typography variant="body2" sx={{ fontWeight: 'bold' }}>Available:</Typography>
+                <Typography variant="body2">{transp.available ? 'Yes' : 'No'}</Typography>
+              </Box>
+            </Box>
+
+            <Button
+              variant="contained"
+              disabled={!transp.available} // Disable button if not available
+              onClick={() => handleBookTransportation(transp.serviceName)}
+              sx={{
+                position: 'absolute',
+                top: '60px', // Position at the top
+                right: '60px', // Position at the right
+                backgroundColor: '#192959',
+                color: '#fff',
+                '&:hover': { backgroundColor: '#33416b' },
+              }}
+            >
+              Book
+            </Button>
           </Box>
         </Box>
-       
-        <Box sx={styles.discountContainer}>
-          <Box sx={{ ...styles.infoContainer, backgroundColor: transportation.available ? '#f3f4f6' : '#b3b8c8' }}>
-            <Typography variant="body2" sx={{ fontWeight: 'bold' }}>Available:</Typography>
-            <Typography variant="body2">{transportation.available ? 'Yes' : 'No'}</Typography>
-          </Box>
-        </Box>
-
-        <Button
-          variant="contained"
-          disabled={!transportation.available} // Disable button if not available
-          onClick={() => handleBookTransportation(transportation.serviceName)}
-          sx={{
-            position: 'absolute',
-            top: '60px', // Position at the top
-            right: '60px', // Position at the right
-            backgroundColor: '#192959',
-            color: '#fff',
-            '&:hover': { backgroundColor: '#33416b' },
-          }}
-        >
-          Book
-        </Button>
-      </Box>
-    </Box>
-  ))}
-</Box>
-
-
-      <Box sx={styles.activitiesContainer}>
-  {transportation.length > 0 ? (
-    transportation.map((transp, index) => (
-      <Box key={index} sx={{ marginBottom: '20px' }}>
-        {/* Your activity card code */}
-      </Box>
-    ))
-  ) : (
-    <Typography variant="h6" sx={{ textAlign: 'center', color: '#192959', marginTop: '20px' }}>
-      No Transportations Available.
-    </Typography>
-  )}
-</Box>
-
+      ))
+    ) : (
+      <Typography variant="h6" sx={{ textAlign: 'center', color: '#192959', marginTop: '20px' }}>
+        No Transportations Available.
+      </Typography>
+    )}
+  </Box>
 
 <Modal
   open={isShareModalOpen}
