@@ -47,6 +47,7 @@ import ShareIcon from '@mui/icons-material/Share';
 import LanguageIcon from '@mui/icons-material/Language';
 import BookmarkIcon from '@mui/icons-material/Bookmark';
 import NotificationsActiveOutlinedIcon from '@mui/icons-material/NotificationsActiveOutlined';
+import FavoriteBorderOutlinedIcon from '@mui/icons-material/FavoriteBorderOutlined';
 
 import axios from 'axios';
 
@@ -344,21 +345,46 @@ const [subscriptionStatus, setSubscriptionStatus] = useState({});
     }
   };
   //book
-  const handleBookActivity = async (activityName) => {
-    const touristUsername = localStorage.getItem('username'); // Assuming username is stored in localStorage
-  
+  const handleBookActivity = async (activity) => {
+    const touristUsername = localStorage.getItem('username');
+    
     if (!touristUsername) {
-      alert('Please log in to book activities.');
+      alert("Please log in to book an activity.");
       return;
     }
   
     try {
-      const response = await axios.put('/bookActivity', { touristUsername, activityName });
-      navigate('/TouristPaymentPage');
+      const response = await axios.put('/bookActivity', {
+        touristUsername,
+        activityName: activity.Name, // Pass activity name from the activity object
+      });
+  
+      if (response.status === 201) {
+        alert(`Activity booked successfully!`);
+        navigate('/TouristEventsPrePaymentPage', {
+          state: {
+            type: 'activity', // Specify type as activity
+            name: activity.Name, // Pass the activity name
+            totalCost: activity.Price, // Include the total cost for payment processing
+          },
+        });
+      } else {
+        alert(response.data.msg || 'Failed to book activity.');
+      }
     } catch (error) {
-      alert(error.response?.data?.msg || 'An error occurred while booking the activity.');
+      console.error('Error booking activity:', error);
+  
+      if (error.response?.status === 404) {
+        alert('Activity or user not found.');
+      } else if (error.response?.status === 400) {
+        alert(error.response.data.msg || 'Unable to book activity. Please try again.');
+      } else {
+        alert('An error occurred while booking the activity. Please try again later.');
+      }
     }
   };
+  
+  
 
   //share
 
@@ -575,7 +601,7 @@ const [subscriptionStatus, setSubscriptionStatus] = useState({});
                 height: '40px',
                 }}
             >
-    <BookmarkBorderOutlinedIcon/>
+    <FavoriteBorderOutlinedIcon/>
   </IconButton>
 </Tooltip>
 <Tooltip title="Logout" arrow>
@@ -597,7 +623,7 @@ const [subscriptionStatus, setSubscriptionStatus] = useState({});
 </Tooltip>
         </Box>
       </Box>
-
+      
       {/* Collapsible Sidebar */}
       <Box
         sx={{
@@ -1302,16 +1328,17 @@ const [subscriptionStatus, setSubscriptionStatus] = useState({});
 
   {activity.BookingOpen ? (
     <Button
-      variant="contained"
-      onClick={() => handleBookActivity(activity.Name)}
-      sx={{
-        backgroundColor: '#192959',
-        color: '#fff',
-        '&:hover': { backgroundColor: '#33416b' },
-      }}
-    >
-      Book
-    </Button>
+    variant="contained"
+    onClick={() => handleBookActivity(activity)} // Pass the activity object
+    sx={{
+      backgroundColor: '#192959',
+      color: '#fff',
+      '&:hover': { backgroundColor: '#33416b' },
+    }}
+  >
+    Book
+  </Button>
+  
   ) : (
     <Button
     variant="outlined"
