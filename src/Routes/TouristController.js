@@ -7228,10 +7228,119 @@ const checkTouristSubscription = async (req, res) => {
   }
 };
 
+const viewBookedHotels = async (req, res) => {
+  const { touristUsername } = req.query; // Get the tourist's username from the query parameters
+
+  try {
+    // Find the tourist by their username
+    const tourist = await TouristModel.findOne({ Username: touristUsername });
+
+    if (!tourist) {
+      return res.status(404).json({ msg: 'Tourist not found' });
+    }
+
+    // Check if the tourist has any booked hotels
+    if (!tourist.BookedHotels || tourist.BookedHotels.length === 0) {
+      return res.status(200).json({ msg: 'No hotels booked yet.' });
+    }
+
+    // Traverse the BookedHotels array and format the details
+    const bookedHotelsDetails = tourist.BookedHotels.map((hotel) => {
+      const hotelDetailsArray = hotel.hotelDetails || [];
+      const formattedHotelDetails = hotelDetailsArray.roomOffers.map((room) => {
+        return {
+          hotelNumber: room.hotelNumber || 'N/A',
+          price: room.price || 'N/A',
+          checkInDate: room.checkInDate || 'N/A',
+          checkOutDate: room.checkOutDate || 'N/A',
+          adults: room.adults || 'N/A',
+          boardType: room.boardType || 'N/A',
+          cityCode: room.cityCode || 'N/A',
+          name: room.name || 'N/A',
+        };
+      });
+
+      return {
+        hotelID: hotel.hotelID || 'N/A',
+        hotelName: hotel.hotelDetails.hotelName || 'N/A',
+        roomOffers: formattedHotelDetails,
+      };
+    });
+
+    // Respond with the details of booked hotels
+    res.status(200).json({
+      msg: 'Booked hotels retrieved successfully',
+      bookedHotels: bookedHotelsDetails,
+    });
+  } catch (error) {
+    console.error('Error retrieving booked hotels:', error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+
+const viewBookedFlights = async (req, res) => {
+  const { touristUsername } = req.query; // Get the tourist's username from the query parameters
+
+  try {
+    // Find the tourist by their username
+    const tourist = await TouristModel.findOne({ Username: touristUsername });
+
+    if (!tourist) {
+      return res.status(404).json({ msg: 'Tourist not found' });
+    }
+
+    // Check if the tourist has any booked flights
+    if (!tourist.BookedFlights || tourist.BookedFlights.length === 0) {
+      return res.status(200).json({ msg: 'No flights booked yet.' });
+    }
+
+    // Traverse the BookedFlights array and format the details
+    const bookedFlightsDetails = tourist.BookedFlights.map((flight) => {
+      const flightDetailsArray = flight.flightDetails || [];
+      const formattedFlightDetails = flightDetailsArray.map((details) => {
+        return {
+          flightID: details.flightID || 'N/A',
+          price: details.price || 'N/A',
+          currency: details.currency || 'N/A',
+          segments: details.segments.map((segment, index) => ({
+            segmentIndex: index + 1,
+            departure: {
+              iataCode: segment.departure.iataCode || 'N/A',
+              terminal: segment.departure.terminal || 'N/A',
+              at: segment.departure.at || 'N/A',
+            },
+            arrival: {
+              iataCode: segment.arrival.iataCode || 'N/A',
+              terminal: segment.arrival.terminal || 'N/A',
+              at: segment.arrival.at || 'N/A',
+            },
+          })),
+        };
+      });
+
+      return {
+        flightID: flight.flightID || 'N/A',
+        flightDetails: formattedFlightDetails,
+      };
+    });
+
+    // Respond with the details of booked flights
+    res.status(200).json({
+      msg: 'Booked flights retrieved successfully',
+      bookedFlights: bookedFlightsDetails,
+    });
+  } catch (error) {
+    console.error('Error retrieving booked flights:', error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+
 
 
 
 module.exports = {createTourist, getTourist, updateTourist, searchProductTourist, filterActivities, filterProductByPriceTourist, ActivityRating, sortProductsDescendingTourist, sortProductsAscendingTourist, ViewAllUpcomingActivities, ViewAllUpcomingMuseumEventsTourist, getMuseumsByTagTourist, getHistoricalPlacesByTagTourist, ViewAllUpcomingHistoricalPlacesEventsTourist,viewProductsTourist, sortActivitiesPriceAscendingTourist, sortActivitiesPriceDescendingTourist, sortActivitiesRatingAscendingTourist, sortActivitiesRatingDescendingTourist, loginTourist, ViewAllUpcomingItinerariesTourist, sortItinerariesPriceAscendingTourist, sortItinerariesPriceDescendingTourist, filterItinerariesTourist, ActivitiesSearchAll, ItinerarySearchAll, MuseumSearchAll, HistoricalPlacesSearchAll, ProductRating, createComplaint, getComplaintsByTouristUsername,ChooseActivitiesByCategoryTourist,bookActivity,bookItinerary,bookMuseum,bookHistoricalPlace, ratePurchasedProduct, addPurchasedProducts, reviewPurchasedProduct, addCompletedItinerary, rateTourGuide, commentOnTourGuide, rateCompletedItinerary, commentOnItinerary, addCompletedActivities, addCompletedMuseumEvents, addCompletedHPEvents, rateCompletedActivity, rateCompletedMuseum, rateCompletedHP, commentOnActivity, commentOnMuseum, commentOnHP,deleteBookedActivity,deleteBookedItinerary,deleteBookedMuseum,deleteBookedHP,payActivity,updateWallet,updatepoints,payItinerary,payMuseum,payHP,redeemPoints, convertEgp, fetchFlights,viewBookedItineraries, requestDeleteAccountTourist,convertCurr,getActivityDetails,getHistoricalPlaceDetails,getMuseumDetails,GetCopyLink, bookFlight
   ,fetchHotelsByCity, fetchHotels, bookHotel,bookTransportation,addPreferences, viewMyCompletedActivities, viewMyCompletedItineraries, viewMyCompletedMuseums, viewMyCompletedHistoricalPlaces,viewMyBookedActivities,viewMyBookedItineraries,viewMyBookedMuseums,viewMyBookedHistoricalPlaces,viewTourGuidesCompleted,viewAllTransportation, getItineraryDetails, viewPreferenceTags,viewPurchasedProducts,viewBookedActivities,viewMyBookedTransportation,addBookmark
 , payActivityByCard, payItineraryByCard, payMuseumByCard, payHPByCard, sendOtp, loginTouristOTP,viewBookmarks, addToWishList, viewMyWishlist, removeFromWishlist, addToCartFromWishlist, addToCart, removeFromCart, changeProductQuantityInCart, checkout, addDeliveryAddress, viewDeliveryAddresses,chooseDeliveryAddress,payOrderWallet,payOrderCash,viewOrderDetails,cancelOrder,cancelOrder,markOrdersAsDelivered,viewAllOrders,sendUpcomingEventNotifications,payOrderStripe
-,payItineraryStripe,payActivityStripe,payMuseumStripe,payHPStripe, fetchCityCode, checkIfInWishlist, getTourGuideComments,addNotificationSubscriberHP,addNotificationSubscriberMuseum,addNotificationSubscriberActivity,addNotificationSubscriberItinerary,allNotificationsTouristRead,areAllTouristNotificationsRead,getTouristNotifications, getTouristCartDetails,checkTouristSubscription, checkIfInBookmarkedEvents, removeFromBookmarkedEvents};
+,payItineraryStripe,payActivityStripe,payMuseumStripe,payHPStripe, fetchCityCode, checkIfInWishlist, getTourGuideComments,addNotificationSubscriberHP,addNotificationSubscriberMuseum,addNotificationSubscriberActivity,addNotificationSubscriberItinerary,allNotificationsTouristRead,areAllTouristNotificationsRead,getTouristNotifications, getTouristCartDetails,checkTouristSubscription, checkIfInBookmarkedEvents, removeFromBookmarkedEvents, viewBookedHotels, viewBookedFlights};

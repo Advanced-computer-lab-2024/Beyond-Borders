@@ -97,6 +97,7 @@ import TouristSavedEvents from './files/NewTourist/TouristSavedEvents';
 import TouristProductPaymentPage from './files/NewTourist/TouristProductPaymentPage';
 import TouristEventsPaymentPage from './files/NewTourist/TouristEventsPaymentPage';
 import TouristEventsPrePaymentPage from './files/NewTourist/TouristEventsPrePaymentPage';
+import TouristBookedFlights from './files/NewTourist/TouristBookedFlights';
 
 //YASSIN AND AMINA DASHBOARD
 import YAdminDashboard from './files/Admin/YAdminDashboard';
@@ -177,7 +178,7 @@ function App() {
           <Route path="/TouristProductPaymentPage" element={<TouristProductPaymentPage/>}/>
           <Route path="/TouristEventsPaymentPage" element={<TouristEventsPaymentPage/>}/>
           <Route path="/TouristEventsPrePaymentPage" element={<TouristEventsPrePaymentPage/>}/>
-          
+          <Route path="/TouristBookedFlights" element={<TouristBookedFlights/>}/>
           
           
           
