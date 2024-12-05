@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Box,Checkbox, Button, Typography, IconButton, Dialog, DialogActions, DialogContent, DialogContentText, Modal, TextField, Divider, FormControlLabel  } from '@mui/material';
+import { Box,Checkbox, Button, Typography, IconButton, Dialog, DialogActions, DialogContent, DialogContentText, Modal, TextField, Divider, FormControlLabel, CircularProgress  } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import MenuIcon from '@mui/icons-material/Menu';
 import NotificationsIcon from '@mui/icons-material/Notifications';
@@ -92,6 +92,9 @@ function TouristBookedHotels() {
   const [deactivateDialogOpen, setDeactivateDialogOpen] = useState(false);
 const [itineraryToDeactivate, setItineraryToDeactivate] = useState(null);
 
+const [bookedHotels, setBookedHotels] = useState([]);
+const [loading, setLoading] = useState(true);
+
 const [errorMessage, setErrorMessage] = useState('');
   const [origin, setOrigin] = useState('');
   const [destination, setDestination] = useState('');
@@ -134,6 +137,37 @@ const [errorMessage, setErrorMessage] = useState('');
     // Cleanup event listener on component unmount
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  useEffect(() => {
+    fetchBookedHotels();
+  }, []);
+
+  const fetchBookedHotels = async () => {
+    const touristUsername = localStorage.getItem("username"); // Retrieve the username from localStorage
+    if (!touristUsername) {
+      alert("You must be logged in to view booked hotels.");
+      return;
+    }
+
+    try {
+      const response = await axios.get("/api/viewBookedHotels", {
+        params: { touristUsername },
+      });
+
+      if (response.data.bookedHotels) {
+        setBookedHotels(response.data.bookedHotels);
+        console.log("Fetched Hotels:", response.data.bookedHotels); // Debug: Check the data structure
+      } else {
+        alert(response.data.msg || "No booked hotels found.");
+      }
+    } catch (error) {
+      console.error("Error fetching booked hotels:", error);
+      alert("An error occurred while fetching booked hotels.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
 
   const fetchCityCode = async (cityName) => {
     try {
@@ -191,10 +225,6 @@ const [errorMessage, setErrorMessage] = useState('');
       alert(error.response?.data?.msg || 'An error occurred.');
     }
   };
-  
-  
-
-
   
   
 
@@ -637,97 +667,14 @@ const [errorMessage, setErrorMessage] = useState('');
         </Box>
       </Box>
   
-      <Box
-      sx={{
-        padding: "20px",
-        maxWidth: "1200px",
-        margin: "0 auto",
-        backgroundColor: "#fff",
-        borderRadius: "10px",
-        boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.2)",
-        marginTop: "40px", // Space between search box and other components
-      }}
-    >
-      <Typography
-        variant="h5"
-        sx={{ marginBottom: "20px", color: "#192959", fontWeight: "bold", textAlign: "center" }}
-      >
-        Hotels
-      </Typography>
-      <Box
-        sx={{
-          display: "flex",
-          flexWrap: "nowrap",
-          justifyContent: "space-between",
-          alignItems: "center",
-          gap: "10px",
-          marginBottom: "20px",
-        }}
-      >
-        <TextField
-          label="City"
-          variant="outlined"
-          value={city}
-          onChange={(e) => setCity(e.target.value)}
-          sx={{ flex: "1 1 150px" }}
-        />
-        <TextField
-          label="Adults"
-          type="number"
-          variant="outlined"
-          value={adults}
-          onChange={(e) => setAdults(e.target.value)}
-          sx={{ flex: "1 1 100px" }}
-        />
-        <TextField
-          label="Check-In Date"
-          type="date"
-          variant="outlined"
-          value={checkInDate}
-          onChange={(e) => setCheckInDate(e.target.value)}
-          InputLabelProps={{ shrink: true }}
-          sx={{ flex: "1 1 150px" }}
-        />
-        <TextField
-          label="Check-Out Date"
-          type="date"
-          variant="outlined"
-          value={checkOutDate}
-          onChange={(e) => setCheckOutDate(e.target.value)}
-          InputLabelProps={{ shrink: true }}
-          sx={{ flex: "1 1 150px" }}
-        />
-        <Button
-          variant="contained"
-          sx={{
-            backgroundColor: "#192959",
-            color: "#fff",
-            "&:hover": { backgroundColor: "#33416b" },
-            height: "56px", // Match the height of textboxes
-            display: "flex",
-            alignItems: "center",
-            gap: "8px",
-            padding: "0 16px",
-          }}
-          onClick={handleSearchHotels}
-        >
-          Search
-          <SearchIcon />
-        </Button>
-      </Box>
-      {errorMessage && (
-        <Typography color="error" sx={{ marginBottom: "20px" }}>
-          {errorMessage}
-        </Typography>
-      )}
-    </Box>
+      
 
-    {hotelOffers.length > 0 && (
+    {bookedHotels.length > 0 && (
   <Box sx={{ marginTop: "20px", width: "80%", margin: "0 auto" }}>
     <Typography variant="h5" sx={{ marginBottom: "20px", textAlign: "center" }}>
  
     </Typography>
-    {hotelOffers.map((hotel, index) => (
+    {bookedHotels.map((hotel, index) => (
       <Box
         key={index}
         sx={{
@@ -880,26 +827,20 @@ const [errorMessage, setErrorMessage] = useState('');
             </Typography>
           </Box>
         </Box>
-
-        {/* Book Button */}
-        <Button
-          variant="contained"
-          onClick={() => handleBookHotel(hotel.roomOffers[0]?.hotelNumber)}
-          sx={{
-            position: "absolute",
-            bottom: "15px",
-            right: "15px", // Positioned at the bottom-right
-            backgroundColor: "#192959",
-            color: "#fff",
-            "&:hover": { backgroundColor: "#33416b" },
-          }}
-        >
-          Book Hotel
-        </Button>
       </Box>
     ))}
   </Box>
 )}
+
+
+
+
+
+
+
+
+
+
 
   
       {/* Collapsible Sidebar */}

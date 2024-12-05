@@ -7516,24 +7516,34 @@ const viewBookedHotels = async (req, res) => {
 
     // Traverse the BookedHotels array and format the details
     const bookedHotelsDetails = tourist.BookedHotels.map((hotel) => {
-      const hotelDetailsArray = hotel.hotelDetails || [];
-      const formattedHotelDetails = hotelDetailsArray.roomOffers.map((room) => {
+      const roomOffers = hotel.hotelDetails?.roomOffers || [];
+      const formattedRoomOffers = roomOffers.map((room) => {
         return {
           hotelNumber: room.hotelNumber || 'N/A',
           price: room.price || 'N/A',
+          currency: room.currency || 'N/A',
           checkInDate: room.checkInDate || 'N/A',
           checkOutDate: room.checkOutDate || 'N/A',
           adults: room.adults || 'N/A',
+          bedType: room.bedType || 'N/A',
           boardType: room.boardType || 'N/A',
           cityCode: room.cityCode || 'N/A',
           name: room.name || 'N/A',
+          policies: {
+            cancellations: room.policies?.cancellations?.map((cancellation) => ({
+              text: cancellation.description?.text || 'N/A',
+              type: cancellation.type || 'N/A',
+            })) || [],
+            paymentType: room.policies?.paymentType || 'N/A',
+          },
         };
       });
 
       return {
         hotelID: hotel.hotelID || 'N/A',
-        hotelName: hotel.hotelDetails.hotelName || 'N/A',
-        roomOffers: formattedHotelDetails,
+        hotelName: hotel.hotelDetails?.hotelName || 'N/A',
+        cityCode: hotel.hotelDetails?.cityCode || 'N/A',
+        roomOffers: formattedRoomOffers,
       };
     });
 
