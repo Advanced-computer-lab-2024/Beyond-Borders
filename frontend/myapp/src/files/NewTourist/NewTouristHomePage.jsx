@@ -2145,43 +2145,69 @@ const markAllAsRead = async () => {
   </Grid>
 
   {/* Preferences Section */}
-  <Box sx={{ mt: 3, display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-    <Typography variant="body1" sx={{ flexBasis: '100%' }}>
-      My Preferences:
-    </Typography>
-    {profileData.preferences.map((preference, index) => (
-      <Box
-        key={index}
-        sx={{
-          padding: '5px 10px',
-          borderRadius: '12px',
-          backgroundColor: '#f0f0f0',
-          color: '#192959',
-          fontSize: '14px',
-          border: '1px solid #192959',
-        }}
-      >
-        {preference}
-      </Box>
-    ))}
-    {isEditable && (
-      <Tooltip title="Add Preferences">
-        <IconButton
-          onClick={handleOpenPreferencesModal}
+<Box sx={{ mt: 3, display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+  {profileData.preferences.length > 0 ? (
+    <>
+      <Typography variant="body1" sx={{ flexBasis: '100%' }}>
+        My Preferences:
+      </Typography>
+      {profileData.preferences.map((preference, index) => (
+        <Box
+          key={index}
           sx={{
-            backgroundColor: '#192959',
-            color: 'white',
-            padding: '6px',
-            '&:hover': {
-              backgroundColor: '#3a4a90',
-            },
+            padding: '5px 10px',
+            borderRadius: '12px',
+            backgroundColor: '#f0f0f0',
+            color: '#192959',
+            fontSize: '14px',
+            border: '1px solid #192959',
           }}
         >
-          <AddIcon sx={{ fontSize: '20px' }} />
-        </IconButton>
-      </Tooltip>
-    )}
-  </Box>
+          {preference}
+        </Box>
+      ))}
+      {isEditable && (
+        <Tooltip title="Add Preferences">
+          <IconButton
+            onClick={handleOpenPreferencesModal}
+            sx={{
+              backgroundColor: '#192959',
+              color: 'white',
+              padding: '6px',
+              '&:hover': {
+                backgroundColor: '#3a4a90',
+              },
+            }}
+          >
+            <AddIcon sx={{ fontSize: '20px' }} />
+          </IconButton>
+        </Tooltip>
+      )}
+    </>
+  ) : (
+    isEditable && (
+      <Button
+        variant="outlined"
+        onClick={handleOpenPreferencesModal}
+        sx={{
+          mt: 2,
+          borderColor: '#192959',
+          color: '#192959',
+          width: '50%',
+          '&:hover': {
+            backgroundColor: '#192959',
+            borderColor: 'white',
+            color: 'white',
+          },
+        }}
+        startIcon={<AddIcon />}
+      >
+        Select Your Preferences
+      </Button>
+    )
+  )}
+</Box>
+
 </Box>
 </Box>
       {/* Delete Account Button */}
