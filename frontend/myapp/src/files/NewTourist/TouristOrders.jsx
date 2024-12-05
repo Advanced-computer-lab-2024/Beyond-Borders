@@ -51,7 +51,7 @@ import StarHalfIcon from '@mui/icons-material/StarHalf';
 import LocalShippingIcon from '@mui/icons-material/LocalShipping';
 import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined';
 import ShoppingBagIcon from '@mui/icons-material/ShoppingBag';
-
+import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
 
 import axios from 'axios';
 
@@ -781,7 +781,7 @@ const fetchOrders = async () => {
                 height: '40px',
                 }}
             >
-    <BookmarkBorderOutlinedIcon/>
+    <FavoriteBorderIcon/>
   </IconButton>
 </Tooltip>
 <Tooltip title="Logout" arrow>

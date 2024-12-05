@@ -50,6 +50,7 @@ import NotificationImportantIcon from '@mui/icons-material/NotificationImportant
 import DoneAllIcon from '@mui/icons-material/DoneAll';
 import NotificationsActiveOutlinedIcon from '@mui/icons-material/NotificationsActiveOutlined';
 import BookmarkIcon from '@mui/icons-material/Bookmark';
+import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
 import axios from 'axios';
 
 function TouristUpcomingHP() {
@@ -702,7 +703,7 @@ const navigate = useNavigate();
                 height: '40px',
                 }}
             >
-    <BookmarkBorderOutlinedIcon/>
+    <FavoriteBorderIcon/>
   </IconButton>
 </Tooltip>
 <Tooltip title="Logout" arrow>

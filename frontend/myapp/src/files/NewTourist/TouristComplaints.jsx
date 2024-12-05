@@ -49,7 +49,7 @@ import DescriptionIcon from '@mui/icons-material/Description';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import ShoppingBagIcon from '@mui/icons-material/ShoppingBag';
 import axios from 'axios';
-
+import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
 function TouristComplaints() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activities, setActivities] = useState([]);
@@ -560,7 +560,7 @@ const [newComplaint, setNewComplaint] = useState({
                 height: '40px',
                 }}
             >
-    <BookmarkBorderOutlinedIcon/>
+    <FavoriteBorderIcon/>
   </IconButton>
 </Tooltip>
 <Tooltip title="Logout" arrow>

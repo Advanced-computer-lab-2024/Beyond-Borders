@@ -46,7 +46,7 @@ import RemoveIcon from '@mui/icons-material/Remove';
 import ShoppingBagIcon from '@mui/icons-material/ShoppingBag';
 import DeleteIcon from '@mui/icons-material/Delete';
 import ShoppingCartCheckoutIcon from '@mui/icons-material/ShoppingCartCheckout';
-
+import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
 import PriorityHighIcon from '@mui/icons-material/PriorityHigh'; // Icon for generic user type
 import NotificationImportantIcon from '@mui/icons-material/NotificationImportant';
 import DoneAllIcon from '@mui/icons-material/DoneAll';
@@ -1319,7 +1319,7 @@ const markAllAsRead = async () => {
       height: '40px',
     }}
   >
-    <BookmarkBorderOutlinedIcon />
+    <FavoriteBorderIcon />
   </IconButton>
 </Tooltip>
 

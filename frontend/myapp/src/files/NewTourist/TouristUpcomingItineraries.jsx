@@ -47,7 +47,7 @@ import ShareIcon from '@mui/icons-material/Share';
 import LanguageIcon from '@mui/icons-material/Language';
 import BookmarkIcon from '@mui/icons-material/Bookmark';
 import NotificationsActiveOutlinedIcon from '@mui/icons-material/NotificationsActiveOutlined';
-
+import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
 import axios from 'axios';
 
 function TouristUpcomingItineraries() {
@@ -647,7 +647,7 @@ const [subscriptionStatus, setSubscriptionStatus] = useState({});
                 height: '40px',
                 }}
             >
-    <BookmarkBorderOutlinedIcon/>
+    <FavoriteBorderIcon/>
   </IconButton>
 </Tooltip>
 <Tooltip title="Logout" arrow>

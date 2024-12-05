@@ -48,7 +48,7 @@ import LanguageIcon from '@mui/icons-material/Language';
 import CancelIcon from '@mui/icons-material/Cancel';
 import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined';
 import ShoppingBagIcon from '@mui/icons-material/ShoppingBag';
-
+import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
 
 import axios from 'axios';
 
@@ -519,7 +519,7 @@ const [selectedActivity, setSelectedActivity] = useState(null);
                 height: '40px',
                 }}
             >
-    <BookmarkBorderOutlinedIcon/>
+    <FavoriteBorderIcon/>
   </IconButton>
 </Tooltip>
 <Tooltip title="Logout" arrow>

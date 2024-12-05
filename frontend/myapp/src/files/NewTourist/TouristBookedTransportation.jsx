@@ -46,7 +46,7 @@ import IosShareIcon from '@mui/icons-material/IosShare';
 import ShareIcon from '@mui/icons-material/Share';
 import LanguageIcon from '@mui/icons-material/Language';
 import axios from 'axios';
-
+import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
 function TouristBookedTransportation() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activities, setActivities] = useState([]);
@@ -509,7 +509,7 @@ const [transportation, setTransportation] = useState([]);
                 height: '40px',
                 }}
             >
-    <BookmarkBorderOutlinedIcon/>
+    <FavoriteBorderIcon/>
   </IconButton>
 </Tooltip>
 <Tooltip title="Logout" arrow>
