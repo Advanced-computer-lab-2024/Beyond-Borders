@@ -723,6 +723,8 @@ const getRevenueFromActivity = async (req, res) => {
   }
 };
 
+
+
 const filterAdvertiserActivities = async (req, res) => {
   const { username, name, date, month } = req.query;
 
@@ -783,7 +785,7 @@ const getTotalTouristsForAdvertiser = async (req, res) => {
     const activityNames = activities.map(activity => activity.Name);
 
     // Step 3: Count the total number of tourists who booked any of these activities
-    const totalTourists = await Tourist.countDocuments({
+    const totalTourists = await TouristModel.countDocuments({
       'BookedActivities.activityName': { $in: activityNames },
       'BookedActivities.booked': true,
     });
@@ -798,8 +800,138 @@ const getTotalTouristsForAdvertiser = async (req, res) => {
   }
 };
 
+const getTouristsByActivityAndMonth = async (req, res) => {
+  try {
+    const { activityName, month } = req.query;
+
+    if (!activityName || !month) {
+      return res.status(400).json({ error: 'Activity name and month are required' });
+    }
+
+    const monthNumber = parseInt(month) - 1; // Convert to 0-based index
+
+    const tourists = await TouristModel.find({
+      'BookedActivities.activityName': activityName,
+      'BookedActivities.booked': true,
+      'BookedActivities.DateOfBooking': {
+        $gte: new Date(new Date().getFullYear(), monthNumber, 1), // Start of the month
+        $lt: new Date(new Date().getFullYear(), monthNumber + 1, 1), // Start of the next month
+      },
+    });
+
+    const count = tourists.length;
+
+    res.status(200).json({ totalTourists: count });
+  } catch (error) {
+    console.error('Error fetching tourists:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+};
+
+const getHighestRevenueActivity = async (req, res) => {
+  const { username } = req.query;
+
+  if (!username) {
+    return res.status(400).json({ error: 'Advertiser username is required' });
+  }
+
+  try {
+    const now = new Date();
+    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+    const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+
+    const activities = await ActivityModel.find({
+      AdvertiserName: username,
+      Date: { $gte: monthStart, $lte: monthEnd },
+    });
+
+    if (!activities.length) {
+      return res.status(404).json({ message: 'No activities found for this advertiser in the current month' });
+    }
+
+    let highestRevenueActivity = null;
+    let highestRevenue = 0;
+
+    for (const activity of activities) {
+      const tourists = await TouristModel.find({
+        'BookedActivities.activityName': activity.Name,
+        'BookedActivities.booked': true,
+        'BookedActivities.DateOfBooking': { $gte: monthStart, $lte: monthEnd },
+      });
+
+      const revenue = tourists.length * activity.Price;
+
+      if (revenue > highestRevenue) {
+        highestRevenue = revenue;
+        highestRevenueActivity = activity.Name;
+      }
+    }
+
+    res.status(200).json({
+      advertiserUsername: username,
+      highestRevenueActivity,
+      revenue: highestRevenue,
+    });
+  } catch (error) {
+    console.error('Error fetching highest revenue activity:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+const calculateCurrentMonthRevenueForAdvertiser = async (req, res) => {
+  const { username } = req.query;
+
+  if (!username) {
+    return res.status(400).json({ error: 'Advertiser username is required' });
+  }
+
+  try {
+    // Step 1: Get the current month and year
+    const now = new Date();
+    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1); // Start of the current month
+    const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0); // End of the current month
+
+    // Step 2: Find all activities created by the advertiser in the current month
+    const activities = await ActivityModel.find({
+      AdvertiserName: username,
+      Date: { $gte: monthStart, $lte: monthEnd }, // Filter activities for the current month
+    });
+
+    if (activities.length === 0) {
+      return res.status(404).json({ message: 'No activities found for this advertiser in the current month' });
+    }
+
+    let totalRevenue = 0;
+
+    // Step 3: Iterate through each activity to calculate revenue
+    for (const activity of activities) {
+      const bookedActivityName = activity.Name;
+
+      // Find all tourists who booked this activity
+      const tourists = await TouristModel.find({
+        'BookedActivities.activityName': bookedActivityName,
+        'BookedActivities.booked': true,
+        'BookedActivities.DateOfBooking': {
+          $gte: monthStart,
+          $lte: monthEnd, // Filter bookings within the current month
+        },
+      });
+
+      // Calculate revenue for the activity
+      const revenue = tourists.length * activity.Price;
+      totalRevenue += revenue; // Add to the total revenue
+    }
+
+    // Step 4: Respond with the total revenue
+    res.status(200).json({
+      advertiserUsername: username,
+      totalRevenue,
+    });
+  } catch (error) {
+    console.error('Error calculating revenue for the current month:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
 
 
-
-
-      module.exports = {ReadAdvertiserProfile , updateAdvertiser, createNewActivity, readActivity, updateActivity, deleteActivity, getActivitiesByAuthor, loginAdvertiser, updateAdvertiserPassword, decrementLoginCountAdvertiser,requestDeleteAccountAdvertiser, allNotificationsRead, areAllNotificationsRead, getAdvertiserNotifications};
+      module.exports = {ReadAdvertiserProfile , updateAdvertiser, createNewActivity, readActivity, updateActivity, deleteActivity, getActivitiesByAuthor, loginAdvertiser, updateAdvertiserPassword, decrementLoginCountAdvertiser,requestDeleteAccountAdvertiser, allNotificationsRead, areAllNotificationsRead, getAdvertiserNotifications,calculateAdvertiserRevenue,getUsersWhoBookedActivity,getRevenueFromActivity,filterAdvertiserActivities,getTotalTouristsForAdvertiser,getTouristsByActivityAndMonth,getHighestRevenueActivity,calculateCurrentMonthRevenueForAdvertiser};

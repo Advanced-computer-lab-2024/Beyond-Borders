@@ -105,12 +105,13 @@ import YAdminComplaintsPage from './files/Admin/YAdminComplaintsPage';
 import YAdminItinerariesPage from './files/Admin/YAdminItinerariesPage';
 import YAdvertiserDashboard from './files/Advertiser/YAdvertiserDashboard';
 import YAdvertiserActivitiesPage from './files/Advertiser/YAdvertiserActivitiesPage';
-import YAdvertiserSalesPage from './files/Advertiser/YAdvertiserSalesPage';
+//import YAdvertiserSalesPage from './files/Advertiser/YAdvertiserSalesPage';
 import YTourGuideDashboard from './files/TourGuide/YTourGuideDashboard';
 
 import YAdminProductsPage from './files/Admin/YAdminProductsPage';
 import AddProductModal from './files/Admin/AddProductModal';
 import YTourGuideSalesPage from './files/TourGuide/YTourGuideSalesPage';
+import YAdvertiserSalesPage from './files/Advertiser/YAdvertiserSalesPage';
 
 
 import GuestItinerariesPage from './files/Guest/GuestItinerariesPage';
@@ -272,6 +273,7 @@ function App() {
           <Route path="/AddProductModalSeller" element={<AddProductModalSeller />} />
           <Route path="/YSellerAllProductsPage" element={<YSellerAllProductsPage />} />
           <Route path="/YTourGuideDashboard" element={<YTourGuideDashboard />} />
+          {/* <Route path="/YAdvertiserSalesPage" element={<YAdvertiserSalesPage />} /> */}
         </Routes>
       </BrowserRouter>
     </div>
