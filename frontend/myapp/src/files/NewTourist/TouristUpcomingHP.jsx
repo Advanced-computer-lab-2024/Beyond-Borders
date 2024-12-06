@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect,useRef } from 'react';
 import { Box, Button, Typography, Divider,IconButton,Tooltip, TextField, InputAdornment, Modal,MenuItem,Select,FormControl,InputLabel,} from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import MenuIcon from '@mui/icons-material/Menu';
@@ -52,8 +52,12 @@ import NotificationsActiveOutlinedIcon from '@mui/icons-material/NotificationsAc
 import BookmarkIcon from '@mui/icons-material/Bookmark';
 import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
 import axios from 'axios';
-
+import { useLocation } from "react-router-dom";
 function TouristUpcomingHP() {
+  const location = useLocation();
+  const query = new URLSearchParams(location.search);
+  const targetName = query.get("name");
+  const refs = useRef({});
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activities, setActivities] = useState([]);
   const [scrollPositions, setScrollPositions] = useState({});
@@ -144,6 +148,17 @@ const navigate = useNavigate();
     }
   }, [currency, HPs]);
 
+  useEffect(() => {
+    if (targetName && refs.current[targetName]) {
+      setTimeout(() => {
+        refs.current[targetName].scrollIntoView({
+          behavior: "smooth",
+          block: "center",
+        });
+      }, 100); // Delay to ensure refs are populated
+    }
+  }, [targetName, HPs]); // Add HPs to dependencies
+  
   // const convertActivityPrices = async () => {
   //   const newConvertedPrices = {};
   //   await Promise.all(
@@ -1330,7 +1345,7 @@ const navigate = useNavigate();
 {/* Main Content Area with Historical Places */}
 <Box sx={styles.activitiesContainer}>
   {HPs.map((hp, index) => (
-    <Box key={index} sx={{ marginBottom: '20px' }}>
+    <Box key={index} ref={(el) => (refs.current[hp.name] = el)} sx={{ marginBottom: '20px' }}>
       <Box
         sx={{
           ...styles.activityCard,

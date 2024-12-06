@@ -5,6 +5,10 @@ import { Box, Button, Typography,Menu, MenuItem,Tooltip, IconButton, Modal, Text
   ListItem,
   ListItemText,
   ListItemAvatar, Grid,
+  Tabs,
+  Tab,
+  AppBar,
+  useTheme, Card, CardMedia, CardContent, CardActions,
   Avatar, } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import MenuIcon from '@mui/icons-material/Menu';
@@ -50,7 +54,9 @@ import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
 import PriorityHighIcon from '@mui/icons-material/PriorityHigh'; // Icon for generic user type
 import NotificationImportantIcon from '@mui/icons-material/NotificationImportant';
 import DoneAllIcon from '@mui/icons-material/DoneAll';
-
+import SearchIcon from '@mui/icons-material/Search';
+import StarIcon from '@mui/icons-material/Star';
+import StarBorderIcon from '@mui/icons-material/StarBorder';
 
 
 import axios from 'axios';
@@ -111,6 +117,29 @@ const [isLoadingCart, setIsLoadingCart] = useState(false);
 const [wishlistData, setWishlistData] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isWishlistOpen, setIsWishlistOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState(0);
+  const [searchQuery, setSearchQuery] = useState("");
+  const tabs = ["Activities", "Itineraries", "Museums", "Historical Places", "Products"];
+  const icons = [
+    <LocalActivityIcon />,
+    <MapIcon />,
+    <AccountBalanceIcon />,
+    <ChurchIcon />, // Replace with a suitable Historical Places icon
+    <ShoppingCartIcon />,
+  ];
+  
+  const tabHeadings = [
+    "Explore Exciting Activities",
+    "Plan Your Perfect Itinerary",
+    "Discover Museums",
+    "Visit Historical Places",
+    "Find Amazing Products",
+  ];
+
+  const [itineraries, setItineraries] = useState([]);
+  const [historicalPlaces, setHistoricalPlaces] = useState([]);
+  const [europeanTours, setEuropeanTours] = useState([]); // New state variable for European tours
+  const [selectedActivities, setSelectedActivities] = useState([]);
 
   const [itineraryData, setItineraryData] = useState({
     title: '',
@@ -149,6 +178,13 @@ useEffect(() => {
   checkNotificationsStatus();
 
 },);
+
+useEffect(() => {
+  fetchUpcomingItineraries();
+  fetchUpcomingHistoricalPlaces();
+  fetchPopularEuropeanTours();
+  fetchSelectedActivities();
+}, []);
 
 
   // Method to handle opening the modal
@@ -369,7 +405,74 @@ useEffect(() => {
       setResponseMessage(error.response?.data?.error || 'An error occurred. Please try again.');
     }
   };
+  const fetchUpcomingItineraries = async () => {
+    try {
+      const response = await axios.get("/api/ViewAllUpcomingItinerariesTourist");
+      // Filter only the required itineraries
+      //console.log(response.data);
+      const filteredItineraries = response.data.filter((itinerary) =>
+        ["Cultural Heritage Tour", "Discover Ancient Egypt"].includes(itinerary.Title)
+      );
+      console.log(filteredItineraries);
+      setItineraries(filteredItineraries);
+    } catch (error) {
+      console.error("Error fetching itineraries:", error);
+    }
+  };
+  
+  const fetchUpcomingHistoricalPlaces = async () => {
+    try {
+      const response = await axios.get("/api/ViewAllUpcomingHistoricalPlacesEventsTourist");
+      //console.log(response.data);
+      // Filter only the required historical places
+      const filteredHistoricalPlaces = response.data.filter((place) =>
+        ["Sphinx", "The Great Pyramid of Giza"].includes(place.name)
+      );
+      console.log(filteredHistoricalPlaces);
+      setHistoricalPlaces(filteredHistoricalPlaces);
+    } catch (error) {
+      console.error("Error fetching historical places:", error);
+    }
+  };
 
+  const fetchPopularEuropeanTours = async () => {
+    try {
+      const response = await axios.get("/api/ViewAllUpcomingItinerariesTourist");
+      const filteredTours = response.data.filter((tour) =>
+        [
+          "Canal Tour in Venice",
+          "Explore Berlin's Landmarks",
+          "Cycling Amsterdam Tour",
+          "All Around Paris Tour",
+        ].includes(tour.Title)
+      );
+      console.log(filteredTours);
+      setEuropeanTours(filteredTours); // Updated state variable name
+    } catch (error) {
+      console.error("Error fetching popular European tours:", error);
+    }
+  };
+
+  const fetchSelectedActivities = async () => {
+    try {
+      const response = await axios.get("/api/ViewAllUpcomingActivities");
+      const filteredActivities = response.data.filter((activity) =>
+        [
+         "Hiking in Grand Canyon",
+      "Surfing Lessons in Waikiki",
+      "Painting Workshop in Paris",
+      "Yoga at the Beach",
+        ].includes(activity.Name)
+      );
+      setSelectedActivities(filteredActivities); // Set the state with fetched activities
+
+    } catch (error) {
+      console.error("Error fetching selected activities:", error);
+    }
+  };
+  
+  
+  
   const fetchTouristProfile = async () => {
     const username = localStorage.getItem('username'); // Retrieve username from localStorage
   
@@ -418,6 +521,361 @@ useEffect(() => {
       }
     }
   };
+  const renderContent = () => {
+    return (
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "center",
+          gap: "10px",
+          marginBottom: "20px",
+        }}
+      >
+        <TextField
+          placeholder={`Search in ${tabs[activeTab]}...`}
+          variant="outlined"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          sx={{ width: "70%" }}
+        />
+        <Button
+          variant="contained"
+          onClick={handleSearch}
+          sx={{
+            backgroundColor: "#192959",
+            color: "#fff",
+            "&:hover": { backgroundColor: "#33416b" },
+          }}
+        >
+          Search <SearchIcon sx={{ marginLeft: "8px" }} />
+        </Button>
+      </Box>
+    );
+  };
+
+  const getImageForItem = (item, type) => {
+    // Provide unique default images based on type and name/Title
+    if (type === "itinerary") {
+      switch (item.Title) {
+        case "Cultural Heritage Tour":
+          return "/images/tour2.jpg";
+        case "Discover Ancient Egypt":
+          return "/images/pyramids-camel-ride.jpg";
+        default:
+          return "/images/default-itinerary.jpg";
+      }
+    } else if (type === "historical") {
+      switch (item.name) {
+        case "Sphinx":
+          return "/images/sphinx2.jpg";
+        case "The Great Pyramid of Giza":
+          return "/images/pyramidsss.jpg";
+        default:
+          return "/images/sphinx.jpg";
+      }
+    }
+  
+    return "/images/default-placeholder.jpg"; // Fallback image
+  };
+  
+  const getTourImage = (tour, type) => {
+    if (type === "tour") {
+      switch (tour.Title) {
+        case "Canal Tour in Venice":
+          return "/images/venice.jpg";
+        case "Explore Berlin's Landmarks":
+          return "/images/berlin2.jpeg";
+        case "Cycling Amsterdam Tour":
+          return "/images/amsterdam.jpg";
+        case "All Around Paris Tour":
+          return "/images/paris.jpg";
+        default:
+          return "/images/default-tour.jpg";
+      }
+    }
+    return "/images/default-placeholder.jpg"; // Fallback image
+  };
+  
+  const getActivityImage = (activity) => {
+    switch (activity.Name) {
+      case "Hiking in Grand Canyon":
+        return "/images/hiking.jpg";
+      case "Surfing Lessons in Waikiki":
+        return "/images/surfing.jpg";
+      case "Painting Workshop in Paris":
+        return "/images/painting.jpg";
+      case "Yoga at the Beach":
+        return "/images/yoga.jpg";
+      default:
+        return "/images/default-activity.jpg";
+    }
+  };
+  
+ 
+
+  const renderCard = (item, type) => {
+    
+  
+    if (!item) return null; // Safeguard for null/undefined items
+  
+    // Function to generate star icons
+    const renderStars = (rating) => {
+      const stars = [];
+      for (let i = 1; i <= 5; i++) {
+        stars.push(
+          i <= rating ? (
+            <StarIcon key={i} sx={{ color: "#192959", fontSize: "20px" }} />
+          ) : (
+            <StarBorderIcon key={i} sx={{ color: "#192959", fontSize: "20px" }} />
+          )
+        );
+      }
+      return stars;
+    };
+  
+    return (
+      <Card
+        key={item._id}
+        onClick={() =>
+          type === "itinerary"
+            ? navigate(`/TouristUpcomingItineraries?Title=${encodeURIComponent(item.Title)}`)
+            : navigate(`/TouristUpcomingHP?name=${encodeURIComponent(item.name)}`)
+  
+        }
+        sx={{
+          width: "350px",
+          height: "350px",
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "space-between",
+          boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.2)",
+          borderRadius: "10px",
+          overflow: "hidden",
+          cursor: "pointer", // Change cursor to pointer
+          transition: "transform 0.3s ease, box-shadow 0.3s ease", // Smooth scaling and shadow transition
+          "&:hover": {
+            transform: "scale(1.05)", // Slightly enlarge on hover
+            boxShadow: "0px 8px 16px rgba(0, 0, 0, 0.3)", // Deeper shadow on hover
+          },
+        }}
+      >
+        {/* Image */}
+        <CardMedia
+          component="img"
+          alt={item.name || item.Title || "Image"}
+          height="240"
+          image={getImageForItem(item, type)} // Use unique image function
+        />
+  
+        {/* Content */}
+        <CardContent sx={{ flexGrow: 1, paddingBottom: "0px" }}>
+          <Typography
+            gutterBottom
+            variant="h6"
+            component="div"
+            sx={{ marginBottom: "0px" }} // Reduce space between title and rating
+          >
+            {item.name || item.Title || "Unknown"}
+          </Typography>
+        </CardContent>
+  
+        {/* Footer */}
+        <CardActions
+          sx={{
+            flexDirection: "column", // Stack rating and price vertically
+            alignItems: "flex-start", // Align items to the left
+          }}
+        >
+          {/* Rating */}
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              marginBottom: "5px",
+            }}
+          >
+            {renderStars(item.Ratings || 0)}
+          </Box>
+  
+          {/* Price */}
+          <Typography variant="body2" color="textSecondary">
+            from EGP{" "}
+            {type === "itinerary"
+              ? item.Price || "Unknown price"
+              : item.ticketPrices?.student || "Unknown price"}
+          </Typography>
+        </CardActions>
+      </Card>
+    );
+  };
+  
+  const renderTourCard = (tour, type) => {
+    if (!tour) return null;
+  
+    const renderStars = (rating) => {
+      const stars = [];
+      for (let i = 1; i <= 5; i++) {
+        stars.push(
+          i <= rating ? (
+            <StarIcon key={i} sx={{ color: "#192959", fontSize: "20px" }} />
+          ) : (
+            <StarBorderIcon key={i} sx={{ color: "#192959", fontSize: "20px" }} />
+          )
+        );
+      }
+      return stars;
+    };
+  
+    return (
+      <Card
+        key={tour._id}
+        onClick={() =>
+          type === "tour"
+            ? navigate(`/TouristUpcomingItineraries?Title=${encodeURIComponent(tour.Title)}`)
+            : navigate(`/TouristUpcomingHP?name=${encodeURIComponent(tour.name)}`)
+        }
+        sx={{
+          width: "350px",
+          height: "350px",
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "space-between",
+          boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.2)",
+          borderRadius: "10px",
+          overflow: "hidden",
+          cursor: "pointer",
+          transition: "transform 0.3s ease, box-shadow 0.3s ease",
+          "&:hover": {
+            transform: "scale(1.05)",
+            boxShadow: "0px 8px 16px rgba(0, 0, 0, 0.3)",
+          },
+        }}
+      >
+        <CardMedia
+          component="img"
+          alt={tour.name || tour.Title || "Image"}
+          height="240"
+          image={getTourImage(tour, type)}
+        />
+        <CardContent sx={{ flexGrow: 1, paddingBottom: "0px" }}>
+          <Typography
+            gutterBottom
+            variant="h6"
+            component="div"
+            sx={{ marginBottom: "0px" }}
+          >
+            {tour.name || tour.Title || "Unknown"}
+          </Typography>
+        </CardContent>
+        <CardActions
+          sx={{
+            flexDirection: "column",
+            alignItems: "flex-start",
+          }}
+        >
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              marginBottom: "5px",
+            }}
+          >
+            {renderStars(tour.Ratings || 0)}
+          </Box>
+          <Typography variant="body2" color="textSecondary">
+            from EGP{" "}
+            {type === "tour"
+              ? tour.Price || "Unknown price"
+              : tour.ticketPrices?.student || "Unknown price"}
+          </Typography>
+        </CardActions>
+      </Card>
+    );
+  };
+  
+  
+  const renderActivityCard = (activity) => {
+    if (!activity) return null;
+  
+    const renderStars = (rating) => {
+      const stars = [];
+      for (let i = 1; i <= 5; i++) {
+        stars.push(
+          i <= rating ? (
+            <StarIcon key={i} sx={{ color: "#192959", fontSize: "20px" }} />
+          ) : (
+            <StarBorderIcon key={i} sx={{ color: "#192959", fontSize: "20px" }} />
+          )
+        );
+      }
+      return stars;
+    };
+  
+    return (
+      <Card
+        key={activity._id}
+        onClick={() =>
+          navigate(`/TouristUpcomingActivities?Name=${encodeURIComponent(activity.Name)}`)
+        }
+        sx={{
+          width: "350px",
+          height: "350px",
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "space-between",
+          boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.2)",
+          borderRadius: "10px",
+          overflow: "hidden",
+          cursor: "pointer",
+          transition: "transform 0.3s ease, box-shadow 0.3s ease",
+          "&:hover": {
+            transform: "scale(1.05)",
+            boxShadow: "0px 8px 16px rgba(0, 0, 0, 0.3)",
+          },
+        }}
+      >
+        <CardMedia
+          component="img"
+          alt={activity.Name || "Image"}
+          height="240"
+          image={getActivityImage(activity)}
+        />
+        <CardContent sx={{ flexGrow: 1, paddingBottom: "0px" }}>
+          <Typography
+            gutterBottom
+            variant="h6"
+            component="div"
+            sx={{ marginBottom: "0px" }}
+          >
+            {activity.Name || "Unknown"}
+          </Typography>
+        </CardContent>
+        <CardActions
+          sx={{
+            flexDirection: "column",
+            alignItems: "flex-start",
+          }}
+        >
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              marginBottom: "5px",
+            }}
+          >
+            {renderStars(activity.Rating || 0)}
+          </Box>
+          <Typography variant="body2" color="textSecondary">
+            from EGP {activity.Price || "Unknown price"}
+          </Typography>
+        </CardActions>
+      </Card>
+    );
+  };
+  
+
+  
+  
   
   
 
@@ -878,6 +1336,9 @@ const markAllAsRead = async () => {
   }
 };
 
+const handleSearch = () => {
+  console.log(`Search in ${tabs[activeTab]}: ${searchQuery}`);
+};
 
   return (
     <Box sx={styles.container}>
@@ -983,7 +1444,20 @@ const markAllAsRead = async () => {
   </>
 )}
       {/* Top Menu Bar */}
-      <Box sx={styles.topMenu}>
+      <Box sx={{
+    position: 'fixed', // Make it fixed to stay visible on scroll
+    top: 0, // Stick it to the top of the page
+    left: 0,
+    right: 0,
+    height: '60px', // Adjust as per your top bar height
+    backgroundColor: '#192959', // Background color
+    boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.1)', // Optional shadow for visibility
+    zIndex: 1000, // Ensure it's above other elements
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: '0 20px', // Horizontal padding
+  }}>
         <Box sx={styles.menuIconContainer}>
           <IconButton onMouseEnter={() => setSidebarOpen(true)} color="inherit">
             <MenuIcon />
@@ -1299,13 +1773,6 @@ const markAllAsRead = async () => {
   </Box>
 </Drawer>
 
-
-
-
-
-
-
-
 <Tooltip title="Wishlist" arrow>
   <IconButton
     onClick={toggleWishlistDrawer}
@@ -1477,12 +1944,6 @@ const markAllAsRead = async () => {
     </Box>
   </Box>
 </Drawer>
-
-
-
-
-
-
 
 
 
@@ -2008,27 +2469,258 @@ const markAllAsRead = async () => {
   )}
 </Box>
 
+</Box>
+<Box
+  sx={{
+    width: "100%",
+    margin: "0 auto",
+    maxWidth: "1200px",
+    marginTop: "120px", // Reduced marginTop to minimize space
+  }}
+>
+  {/* Dynamic Heading */}
+  <Typography
+    variant="h4"
+    sx={{
+      textAlign: "center",
+      marginBottom: "10px", // Reduced marginBottom
+      color: "#192959",
+      fontWeight: "bold",
+    }}
+  >
+    {tabHeadings[activeTab]}
+  </Typography>
+
+  {/* Tabs Header */}
+  <Box
+    sx={{
+      display: "flex",
+      justifyContent: "space-around",
+      alignItems: "center",
+      borderBottom: "2px solid #ddd",
+      marginBottom: "10px", // Reduced marginBottom
+      marginTop: "20px", // Reduced marginTop
+    }}
+  >
+    {tabs.map((tab, index) => (
+      <Button
+        key={index}
+        onClick={() => setActiveTab(index)}
+        sx={{
+          flex: 1,
+          fontWeight: activeTab === index ? "bold" : "normal",
+          borderBottom: activeTab === index ? "2px solid #192959" : "none",
+          color: activeTab === index ? "#192959" : "#555",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          gap: "8px",
+        }}
+      >
+        {icons[index]} {tab}
+      </Button>
+    ))}
+  </Box>
+
+  {/* Content Section */}
+  <Box
+    sx={{
+      overflow: "hidden",
+      position: "relative",
+      minHeight: "180px",
+      padding: "20px",
+      borderRadius: "8px",
+    }}
+  >
+    <Box
+      sx={{
+        display: "flex",
+        transition: "transform 0.5s ease-in-out",
+        transform: `translateX(-${activeTab * 100}%)`,
+      }}
+    >
+      {tabs.map((tab, index) => (
+        <Box
+          key={index}
+          sx={{
+            width: "100%",
+            flexShrink: 0,
+          }}
+        >
+          {renderContent()}
+        </Box>
+      ))}
+    </Box>
+  </Box>
+</Box>
+
+<Box
+  sx={{
+    padding: "20px 20px", // Reduced padding
+    textAlign: "center",
+   // marginTop: "10px", // Reduced marginTop to minimize space
+  }}
+>
+  {/* Title */}
+  <Typography
+    variant="h4"
+    sx={{
+      textAlign: "left",
+      fontWeight: "bold",
+      marginLeft: "200px",
+      marginBottom: "10px", // Reduced marginBottom for title
+      color: "#192959",
+    }}
+  >
+    Ways to Tour Cairo
+  </Typography>
+
+  {/* Subtitle */}
+  <Typography
+    variant="subtitle1"
+    color="textSecondary"
+    sx={{
+      textAlign: "left",
+      marginBottom: "10px", // Reduced marginBottom for subtitle
+      marginLeft: "200px",
+      color: "#555",
+    }}
+  >
+    Book these experiences for a close-up look at Cairo.
+  </Typography>
+
+  {/* Cards Container */}
+  <Box
+  sx={{
+    display: "flex",
+    flexWrap: "wrap",
+    justifyContent: "center",
+    gap: "20px",
+    maxWidth: "1800px",
+    minWidth: "500px",
+    margin: "0 auto",
+  }}
+>
+  {/* Render Itineraries */}
+  {itineraries &&
+    itineraries.map((itinerary) =>
+      ["Cultural Heritage Tour", "Discover Ancient Egypt"].includes(itinerary.Title)
+        ? renderCard(itinerary, "itinerary")
+        : null
+    )}
+
+  {/* Render Historical Places */}
+  {historicalPlaces &&
+    historicalPlaces.map((place) =>
+      ["Sphinx", "The Great Pyramid of Giza"].includes(place?.name)
+        ? renderCard(place, "historical")
+        : null
+    )}
+</Box>
+
+</Box>
+
+<Box
+  sx={{
+    padding: "20px 20px",
+    textAlign: "center",
+  }}
+>
+  <Typography
+    variant="h4"
+    sx={{
+      textAlign: "left",
+      fontWeight: "bold",
+      marginLeft: "200px",
+      marginBottom: "10px",
+      color: "#192959",
+    }}
+  >
+    Popular European Tours
+  </Typography>
+
+  <Typography
+    variant="subtitle1"
+    color="textSecondary"
+    sx={{
+      textAlign: "left",
+      marginBottom: "10px",
+      marginLeft: "200px",
+      color: "#555",
+    }}
+  >
+    Explore the best of Europe with these amazing tours.
+  </Typography>
+
+  <Box
+    sx={{
+      display: "flex",
+      flexWrap: "wrap",
+      justifyContent: "center",
+      gap: "20px",
+      maxWidth: "1800px",
+      minWidth: "500px",
+      margin: "0 auto",
+    }}
+  >
+    {europeanTours.map((tour) =>
+      renderTourCard(tour, "tour")
+    )}
+  </Box>
+</Box>
+
+<Box
+  sx={{
+    padding: "20px 20px",
+    textAlign: "center",
+  }}
+>
+  <Typography
+    variant="h4"
+    sx={{
+      textAlign: "left",
+      fontWeight: "bold",
+      marginLeft: "200px",
+      marginBottom: "10px",
+      color: "#192959",
+    }}
+  >
+    Unique Activities to Explore
+  </Typography>
+
+  <Typography
+    variant="subtitle1"
+    color="textSecondary"
+    sx={{
+      textAlign: "left",
+      marginBottom: "10px",
+      marginLeft: "200px",
+      color: "#555",
+    }}
+  >
+    Book these unforgettable experiences for your next adventure.
+  </Typography>
+
+  <Box
+    sx={{
+      display: "flex",
+      flexWrap: "wrap",
+      justifyContent: "center",
+      gap: "20px",
+      maxWidth: "1800px",
+      minWidth: "500px",
+      margin: "0 auto",
+    }}
+  >
+    {selectedActivities.map((activity) =>
+      renderActivityCard(activity)
+    )}
+  </Box>
+</Box>
 
 
-        {/* <Button onClick={() => navigate('/YAdminDashboard')} sx={styles.sidebarButton}>
-          <DashboardIcon sx={styles.icon} />
-          {sidebarOpen && 'Back to Dashboard'}
-        </Button> */}
-      </Box>
-      <Box sx={{ ...styles.content, filter: sidebarOpen ? 'brightness(0.5)' : 'none' }}>
-        <Box sx={styles.infoBox} onClick={() => navigate('/YAdminProductsPage')}>
-          <img src="/images/products.jpg" alt="Products" style={styles.image} />
-          <Typography variant="h6" sx={styles.text} className="text">Products</Typography>
-        </Box>
-        <Box sx={styles.infoBox} onClick={() => navigate('/YAdminActivitiesPage')}>
-          <img src="/images/activity.jpg" alt="Activities" style={styles.image} />
-          <Typography variant="h6" sx={styles.text} className="text">Activities</Typography>
-        </Box>
-        <Box sx={styles.infoBox} onClick={() => navigate('/YAdminItinerariesPage')}>
-          <img src="/images/itinerary.jpg" alt="Itineraries" style={styles.image} />
-          <Typography variant="h6" sx={styles.text} className="text">Itineraries</Typography>
-        </Box>
-      </Box>
+
+
 
 {/* Profile Modal */}
 <Modal open={isProfileModalOpen} onClose={() => setIsProfileModalOpen(false)}>
@@ -2521,237 +3213,6 @@ const markAllAsRead = async () => {
     </Button>
   </DialogActions>
 </Dialog>
-
-
-
-      {/* Change Password Modal */}
-      <Modal open={changePasswordModal} onClose={() => setChangePasswordModal(false)}>
-        <Box sx={styles.modalContent}>
-          <Typography variant="h6" gutterBottom>Change Password</Typography>
-          <Typography variant="body2" sx={{ mb: 2 }}>Current Password: {currentPassword}</Typography>
-          <TextField
-            label="New Password"
-            type={showNewPassword ? 'text' : 'password'}
-            fullWidth
-            value={newPassword}
-            onChange={(e) => setNewPassword(e.target.value)}
-            InputProps={{
-              endAdornment: (
-                <InputAdornment position="end">
-                  <IconButton onClick={() => setShowNewPassword(!showNewPassword)}>
-                    {showNewPassword ? <VisibilityOff /> : <Visibility />}
-                  </IconButton>
-                </InputAdornment>
-              ),
-            }}
-            sx={{ mb: 2 }}
-          />
-          <TextField
-            label="Confirm Password"
-            type={showConfirmPassword ? 'text' : 'password'}
-            fullWidth
-            value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
-            InputProps={{
-              endAdornment: (
-                <InputAdornment position="end">
-                  <IconButton onClick={() => setShowConfirmPassword(!showConfirmPassword)}>
-                    {showConfirmPassword ? <VisibilityOff /> : <Visibility />}
-                  </IconButton>
-                </InputAdornment>
-              ),
-            }}
-            sx={{ mb: 2 }}
-          />
-          {errorMessage && <Typography color="error" sx={{ mb: 2 }}>{errorMessage}</Typography>}
-          <Button
-            variant="contained"
-            onClick={handleAddAdmin}
-            fullWidth
-            sx={styles.actionButton}
-          >Save New Password</Button>
-        </Box>
-      </Modal>
-      {/* Add Admin Modal */}
-      <Modal open={addAdminModal} onClose={() => {setAddAdminModal(false); resetAddAdminModal();}}>
-        <Box sx={styles.modalContent}>
-          <Typography variant="h6" gutterBottom>Add Admin</Typography>
-          <Typography variant="body2" sx={{ mb: 2 }}>Give a new admin access to the system</Typography>
-          <TextField
-            label="Admin Username"
-            fullWidth
-            value={adminUsername}
-            onChange={(e) => setAdminUsername(e.target.value)}
-            sx={{ mb: 2 }}
-          />
-          <TextField
-            label="Password"
-            type={showAdminPassword ? 'text' : 'password'}
-            fullWidth
-            value={adminPassword}
-            onChange={(e) => setAdminPassword(e.target.value)}
-            InputProps={{
-              endAdornment: (
-                <InputAdornment position="end">
-                  <IconButton onClick={() => setShowAdminPassword(!showAdminPassword)}>
-                    {showAdminPassword ? <VisibilityOff /> : <Visibility />}
-                  </IconButton>
-                </InputAdornment>
-              ),
-            }}
-            sx={{ mb: 2 }}
-          />
-          <TextField
-            label="Confirm Password"
-            type={showConfirmAdminPassword ? 'text' : 'password'}
-            fullWidth
-            value={confirmAdminPassword}
-            onChange={(e) => setConfirmAdminPassword(e.target.value)}
-            InputProps={{
-              endAdornment: (
-                <InputAdornment position="end">
-                  <IconButton onClick={() => setShowConfirmAdminPassword(!showConfirmAdminPassword)}>
-                    {showConfirmAdminPassword ? <VisibilityOff /> : <Visibility />}
-                  </IconButton>
-                </InputAdornment>
-              ),
-            }}
-            sx={{ mb: 2 }}
-          />
-          {errorMessage && <Typography color="error" sx={{ mb: 2 }}>{errorMessage}</Typography>}
-          <Button
-            variant="contained"
-            onClick={handleAddAdmin}
-            fullWidth
-            sx={styles.actionButton}
-          >Add Admin</Button>
-        </Box>
-      </Modal>
-
-      {/* Add Tourism Governor Modal */}
-<Modal open={addTourismGovModal} onClose={() => {setAddTourismGovModal(false); resetAddTourismGovModal();}}>
-  <Box sx={styles.modalContent}>
-    <Typography variant="h6" gutterBottom>Add Tourism Governor</Typography>
-    <Typography variant="body2" sx={{ mb: 2 }}>Grant access to a new tourism governor</Typography>
-    <TextField
-      label="Username"
-      fullWidth
-      value={govUsername}
-      onChange={(e) => setGovUsername(e.target.value)}
-      sx={{ mb: 2 }}
-    />
-    <TextField
-      label="Password"
-      type={showGovPassword ? 'text' : 'password'}
-      fullWidth
-      value={govPassword}
-      onChange={(e) => setGovPassword(e.target.value)}
-      InputProps={{
-        endAdornment: (
-          <InputAdornment position="end">
-            <IconButton onClick={() => setShowGovPassword(!showGovPassword)}>
-              {showGovPassword ? <VisibilityOff /> : <Visibility />}
-            </IconButton>
-          </InputAdornment>
-        ),
-      }}
-      sx={{ mb: 2 }}
-    />
-    <TextField
-      label="Confirm Password"
-      type={showConfirmGovPassword ? 'text' : 'password'}
-      fullWidth
-      value={confirmGovPassword}
-      onChange={(e) => setConfirmGovPassword(e.target.value)}
-      InputProps={{
-        endAdornment: (
-          <InputAdornment position="end">
-            <IconButton onClick={() => setShowConfirmGovPassword(!showConfirmGovPassword)}>
-              {showConfirmGovPassword ? <VisibilityOff /> : <Visibility />}
-            </IconButton>
-          </InputAdornment>
-        ),
-      }}
-      sx={{ mb: 2 }}
-    />
-    {errorMessage && (
-      <Typography color="error" sx={{ mb: 2 }}>{errorMessage}</Typography>
-    )}
-    <Button
-      variant="contained"
-      onClick={handleAddTourismGov}
-      fullWidth
-      sx={styles.actionButton}
-    >
-      Add Governor
-    </Button>
-  </Box>
-</Modal>
-
-{/* Delete Requests Modal */}
-<Modal open={deleteRequestsModal} onClose={closeDeleteRequestsModal}>
-  <Box sx={styles.modalContent}>
-    <Typography variant="h6" sx={{ mb: 2 }}>Delete Requests</Typography>
-    <Typography variant="body2" sx={{ mb: 2 }}>
-      The following accounts have requested to be deleted off of the system:
-    </Typography>
-
-    <Box sx={styles.listContainer}>
-      {deleteRequests.length > 0 ? (
-        deleteRequests.map((request, index) => (
-          <Box key={index} sx={styles.categoryItem}>
-            <Typography variant="body1">
-              <PersonIcon sx={{ mr: 1 }} />
-              {request.Username} ({request.Type})
-            </Typography>
-            <Box sx={styles.iconContainer}>
-              <IconButton onClick={() => handleConfirmDeleteRequest(request)}>
-                <CheckIcon sx={{ color: "#4CAF50" }} />
-              </IconButton>
-              <IconButton onClick={() => handleRejectRequest(request.Username)}>
-                <CloseIcon sx={{ color: "#FF5252" }} />
-              </IconButton>
-            </Box>
-
-          </Box>
-        ))
-      ) : (
-        <Typography variant="body2" color="textSecondary">
-          No delete requests available.
-        </Typography>
-      )}
-    </Box>
-
-    {/* <Button
-      onClick={closeDeleteRequestsModal}
-      variant="contained"
-      sx={styles.closeButton}
-    >
-      CLOSE
-    </Button> */}
-  </Box>
-</Modal>
-
-
-      {/* Confirm Deletion Dialog */}
-      <Dialog open={confirmDeleteDialog} onClose={() => setConfirmDeleteDialog(false)}>
-        <DialogContent>
-          <DialogContentText sx={{ fontWeight: 'bold', color: '#192959', fontSize: '20px' }}>
-            Are you sure you want to delete this user off of the system?
-          </DialogContentText>
-          <DialogContentText sx={{ fontWeight: 'bold', color: '#33416b', marginTop: '10px' }}>
-            This action cannot be reversed! You will delete this user and everything they've created from the system.
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setConfirmDeleteDialog(false)} sx={{ color: '#192959' }}>
-            Cancel
-          </Button>
-          <Button onClick={() => { confirmDeleteRequest(); setConfirmDeleteDialog(false); }} sx={{ color: '#192959' }}>
-            Confirm
-          </Button>
-        </DialogActions>
-      </Dialog>
 
     
     </Box>
