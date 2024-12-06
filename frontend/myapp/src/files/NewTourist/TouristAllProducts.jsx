@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Button, Typography, IconButton,Tooltip, TextField, InputAdornment, Modal,MenuItem,Select,FormControl,InputLabel,} from '@mui/material';
+import { Box, Button, Typography, IconButton,Tooltip, TextField, InputAdornment, CircularProgress,Modal,MenuItem,Select,FormControl,InputLabel,} from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import MenuIcon from '@mui/icons-material/Menu';
 import NotificationsIcon from '@mui/icons-material/Notifications';
@@ -93,7 +93,7 @@ const [currency, setCurrency] = useState('EGP'); // Default currency is EGP
 const [expanded, setExpanded] = React.useState({});
 const [wishlistStatus, setWishlistStatus] = useState({});
 const [wishlist, setWishlist] = useState([]); 
-const [loading, setLoading] = useState(false);
+const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -102,9 +102,11 @@ const [loading, setLoading] = useState(false);
       if (!searchQuery) {
         // Fetch all activities when there's no search query
         await fetchProducts();
+        setLoading(false);
       } else {
         // Perform search when there's a query
         await searchProducts(searchQuery);
+        
       }
     };
   
@@ -1381,14 +1383,12 @@ const fetchProducts = async () => {
 </Box>
 
 <Box sx={styles.activitiesContainer}>
-  {loading ? (
-    <Typography
-      variant="h6"
-      sx={{ textAlign: 'center', color: '#192959', marginTop: '20px' }}
-    >
-      Loading...
-    </Typography>
-  ) : products.length > 0 ? (
+{loading ? (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+        {/* Circular Progress for loading */}
+        <CircularProgress />
+      </Box>
+    ) : products.length > 0 ? (
     products.map((product, index) => (
       <Box key={index} sx={{ marginBottom: '40px' }}>
         {/* Your product card code */}

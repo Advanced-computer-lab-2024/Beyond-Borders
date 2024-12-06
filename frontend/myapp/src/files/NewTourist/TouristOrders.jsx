@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Button, Typography, IconButton,Tooltip,Dialog, DialogContent, DialogContentText, DialogActions, TextField, InputAdornment, Modal,MenuItem,Select,FormControl,InputLabel,} from '@mui/material';
+import { Box, Button, Typography, IconButton,Tooltip,Dialog, DialogContent, DialogContentText, DialogActions, TextField, InputAdornment, Modal,MenuItem,Select,FormControl,InputLabel,CircularProgress,} from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import MenuIcon from '@mui/icons-material/Menu';
 import NotificationsIcon from '@mui/icons-material/Notifications';
@@ -108,7 +108,7 @@ const [openDialog, setOpenDialog] = useState(false);
 const [selectedOrder, setSelectedOrder] = useState(null);
 const [isModalOpen, setIsModalOpen] = useState(false);
 const [selectedOrderProducts, setSelectedOrderProducts] = useState([]);
-
+const [loading, setLoading] = useState(true);
 
   const navigate = useNavigate();
 
@@ -118,6 +118,8 @@ const [selectedOrderProducts, setSelectedOrderProducts] = useState([]);
       if (!searchQuery) {
         // Fetch all activities when there's no search query
         await fetchOrders();
+        setLoading(false);
+
       } else {
         // Perform search when there's a query
         await searchProducts(searchQuery);
