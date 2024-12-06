@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect,useRef } from 'react';
 import { Box, Button, Typography, IconButton,Tooltip,Divider,TextField, InputAdornment, Modal,MenuItem,Select,FormControl,InputLabel,} from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import MenuIcon from '@mui/icons-material/Menu';
@@ -49,6 +49,7 @@ import BookmarkIcon from '@mui/icons-material/Bookmark';
 import NotificationsActiveOutlinedIcon from '@mui/icons-material/NotificationsActiveOutlined';
 import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
 import axios from 'axios';
+import { useLocation } from "react-router-dom";
 
 function TouristUpcomingItineraries() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -92,6 +93,11 @@ const [expanded, setExpanded] = useState(false);
 const [bookmarkStatuses, setBookmarkStatuses] = useState({});
 
 const [subscriptionStatus, setSubscriptionStatus] = useState({});
+
+const location = useLocation();
+  const query = new URLSearchParams(location.search);
+  const targetName = query.get("Title");
+  const refs = useRef({});
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -125,6 +131,18 @@ const [subscriptionStatus, setSubscriptionStatus] = useState({});
     return () => window.removeEventListener('scroll', handleScroll);
   }, [searchQuery]); // Depend on `searchQuery` to refetch activities when it changes
 
+  useEffect(() => {
+    if (targetName && refs.current[targetName]) {
+      setTimeout(() => {
+        refs.current[targetName].scrollIntoView({
+          behavior: "smooth",
+          block: "center",
+        });
+      }, 100); // Delay to ensure refs are populated
+    }
+  }, [targetName, activities]); // Add HPs to dependencies
+
+  
   const fetchSubscriptionStatus = async () => {
     const username = localStorage.getItem('username'); // Current user's username
     if (!username) return;
@@ -1270,7 +1288,7 @@ const [subscriptionStatus, setSubscriptionStatus] = useState({});
       {/* Main Content Area with Activities */}
       <Box sx={styles.activitiesContainer}>
         {activities.map((activity, index) => (
-          <Box key={index} sx={{ marginBottom: '20px' }}>
+          <Box key={index} ref={(el) => (refs.current[activity.Title] = el)} sx={{ marginBottom: '20px' }}>
             <Box
               sx={{
                 ...styles.activityCard,
