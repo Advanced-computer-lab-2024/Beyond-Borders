@@ -4603,18 +4603,18 @@ const getItineraryDetails = async (req, res) => {
 
 
 function copyToClipboard(entityType, entityName) {
-  const baseUrl = 'http://localhost:8000';
- 
+  const baseUrl = 'http://localhost:3000';
+  const encodedQuery = encodeURIComponent(entityName);
   // Construct the URL based on the entity type and name
   let url;
   if (entityType === 'activity') {
-    url = `${baseUrl}/api/activity/details/${encodeURIComponent(entityName)}`;
+    url = `${baseUrl}/GuestActivity?search=${encodedQuery}`;
   } else if (entityType === 'historicalPlace') {
-    url = `${baseUrl}/api/historicalPlace/details/${encodeURIComponent(entityName)}`;
+    url = `${baseUrl}/GuestHP?search=${encodedQuery}`;
   } else if (entityType === 'museum') {
-    url = `${baseUrl}/api/museum/details/${encodeURIComponent(entityName)}`;
+    url = `${baseUrl}/GuestMuseum?search=${encodedQuery}`;
   } else if (entityType === 'itinerary') { // Added itinerary entity type
-    url = `${baseUrl}/api/itinerary/details/${encodeURIComponent(entityName)}`;
+    url = `${baseUrl}/GuestItinerary?search=${encodedQuery}`;
   } else {
     console.error('Invalid entity type');
     return;
