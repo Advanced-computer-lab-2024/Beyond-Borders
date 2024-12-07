@@ -83,7 +83,8 @@ function YTourGuideSalesPage() {
   const [filterDate, setFilterDate] = useState('');
   const [filterMonth, setFilterMonth] = useState('');
   const [selectedItinerary, setSelectedItinerary] = useState(null);
-
+  const [selectedItineraryFilterDate, setSelectedItineraryFilterDate] = useState('');
+  const [selectedItineraryFilteredData, setSelectedItineraryFilteredData] = useState(null);
   ////////////
 
 
@@ -108,6 +109,21 @@ function YTourGuideSalesPage() {
   const navigate = useNavigate();
 
   ///////////////// SALES PAGE 
+  const applySelectedItineraryFilter = async () => {
+    try {
+      const filterParams = {
+        title: selectedItinerary.title,
+        date: selectedItineraryFilterDate || undefined, // Pass date if selected
+      };
+  
+      const response = await axios.get('/api/filterSelectedItineraryDetails', { params: filterParams });
+      setSelectedItineraryFilteredData(response.data);
+    } catch (error) {
+      console.error('Error filtering selected itinerary details:', error);
+      alert('Failed to filter itinerary details. Please try again.');
+    }
+  };
+  
   const handleItineraryClick = (itinerary) => {
     setSelectedItinerary(itinerary);
   };
@@ -162,15 +178,17 @@ function YTourGuideSalesPage() {
         itineraries.map(async (itinerary) => {
           const title = itinerary.Title;
           console.log(title);
-          const [bookingsResponse, revenueResponse, monthRevenueResponse] = await Promise.all([
+          const [bookingsResponse, revenueResponse, monthRevenueResponse, hmm] = await Promise.all([
             axios.get('/api/getUsersWhoBookedItinerary', { params: { username, title } }),
             axios.get('/api/getRevenueFromItinerary', { params: { username, title } }),
-            axios.get('/api/getTouristsByItineraryAndMonth', { params: { itineraryTitle: title, month: new Date().getMonth() + 1 } })
+            axios.get('/api/getTouristsByItineraryAndMonth', { params: { itineraryTitle: title, month: new Date().getMonth() + 1 } }),
+            axios.get('/api/calculateRevenueForItinerary', { params: { title, month: new Date().getMonth() + 1 } }),
           ]);
 
           return {
             title,
-            totalTourists: bookingsResponse.data.numberOfUsersBooked,
+            allMonthsTourists: bookingsResponse.data.numberOfUsersBooked,
+            totalTourists: hmm.data.bookings || 0,
             totalRevenue: revenueResponse.data.totalRevenue,
             currentMonthRevenue: monthRevenueResponse.data.totalTourists * itinerary.Price,
           };
@@ -184,6 +202,103 @@ function YTourGuideSalesPage() {
     }
   };
   
+  // const applyFilter = async () => {
+  //   const username = localStorage.getItem('username');
+  //   if (!username) {
+  //     alert('You need to log in first.');
+  //     return;
+  //   }
+  
+  //   try {
+  //     // Step 1: Fetch filtered itineraries
+  //     const response = await axios.get('/api/filterTourGuideItineraries', {
+  //       params: {
+  //         username,
+  //         date: filterDate || undefined, // Pass date if selected
+  //         month: filterMonth || undefined, // Pass month if selected
+  //       },
+  //     });
+  
+  //     const filteredItineraries = response.data;
+  //     console.log("Filtered Itineraries:", filteredItineraries);
+  
+  //     // Step 2: Fetch additional details for each itinerary
+  //     const detailedItineraries = await Promise.all(
+  //       filteredItineraries.map(async (itinerary) => {
+  //         const title = itinerary.Title;
+  //         console.log("Fetching details for itinerary:", title);
+  
+  //         const [bookingsResponse, revenueResponse, monthRevenueResponse] = await Promise.all([
+  //           axios.get('/api/getUsersWhoBookedItinerary', { params: { username, title } }),
+  //           axios.get('/api/getRevenueFromItinerary', { params: { username, title } }),
+  //           axios.get('/api/getTouristsByItineraryAndMonth', {
+  //             params: { itineraryTitle: title, month: filterMonth || new Date().getMonth() + 1 },
+  //           }),
+  //         ]);
+  
+  //         return {
+  //           title,
+  //           totalTourists: bookingsResponse.data.numberOfUsersBooked,
+  //           totalRevenue: revenueResponse.data.totalRevenue,
+  //           currentMonthRevenue: monthRevenueResponse.data.totalTourists * itinerary.Price,
+  //         };
+  //       })
+  //     );
+  
+  //     console.log("Detailed Itineraries with Filter:", detailedItineraries);
+  
+  //     // Step 3: Update the state with the detailed data
+  //     setItinerariesData(detailedItineraries);
+  //     setIsFilterModalOpen(false); // Close the modal
+  //   } catch (error) {
+  //     console.error('Error filtering and fetching itinerary details:', error);
+  //     alert('Failed to filter itineraries. Please try again.');
+  //   }
+  // };
+  
+  // const applyFilter = async () => {
+  //   const username = localStorage.getItem('username');
+  //   if (!username) {
+  //     alert('You need to log in first.');
+  //     return;
+  //   }
+  
+  //   try {
+  //     // Fetch itineraries for the tour guide
+  //     const response = await axios.get(`/api/getallItinerarys`, {
+  //       params: { AuthorUsername: username },
+  //     });
+  
+  //     const itineraries = response.data;
+  
+  //     // Process itineraries to include bookings and revenue
+  //     const updatedItineraries = await Promise.all(
+  //       itineraries.map(async (itinerary) => {
+  //         const title = itinerary.Title;
+  
+  //         // Fetch bookings and revenue data
+  //         const [revenueResponse, monthRevenueResponse] = await Promise.all([
+  //           axios.get('/api/getRevenueFromItinerary', { params: { username, title } }),
+  //           axios.get('/api/calculateRevenueForItinerary', {params: { title: title, month: filterMonth || new Date().getMonth() + 1 }}),
+  //         ]);
+  
+  //         return {
+  //           title,
+  //           totalTourists: monthRevenueResponse.data.bookings || 0,
+  //           totalRevenue: revenueResponse.data.totalRevenue,
+  //           currentMonthRevenue: monthRevenueResponse.data.revenue || 0, // Assuming this comes from the API
+  //         };
+  //       })
+  //     );
+  
+  //     setItinerariesData(updatedItineraries);
+  //     setIsFilterModalOpen(false); // Close the modal
+  //   } catch (error) {
+  //     console.error('Error fetching or calculating itinerary details:', error);
+  //     alert('Failed to fetch or update itineraries. Please try again.');
+  //   }
+  // };
+
   const applyFilter = async () => {
     const username = localStorage.getItem('username');
     if (!username) {
@@ -192,49 +307,47 @@ function YTourGuideSalesPage() {
     }
   
     try {
-      // Step 1: Fetch filtered itineraries
-      const response = await axios.get('/api/filterTourGuideItineraries', {
-        params: {
-          username,
-          date: filterDate || undefined, // Pass date if selected
-          month: filterMonth || undefined, // Pass month if selected
-        },
+      // Fetch itineraries for the tour guide
+      const response = await axios.get(`/api/getallItinerarys`, {
+        params: { AuthorUsername: username },
       });
   
-      const filteredItineraries = response.data;
-      console.log("Filtered Itineraries:", filteredItineraries);
+      const itineraries = response.data;
   
-      // Step 2: Fetch additional details for each itinerary
-      const detailedItineraries = await Promise.all(
-        filteredItineraries.map(async (itinerary) => {
+      // Process itineraries to include bookings and revenue
+      const updatedItineraries = await Promise.all(
+        itineraries.map(async (itinerary) => {
           const title = itinerary.Title;
-          console.log("Fetching details for itinerary:", title);
   
-          const [bookingsResponse, revenueResponse, monthRevenueResponse] = await Promise.all([
-            axios.get('/api/getUsersWhoBookedItinerary', { params: { username, title } }),
+          let filterParams = { title }; // Base filter parameters
+          if (filterDate) {
+            filterParams.date = filterDate;
+          } else if (filterMonth) {
+            filterParams.month = filterMonth;
+          }
+  
+          // Fetch bookings and revenue data
+          const [revenueResponse, filterResponse, allMonthsTouristsResponse] = await Promise.all([
             axios.get('/api/getRevenueFromItinerary', { params: { username, title } }),
-            axios.get('/api/getTouristsByItineraryAndMonth', {
-              params: { itineraryTitle: title, month: filterMonth || new Date().getMonth() + 1 },
-            }),
+            axios.get('/api/calculateRevenueForItinerary', { params: filterParams }),
+            axios.get('/api/getUsersWhoBookedItinerary', { params: { username, title } })
           ]);
   
           return {
             title,
-            totalTourists: bookingsResponse.data.numberOfUsersBooked,
+            totalTourists: filterResponse.data.bookings || 0,
+            allMonthsTourists: allMonthsTouristsResponse.data.numberOfUsersBooked,
             totalRevenue: revenueResponse.data.totalRevenue,
-            currentMonthRevenue: monthRevenueResponse.data.totalTourists * itinerary.Price,
+            currentMonthRevenue: filterResponse.data.revenue || 0, // Assuming this comes from the API
           };
         })
       );
   
-      console.log("Detailed Itineraries with Filter:", detailedItineraries);
-  
-      // Step 3: Update the state with the detailed data
-      setItinerariesData(detailedItineraries);
+      setItinerariesData(updatedItineraries);
       setIsFilterModalOpen(false); // Close the modal
     } catch (error) {
-      console.error('Error filtering and fetching itinerary details:', error);
-      alert('Failed to filter itineraries. Please try again.');
+      console.error('Error fetching or calculating itinerary details:', error);
+      alert('Failed to fetch or update itineraries. Please try again.');
     }
   };
   
@@ -1135,16 +1248,27 @@ const handleAccountDeletion = async () => {
         <tr>
           <th style={styles.tableHeader}>Itinerary Title</th>
           <th style={styles.tableHeader}>Total # of Tourists</th>
+          <th style={styles.tableHeader}>
+            {`# of Tourists ${
+              filterDate
+                ? `(${new Date(filterDate).toLocaleDateString()})`
+                : filterMonth
+                ? `(${new Date(0, filterMonth - 1).toLocaleString('default', {
+                    month: 'long',
+                  })})`
+                : `(${new Date().toLocaleString('default', { month: 'long' })})`
+            }`}
+          </th>
           <th style={styles.tableHeader}>Total Revenue</th>
           <th style={styles.tableHeader}>
             {`Revenue ${
                 filterDate
-                ? `(Date: ${new Date(filterDate).toLocaleDateString()})`
+                ? `(${new Date(filterDate).toLocaleDateString()})`
                 : filterMonth
-                ? `(Month: ${new Date(0, filterMonth - 1).toLocaleString('default', {
+                ? `(${new Date(0, filterMonth - 1).toLocaleString('default', {
                     month: 'long',
                     })})`
-                : `(Month: ${new Date().toLocaleString('default', { month: 'long' })})`
+                : `(${new Date().toLocaleString('default', { month: 'long' })})`
             }`}
             </th>
 
@@ -1163,6 +1287,7 @@ const handleAccountDeletion = async () => {
       >
         {itinerary.title}
       </td>
+      <td style={styles.tableCell}>{itinerary.allMonthsTourists}</td>
       <td style={styles.tableCell}>{itinerary.totalTourists}</td>
       <td style={styles.tableCell}>${itinerary.totalRevenue.toLocaleString()}</td>
       <td style={styles.tableCell}>
@@ -1214,19 +1339,37 @@ const handleAccountDeletion = async () => {
       <table style={{ width: '100%', borderCollapse: 'collapse' }}>
         <thead>
           <tr>
-            <th style={styles.tableHeader}>Itinerary Title</th>
-            <th style={styles.tableHeader}>Total # of Tourists</th>
-            <th style={styles.tableHeader}>Total Revenue</th>
-            <th style={styles.tableHeader}>
-              {`Revenue (${new Date().toLocaleString('default', {
-                month: 'long',
-              })})`}
+          <th style={styles.tableHeader}>Itinerary Title</th>
+          <th style={styles.tableHeader}>Total # of Tourists</th>
+          <th style={styles.tableHeader}>
+            {`# of Tourists ${
+              filterDate
+                ? `(${new Date(filterDate).toLocaleDateString()})`
+                : filterMonth
+                ? `(${new Date(0, filterMonth - 1).toLocaleString('default', {
+                    month: 'long',
+                  })})`
+                : `(${new Date().toLocaleString('default', { month: 'long' })})`
+            }`}
+          </th>
+          <th style={styles.tableHeader}>Total Revenue</th>
+          <th style={styles.tableHeader}>
+            {`Revenue ${
+                filterDate
+                ? `(${new Date(filterDate).toLocaleDateString()})`
+                : filterMonth
+                ? `(${new Date(0, filterMonth - 1).toLocaleString('default', {
+                    month: 'long',
+                    })})`
+                : `(${new Date().toLocaleString('default', { month: 'long' })})`
+            }`}
             </th>
           </tr>
         </thead>
         <tbody>
           <tr>
             <td style={styles.tableCell}>{selectedItinerary.title}</td>
+            <td style={styles.tableCell}>{selectedItinerary.allMonthsTourists}</td>
             <td style={styles.tableCell}>
               {selectedItinerary.totalTourists}
             </td>
