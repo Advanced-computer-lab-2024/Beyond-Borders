@@ -1,17 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Button, Typography, IconButton,Tooltip, TextField, InputAdornment, Modal,MenuItem,Select,FormControl,InputLabel,Divider} from '@mui/material';
+import { Box, Button, Typography, IconButton,Tooltip, TextField, InputAdornment, Modal,MenuItem,Select,FormControl,InputLabel,Divider, CircularProgress} from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import MenuIcon from '@mui/icons-material/Menu';
-import NotificationsIcon from '@mui/icons-material/Notifications';
-import LogoutIcon from '@mui/icons-material/Logout';
-import AssignmentIcon from '@mui/icons-material/Assignment';
 import LocalActivityIcon from '@mui/icons-material/LocalActivity';
-import StorefrontIcon from '@mui/icons-material/Storefront';
 import MapIcon from '@mui/icons-material/Map';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import PersonIcon from '@mui/icons-material/Person';
-import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import StarIcon from '@mui/icons-material/Star';
@@ -20,31 +15,14 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import AddIcon from '@mui/icons-material/Add';
 import SearchIcon from '@mui/icons-material/Search';
-import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
-import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
-import ChecklistIcon from '@mui/icons-material/Checklist';
-import EventAvailableIcon from '@mui/icons-material/EventAvailable';
-import ScheduleIcon from '@mui/icons-material/Schedule';
-import AccountBalanceIcon from '@mui/icons-material/AccountBalance';
 import ChurchIcon from '@mui/icons-material/Church';
-import DirectionsBusIcon from '@mui/icons-material/DirectionsBus';
-import CommuteIcon from '@mui/icons-material/Commute';
-import FlightIcon from '@mui/icons-material/Flight';
-import BedIcon from '@mui/icons-material/Bed';
-import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
-import InventoryIcon from '@mui/icons-material/Inventory';
-import  FeedbackIcon  from '@mui/icons-material/Feedback';
-import ShoppingCartOutlinedIcon from '@mui/icons-material/ShoppingCartOutlined';
-import NotificationsNoneOutlinedIcon from '@mui/icons-material/NotificationsNoneOutlined';
 import AccountCircleIcon from '@mui/icons-material/AccountCircleRounded';
-import BookmarkBorderOutlinedIcon from '@mui/icons-material/BookmarkBorderOutlined';
 import FilterAltIcon from '@mui/icons-material/FilterAlt';
-import SwapVertIcon from '@mui/icons-material/SwapVert';
 import PaymentIcon from '@mui/icons-material/Payment';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
-import IosShareIcon from '@mui/icons-material/IosShare';
 import ShareIcon from '@mui/icons-material/Share';
 import LanguageIcon from '@mui/icons-material/Language';
+import { useLocation } from 'react-router-dom';
 import axios from 'axios';
 
 function GuestMuseumPage() {
@@ -54,18 +32,7 @@ function GuestMuseumPage() {
   const [showBackToTop, setShowBackToTop] = useState(false); // State for button visibility
   //done for categories and tags
   const [categories, setCategories] = useState([]);
-  const [tags, setTags] = useState([]);
-  const [activeModal, setActiveModal] = useState(null);
-
-  const [activitiesOpen, setActivitiesOpen] = useState(false);
-  const [itinerariesOpen, setItinerariesOpen] = useState(false);
-  const [historicalPlacesOpen, setHistoricalPlacesOpen] = useState(false);
-  const [museumsOpen, setMuseumsOpen] = useState(false);
-  const [transportationOpen, setTransportationOpen] = useState(false);
-  const [productsOpen, setProductsOpen] = useState(false);
-  const [complaintsOpen, setComplaintsOpen] = useState(false);
-  //search bar
-  const [searchQuery, setSearchQuery] = useState(''); // Search query state
+  //const [searchQuery, setSearchQuery] = useState(''); // Search query state
   //filter activities
   const [filterModalOpen, setFilterModalOpen] = useState(false);
   const [filterInputs, setFilterInputs] = useState({
@@ -86,6 +53,14 @@ const [currentMuseumName, setCurrentMuseumName] = useState(''); // Trac
 const [convertedPrices, setConvertedPrices] = useState({});
 const [currency, setCurrency] = useState('EGP'); // Default currency is EGP
 const [expanded, setExpanded] = useState({});
+const [bookmarkStatuses, setBookmarkStatuses] = useState({});
+const [subscriptionStatus, setSubscriptionStatus] = useState({});
+const location = useLocation();
+const [loading, setIsLoading] = useState(true);
+
+const queryParams = new URLSearchParams(location.search);
+const initialSearchQuery = queryParams.get('search') || '';
+const [searchQuery, setSearchQuery] = useState(initialSearchQuery);
 
   const navigate = useNavigate();
 
@@ -117,7 +92,45 @@ const [expanded, setExpanded] = useState({});
     // Cleanup event listener on component unmount
     return () => window.removeEventListener('scroll', handleScroll);
   }, [searchQuery]); // Depend on `searchQuery` to refetch activities when it changes
+  useEffect(() => {
+    // Trigger search logic if the search query exists
+    if (initialSearchQuery) {
+      searchMuseums(initialSearchQuery);
+    }
+  }, [initialSearchQuery]);
+  const fetchSubscriptionStatus = async () => {
+    const username = localStorage.getItem('username'); // Current user's username
+    if (!username) return;
+  
+    const newSubscriptionStatus = {};
+  
+    await Promise.all(
+      museums.map(async (museum) => {
+        try {
+          const response = await axios.get('/api/checkTouristSubscription', {
+            params:{username:username,
+            eventName: museum.name,
+            eventType: "Museum"},
+          });
+  
+          // Save subscription status with hp._id as the key
+          newSubscriptionStatus[museum._id] = response.data.message.includes('is subscribed');
+        } catch (error) {
+          console.error(`Error checking subscription for ${museum._id}:`, error);
+          newSubscriptionStatus[museum._id] = false; // Default to not subscribed in case of error
+        }
+      })
+    );
+  
+    setSubscriptionStatus(newSubscriptionStatus);
+  };
 
+  useEffect(() => {
+    if (museums.length > 0) {
+      fetchSubscriptionStatus();
+    }
+  }, [museums]);
+    
 
   useEffect(() => {
     if (currency !== 'EGP') {
@@ -161,13 +174,27 @@ const [expanded, setExpanded] = useState({});
   
 
   const fetchMuseums = async () => {
+    setIsLoading(true);
     try {
-      const response = await axios.get('/api/ViewAllUpcomingMuseumEventsGuest');
-      setMuseums(response.data);
+      const response = await axios.get("/api/ViewAllUpcomingMuseumEventsTourist");
+      const fetchedMuseums = response.data;
+  
+      // Fetch bookmark status for each museum
+      const bookmarkStatuses = {};
+      for (const museum of fetchedMuseums) {
+        const isBookmarked = await checkBookmarkStatus(museum.name);
+        bookmarkStatuses[museum._id] = isBookmarked; // Use museum ID to track status
+      }
+  
+      setBookmarkStatuses(bookmarkStatuses); // Update state with bookmark statuses
+      setMuseums(fetchedMuseums); // Set museums state
     } catch (error) {
-      console.error('Error fetching museums:', error);
+      console.error("Error fetching museums:", error);
+    } finally{
+      setIsLoading(false);
     }
   };
+  
 
   const toggleReadMore = (index) => {
     setExpanded((prev) => ({
@@ -191,8 +218,6 @@ const [expanded, setExpanded] = useState({});
     setSearchQuery(event.target.value); // Update search query state
   };
 
-
-
   const handleFilterInputChange = (e) => {
     const { name, value } = e.target;
   
@@ -213,7 +238,7 @@ const [expanded, setExpanded] = useState({});
       };
   
       // Send the request to the backend
-      const response = await axios.post('/api/getMuseumsByTagGuest', sanitizedInputs);
+      const response = await axios.post('/api/getMuseumsByTagTourist', sanitizedInputs);
   
       // Update the museums state with the filtered results
       setMuseums(response.data);
@@ -229,26 +254,7 @@ const [expanded, setExpanded] = useState({});
     }
   };
   
-  //book
-  const handleBookMuseum = async (museumName) => {
-    const touristUsername = localStorage.getItem('username'); // Assuming username is stored in localStorage
-  
-    if (!touristUsername) {
-      alert('Please log in to book museums.');
-      return;
-    }
-  
-    try {
-      const response = await axios.put('/bookMuseum', { touristUsername, museumName });
-      navigate('/TouristPaymentPage');
-    } catch (error) {
-      alert(error.response?.data?.msg || 'An error occurred while booking the activity.');
-    }
-  };
-
-  //share
-
-  
+ 
   
   
   const handleSendEmail = async (museumName) => {
@@ -280,11 +286,23 @@ const [expanded, setExpanded] = useState({});
       alert('Failed to copy link.');
     });
   };
-  
+
+
+  //bookmark
+  const checkBookmarkStatus = async (eventName) => {
+    const username = localStorage.getItem("username");
+    try {
+      const response = await axios.get("/api/checkIfInBookmarkedEvents", {
+        params: { touristUsername: username, eventName },
+      });
+      return response.data.inBookmarkedEvents; // Returns true/false
+    } catch (error) {
+      console.error("Error checking bookmark status:", error);
+      return false;
+    }
+  };
 
   
-  
-
   const renderRating = (rating) => {
     const roundedRating = Math.round(rating * 10) / 10;
     const fullStars = Math.floor(rating);
@@ -333,9 +351,6 @@ const [expanded, setExpanded] = useState({});
       behavior: 'smooth'
     });
   };
-
-
-
  
   
   return (
@@ -343,8 +358,8 @@ const [expanded, setExpanded] = useState({});
       {/* Dim overlay when sidebar is open */}
       {sidebarOpen && <Box sx={styles.overlay} onClick={() => setSidebarOpen(false)} />}
 
-      {/* Top Menu Bar */}
-      <Box sx={styles.topMenu}>
+       {/* Top Menu Bar */}
+       <Box sx={styles.topMenu}>
         <Box sx={styles.menuIconContainer}>
           <IconButton onMouseEnter={() => setSidebarOpen(true)} color="inherit">
             <MenuIcon />
@@ -355,149 +370,164 @@ const [expanded, setExpanded] = useState({});
         </Box>
         <Box sx={styles.topMenuRight}>
         <Button
-        onClick={() => navigate('/')}
-         sx={{
-         ...styles.menuButton,
-         '&:hover': {
-         backgroundColor: '#e6e7ed', // Background color on hover
-            color: '#192959',           // Text color on hover
-        },
-        }}
-        startIcon={<AccountCircleIcon />}
+          sx={{
+            ...styles.menuButton,
+            '&:hover': {
+              backgroundColor: '#e6e7ed', // Background color on hover
+              color: '#192959',           // Text color on hover
+            },
+          }}
+          startIcon={<AccountCircleIcon />}
+          onClick={() => navigate('/New')} // Fetch profile data and open modal
         >
-        Register
+          Register Now
         </Button>
         </Box>
       </Box>
 
-      {/* Collapsible Sidebar */}
-      <Box
-        sx={{
-          ...styles.sidebar,
-          width: sidebarOpen ? '280px' : '60px',
-        }}
-        onMouseEnter={() => setSidebarOpen(true)}
-        onMouseLeave={() => setSidebarOpen(false)}
-      >
-  
-        {/* Activities Dropdown */}
-        <Box>
-        <Button
-            onClick={() =>navigate('/GuestActivity')}
-            sx={styles.sidebarButton}
-        >
-            <LocalActivityIcon sx={styles.icon} />
-            {sidebarOpen && (
-            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
-                Activities
-            </Box>
-            )}
-        </Button>
-        </Box>
-               {/* Itineraries Dropdown */}
-<Box>
+       {/* Collapsible Sidebar */}
+       <Box
+  sx={{
+    ...styles.sidebar,
+    width: sidebarOpen ? "280px" : "60px",
+  }}
+  onMouseEnter={() => setSidebarOpen(true)}
+  onMouseLeave={() => setSidebarOpen(false)}
+>
+  {/* Activities */}
   <Button
-    onClick={() => navigate('/GuestItinerary')} // Toggle dropdown for itineraries
+    onClick={() => navigate("/GuestActivity")}
+    sx={styles.sidebarButton}
+  >
+    <LocalActivityIcon sx={styles.icon} />
+    {sidebarOpen && "Activities"}
+  </Button>
+
+  {/* Itineraries */}
+  <Button
+    onClick={() => navigate("/GuestItinerary")}
     sx={styles.sidebarButton}
   >
     <MapIcon sx={styles.icon} />
-    {sidebarOpen && (
-      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
-        Itineraries
-      </Box>
-    )}
+    {sidebarOpen && "Itineraries"}
   </Button>
-</Box>
-{/* Historical Places Dropdown */}
-<Box>
+
+  {/* Historical Places */}
   <Button
-    onClick={() => navigate('/GuestHP')} // Toggle dropdown for historical places
+    onClick={() => navigate("/GuestHP")}
     sx={styles.sidebarButton}
   >
     <ChurchIcon sx={styles.icon} />
-    {sidebarOpen && (
-      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
-        Historical Places
-      </Box>
-    )}
+    {sidebarOpen && "Historical Places"}
   </Button>
-</Box>
-<Box>
   <Button onClick={() => navigate('/homeGuest')} sx={styles.sidebarButton}>
           <DashboardIcon sx={styles.icon} />
           {sidebarOpen && 'Back to Dashboard'}
         </Button>
 </Box>
-      </Box>
 
 
 
 
-<Box
+
+      <Box
   sx={{
     display: 'flex',
-    justifyContent: 'space-between', // Maintain spacing
+    justifyContent: 'space-between', // Ensure space between search bar and the rest
     alignItems: 'center',           // Align items vertically in the center
     marginBottom: '20px',
     marginTop: '20px',
     marginLeft: '150px',
-    marginRight: '60px',           // Consistent spacing on the right
+    marginRight: '60px',           // Add margin to the right for consistent spacing
   }}
 >
-  {/* Placeholder for the search bar space */}
-  <Box sx={{ width: '30%' }}></Box>
+  {/* Search Bar */}
+  <TextField
+    label="Search"
+    variant="outlined"
+    value={searchQuery}
+    onChange={handleSearchChange}
+    sx={{
+      width: '30%',
+      '& .MuiOutlinedInput-root': {
+        '& fieldset': {
+          borderColor: '#192959', // Default outline color
+          borderWidth: '2px',
+        },
+        '&:hover fieldset': {
+          borderColor: '#192959', // Hover outline color
+          borderWidth: '2.5px',
+        },
+        '&.Mui-focused fieldset': {
+          borderColor: '#192959', // Focused outline color
+          borderWidth: '2.5px',
+        },
+      },
+      '& .MuiInputLabel-root': {
+        color: '#192959', // Label color
+        fontSize: '18px',
+      },
+    }}
+    InputProps={{
+      startAdornment: (
+        <Box sx={{ display: 'flex', alignItems: 'center', color: '#192959', paddingLeft: '5px' }}>
+          <SearchIcon />
+        </Box>
+      ),
+    }}
+  />
 
   {/* Sort Dropdown and Filter Icon */}
-  <Box sx={{ display: 'flex', alignItems: 'right', gap: '10px', marginLeft: '100px' }}>
-    {/* Currency Dropdown */}
+  <Box sx={{ display: 'flex', alignItems: 'right', gap: '10px', marginLeft: '100px'}}>
     <TextField
-      select
-      label="Currency"
-      value={currency}
-      onChange={(e) => setCurrency(e.target.value)}
-      variant="outlined"
-      sx={{
-        width: '150px',
-        '& .MuiOutlinedInput-root': {
-          '& fieldset': {
-            borderColor: '#192959', // Default border color
-            borderWidth: '2px',
-          },
-          '&:hover fieldset': {
-            borderColor: '#33416b', // Hover border color
-            borderWidth: '2.5px',
-          },
-          '&.Mui-focused fieldset': {
-            borderColor: '#192959', // Focused border color
-            borderWidth: '2.5px',
-          },
-        },
-        '& .MuiInputLabel-root': {
-          color: '#192959', // Label color
-          fontSize: '18px',
-        },
-      }}
-      InputProps={{
-        startAdornment: (
-          <Box
-            sx={{
-              display: 'flex',
-              alignItems: 'center',
-              color: '#192959',
-              paddingLeft: '5px',
-            }}
-          >
-            <LanguageIcon />
-          </Box>
-        ),
-      }}
-    >
-      <MenuItem value="EGP">EGP</MenuItem>
-      <MenuItem value="USD">USD</MenuItem>
-      <MenuItem value="EUR">EUR</MenuItem>
-      <MenuItem value="GBP">GBP</MenuItem>
-      <MenuItem value="JPY">JPY</MenuItem>
-    </TextField>
+  select
+  label="Currency"
+  value={currency}
+  onChange={(e) => setCurrency(e.target.value)}
+  variant="outlined"
+  sx={{
+    width: '120px',
+    '& .MuiOutlinedInput-root': {
+      '& fieldset': {
+        borderColor: '#192959', // Default border color
+        borderWidth: '2px',
+      },
+      '&:hover fieldset': {
+        borderColor: '#33416b', // Hover border color
+        borderWidth: '2.5px',
+      },
+      '&.Mui-focused fieldset': {
+        borderColor: '#192959', // Focused border color
+        borderWidth: '2.5px',
+      },
+    },
+    '& .MuiInputLabel-root': {
+      color: '#192959', // Label color
+      fontSize: '18px',
+    },
+  }}
+  InputProps={{
+    startAdornment: (
+      <Box
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          color: '#192959',
+          paddingLeft: '5px',
+        }}
+      >
+        <LanguageIcon />
+      </Box>
+    ),
+  }}
+>
+  <MenuItem value="EGP">EGP </MenuItem>
+  <MenuItem value="USD">USD </MenuItem>
+  <MenuItem value="EUR">EUR </MenuItem>
+  <MenuItem value="GBP">GBP </MenuItem>
+  <MenuItem value="JPY">JPY </MenuItem>
+</TextField>
+
 
     {/* Filter Icon */}
     <Tooltip title="Filter" placement="bottom" arrow>
@@ -597,7 +627,7 @@ const [expanded, setExpanded] = useState({});
             <Box
               sx={{
                 ...styles.infoContainer,
-                backgroundColor: '#b3b8c8',
+                backgroundColor: '#f3f4f6',
               }}
             >
               <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
@@ -627,7 +657,7 @@ const [expanded, setExpanded] = useState({});
             display: 'flex',
             flexDirection: 'column',
             gap: '10px',
-            paddingRight: '100px', // Add padding to avoid overlap with buttons
+            paddingRight: '80px', // Add padding to avoid overlap with buttons
             alignItems: 'flex-start',
           }}
         >
@@ -676,7 +706,24 @@ const [expanded, setExpanded] = useState({});
         <Box sx={styles.museumRating}>
           {renderRating(museum.Ratings || 0)}
         </Box>
+
+    
+        <Box
+  sx={{
+    position: 'absolute',
+    top: '60px',
+    right: '60px',
+    display: 'flex',
+    flexDirection: 'row', // Arrange buttons in a row
+    alignItems: 'center', // Align buttons vertically centered
+    gap: 5, // Add spacing between icons
+  }}
+>
+
+</Box>
       </Box>
+
+
 
       {/* Comments Section */}
       <Box sx={styles.commentsSection}>
@@ -728,16 +775,24 @@ const [expanded, setExpanded] = useState({});
 </Box>;
 
 
-      <Box sx={styles.activitiesContainer}>
-  {museums.length > 0 ? (
-    museums.map((museum, index) => (
-      <Box key={index} sx={{ marginBottom: '20px' }}>
-        {/* Your activity card code */}
+<Box sx={styles.activitiesContainer}>
+      {loading ? (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+        {/* Circular Progress for loading */}
+        <CircularProgress />
+      </Box>
+    ) : museums.length > 0 ? (
+      museums.map((product, index) => (
+      <Box key={index} sx={{ marginBottom: '40px' }}>
+        {/* Your product card code */}
       </Box>
     ))
   ) : (
-    <Typography variant="h6" sx={{ textAlign: 'center', color: '#192959', marginTop: '20px' }}>
-      No Museums Found Matching Your Criteria.
+    <Typography
+      variant="h6"
+      sx={{ textAlign: 'center', color: '#192959', marginTop: '20px' }}
+    >
+      No Museum events available
     </Typography>
   )}
 </Box>
@@ -1050,7 +1105,7 @@ const styles = {
   },
   museumRating: {
     position: 'absolute',
-    bottom: '60px',
+    bottom: '80px',
     right: '60px',
     display: 'flex',
     flexDirection: 'column',
