@@ -28,6 +28,7 @@ const OrderCounterModel = require('../Models/OrderCounter.js');
 const OrderModel = require('../Models/Orders.js');
 const UserOTPModel = require('../Models/UserOTP.js');
 const DeactivatedActivitiesModel = require('../Models/DeactivatedActivities.js');
+const PromoCodeModel = require('../Models/PromoCode.js');
 
 
 const { default: mongoose } = require('mongoose');
@@ -7142,6 +7143,108 @@ const sendUpcomingEventNotifications = async () => {
     console.error("Error sending event reminders:", error);
   }
 };
+const sendNotificationWithPromoCode = async (req, res) => {
+  const today = new Date();
+  const todayStart = new Date(today.setHours(0, 0, 0, 0)); // Normalize to midnight
+  const todayDate = todayStart.getDate();
+  const todayMonth = todayStart.getMonth();
+
+  try {
+    const tourists = await TouristModel.find(); // Fetch all tourists
+
+    let promoCodeSent = false; // Track if any promo code was sent
+
+    for (const tourist of tourists) {
+      // Normalize the tourist's birthDate by setting it to midnight and removing time part
+      const birthDate = new Date(tourist.DoB);
+      birthDate.setHours(0, 0, 0, 0); // Remove the time part for a valid comparison
+
+      const birthDateDay = birthDate.getDate();
+      const birthDateMonth = birthDate.getMonth();
+
+      console.log(`Checking birthday for ${tourist.Username}: Birthdate = ${birthDate}`);
+
+      // Check if it's the tourist's birthday today (day and month comparison)
+      const isBirthdayToday = birthDateDay === todayDate && birthDateMonth === todayMonth;
+
+      if (isBirthdayToday) {
+        // Fetch an unused promo code that is active
+        const promoCode = await PromoCodeModel.findOneAndUpdate(
+          {
+            //used: false,
+            isActive: true,
+          },
+           // Mark the promo code as used
+          { new: true } // Return the updated promo code
+        );
+
+        if (!promoCode) {
+          console.log("No unused promo codes available for tourists.");
+          continue; // Skip this tourist if no promo code is available
+        }
+
+        // Send email notification to the tourist with the promo code
+        const transporter = nodemailer.createTransport({
+          service: "gmail",
+          auth: {
+            user: "malook25062003@gmail.com",
+            pass: "sxvo feuu woie gpfn", // Replace with correct password or use env variables
+          },
+        });
+
+        const mailOptions = {
+          from: "malook25062003@gmail.com",
+          to: tourist.Email,
+          subject: "🎉 Happy Birthday! Here’s a Special Gift for You 🎁",
+          text: `
+            Dear ${tourist.Username},
+
+            Happy Birthday from all of us at Beyond Borders! 🎉
+
+            To make your day extra special, we’ve prepared a unique promo code just for you:
+            ${promoCode.code}
+
+            Use this promo code during your next booking to enjoy a ${promoCode.discountPercentage}% discount.
+
+            Have an amazing birthday celebration!
+
+            Warm regards,
+            The Beyond Borders Team
+          `,
+        };
+
+        try {
+          // Send the email with the promo code
+          await transporter.sendMail(mailOptions);
+          console.log(`Birthday promo code sent to ${tourist.Email}`);
+
+          // Add the promo code to the tourist's notifications array
+          tourist.Notifications.push({
+            NotificationText: `Happy Birthday! You’ve received a special promo code: ${promoCode.code}`,
+            Read: false,
+          });
+
+          // Save the updated tourist document with the new notification
+          await tourist.save();
+          console.log(`Promo code notification added for ${tourist.Username}`);
+        } catch (emailError) {
+          console.error(`Failed to send birthday email to ${tourist.Email}:`, emailError);
+
+          // Rollback: Mark the promo code as unused if email fails
+          promoCode.used = false;
+          await promoCode.save();
+        }
+      }
+    }
+  } catch (error) {
+    console.error("Error sending birthday promo codes:", error);
+    res.status(500).json({ error: "An error occurred while sending birthday promo codes." });
+  }
+};
+
+
+
+
 
 
 
@@ -7623,4 +7726,4 @@ const viewBookedFlights = async (req, res) => {
 module.exports = {createTourist, getTourist, updateTourist, searchProductTourist, filterActivities, filterProductByPriceTourist, ActivityRating, sortProductsDescendingTourist, sortProductsAscendingTourist, ViewAllUpcomingActivities, ViewAllUpcomingMuseumEventsTourist, getMuseumsByTagTourist, getHistoricalPlacesByTagTourist, ViewAllUpcomingHistoricalPlacesEventsTourist,viewProductsTourist, sortActivitiesPriceAscendingTourist, sortActivitiesPriceDescendingTourist, sortActivitiesRatingAscendingTourist, sortActivitiesRatingDescendingTourist, loginTourist, ViewAllUpcomingItinerariesTourist, sortItinerariesPriceAscendingTourist, sortItinerariesPriceDescendingTourist, filterItinerariesTourist, ActivitiesSearchAll, ItinerarySearchAll, MuseumSearchAll, HistoricalPlacesSearchAll, ProductRating, createComplaint, getComplaintsByTouristUsername,ChooseActivitiesByCategoryTourist,bookActivity,bookItinerary,bookMuseum,bookHistoricalPlace, ratePurchasedProduct, addPurchasedProducts, reviewPurchasedProduct, addCompletedItinerary, rateTourGuide, commentOnTourGuide, rateCompletedItinerary, commentOnItinerary, addCompletedActivities, addCompletedMuseumEvents, addCompletedHPEvents, rateCompletedActivity, rateCompletedMuseum, rateCompletedHP, commentOnActivity, commentOnMuseum, commentOnHP,deleteBookedActivity,deleteBookedItinerary,deleteBookedMuseum,deleteBookedHP,payActivity,updateWallet,updatepoints,payItinerary,payMuseum,payHP,redeemPoints, convertEgp, fetchFlights,viewBookedItineraries, requestDeleteAccountTourist,convertCurr,getActivityDetails,getHistoricalPlaceDetails,getMuseumDetails,GetCopyLink, bookFlight
   ,fetchHotelsByCity, fetchHotels, bookHotel,bookTransportation,addPreferences, viewMyCompletedActivities, viewMyCompletedItineraries, viewMyCompletedMuseums, viewMyCompletedHistoricalPlaces,viewMyBookedActivities,viewMyBookedItineraries,viewMyBookedMuseums,viewMyBookedHistoricalPlaces,viewTourGuidesCompleted,viewAllTransportation, getItineraryDetails, viewPreferenceTags,viewPurchasedProducts,viewBookedActivities,viewMyBookedTransportation,addBookmark
 , payActivityByCard, payItineraryByCard, payMuseumByCard, payHPByCard, sendOtp, loginTouristOTP,viewBookmarks, addToWishList, viewMyWishlist, removeFromWishlist, addToCartFromWishlist, addToCart, removeFromCart, changeProductQuantityInCart, checkout, addDeliveryAddress, viewDeliveryAddresses,chooseDeliveryAddress,payOrderWallet,payOrderCash,viewOrderDetails,cancelOrder,cancelOrder,markOrdersAsDelivered,viewAllOrders,sendUpcomingEventNotifications,payOrderStripe
-,payItineraryStripe,payActivityStripe,payMuseumStripe,payHPStripe, fetchCityCode, checkIfInWishlist, getTourGuideComments,addNotificationSubscriberHP,addNotificationSubscriberMuseum,addNotificationSubscriberActivity,addNotificationSubscriberItinerary,allNotificationsTouristRead,areAllTouristNotificationsRead,getTouristNotifications, getTouristCartDetails,checkTouristSubscription, checkIfInBookmarkedEvents, removeFromBookmarkedEvents, viewBookedHotels, viewBookedFlights};
+,payItineraryStripe,payActivityStripe,payMuseumStripe,payHPStripe, fetchCityCode, checkIfInWishlist, getTourGuideComments,addNotificationSubscriberHP,addNotificationSubscriberMuseum,addNotificationSubscriberActivity,addNotificationSubscriberItinerary,allNotificationsTouristRead,areAllTouristNotificationsRead,getTouristNotifications, getTouristCartDetails,checkTouristSubscription, checkIfInBookmarkedEvents, removeFromBookmarkedEvents, viewBookedHotels, viewBookedFlights,sendNotificationWithPromoCode};
