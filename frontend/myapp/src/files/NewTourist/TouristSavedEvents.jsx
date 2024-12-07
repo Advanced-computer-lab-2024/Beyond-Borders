@@ -1284,11 +1284,11 @@ const [selectedTourGuide, setSelectedTourGuide] = useState({
               {activity.Time}
             </Typography>
             <Box sx={styles.quickFacts}>
-              <Box sx={{ ...styles.infoContainer, backgroundColor: activity.flagged ? '#b3b8c8' : '#f3f4f6' }}>
+              <Box sx={{ ...styles.infoContainer, backgroundColor:  '#f3f4f6' }}>
                 <Typography variant="body2" sx={{ fontWeight: 'bold' }}>Category:</Typography>
                 <Typography variant="body2">{activity.Category}</Typography>
               </Box>
-              <Box sx={{ ...styles.infoContainer, backgroundColor: activity.flagged ? '#b3b8c8' : '#f3f4f6' }}>
+              <Box sx={{ ...styles.infoContainer, backgroundColor:  '#f3f4f6' }}>
                 <Typography variant="body2" sx={{ fontWeight: 'bold' }}>Tags:</Typography>
                 <Typography variant="body2">{activity.Tags.join(', ')}</Typography>
               </Box>
