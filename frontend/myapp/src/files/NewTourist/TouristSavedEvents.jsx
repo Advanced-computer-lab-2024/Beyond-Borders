@@ -1247,7 +1247,7 @@ const [selectedTourGuide, setSelectedTourGuide] = useState({
   {/* Activities */}
   {activities.length > 0 && (
     <Box>
-      <Typography variant="h5" sx={{ fontWeight: 'bold', marginBottom: '10px' }}>
+      <Typography variant="h5" sx={{ fontWeight: 'bold', marginBottom: '10px',marginLeft:'30px', textAlign:'left' }}>
         Activities:
       </Typography>
       {activities.map((activity, index) => (
@@ -1386,7 +1386,7 @@ sx={{
   {/* Historical Places */}
   {HPs.length > 0 && (
     <Box>
-      <Typography variant="h6" sx={{ fontWeight: 'bold', marginBottom: '10px' }}>
+      <Typography variant="h5" sx={{ fontWeight: 'bold', marginBottom: '10px',textAlign:'left' }}>
         Historical Places:
       </Typography>
       {HPs.map((hp, index) => (
@@ -1632,7 +1632,7 @@ sx={{
   {/* Museums */}
   {museums.length > 0 && (
     <Box>
-      <Typography variant="h6" sx={{ fontWeight: 'bold', marginBottom: '10px' }}>
+      <Typography variant="h5" sx={{ fontWeight: 'bold', marginBottom: '10px',textAlign:'left' }}>
         Museums:
       </Typography>
       {museums.map((museum, index) => (
@@ -1880,7 +1880,7 @@ sx={{
   {/* Itineraries */}
   {itineraries.length > 0 && (
     <Box>
-      <Typography variant="h6" sx={{ fontWeight: 'bold', marginBottom: '10px' }}>
+      <Typography variant="h5" sx={{ fontWeight: 'bold', marginBottom: '10px',textAlign:'left' }}>
         Itineraries:
       </Typography>
       {itineraries.map((itinerary, index) => (
