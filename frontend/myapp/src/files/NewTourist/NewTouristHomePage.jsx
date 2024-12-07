@@ -260,13 +260,6 @@ useEffect(() => {
     }
   };
 
-
-
-
-
-  
-  
-
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -521,6 +514,7 @@ useEffect(() => {
       }
     }
   };
+
   const renderContent = () => {
     return (
       <Box
@@ -531,6 +525,7 @@ useEffect(() => {
           marginBottom: "20px",
         }}
       >
+        {/* Search Input */}
         <TextField
           placeholder={`Search in ${tabs[activeTab]}...`}
           variant="outlined"
@@ -538,13 +533,15 @@ useEffect(() => {
           onChange={(e) => setSearchQuery(e.target.value)}
           sx={{ width: "70%" }}
         />
+        
+        {/* Search Button */}
         <Button
           variant="contained"
-          onClick={handleSearch}
+          onClick={handleSearch} // Calls the handleSearch function
           sx={{
-            backgroundColor: "#192959",
-            color: "#fff",
-            "&:hover": { backgroundColor: "#33416b" },
+            backgroundColor: '#192959',
+            color: '#fff',
+            '&:hover': { backgroundColor: '#33416b' },
           }}
         >
           Search <SearchIcon sx={{ marginLeft: "8px" }} />
@@ -552,6 +549,8 @@ useEffect(() => {
       </Box>
     );
   };
+  
+  
 
   const getImageForItem = (item, type) => {
     // Provide unique default images based on type and name/Title
@@ -612,7 +611,35 @@ useEffect(() => {
   };
   
  
-
+  const handleSearch = () => {
+    if (searchQuery.trim() === "") return; // Skip if the search query is empty
+  
+    const encodedQuery = encodeURIComponent(searchQuery); // Encode the search query for the URL
+  
+    // Switch based on the active tab
+    switch (tabs[activeTab]) {
+      case "Activities":
+        navigate(`/TouristUpcomingActivities?search=${encodedQuery}`);
+        break;
+      case "Itineraries":
+        navigate(`/TouristUpcomingItineraries?search=${encodedQuery}`);
+        break;
+      case "Historical Places":
+        navigate(`/TouristUpcomingHP?search=${encodedQuery}`);
+        break;
+      case "Museums":
+        navigate(`/TouristUpcomingMuseums?search=${encodedQuery}`);
+        break;
+      case "Products":
+        navigate(`/TouristAllProducts?search=${encodedQuery}`);
+        break;
+      default:
+        console.error("Unhandled tab:", tabs[activeTab]);
+        break;
+    }
+  };
+  
+  
   const renderCard = (item, type) => {
     
   
@@ -1336,9 +1363,7 @@ const markAllAsRead = async () => {
   }
 };
 
-const handleSearch = () => {
-  console.log(`Search in ${tabs[activeTab]}: ${searchQuery}`);
-};
+
 
   return (
     <Box sx={styles.container}>
@@ -2522,36 +2547,40 @@ const handleSearch = () => {
     ))}
   </Box>
 
-  {/* Content Section */}
+
+{/* Content Section */}
+<Box
+  sx={{
+    overflow: "hidden",
+    position: "relative",
+    minHeight: "100px",
+    padding: "20px",
+    borderRadius: "8px",
+  }}
+>
+  {/* Sliding Tabs Content */}
   <Box
     sx={{
-      overflow: "hidden",
-      position: "relative",
-      minHeight: "180px",
-      padding: "20px",
-      borderRadius: "8px",
+      display: "flex",
+      transition: "transform 0.5s ease-in-out",
+      transform: `translateX(-${activeTab * 100}%)`,
     }}
   >
-    <Box
-      sx={{
-        display: "flex",
-        transition: "transform 0.5s ease-in-out",
-        transform: `translateX(-${activeTab * 100}%)`,
-      }}
-    >
-      {tabs.map((tab, index) => (
-        <Box
-          key={index}
-          sx={{
-            width: "100%",
-            flexShrink: 0,
-          }}
-        >
-          {renderContent()}
-        </Box>
-      ))}
-    </Box>
+    {tabs.map((tab, index) => (
+      <Box
+        key={index}
+        sx={{
+          width: "100%",
+          flexShrink: 0,
+        }}
+      >
+        {/* Render the Content for Each Tab */}
+        {renderContent()}
+      </Box>
+    ))}
   </Box>
+</Box>
+
 </Box>
 
 <Box

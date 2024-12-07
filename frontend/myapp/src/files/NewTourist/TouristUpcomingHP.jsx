@@ -76,7 +76,7 @@ function TouristUpcomingHP() {
   const [complaintsOpen, setComplaintsOpen] = useState(false);
   const [bookmarkStatuses, setBookmarkStatuses] = useState({});
   //search bar
-  const [searchQuery, setSearchQuery] = useState(''); // Search query state
+  //const [searchQuery, setSearchQuery] = useState(''); // Search query state
   //filter activities
   const [filterModalOpen, setFilterModalOpen] = useState(false);
   const [filterInputs, setFilterInputs] = useState({
@@ -105,6 +105,10 @@ const [notifications, setNotifications] = useState([]);
 const [isNotificationsSidebarOpen, setNotificationsSidebarOpen] = useState(false);
 const [allNotificationsRead, setAllNotificationsRead] = useState(true);
 const [subscriptionStatus, setSubscriptionStatus] = useState({});
+const queryParams = new URLSearchParams(location.search);
+const initialSearchQuery = queryParams.get('search') || ''; 
+const [searchQuery, setSearchQuery] = useState(initialSearchQuery);
+
 const navigate = useNavigate();
   useEffect(() => {
     // Function to handle fetching or searching activities
@@ -141,6 +145,12 @@ const navigate = useNavigate();
   // useEffect(() => {
   //   fetchHistoricalPlaces();
   // }, []);
+  useEffect(() => {
+    // Trigger search logic if the search query exists
+    if (initialSearchQuery) {
+      searchHPs(initialSearchQuery);
+    }
+  }, [initialSearchQuery]); 
 
   useEffect(() => {
     if (currency !== 'EGP') {

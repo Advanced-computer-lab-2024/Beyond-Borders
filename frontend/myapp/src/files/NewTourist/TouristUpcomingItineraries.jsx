@@ -69,7 +69,7 @@ function TouristUpcomingItineraries() {
   const [productsOpen, setProductsOpen] = useState(false);
   const [complaintsOpen, setComplaintsOpen] = useState(false);
   //search bar
-  const [searchQuery, setSearchQuery] = useState(''); // Search query state
+  //const [searchQuery, setSearchQuery] = useState(''); // Search query state
   //filter activities
   const [filterModalOpen, setFilterModalOpen] = useState(false);
   const [filterInputs, setFilterInputs] = useState({
@@ -98,6 +98,10 @@ const location = useLocation();
   const query = new URLSearchParams(location.search);
   const targetName = query.get("Title");
   const refs = useRef({});
+  const queryParams = new URLSearchParams(location.search);
+const initialSearchQuery = queryParams.get('search') || '';
+const [searchQuery, setSearchQuery] = useState(initialSearchQuery); // Search query state
+
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -130,6 +134,13 @@ const location = useLocation();
     // Cleanup event listener on component unmount
     return () => window.removeEventListener('scroll', handleScroll);
   }, [searchQuery]); // Depend on `searchQuery` to refetch activities when it changes
+
+  useEffect(() => {
+    // Trigger search logic if the search query exists
+    if (initialSearchQuery) {
+      searchItineraries(initialSearchQuery);
+    }
+  }, [initialSearchQuery]);
 
   useEffect(() => {
     if (targetName && refs.current[targetName]) {
