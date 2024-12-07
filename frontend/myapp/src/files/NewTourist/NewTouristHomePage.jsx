@@ -59,6 +59,8 @@ import DoneAllIcon from '@mui/icons-material/DoneAll';
 import SearchIcon from '@mui/icons-material/Search';
 import StarIcon from '@mui/icons-material/Star';
 import StarBorderIcon from '@mui/icons-material/StarBorder';
+import Joyride from 'react-joyride';
+import InfoIcon from '@mui/icons-material/Info';
 
 
 import axios from 'axios';
@@ -177,6 +179,47 @@ const [isNotificationsSidebarOpen, setNotificationsSidebarOpen] = useState(false
 const [allNotificationsRead, setAllNotificationsRead] = useState(true);
 const [flightsOpen, setFlightsOpen] = useState(false); // Manage the dropdown state for Flights
 const [hotelsOpen, setHotelsOpen] = useState(false); // Manage the dropdown state for Hotels
+const [runTour, setRunTour] = useState(false); // To start/stop the tour
+const [steps, setSteps] = useState([
+  {
+    target: '.menuIconContainer', // Navigation menu
+    content: 'Use this menu to navigate through the app.',
+  },
+  
+ 
+  {
+    target: '.tabsContainer', // Tabs section
+    content: 'Explore different categories using these tabs. Click on any tab to switch views.',
+  },
+  {
+    target: '.searchBar', // Search bar
+    content: 'Use this search bar to find specific activities, itineraries, or products.',
+  },
+  {
+    target: '.cardsSection', // Section with cards
+    content: 'Here you can explore featured itineraries, activities, and historical places.',
+  },
+  {
+    target: '.profileButton', // My Profile button
+    content: 'View and edit your profile here.',
+  },
+  {
+    target: '.notificationsButton', // Notifications button
+    content: 'Check your notifications here.',
+  },
+  {
+    target: '.cartButton', // Cart button
+    content: 'View and manage your cart here.',
+  },
+  {
+    target: '.wishlistButton', // Wishlist button
+    content: 'View your saved wishlist here.',
+  },
+  {
+    target: '.logoutButton', // Logout button
+    content: 'Click here to log out of your account.',
+  },
+]);
 
 useEffect(() => {
   checkNotificationsStatus();
@@ -531,6 +574,7 @@ useEffect(() => {
       >
         {/* Search Input */}
         <TextField
+          className="searchBar"
           placeholder={`Search in ${tabs[activeTab]}...`}
           variant="outlined"
           value={searchQuery}
@@ -666,6 +710,7 @@ useEffect(() => {
   
     return (
       <Card
+      className="cardsSection" 
         key={item._id}
         onClick={() =>
           type === "itinerary"
@@ -1487,8 +1532,8 @@ const markAllAsRead = async () => {
     alignItems: 'center',
     padding: '0 20px', // Horizontal padding
   }}>
-        <Box sx={styles.menuIconContainer}>
-          <IconButton onMouseEnter={() => setSidebarOpen(true)} color="inherit">
+        <Box className="menuIconContainer" sx={styles.menuIconContainer}>
+          <IconButton  onMouseEnter={() => setSidebarOpen(true)} color="inherit">
             <MenuIcon />
           </IconButton>
           <Typography variant="h6" component="div" sx={styles.logo}>
@@ -1500,13 +1545,14 @@ const markAllAsRead = async () => {
             Change My Password
           </Button> */}
           <Button
-  sx={{
-    ...styles.menuButton,
-    '&:hover': {
-      backgroundColor: '#e6e7ed', // Background color on hover
-      color: '#192959',           // Text color on hover
-    },
-  }}
+          className="profileButton"
+          sx={{
+            ...styles.menuButton,
+            '&:hover': {
+              backgroundColor: '#e6e7ed', // Background color on hover
+              color: '#192959',           // Text color on hover
+            },
+          }}
   startIcon={<AccountCircleIcon />}
   onClick={fetchTouristProfile} // Fetch profile data and open modal
 >
@@ -1517,6 +1563,7 @@ const markAllAsRead = async () => {
 <Tooltip title="Notifications" arrow>
         <IconButton
     onClick={toggleNotificationsSidebar}
+    className="notificationsButton"
     sx={styles.iconButton}
   >
     {allNotificationsRead ? (
@@ -1532,6 +1579,7 @@ const markAllAsRead = async () => {
           <Tooltip title="Shopping Cart" arrow>
   {/* Shopping Cart Button */}
   <IconButton
+        className="cartButton"
         onClick={toggleCartSidebar}
         sx={{
           ...styles.menuButton,
@@ -1804,6 +1852,7 @@ const markAllAsRead = async () => {
 
 <Tooltip title="Wishlist" arrow>
   <IconButton
+    className="wishlistButton"
     onClick={toggleWishlistDrawer}
     sx={{
       ...styles.menuButton,
@@ -1978,6 +2027,7 @@ const markAllAsRead = async () => {
 
           <Tooltip title="Logout" arrow>
             <IconButton
+            className="logoutButton"
                 sx={{
                 ...styles.menuButton,
                 
@@ -2640,6 +2690,7 @@ const markAllAsRead = async () => {
 
   {/* Tabs Header */}
   <Box
+    className="tabsContainer"
     sx={{
       display: "flex",
       justifyContent: "space-around",
@@ -3320,6 +3371,71 @@ const markAllAsRead = async () => {
     </Button>
   </Box>
 </Modal>
+<Joyride
+  steps={steps}
+  run={runTour}
+  continuous
+  scrollToFirstStep={false}
+  showSkipButton
+  disableScrolling={true}
+  styles={{
+    options: {
+      arrowColor: "#fff",
+      backgroundColor: "#192959",
+      overlayColor: "rgba(25, 41, 89, 0.5)",
+      primaryColor: "#e6e7ed",
+      textColor: "#fff",
+      zIndex: 1000,
+    },
+    buttonBack: {
+      color: "#ffffff", // White text for Back button
+      background: "transparent", // Transparent background for consistency
+    },
+    buttonNext: {
+      backgroundColor: "#192959", // Ensure Next button styling is intact
+      color: "#ffffff",
+      borderRadius: "20px",
+      padding: "10px 20px",
+    },
+  }}
+  callback={(data) => {
+    const finishedStatuses = ["finished", "skipped"];
+    if (finishedStatuses.includes(data.status)) {
+      setRunTour(false);
+    }
+  }}
+/>
+<Tooltip title="Start Tutorial" arrow>
+  <IconButton
+    onClick={() => {
+      window.scrollTo({ top: 0, behavior: "smooth" }); // Scroll to the top smoothly
+      setRunTour(true); // Trigger the tutorial
+    }}
+    sx={{
+      position: "fixed", // Fixed position
+      bottom: "20px", // Distance from the bottom of the screen
+      right: "20px", // Distance from the right of the screen
+      backgroundColor: "#ffffff", // White background
+      color: "#192959", // Icon color
+      borderRadius: "50%", // Circular shape
+      boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.2)", // Subtle shadow
+      padding: "12px", // Internal spacing for button
+      fontSize: "32px", // Icon size
+      zIndex: 1500, // High z-index to stay above other components
+      "&:hover": {
+        backgroundColor: "#f0f0f0", // Slightly grey on hover
+        boxShadow: "0px 6px 12px rgba(0, 0, 0, 0.3)", // Enhanced shadow on hover
+      },
+      "&:focus": {
+        outline: "none", // Remove focus outline
+        backgroundColor: "#e0e0e0", // Background color on focus
+      },
+      cursor: "pointer", // Pointer cursor for interactivity
+    }}
+  >
+    <InfoIcon sx={{ fontSize: "32px" }} /> {/* Icon size */}
+  </IconButton>
+</Tooltip>
 
 <Dialog open={isDeleteDialogOpen} onClose={() => setIsDeleteDialogOpen(false)}>
   <DialogContent>
