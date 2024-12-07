@@ -42,6 +42,8 @@ import ShoppingCartOutlinedIcon from '@mui/icons-material/ShoppingCartOutlined';
 import NotificationsNoneOutlinedIcon from '@mui/icons-material/NotificationsNoneOutlined';
 import AccountCircleIcon from '@mui/icons-material/AccountCircleRounded';
 import BookmarkBorderOutlinedIcon from '@mui/icons-material/BookmarkBorderOutlined';
+import BookmarkIcon from '@mui/icons-material/Bookmark';
+
 import SaveIcon from '@mui/icons-material/Save';
 import EditIcon from '@mui/icons-material/Edit';
 import StarsIcon from '@mui/icons-material/Stars';
@@ -173,6 +175,8 @@ const [wishlistData, setWishlistData] = useState([]);
 const [notifications, setNotifications] = useState([]);
 const [isNotificationsSidebarOpen, setNotificationsSidebarOpen] = useState(false);
 const [allNotificationsRead, setAllNotificationsRead] = useState(true);
+const [flightsOpen, setFlightsOpen] = useState(false); // Manage the dropdown state for Flights
+const [hotelsOpen, setHotelsOpen] = useState(false); // Manage the dropdown state for Hotels
 
 useEffect(() => {
   checkNotificationsStatus();
@@ -1985,6 +1989,7 @@ const markAllAsRead = async () => {
                 width: '40px', // Ensure square icon button
                 height: '40px',
                 }}
+                onClick={() => navigate('/')}
             >
     <LogoutIcon />
   </IconButton>
@@ -2002,39 +2007,126 @@ const markAllAsRead = async () => {
         onMouseEnter={() => setSidebarOpen(true)}
         onMouseLeave={() => setSidebarOpen(false)}
       >
-        <Button onClick={() => navigate('/TouristFlights')} sx={styles.sidebarButton}>
-          <FlightIcon sx={styles.icon} />
-          {sidebarOpen && 'Flights'}
-        </Button>
-
-        <Button onClick={() => navigate('/TouristHotels')} sx={styles.sidebarButton}>
-          <BedIcon sx={styles.icon} />
-          {sidebarOpen && 'Hotels'}
-        </Button>
-
-        <Button onClick={() => navigate('/TouristComplaints')} sx={styles.sidebarButton}>
-          <AssignmentIcon sx={styles.icon} />
-          {sidebarOpen && 'Complaints'}
-        </Button>
-
-        <Button
-  onClick={async () => {
-    try {
-      // Call the markOrdersAsDelivered function via an API request
-      await axios.put('/markOrdersAsDelivered'); // Assuming your API route is '/markOrdersAsDelivered'
+        <Box>
+  {/* Flights Button */}
+  <Button
+    onClick={() => setFlightsOpen(!flightsOpen)} // Toggle dropdown for flights
+    sx={styles.sidebarButton}
+  >
+    <FlightIcon sx={styles.icon} /> {/* Flights Icon */}
+    {sidebarOpen && (
+      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+        Flights
+        {flightsOpen ? (
+          <KeyboardArrowUpIcon sx={{ fontSize: '18px', marginLeft: '5px' }} />
+        ) : (
+          <KeyboardArrowDownIcon sx={{ fontSize: '18px', marginLeft: '5px' }} />
+        )}
+      </Box>
+    )}
+  </Button>
+  
+  {/* Dropdown Menu */}
+  {flightsOpen && (
+    <Box sx={{ display: 'flex', flexDirection: 'column', marginLeft: sidebarOpen ? '20px' : '0px' }}>
+     
+      {/* Find Flights */}
+      <Button
+        onClick={() => navigate('/TouristFlights')}
+        sx={{
+          ...styles.sidebarButton,
+          fontSize: '14px',
+          paddingLeft: sidebarOpen ? '20px' : '10px',
+          padding: '5px 20px',
+        }}
+      >
+        <SearchIcon sx={{ fontSize: '18px', marginRight: '10px' }} /> {/* Icon for Find Flights */}
+        {sidebarOpen && 'Find Flights'}
+      </Button>
+       {/* Booked Flights */}
+       <Button
+        onClick={() => navigate('/TouristBookedFlights')}
+        sx={{
+          ...styles.sidebarButton,
+          fontSize: '14px',
+          paddingLeft: sidebarOpen ? '20px' : '10px',
+          padding: '5px 20px',
+        }}
+      >
+        <EventAvailableIcon sx={{ fontSize: '18px', marginRight: '10px' }} /> {/* Icon for Booked */}
+        {sidebarOpen && 'Booked'}
+      </Button>
       
-      // Navigate to the orders page after successfully marking orders as delivered
-      navigate('/TouristOrders');
-    } catch (error) {
-      console.error('Error marking orders as delivered:', error);
-      alert('Failed to update orders. Please try again.');
-    }
-  }}
-  sx={styles.sidebarButton}
->
-  <ShoppingBagIcon sx={styles.icon} />
-  {sidebarOpen && 'Orders'}
-</Button>
+    </Box>
+    
+  )}
+</Box>
+
+
+<Box>
+  {/* Hotels Dropdown */}
+  <Button
+    onClick={() => setHotelsOpen(!hotelsOpen)}
+    sx={styles.sidebarButton}
+  >
+    <BedIcon sx={styles.icon} />
+    {sidebarOpen && (
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          width: "100%",
+        }}
+      >
+        Hotels
+        {hotelsOpen ? (
+          <KeyboardArrowUpIcon sx={{ fontSize: "18px", marginLeft: "5px" }} />
+        ) : (
+          <KeyboardArrowDownIcon sx={{ fontSize: "18px", marginLeft: "5px" }} />
+        )}
+      </Box>
+    )}
+  </Button>
+  {hotelsOpen && (
+    <Box
+      sx={{
+        display: "flex",
+        flexDirection: "column",
+        marginLeft: sidebarOpen ? "20px" : "0px",
+      }}
+    >
+     
+      <Button
+        onClick={() => navigate("/TouristHotels")}
+        sx={{
+          ...styles.sidebarButton,
+          fontSize: "14px",
+          paddingLeft: sidebarOpen ? "20px" : "10px",
+          padding: "5px 20px",
+        }}
+      >
+        <SearchIcon sx={{ fontSize: "18px", marginRight: "10px" }} />
+        {sidebarOpen && "Find Hotels"}
+      </Button>
+      <Button
+        onClick={() => navigate("/TouristBookedHotels")}
+        sx={{
+          ...styles.sidebarButton,
+          fontSize: "14px",
+          paddingLeft: sidebarOpen ? "20px" : "10px",
+          padding: "5px 20px",
+        }}
+      >
+        <EventAvailableIcon sx={{ fontSize: "18px", marginRight: "10px" }} />
+        {sidebarOpen && "Reservations"}
+      </Button>
+    </Box>
+  )}
+</Box>
+
+
+      
 
        
         <Box>
@@ -2346,6 +2438,7 @@ const markAllAsRead = async () => {
         <EventAvailableIcon sx={{ fontSize: '18px', marginRight: '10px' }} />
         {sidebarOpen && 'Booked '}
       </Button>
+      
     </Box>
   )}
 </Box>
@@ -2491,8 +2584,36 @@ const markAllAsRead = async () => {
         {sidebarOpen && 'Booked '}
       </Button>
     </Box>
+    
   )}
 </Box>
+<Button onClick={() => navigate('/TouristComplaints')} sx={styles.sidebarButton}>
+          <AssignmentIcon sx={styles.icon} />
+          {sidebarOpen && 'Complaints'}
+        </Button>
+        <Button onClick={() => navigate('/TouristSavedEvents')} sx={styles.sidebarButton}>
+          <BookmarkIcon sx={styles.icon} />
+          {sidebarOpen && 'Saved Events'}
+        </Button>
+
+        <Button
+  onClick={async () => {
+    try {
+      // Call the markOrdersAsDelivered function via an API request
+      await axios.put('/markOrdersAsDelivered'); // Assuming your API route is '/markOrdersAsDelivered'
+      
+      // Navigate to the orders page after successfully marking orders as delivered
+      navigate('/TouristOrders');
+    } catch (error) {
+      console.error('Error marking orders as delivered:', error);
+      alert('Failed to update orders. Please try again.');
+    }
+  }}
+  sx={styles.sidebarButton}
+>
+  <ShoppingBagIcon sx={styles.icon} />
+  {sidebarOpen && 'Orders'}
+</Button>
 
 </Box>
 <Box
