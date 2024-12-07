@@ -6679,11 +6679,9 @@ const payOrderCash = async (req, res) => {
 
 
 const payOrderStripe = async (req, res) => {
-  const { touristUsername} = req.body;
+  const { touristUsername, paymentMethodId } = req.body; // Accept paymentMethodId from frontend
 
   try {
-
-    const paymentMethodId = "pm_card_visa";
     // Find the tourist by username
     const tourist = await TouristModel.findOne({ Username: touristUsername });
     if (!tourist) {
@@ -6722,19 +6720,19 @@ const payOrderStripe = async (req, res) => {
       }
     }
 
-    // Create a PaymentIntent with Stripe
+    // Create a PaymentIntent with Stripe using the paymentMethodId from the frontend
     const paymentIntent = await stripe.paymentIntents.create({
-      amount: Math.round(totalPrice * 100), // Amount in the smallest currency unit (e.g., piasters for EGP)
-      currency: 'usd', // Use EGP currency
-      payment_method: paymentMethodId, // Payment method ID from the frontend
-      confirm: true, // Automatically confirm the payment
+      amount: 100000, // Amount in cents
+      currency: 'usd', // Adjust as needed (e.g., 'egp')
+      payment_method: paymentMethodId,
+      confirm: true,
       automatic_payment_methods: {
         enabled: true,
         allow_redirects: 'never', // Disable redirect-based payment methods
-      },
+      }, // Automatically confirm the payment
     });
 
-    // Check if PaymentIntent was successful
+    // Check if the PaymentIntent was successful
     if (paymentIntent.status !== 'succeeded') {
       return res.status(400).json({ error: "Payment failed. Please try again." });
     }
@@ -6766,7 +6764,7 @@ const payOrderStripe = async (req, res) => {
       service: "gmail",
       auth: {
         user: "malook25062003@gmail.com",
-        pass: "sxvo feuu woie gpfn", 
+        pass: "sxvo feuu woie gpfn", // Replace with your email credentials
       },
     });
 
@@ -6781,12 +6779,12 @@ const payOrderStripe = async (req, res) => {
 
         Order Number: ${order.orderNumber}
         Order Date: ${order.orderDate.toLocaleDateString()}
-        Total Price: ${totalPrice.toFixed(2)} EGP
+        Total Price: $${totalPrice.toFixed(2)} USD
         Payment Method: Credit Card (via Stripe)
 
         Products Purchased:
         ${productsPurchased.map(
-          p => `- ${p.productName}: ${p.quantity} x ${p.price} = ${(p.quantity * p.price).toFixed(2)}`
+          p => `- ${p.productName}: ${p.quantity} x $${p.price.toFixed(2)} = $${(p.quantity * p.price).toFixed(2)}`
         ).join("\n")}
 
         Your order is now out for delivery!

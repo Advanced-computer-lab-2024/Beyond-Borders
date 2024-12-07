@@ -126,6 +126,14 @@ import YSellerAllProductsPage from './files/Seller/YSellerAllProductsPage';
 import GuestActivityPage from './files/Guest/GuestActivityPage';
 import GuestMuseumPage from './files/Guest/GuestMuseumPage';
 import GuestHP from './files/Guest/GuestHP';
+
+
+import React from "react";
+//import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
+import { loadStripe } from "@stripe/stripe-js";
+import { Elements } from "@stripe/react-stripe-js";
+const stripePromise = loadStripe("pk_test_51QLqHGP7Sjm96OcqAOCQWfQuEwmMBxXj7hieiaUq1Q0m4qd0xaW9xi2GwrQbTb89OHEXUoIyhuAP29EhDlNYXYlC00HnsADGB1");
+
 function App() {
   return (
     <div className="App">
@@ -177,7 +185,12 @@ function App() {
           <Route path="/TouristComplaints" element={<TouristComplaints/>}/>
           <Route path="/TouristOrders" element={<TouristOrders/>}/>
           <Route path="/TouristSavedEvents" element={<TouristSavedEvents/>}/>
-          <Route path="/TouristProductPaymentPage" element={<TouristProductPaymentPage/>}/>
+          <Route path="/TouristProductPaymentPage"  element={
+              <Elements stripe={stripePromise}>
+                <TouristProductPaymentPage />
+              </Elements>
+            }
+          />
           <Route path="/TouristEventsPaymentPage" element={<TouristEventsPaymentPage/>}/>
           <Route path="/TouristEventsPrePaymentPage" element={<TouristEventsPrePaymentPage/>}/>
           <Route path="/TouristBookedFlights" element={<TouristBookedFlights/>}/>

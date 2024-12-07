@@ -30,10 +30,14 @@ import LocalShippingIcon from "@mui/icons-material/LocalShipping";
 import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { loadStripe } from "@stripe/stripe-js";
+import { Elements, CardElement, useStripe, useElements } from "@stripe/react-stripe-js";
+
 const steps = ["Shopping Cart", "Payment Details", "Payment Complete"];
 
 const TouristProductPaymentPage = () => {
   const [addressError, setAddressError] = useState(""); // Error for the new address
+  const stripePromise = loadStripe("pk_test_51QLqHGP7Sjm96OcqAOCQWfQuEwmMBxXj7hieiaUq1Q0m4qd0xaW9xi2GwrQbTb89OHEXUoIyhuAP29EhDlNYXYlC00HnsADGB1");
 
   const [cartItems, setCartItems] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -46,6 +50,8 @@ const TouristProductPaymentPage = () => {
   const [successDialogOpen, setSuccessDialogOpen] = useState(false); // Success message dialog state
   const [paymentLoading, setPaymentLoading] = useState(false); // Loading state for payment
   const navigate = useNavigate();
+  const stripe = useStripe();
+  const elements = useElements();
   const [userInfo, setUserInfo] = useState({
     firstName: "",
     lastName: "",
@@ -53,12 +59,6 @@ const TouristProductPaymentPage = () => {
     phoneNumber: "",
   });
 
-  const [cardInfo, setCardInfo] = useState({
-    cardNumber: "",
-    cardholderName: "",
-    expiryDate: "",
-    cvv: "",
-  });
   const [userInfoErrors, setUserInfoErrors] = useState({
     firstName: "",
     lastName: "",
@@ -66,12 +66,7 @@ const TouristProductPaymentPage = () => {
     phoneNumber: "",
   });
   
-  const [cardInfoErrors, setCardInfoErrors] = useState({
-    cardNumber: "",
-    cardholderName: "",
-    expiryDate: "",
-    cvv: "",
-  });
+ 
   const [activeStep, setActiveStep] = useState(1); // Set the active step (index-based)
 
   useEffect(() => {
@@ -113,12 +108,7 @@ const TouristProductPaymentPage = () => {
         email: "",
         phoneNumber: "",
       });
-      setCardInfoErrors({
-        cardNumber: "",
-        cardholderName: "",
-        expiryDate: "",
-        cvv: "",
-      });
+     
       setAddressError("");
     
       let hasErrors = false;
@@ -164,26 +154,7 @@ const TouristProductPaymentPage = () => {
           return;
         }
 
-        if (paymentMethod === "Card") {
-          const newCardInfoErrors = {};
-          if (!cardInfo.cardNumber.trim()) {
-            newCardInfoErrors.cardNumber = "Card number is required.";
-            hasErrors = true;
-          }
-          if (!cardInfo.cardholderName.trim()) {
-            newCardInfoErrors.cardholderName = "Cardholder name is required.";
-            hasErrors = true;
-          }
-          if (!cardInfo.expiryDate.trim()) {
-            newCardInfoErrors.expiryDate = "Expiry date is required.";
-            hasErrors = true;
-          }
-          if (!cardInfo.cvv.trim()) {
-            newCardInfoErrors.cvv = "CVV is required.";
-            hasErrors = true;
-          }
-          setCardInfoErrors(newCardInfoErrors);
-        }
+
       
         if (hasErrors) return; // Stop if there are errors
         setPaymentLoading(true);
@@ -192,7 +163,26 @@ const TouristProductPaymentPage = () => {
     
           // Call the appropriate payment function
           if (paymentMethod === "Card") {
-            paymentResponse = await axios.post("/payOrderStripe", { touristUsername: username });
+            //paymentResponse = await axios.post("/payOrderStripe", { touristUsername: username });
+            const cardElement = elements.getElement(CardElement);
+      const { paymentMethod, error: stripeError } = await stripe.createPaymentMethod({
+        type: "card",
+        card: cardElement,
+      });
+
+      if (stripeError) {
+        console.error("Stripe error:", stripeError);
+        alert(stripeError.message);
+        setPaymentLoading(false);
+        return;
+      }
+
+      // Send the paymentMethod ID to the backend
+      //const username = localStorage.getItem("username");
+       paymentResponse = await axios.post("/payOrderStripe", {
+        touristUsername: username,
+        paymentMethodId: paymentMethod.id, // Pass the PaymentMethod ID
+      });
           } else if (paymentMethod === "Cash") {
             paymentResponse = await axios.post("/payOrderCash", { touristUsername: username });
           } else if (paymentMethod === "Wallet") {
@@ -252,46 +242,7 @@ const TouristProductPaymentPage = () => {
     }
   };
 
-  const handlePaymentSubmit = () => {
-    if (!selectedAddress && !addingNewAddress) {
-      alert("Please select a delivery address.");
-      return;
-    }
-
-    if (
-      paymentMethod === "Card" &&
-      (!cardInfo.cardNumber || !cardInfo.cvv || !cardInfo.expiryDate || !cardInfo.cardholderName)
-    ) {
-      alert("Please fill out all card details.");
-      return;
-    }
-
-    alert("Payment Submitted Successfully!");
-    setActiveStep(2); // Move to the "Payment Complete" step
-  };
-
-  if (loading) {
-    return (
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          height: "100vh",
-        }}
-      >
-        <CircularProgress />
-      </Box>
-    );
-  }
-
-  if (error) {
-    return (
-      <Box sx={{ textAlign: "center", marginTop: "50px" }}>
-        <Typography color="error">{error}</Typography>
-      </Box>
-    );
-  }
+  
 
   return (
     <Box sx={{ padding: "20px", maxWidth: "1200px", margin: "0 auto" }}>
@@ -534,55 +485,48 @@ const TouristProductPaymentPage = () => {
             />
           </RadioGroup>
 
+         
           {paymentMethod === "Card" && (
-            <Box sx={{ marginTop: "20px" }}>
-             <TextField
-      label="Card Number"
-      variant="outlined"
-      fullWidth
-      value={cardInfo.cardNumber}
-      onChange={(e) =>
-        setCardInfo({ ...cardInfo, cardNumber: e.target.value })
-      }
-      error={!!cardInfoErrors.cardNumber} // Highlight error
-      helperText={cardInfoErrors.cardNumber} // Display error message
-      sx={{ marginBottom: "20px" }}
-    />
-    <TextField
-      label="Cardholder Name"
-      variant="outlined"
-      fullWidth
-      value={cardInfo.cardholderName}
-      onChange={(e) =>
-        setCardInfo({ ...cardInfo, cardholderName: e.target.value })
-      }
-      error={!!cardInfoErrors.cardholderName} // Highlight error
-      helperText={cardInfoErrors.cardholderName} // Display error message
-      sx={{ marginBottom: "20px" }}
-    />
-              <Box sx={{ display: "flex", gap: "20px", marginBottom: "20px" }}>
-              <TextField
-        label="Expiry Date (MM/YY)"
-        variant="outlined"
-        value={cardInfo.expiryDate}
-        onChange={(e) =>
-          setCardInfo({ ...cardInfo, expiryDate: e.target.value })
-        }
-        error={!!cardInfoErrors.expiryDate} // Highlight error
-        helperText={cardInfoErrors.expiryDate} // Display error message
+  <Box sx={{ marginTop: "20px" }}>
+    <Typography
+      variant="h6"
+      sx={{
+        fontWeight: "bold",
+        marginBottom: "20px",
+        textAlign: "left", // Align text to the left
+      }}
+    >
+      Enter Card Details
+    </Typography>
+    <Box
+      sx={{
+        border: "1px solid #ccc",
+        borderRadius: "8px",
+        padding: "20px", // Increase padding for a bigger box
+        marginBottom: "20px",
+      }}
+    >
+      <CardElement
+        options={{
+          style: {
+            base: {
+              fontSize: "18px", // Increase font size for better readability
+              color: "#424770",
+              "::placeholder": {
+                color: "#aab7c4",
+              },
+            },
+            invalid: {
+              color: "#9e2146",
+            },
+          },
+        }}
       />
-      <TextField
-        label="CVV"
-        variant="outlined"
-        value={cardInfo.cvv}
-        onChange={(e) => setCardInfo({ ...cardInfo, cvv: e.target.value })}
-        error={!!cardInfoErrors.cvv} // Highlight error
-        helperText={cardInfoErrors.cvv} // Display error message
-      />
-              </Box>
-            </Box>
-          )}
-        </Box>
+    </Box>
+  </Box>
+)}
+
+       </Box>
 
         {/* Right Section */}
         <Box sx={{marginLeft:'60px'}}>
