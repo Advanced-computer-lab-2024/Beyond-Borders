@@ -1998,8 +1998,8 @@ const markAllAsRead = async () => {
         </Box>
       </Box>
 
-      {/* Collapsible Sidebar */}
-      <Box
+   {/* Collapsible Sidebar */}
+   <Box
         sx={{
           ...styles.sidebar,
           width: sidebarOpen ? '280px' : '60px',
@@ -2614,6 +2614,7 @@ const markAllAsRead = async () => {
   <ShoppingBagIcon sx={styles.icon} />
   {sidebarOpen && 'Orders'}
 </Button>
+
 
 </Box>
 <Box
