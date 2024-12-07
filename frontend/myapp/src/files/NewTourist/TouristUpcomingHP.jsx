@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Box, Button, Typography, Divider,IconButton,Tooltip, TextField, InputAdornment, Modal,MenuItem,Select,FormControl,InputLabel,} from '@mui/material';
+import React, { useState, useEffect,useRef } from 'react';
+import { Box, Button, Typography, Divider,IconButton,Tooltip, CircularProgress,TextField, InputAdornment, Modal,MenuItem,Select,FormControl,InputLabel,} from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import MenuIcon from '@mui/icons-material/Menu';
 import NotificationsIcon from '@mui/icons-material/Notifications';
@@ -52,8 +52,12 @@ import NotificationsActiveOutlinedIcon from '@mui/icons-material/NotificationsAc
 import BookmarkIcon from '@mui/icons-material/Bookmark';
 import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
 import axios from 'axios';
-
+import { useLocation } from "react-router-dom";
 function TouristUpcomingHP() {
+  const location = useLocation();
+  const query = new URLSearchParams(location.search);
+  const targetName = query.get("name");
+  const refs = useRef({});
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activities, setActivities] = useState([]);
   const [scrollPositions, setScrollPositions] = useState({});
@@ -72,7 +76,7 @@ function TouristUpcomingHP() {
   const [complaintsOpen, setComplaintsOpen] = useState(false);
   const [bookmarkStatuses, setBookmarkStatuses] = useState({});
   //search bar
-  const [searchQuery, setSearchQuery] = useState(''); // Search query state
+  //const [searchQuery, setSearchQuery] = useState(''); // Search query state
   //filter activities
   const [filterModalOpen, setFilterModalOpen] = useState(false);
   const [filterInputs, setFilterInputs] = useState({
@@ -101,6 +105,11 @@ const [notifications, setNotifications] = useState([]);
 const [isNotificationsSidebarOpen, setNotificationsSidebarOpen] = useState(false);
 const [allNotificationsRead, setAllNotificationsRead] = useState(true);
 const [subscriptionStatus, setSubscriptionStatus] = useState({});
+const queryParams = new URLSearchParams(location.search);
+const initialSearchQuery = queryParams.get('search') || ''; 
+const [searchQuery, setSearchQuery] = useState(initialSearchQuery);
+const [loading, setLoading] = useState(true);
+
 const navigate = useNavigate();
   useEffect(() => {
     // Function to handle fetching or searching activities
@@ -137,6 +146,12 @@ const navigate = useNavigate();
   // useEffect(() => {
   //   fetchHistoricalPlaces();
   // }, []);
+  useEffect(() => {
+    // Trigger search logic if the search query exists
+    if (initialSearchQuery) {
+      searchHPs(initialSearchQuery);
+    }
+  }, [initialSearchQuery]); 
 
   useEffect(() => {
     if (currency !== 'EGP') {
@@ -144,6 +159,17 @@ const navigate = useNavigate();
     }
   }, [currency, HPs]);
 
+  useEffect(() => {
+    if (targetName && refs.current[targetName]) {
+      setTimeout(() => {
+        refs.current[targetName].scrollIntoView({
+          behavior: "smooth",
+          block: "center",
+        });
+      }, 100); // Delay to ensure refs are populated
+    }
+  }, [targetName, HPs]); // Add HPs to dependencies
+  
   // const convertActivityPrices = async () => {
   //   const newConvertedPrices = {};
   //   await Promise.all(
@@ -231,6 +257,8 @@ const navigate = useNavigate();
   
   
   const fetchHistoricalPlaces = async () => {
+    setLoading(true); // Set loading to true before starting the fetch
+
     try {
       const response = await axios.get("/api/ViewAllUpcomingHistoricalPlacesEventsTourist");
       const fetchedHistoricalPlaces = response.data;
@@ -246,6 +274,8 @@ const navigate = useNavigate();
       setHPs(fetchedHistoricalPlaces); // Set historical places state
     } catch (error) {
       console.error("Error fetching historical places:", error);
+    }finally {
+      setLoading(false); // Set loading to false after the fetch
     }
   };
   
@@ -1330,7 +1360,7 @@ const navigate = useNavigate();
 {/* Main Content Area with Historical Places */}
 <Box sx={styles.activitiesContainer}>
   {HPs.map((hp, index) => (
-    <Box key={index} sx={{ marginBottom: '20px' }}>
+    <Box key={index} ref={(el) => (refs.current[hp.name] = el)} sx={{ marginBottom: '20px' }}>
       <Box
         sx={{
           ...styles.activityCard,
@@ -1621,15 +1651,23 @@ const navigate = useNavigate();
       </Box>
 
       <Box sx={styles.activitiesContainer}>
-  {activities.length > 0 ? (
-    activities.map((activity, index) => (
-      <Box key={index} sx={{ marginBottom: '20px' }}>
-        {/* Your activity card code */}
+      {loading ? (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+        {/* Circular Progress for loading */}
+        <CircularProgress />
+      </Box>
+    ) : HPs.length > 0 ? (
+      HPs.map((product, index) => (
+      <Box key={index} sx={{ marginBottom: '40px' }}>
+        {/* Your product card code */}
       </Box>
     ))
   ) : (
-    <Typography variant="h6" sx={{ textAlign: 'center', color: '#192959', marginTop: '20px' }}>
-      
+    <Typography
+      variant="h6"
+      sx={{ textAlign: 'center', color: '#192959', marginTop: '20px' }}
+    >
+      No Historical Place events available
     </Typography>
   )}
 </Box>

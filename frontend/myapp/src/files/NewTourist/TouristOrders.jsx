@@ -152,24 +152,45 @@ const [loading, setLoading] = useState(true);
     }
   }, [currency, products]);
 
+
+
+  useEffect(() => {
+    if (products.length) {
+      convertActivityPrices();
+    }
+  }, [currency, products]);
+  
   const convertActivityPrices = async () => {
     const newConvertedPrices = {};
     await Promise.all(
-      products.map(async (product) => {
-        try {
-          const response = await axios.post('/convertCurr', {
-            priceEgp: product.Price,
-            targetCurrency: currency,
-          });
-          // Use a unique key for each activity
-          newConvertedPrices[product._id] = response.data.convertedPrice;
-        } catch (error) {
-          console.error(`Error converting price for product ${product.Name}:`, error);
-        }
+      currentOrders.map(async (order) => {
+        // Loop through productsPurchased array in each order
+        await Promise.all(
+          order.productsPurchased.map(async (product) => {
+            try {
+              // Call the backend to convert the price
+              const response = await axios.post('/convertCurr', {
+                priceEgp: product.price, // Send the product price in EGP
+                targetCurrency: currency, // Target currency
+              });
+  
+              // Store the converted price using the product's unique ID
+              newConvertedPrices[product._id] = response.data.convertedPrice;
+            } catch (error) {
+              console.error(`Error converting price for product ${product.productName}:`, error);
+              // Optionally, set a fallback value or leave it blank
+              newConvertedPrices[product._id] = 'Error'; // Example fallback value
+            }
+          })
+        );
       })
     );
+  
+    // Update the state with the converted prices
     setConvertedPrices(newConvertedPrices);
   };
+  
+  
   
   const checkWishlistStatus = async (productName) => {
     const username = localStorage.getItem("username");
@@ -1421,7 +1442,12 @@ const fetchOrders = async () => {
                 <Typography variant="body2">{product.productDetails?.Name || 'N/A'}</Typography>
               </Box>
               {/* Product Price */}
-              <Typography variant="body2">{product.price} EGP</Typography>
+              <Typography variant="body2">
+              {currency === 'EGP'
+                ? `${product.price} EGP`
+                : `${convertedPrices[product._id] || 'Loading...'} ${currency}`}
+            </Typography>
+
               {/* Product Quantity */}
               <Typography variant="body2">{product.quantity}</Typography>
               {/* Product Total */}

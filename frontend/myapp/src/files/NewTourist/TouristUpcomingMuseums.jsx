@@ -48,6 +48,7 @@ import LanguageIcon from '@mui/icons-material/Language';
 import BookmarkIcon from '@mui/icons-material/Bookmark';
 import NotificationsActiveOutlinedIcon from '@mui/icons-material/NotificationsActiveOutlined';
 import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
+import { useLocation } from 'react-router-dom';
 import axios from 'axios';
 
 function TouristUpcomingMuseums() {
@@ -68,7 +69,7 @@ function TouristUpcomingMuseums() {
   const [productsOpen, setProductsOpen] = useState(false);
   const [complaintsOpen, setComplaintsOpen] = useState(false);
   //search bar
-  const [searchQuery, setSearchQuery] = useState(''); // Search query state
+  //const [searchQuery, setSearchQuery] = useState(''); // Search query state
   //filter activities
   const [filterModalOpen, setFilterModalOpen] = useState(false);
   const [filterInputs, setFilterInputs] = useState({
@@ -91,6 +92,12 @@ const [currency, setCurrency] = useState('EGP'); // Default currency is EGP
 const [expanded, setExpanded] = useState({});
 const [bookmarkStatuses, setBookmarkStatuses] = useState({});
 const [subscriptionStatus, setSubscriptionStatus] = useState({});
+const location = useLocation();
+
+const queryParams = new URLSearchParams(location.search);
+const initialSearchQuery = queryParams.get('search') || '';
+const [searchQuery, setSearchQuery] = useState(initialSearchQuery);
+
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -121,7 +128,12 @@ const [subscriptionStatus, setSubscriptionStatus] = useState({});
     // Cleanup event listener on component unmount
     return () => window.removeEventListener('scroll', handleScroll);
   }, [searchQuery]); // Depend on `searchQuery` to refetch activities when it changes
-
+  useEffect(() => {
+    // Trigger search logic if the search query exists
+    if (initialSearchQuery) {
+      searchMuseums(initialSearchQuery);
+    }
+  }, [initialSearchQuery]);
   const fetchSubscriptionStatus = async () => {
     const username = localStorage.getItem('username'); // Current user's username
     if (!username) return;

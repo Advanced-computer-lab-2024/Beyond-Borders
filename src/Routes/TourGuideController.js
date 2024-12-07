@@ -861,5 +861,64 @@ const getTotalTouristsForTourGuide = async (req, res) => {
   }
 };
 
+const calculateRevenueForItinerary = async (req, res) => {
+  const { title, date, month } = req.query;
+
+  if (!title || (!date && !month)) {
+    return res.status(400).json({ error: 'Itinerary title and either date or month are required.' });
+  }
+
+  try {
+    // Find the itinerary by title
+    const itinerary = await Itinerary.findOne({ Title: title });
+
+    if (!itinerary) {
+      return res.status(404).json({ error: 'Itinerary not found.' });
+    }
+
+    // Prepare date filters based on input
+    let dateFilter = {};
+    if (date) {
+      const startOfDay = new Date(date);
+      startOfDay.setHours(0, 0, 0, 0); // Set to start of the day
+
+      const endOfDay = new Date(date);
+      endOfDay.setHours(23, 59, 59, 999); // Set to end of the day
+
+      dateFilter = {
+        'BookedItineraries.DateOfBooking': { $gte: startOfDay, $lte: endOfDay },
+      };
+    } else if (month) {
+      const year = new Date().getFullYear(); // Default to current year
+      const startOfMonth = new Date(year, month - 1, 1); // Start of the month
+      const endOfMonth = new Date(year, month, 0); // End of the month
+      dateFilter = {
+        'BookedItineraries.DateOfBooking': { $gte: startOfMonth, $lte: endOfMonth },
+      };
+    }
+
+    // Find all tourists who booked this itinerary within the date or month range
+    const tourists = await Tourist.find({
+      'BookedItineraries.ItineraryName': title,
+      'BookedItineraries.booked': true,
+      ...dateFilter,
+    });
+
+    // Calculate total revenue
+    const revenue = tourists.length * itinerary.Price;
+
+    // Respond with the calculated revenue
+    res.status(200).json({
+      itineraryTitle: title,
+      revenue,
+      bookings: tourists.length,
+    });
+  } catch (error) {
+    console.error('Error calculating itinerary revenue:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+
 module.exports = {ReadTourGuideProfile , UpdateTourGuideEmail , UpdateTourGuidePassword, UpdateTourGuideMobileNum , UpdateTourGuideYearsofExperience ,UpdateTourGuidePreviousWork ,createItineraryAsTourGuide,readItineraryAsTourGuide,updateItineraryAsTourGuide,deleteItineraryAsTourGuide, updateTourGuideProfile,loginTourGuide,getItenrarysByTourGuide, deactivateItinerary,activateItinerary, viewMyDeactivatedItinerariesTourGuide, 
-  decrementLoginCountTourGuide,requestDeleteAccountTourGuide, allNotificationsReadtg, areAllNotificationsReadtg, getAdvertiserNotificationstg, calculateTourGuideRevenue, getUsersWhoBookedItinerary, getRevenueFromItinerary, filterTourGuideItineraries, getTouristsByItineraryAndMonth, getHighestRevenueItinerary, calculateCurrentMonthRevenue, getTotalTouristsForTourGuide};
+  decrementLoginCountTourGuide,requestDeleteAccountTourGuide, allNotificationsReadtg, areAllNotificationsReadtg, getAdvertiserNotificationstg, calculateTourGuideRevenue, getUsersWhoBookedItinerary, getRevenueFromItinerary, filterTourGuideItineraries, getTouristsByItineraryAndMonth, getHighestRevenueItinerary, calculateCurrentMonthRevenue, getTotalTouristsForTourGuide, calculateRevenueForItinerary};
