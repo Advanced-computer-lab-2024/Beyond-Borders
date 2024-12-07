@@ -15,7 +15,7 @@ const {createTourist,getTourist, updateTourist, searchProductTourist, filterActi
 const {createUnregisteredAdvertiser} = require("./Routes/UnregisteredAdvertiserController");
 
 const {createUnregisteredTranspAdvertiser} = require("./Routes/UnregisteredTranspAdvertiserController");
-const {loginTransportationAdvertiser,ReadTransportationAdvertiserProfile,createNewTransportation} = require("./Routes/TransportationAdvertiserController");
+const {loginTransportationAdvertiser,ReadTransportationAdvertiserProfile,createNewTransportation,viewMyTransportations} = require("./Routes/TransportationAdvertiserController");
 
 const {createUnregisteredTourGuide} = require("./Routes/UnregisteredTourGuideController");
 const {createUnregisteredSeller} = require("./Routes/UnregisteredSellerController");
@@ -427,7 +427,7 @@ app.post("/api/deleteActivity", deleteActivity);
 // app.put("/updateUser", updateUser);
 // app.delete("/deleteUser", deleteUser);
 app.post("/loginGoverner",loginGoverner);
-
+app.get("/api/viewMyTransportations",viewMyTransportations);
 
 
 //SPRINT 3 MALAK AND JANA

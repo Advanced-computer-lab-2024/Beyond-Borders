@@ -87,6 +87,38 @@ const ReadTransportationAdvertiserProfile = async(req,res) =>{
       res.status(400).json({ error: error.message });
     }
   };
+  const viewMyTransportations = async (req, res) => {
+    try {
+      const { advertiserName } = req.query; // Extract the username from the query parameters
+  
+      // Validate if the username is provided
+      if (!advertiserName) {
+        return res.status(400).json({ error: "Username is required." });
+      }
+      console.log(`Searching for username:${advertiserName}`);
+
+      // Find the transportation advertiser by username
+      const transportationAdvertiser = await TransportationAdvertiserModel.findOne({ Username: advertiserName });
+      console.log('Transport Advertiser:', transportationAdvertiser);
+
+      if (!transportationAdvertiser) {
+        return res.status(400).json({ error: "TransportationAdvertiser does not exist" });
+      }
+  
+      // Retrieve all transportation options associated with this advertiser
+      const transportations = await TransportationModel.find({ advertiserName: advertiserName });
+  
+      if (transportations.length === 0) {
+        return res.status(404).json({ message: "No transportation options found for this advertiser." });
+      }
+  
+      // Return the list of transportation options
+      res.status(200).json({ transportations });
+    } catch (error) {
+      res.status(400).json({ error: error.message });
+    }
+  };
+  
   
 
-  module.exports = {ReadTransportationAdvertiserProfile , createNewTransportation,loginTransportationAdvertiser};
+  module.exports = {ReadTransportationAdvertiserProfile , createNewTransportation,loginTransportationAdvertiser,viewMyTransportations};
