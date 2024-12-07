@@ -59,8 +59,11 @@ import DoneAllIcon from '@mui/icons-material/DoneAll';
 import SearchIcon from '@mui/icons-material/Search';
 import StarIcon from '@mui/icons-material/Star';
 import StarBorderIcon from '@mui/icons-material/StarBorder';
+import InfoIcon from '@mui/icons-material/Info';
 
+//import Joyride from 'react-joyride';
 
+import Joyride, { CallBackProps, any } from "react-joyride";
 import axios from 'axios';
 
 function HomePageGuest() {
@@ -170,8 +173,35 @@ const [wishlistData, setWishlistData] = useState([]);
     preferences: [],
   });
   
-const [flightsOpen, setFlightsOpen] = useState(false); // Manage the dropdown state for Flights
-const [hotelsOpen, setHotelsOpen] = useState(false); // Manage the dropdown state for Hotels
+  const [runTutorial, setRunTutorial] = useState(false); // To control the tutorial
+  const [steps] = useState([
+    {
+        target: ".menuIconContainer",
+        content: "This is the main navigation menu. Hover to expand it and explore the different sections.",
+    },
+    {
+        target: ".searchQuery",
+        content: "Use this search bar to quickly find activities, itineraries, or places.",
+    },
+    {
+        target: ".tabsHeader",
+        content: "Switch between different categories using these tabs.",
+    },
+    {
+        target: ".tutorial-card", // Target the card elements
+        content: "These are the available cards for activities, itineraries, and places. Click on them for more details.",
+    },
+    {
+        target: ".registerButton",
+        content: "Click here to register and unlock more features of the platform.",
+    },
+    {
+        target: ".backToTop",
+        content: "Use this button to quickly return to the top of the page.",
+    },
+]);
+
+  
 
 
 
@@ -407,6 +437,7 @@ useEffect(() => {
   
   const renderContent = () => {
     return (
+      
       <Box
         sx={{
           display: "flex",
@@ -417,6 +448,7 @@ useEffect(() => {
       >
         {/* Search Input */}
         <TextField
+          className="searchQuery"
           placeholder={`Search in ${tabs[activeTab]}...`}
           variant="outlined"
           value={searchQuery}
@@ -550,6 +582,7 @@ useEffect(() => {
     return (
       <Card
         key={item._id}
+        className="tutorial-card" 
         onClick={() =>
           type === "itinerary"
             ? navigate(`/GuestItinerary?Title=${encodeURIComponent(item.Title)}`)
@@ -1038,6 +1071,7 @@ const handleRedeemPoints = async () => {
 
 
   return (
+    
     <Box sx={styles.container}>
       
       {/* Top Menu Bar */}
@@ -1055,7 +1089,7 @@ const handleRedeemPoints = async () => {
     alignItems: 'center',
     padding: '0 20px', // Horizontal padding
   }}>
-        <Box sx={styles.menuIconContainer}>
+        <Box className="menuIconContainer" sx={styles.menuIconContainer}>
           <IconButton onMouseEnter={() => setSidebarOpen(true)} color="inherit">
             <MenuIcon />
           </IconButton>
@@ -1067,7 +1101,9 @@ const handleRedeemPoints = async () => {
           {/* <Button onClick={() => setChangePasswordModal(true)} sx={styles.menuButton}>
             Change My Password
           </Button> */}
+          
           <Button
+          className="registerButton" 
           sx={{
             ...styles.menuButton,
             '&:hover': {
@@ -1154,6 +1190,7 @@ const handleRedeemPoints = async () => {
 
   {/* Tabs Header */}
   <Box
+    className="tabsHeader"
     sx={{
       display: "flex",
       justifyContent: "space-around",
@@ -1710,7 +1747,40 @@ const handleRedeemPoints = async () => {
   </Box>
 </Modal>
 
-
+<Joyride
+  steps={steps}
+  run={runTutorial}
+  continuous
+  scrollToFirstStep={false}
+  showSkipButton
+  disableScrolling={true}
+  styles={{
+    options: {
+      arrowColor: "#fff",
+      backgroundColor: "#192959",
+      overlayColor: "rgba(25, 41, 89, 0.5)",
+      primaryColor: "#e6e7ed",
+      textColor: "#fff",
+      zIndex: 1000,
+    },
+    buttonBack: {
+      color: "#ffffff", // White text for Back button
+      background: "transparent", // Transparent background for consistency
+    },
+    buttonNext: {
+      backgroundColor: "#192959", // Ensure Next button styling is intact
+      color: "#ffffff",
+      borderRadius: "20px",
+      padding: "10px 20px",
+    },
+  }}
+  callback={(data) => {
+    const finishedStatuses = ["finished", "skipped"];
+    if (finishedStatuses.includes(data.status)) {
+      setRunTutorial(false);
+    }
+  }}
+/>
 
 
 
@@ -1878,6 +1948,39 @@ const handleRedeemPoints = async () => {
     </Button>
   </DialogActions>
 </Dialog>
+<Tooltip title="Start Tutorial" arrow>
+  <IconButton
+    onClick={() => {
+      window.scrollTo({ top: 0, behavior: "smooth" }); // Scroll to the top smoothly
+      setRunTutorial(true); // Trigger the tutorial
+    }}
+    sx={{
+      position: "fixed", // Fixed position
+      bottom: "20px", // Distance from the bottom of the screen
+      right: "20px", // Distance from the right of the screen
+      backgroundColor: "#ffffff", // White background
+      color: "#192959", // Icon color
+      borderRadius: "50%", // Circular shape
+      boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.2)", // Subtle shadow
+      padding: "12px", // Internal spacing for button
+      fontSize: "32px", // Icon size
+      zIndex: 1500, // High z-index to stay above other components
+      "&:hover": {
+        backgroundColor: "#f0f0f0", // Slightly grey on hover
+        boxShadow: "0px 6px 12px rgba(0, 0, 0, 0.3)", // Enhanced shadow on hover
+      },
+      "&:focus": {
+        outline: "none", // Remove focus outline
+        backgroundColor: "#e0e0e0", // Background color on focus
+      },
+      cursor: "pointer", // Pointer cursor for interactivity
+    }}
+  >
+    <InfoIcon sx={{ fontSize: "32px" }} /> {/* Icon size */}
+  </IconButton>
+</Tooltip>
+
+
 
     
     </Box>
