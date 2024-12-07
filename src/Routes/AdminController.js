@@ -1846,7 +1846,7 @@ const getTotalUsers = async (req, res) => {
 
 const getTotalUsersByMonth = async (req, res) => {
   try {
-    const { month } = req.body;
+    const { month } = req.query;
 
     if (!month) {
       return res.status(400).json({ error: 'Month is required' });
