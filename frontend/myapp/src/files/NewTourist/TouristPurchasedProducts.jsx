@@ -97,6 +97,8 @@ const [wishlist, setWishlist] = useState([]);
 const [commentModalOpen, setCommentModalOpen] = useState(false);
 const [currentActivityId, setCurrentActivityId] = useState(null);
 const [commentText, setCommentText] = useState('');
+const [showAverageRating, setShowAverageRating] = useState({}); // Track which activity shows average rating
+
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -435,7 +437,7 @@ const fetchProducts = async () => {
   
 
   const renderRating = (activityId, userRating, averageRating, handleRatingClick) => {
-    const displayRating = userRating || averageRating || 0; // Use user rating first, then average
+    const displayRating = userRating || 0; // Display user rating or default to 0
     const fullStars = Math.floor(displayRating);
     const halfStars = displayRating > fullStars ? 1 : 0;
     const emptyStars = 5 - fullStars - halfStars;
@@ -451,7 +453,7 @@ const fetchProducts = async () => {
             marginRight: '10px', // Spacing between number and stars
           }}
         >
-          {displayRating.toFixed(2)}
+          {userRating ? displayRating.toFixed(2) : "Rate Now"} {/* Show "Rate Now" when no rating */}
         </Typography>
   
         {/* Render Full Stars */}
@@ -484,43 +486,93 @@ const fetchProducts = async () => {
     );
   };
   
-  
-
   const handleRatingClick = async (productId, rating) => {
     const username = localStorage.getItem('username');
-    const product = products.find((product) => product._id === productId); // Find the product by ID
-  
-    if (!username || !product) {
-      alert('User not logged in or product not found.');
+    const item = products.find((product) => product._id === productId);  
+    if (!username || !item) {
+      alert('User not logged in or item not found.');
       return;
     }
   
     try {
       const response = await axios.put('/ratePurchasedProduct', {
         touristUsername: username,
-        productName: product.Name, // Use the product name as expected by the backend
+        productName: item.Name, // Use the product name as expected by the backend
         rating,
       });
   
       const { newAverageRating } = response.data;
   
-      // Update state: show user rating and "Add Comment" button
-      setProducts((prevProducts) =>
-        prevProducts.map((prod) =>
-          prod._id === productId
-            ? {
-                ...prod,
-                userRating: rating,
-                Ratings: newAverageRating,
-                showCommentButton: true, // Explicitly set this to true
-              }
-            : prod
+      // Temporarily show user rating
+      setProducts((prevItems) =>
+        prevItems.map((itm) =>
+          itm._id === productId
+            ? { ...itm, userRating: rating }
+            : itm
         )
       );
+  
+      // Wait for 2 seconds, then switch to showing the average rating
+      setTimeout(() => {
+        setProducts((prevItems) =>
+          prevItems.map((itm) =>
+            itm._id === productId
+              ? { ...itm, userRating: 0, Ratings: newAverageRating, showCommentButton: true } // Reset userRating, show average
+              : itm
+          )
+        );
+        setShowAverageRating((prev) => ({ ...prev, [productId]: true }));
+      }, 2000); // 2-second delay
     } catch (error) {
-      console.error('Error submitting product rating:', error);
+      console.error('Error submitting rating:', error);
       alert(error.response?.data?.msg || 'Failed to submit rating.');
     }
+  };
+  
+  const renderAverageRating = (averageRating) => {
+    const fullStars = Math.floor(averageRating);
+    const halfStars = averageRating > fullStars ? 1 : 0;
+    const emptyStars = 5 - fullStars - halfStars;
+  
+    return (
+      <Box sx={styles.ratingContainer} display="flex" alignItems="center">
+        {/* Display Average Rating Number */}
+        <Typography
+          variant="body2"
+          sx={{
+            fontSize: '18px',
+            fontWeight: 'bold',
+            marginRight: '10px',
+          }}
+        >
+          {averageRating.toFixed(2)}
+        </Typography>
+  
+        {/* Render Full Stars */}
+        {[...Array(fullStars)].map((_, index) => (
+          <StarIcon
+            key={`full-average-${index}`}
+            sx={{ fontSize: '32px', color: '#192959' }}
+          />
+        ))}
+  
+        {/* Render Half Stars */}
+        {[...Array(halfStars)].map((_, index) => (
+          <StarHalfIcon
+            key={`half-average-${index}`}
+            sx={{ fontSize: '32px', color: '#192959' }}
+          />
+        ))}
+  
+        {/* Render Empty Stars */}
+        {[...Array(emptyStars)].map((_, index) => (
+          <StarBorderIcon
+            key={`empty-average-${index}`}
+            sx={{ fontSize: '32px', color: '#192959' }}
+          />
+        ))}
+      </Box>
+    );
   };
   
   
@@ -1208,16 +1260,33 @@ const fetchProducts = async () => {
   {products.map((product, index) => (
     <Box key={index} sx={{ marginBottom: '40px' }}>
       <Box
-        sx={{
+         sx={{
           ...styles.activityCard,
-          backgroundColor: 'white', // No flagged logic for products
+          backgroundColor: 'white',
+          display: 'flex',          // Flexbox for image and content
+          gap: '20px',              // Space between image and content
+          alignItems: 'flex-start', // Align items to the top
+          position: 'relative',     // Enable absolute positioning for icons
         }}
       >
          {/* Icons for Add to Cart and Add to Wishlist */}
 
-
+        {/* Product Image */}
+        <Box
+          component="img"
+          src={product.Picture}
+          alt={product.Name}
+          sx={{
+            width: '150px',
+            height: '150px',
+            objectFit: 'cover',
+            borderRadius: '10px',
+            flexShrink: 0, // Prevent the image from shrinking
+          }}
+        />
         {/* Product Info */}
-        <Box sx={styles.activityInfo}>
+         {/* Product Info */}
+         <Box sx={{ flex: 1 }}>
           {/* Product Name */}
           <Typography
             variant="h6"
@@ -1225,92 +1294,100 @@ const fetchProducts = async () => {
               fontWeight: 'bold',
               fontSize: '24px',
               marginBottom: '5px',
-              textAlign: 'left', // Align to the left
+              textAlign: 'left', // Ensure left alignment
             }}
           >
             {product.Name}
           </Typography>
 
           {/* Product Seller */}
-          <Typography variant="body2" sx={{ display: 'flex', fontSize: '18px', alignItems: 'center' }}>
+          <Typography variant="body2" sx={{ fontSize: '18px', marginBottom: '5px', textAlign: 'left' }}>
             <PersonIcon fontSize="small" sx={{ mr: 1 }} />
             {product.Seller || 'N/A'}
           </Typography>
 
           {/* Product Price */}
-          <Typography variant="body2" sx={{ display: 'flex', fontSize: '18px', alignItems: 'center' }}>
+          <Typography variant="body2" sx={{ fontSize: '18px', marginBottom: '5px', textAlign: 'left' }}>
             <PaymentIcon fontSize="small" sx={{ mr: 1 }} />
             {currency === 'EGP'
-                  ? `${product.Price} EGP`
-                  : `${convertedPrices[product._id] || 'Loading...'} ${currency}`}
+              ? `${product.Price} EGP`
+              : `${convertedPrices[product._id] || 'Loading...'} ${currency}`}
           </Typography>
 
-          {/* Right Side: Description */}
-          <Box sx={{ flex: 1, paddingLeft: '2px', textAlign: 'left', display: 'flex', alignItems: 'center', gap: '10px' }}>
-  {/* Description Label */}
-  <Typography 
-    variant="body2" 
-    sx={{ fontSize: '18px', fontWeight: 'bold' }}
-  >
-    Description:
-  </Typography>
-
-  {/* Description Content */}
-  <Typography
-    variant="body2"
-    sx={{
-      fontSize: '18px',
-      wordWrap: 'break-word', // Break long words
-      whiteSpace: 'normal',  // Wrap text normally
-      maxWidth: '550px',     // Ensure width consistency
-    }}
-  >
-    {expanded[index] || (product.Description && product.Description.length <= 25) ? (
-      <span>
-        {product.Description || 'No description available'}
-        {product.Description && product.Description.length > 25 && (
-          <span
-            style={{
-              color: '#8088a3',
-              marginLeft: '5px',
-              fontWeight: 'bold',
-              cursor: 'pointer',
+          {/* Product Description */}
+          <Box
+            sx={{
+              display: 'flex',          // Flexbox to align label and description in one row
+              gap: '10px',              // Spacing between label and description
+              alignItems: 'top',     // Align text vertically
+              marginTop: '10px',
+    
             }}
-            onClick={() => handleToggleDescription(index)}
           >
-            {" "}Read Less
-          </span>
-        )}
-      </span>
-    ) : (
-      <span>
-        {(product.Description || 'No description available').substring(0, 25)}...
-        <span
-          style={{
-            color: '#8088a3',
-            marginLeft: '5px',
-            fontWeight: 'bold',
-            cursor: 'pointer',
-          }}
-          onClick={() => handleToggleDescription(index)}
-        >
-          {" "}Read More
-        </span>
-      </span>
-    )}
-  </Typography>
-</Box>
+            <Typography
+              variant="body2"
+              sx={{
+                fontSize: '18px',
+                fontWeight: 'bold',
+              }}
+            >
+              Description:
+            </Typography>
+            <Typography
+              variant="body2"
+              sx={{
+                fontSize: '18px',
+                whiteSpace: 'normal',
+                wordWrap: 'break-word',
+                textAlign: 'left', // Ensure left alignment
+                flex: 1, // Take up remaining space
+              }}
+            >
+              {expanded[index] || (product.Description && product.Description.length <= 25) ? (
+                <span>
+                  {product.Description || 'No description available'}
+                  {product.Description && product.Description.length > 25 && (
+                    <span
+                      style={{
+                        color: '#8088a3',
+                        marginLeft: '5px',
+                        fontWeight: 'bold',
+                        cursor: 'pointer',
+                      }}
+                      onClick={() => handleToggleDescription(index)}
+                    >
+                      {" "}Read Less
+                    </span>
+                  )}
+                </span>
+              ) : (
+                <span>
+                  {(product.Description || 'No description available').substring(0, 25)}...
+                  <span
+                    style={{
+                      color: '#8088a3',
+                      marginLeft: '5px',
+                      fontWeight: 'bold',
+                      cursor: 'pointer',
+                    }}
+                    onClick={() => handleToggleDescription(index)}
+                  >
+                    {" "}Read More
+                  </span>
+                </span>
+              )}
+            </Typography>
+          </Box>
+      
+    
 
         </Box>
 
         {/* Product Ratings */}
         <Box sx={styles.activityRating}>
-  {renderRating(
-    product._id,        // Pass activity._id for the activity
-    product.userRating, // Use userRating for the user-specific rating
-    product.Ratings,    // Overall rating for the activity
-    handleRatingClick    // Rating click handler
-  )}
+        {showAverageRating[product._id]
+    ? renderAverageRating(product.Ratings) // Show average rating after submission
+    : renderRating(product._id, product.userRating, product.Ratings, handleRatingClick)} {/* Initial render */}
 
   {/* Reserve space for the Add Comment button */}
   <Box

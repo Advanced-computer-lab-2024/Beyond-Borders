@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Button, Typography, IconButton,Tooltip, TextField, InputAdornment, CircularProgress,Modal,MenuItem,Select,FormControl,InputLabel,} from '@mui/material';
+import { Box, Button, Drawer,Avatar, Typography, IconButton,Tooltip, TextField, InputAdornment, CircularProgress,Modal,MenuItem,Select,FormControl,InputLabel,} from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import MenuIcon from '@mui/icons-material/Menu';
 import NotificationsIcon from '@mui/icons-material/Notifications';
@@ -19,6 +19,11 @@ import StarBorderIcon from '@mui/icons-material/StarBorder';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import AddIcon from '@mui/icons-material/Add';
+import RemoveIcon from '@mui/icons-material/Remove';
+import DeleteIcon from '@mui/icons-material/Delete';
+import CloseIcon from '@mui/icons-material/Clear';
+import ShoppingCartCheckoutIcon from '@mui/icons-material/ShoppingCartCheckout';
+
 import SearchIcon from '@mui/icons-material/Search';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
@@ -94,6 +99,13 @@ const [expanded, setExpanded] = React.useState({});
 const [wishlistStatus, setWishlistStatus] = useState({});
 const [wishlist, setWishlist] = useState([]); 
 const [loading, setLoading] = useState(true);
+//cart
+const [isCartSidebarOpen, setIsCartSidebarOpen] = useState(false);
+const [cartData, setCartData] = useState([]);
+const [isLoadingCart, setIsLoadingCart] = useState(false);
+const [wishlistData, setWishlistData] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isWishlistOpen, setIsWishlistOpen] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -109,7 +121,7 @@ const [loading, setLoading] = useState(true);
         
       }
     };
-  
+    fetchCartData();
     fetchOrSearchActivities(); // Call the fetch or search logic
     fetchCategories(); // Fetch categories
     fetchTags(); // Fetch tags
@@ -219,49 +231,94 @@ const [loading, setLoading] = useState(true);
   };
   
   
-  
-
-  // Fetch all products and initialize wishlist status
-// const fetchProducts = async () => {
-//     try {
-//       const response = await axios.get('/api/viewAllProductsSeller'); // Adjust endpoint as needed
-//       const fetchedProducts = response.data;
-  
-//       // Initialize wishlist status
-//       const wishlistStatuses = {};
-//       for (const product of fetchedProducts) {
-//         wishlistStatuses[product.Name] = await fetchWishlistStatus(product.Name);
-//       }
-//       setWishlistStatus(wishlistStatuses);
-//       setProducts(fetchedProducts);
-//     } catch (error) {
-//       console.error('Error fetching products:', error);
-//     }
-//   };
-
-
-
-const fetchProducts = async () => {
-  setLoading(true); // Set loading to true before starting the fetch
-  try {
-    const response = await axios.get('/api/viewAllProductsSeller');
-    const fetchedProducts = response.data;
-
-    // Fetch wishlist status for each product
-    const wishlistStatuses = {};
-    for (const product of fetchedProducts) {
-      const isInWishlist = await checkWishlistStatus(product.Name);
-      wishlistStatuses[product._id] = isInWishlist;
+  const toggleWishlistDrawer = () => {
+    setIsWishlistOpen(!isWishlistOpen);
+    if (!isWishlistOpen) {
+      fetchWishlist(); // Fetch wishlist data when opening the drawer
     }
+  };
+  const fetchWishlist = async () => {
+    const touristUsername = localStorage.getItem("username"); // Replace with your username logic
+    setIsLoading(true);
+    try {
+      const response = await axios.get("/api/viewMyWishlist", {
+        params: { touristUsername },
+      });
+  
+      if (response.status === 200 && response.data.WishList) {
+        setWishlistData(response.data.WishList);
+      } else {
+        setWishlistData([]); // Clear the wishlist if the response is not valid
+        console.warn("Unexpected response format:", response);
+      }
+    } catch (error) {
+      console.error("Error fetching wishlist:", error);
+      setWishlistData([]); // Clear wishlist on error
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
+  const handleRemoveFromWishlist = async (productName) => {
+    const touristUsername = localStorage.getItem("username"); // Assuming the username is stored in localStorage
+    if (!touristUsername) {
+      alert("You need to log in first.");
+      return;
+    }
+  
+    try {
+      // Call the backend to remove the item
+      const response = await axios.post("/removeFromWishlist", {
+        touristUsername,
+        productName,
+      });
+  
+      if (response.status === 200) {
+        // Fetch the updated wishlist after successful removal
+        fetchWishlist();
+      } else {
+        alert("Failed to remove the product from wishlist.");
+      }
+    } catch (error) {
+      console.error("Error removing product from wishlist:", error);
+      alert("Failed to remove product from wishlist.");
+    }
+  };
 
-    setWishlist(wishlistStatuses); // Update wishlist state
-    setProducts(fetchedProducts); // Set products state
-  } catch (error) {
-    console.error('Error fetching products:', error);
-  } finally {
-    setLoading(false); // Set loading to false after the fetch
+  // Trigger fetching the wishlist data when the drawer opens
+  const handleDrawerOpen = () => {
+    if (!isWishlistOpen) return;
+    fetchWishlist();
   }
-};
+
+
+
+
+  const fetchProducts = async () => {
+    setLoading(true); // Set loading to true before starting the fetch
+    try {
+      const response = await axios.get('/api/viewAllProductsSeller');
+      const fetchedProducts = response.data;
+  
+      // Filter products with quantity > 0
+      const availableProducts = fetchedProducts.filter(product => product.Quantity > 0);
+  
+      // Fetch wishlist status for each product
+      const wishlistStatuses = {};
+      for (const product of availableProducts) {
+        const isInWishlist = await checkWishlistStatus(product.Name);
+        wishlistStatuses[product._id] = isInWishlist;
+      }
+  
+      setWishlist(wishlistStatuses); // Update wishlist state
+      setProducts(availableProducts); // Set products state with filtered products
+    } catch (error) {
+      console.error('Error fetching products:', error);
+    } finally {
+      setLoading(false); // Set loading to false after the fetch
+    }
+  };
+  
   
 
   const searchProducts = async (query) => {
@@ -326,7 +383,110 @@ const fetchProducts = async () => {
     }
   };
   
+  const updateProductQuantity = async (productName, newQuantity) => {
+    if (newQuantity <= 0) {
+      alert("Quantity must be greater than zero.");
+      return;
+    }
+  
+    try {
+      const touristUsername = localStorage.getItem("username"); // Assuming tourist's username is stored in localStorage
+      const response = await axios.post("/changeProductQuantityInCart", {
+        touristUsername,
+        productName,
+        amount: newQuantity,
+      });
+  
+      // Update the cart data with the new response
+      setCartData((prevCartData) => 
+        prevCartData.map((item) =>
+          item.productDetails.Name === productName
+            ? { ...item, quantity: newQuantity }
+            : item
+        )
+      );
+    } catch (error) {
+      console.error("Error updating product quantity:", error);
+      alert("Failed to update product quantity.");
+    }
+  };
 
+  const handleAddToCartFromWishlist = async (productName) => {
+    const touristUsername = localStorage.getItem("username");
+    try {
+      // Send request to add the product to the cart and remove from wishlist
+      const response = await fetch("/addToCartFromWishlist", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          touristUsername, // Replace with the actual logged-in user's username
+          productName: productName,
+        }),
+      });
+  
+      const data = await response.json();
+  
+      if (response.ok) {
+        // Fetch the updated wishlist data after adding the product to the cart
+        fetchWishlist();
+  
+        // Optionally, you can fetch the cart data too
+        // fetchCartData();
+  
+        console.log(data.msg);
+      } else {
+        console.error(data.error || "Failed to add product to cart.");
+      }
+    } catch (error) {
+      console.error("Error adding product to cart:", error);
+    }
+  };
+
+  const fetchCartData = async () => {
+    const username = localStorage.getItem('username');
+    if (!username) {
+      alert('You need to log in first.');
+      return;
+    }
+  
+    try {
+      setIsLoadingCart(true);
+      const response = await axios.get('/api/getTouristCartDetails', {
+        params: { username },
+      });
+      setCartData(response.data);
+      setIsLoadingCart(false);
+    } catch (error) {
+      console.error('Error fetching cart data:', error);
+      alert('Failed to load cart data.');
+      setIsLoadingCart(false);
+    }
+  };
+
+  const toggleCartSidebar = () => {
+    setIsCartSidebarOpen(!isCartSidebarOpen);
+    if (!isCartSidebarOpen) {
+      fetchCartData();
+    }
+  };
+  
+  const removeProductFromCart = async (productName) => {
+    try {
+      const touristUsername = localStorage.getItem("username");
+      await axios.post("/removeFromCart", {
+        touristUsername,
+        productName,
+      });
+  
+      // Re-fetch the updated cart data
+      fetchCartData();
+    } catch (error) {
+      console.error("Error removing product from cart:", error);
+      alert("Failed to remove product from cart.");
+    }
+  };
 
   const handleSortChange = async (event) => {
     const selectedOption = event.target.value;
@@ -494,11 +654,20 @@ const fetchProducts = async () => {
     const touristUsername = localStorage.getItem('username');
     try {
       const response = await axios.post('/addToCart', { touristUsername, productName });
-      alert(response.data.msg);
+
+      // Check if the response is successful
+      if (response.status === 200 || response.data.success) {
+        fetchCartData();
+
+        setIsCartSidebarOpen(true); // Open the modal or cart sidebar
+      } else {
+        alert(response.data.msg || 'Failed to add product to cart'); // Handle non-successful cases
+      }
     } catch (error) {
-      alert(error.response?.data?.error || 'Failed to add product to cart');
+      alert(error.response?.data?.error || 'An error occurred while adding product to cart');
     }
   };
+  
   
   
   
@@ -553,39 +722,448 @@ const fetchProducts = async () => {
         </IconButton>
         </Tooltip>
         <Tooltip title="Shopping Cart" arrow>
+  {/* Shopping Cart Button */}
   <IconButton
+        onClick={toggleCartSidebar}
+        sx={{
+          ...styles.menuButton,
+          '&:hover': {
+            backgroundColor: '#e6e7ed',
+            color: '#192959',
+          },
+          width: '40px',
+          height: '40px',
+        }}
+      >
+        <ShoppingCartOutlinedIcon />
+      </IconButton>
+</Tooltip>
+{/* Cart Sidebar */}
+<Drawer
+  anchor="right"
+  open={isCartSidebarOpen}
+  onClose={toggleCartSidebar}
+  sx={{ zIndex: 1300 }}
+>
+  <Box
+    sx={{
+      width: 400,
+      p: 3,
+      backgroundColor: "#f9f9f9",
+      height: "100%",
+      display: "flex",
+      flexDirection: "column",
+      justifyContent: "space-between",
+    }}
+  >
+    {/* Header */}
+    <Box>
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          mb: 3,
+        }}
+      >
+        <Typography
+          variant="h6"
+          sx={{ color: "#192959", fontWeight: "bold" }}
+        >
+          My Cart
+        </Typography>
+        <IconButton onClick={toggleCartSidebar}>
+          <CloseIcon />
+        </IconButton>
+      </Box>
+
+      {/* Cart Items */}
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          gap: 2,
+          maxHeight: "calc(100vh - 170px)", // Adjust height to reduce gap
+          overflowY: "auto", // Enable scrolling for long lists
+        }}
+      >
+        {isLoadingCart ? (
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              height: "100%",
+            }}
+          >
+            <CircularProgress />
+          </Box>
+        ) : cartData.length > 0 ? (
+          cartData.map((item, index) => (
+            <Box
+              key={index}
+              sx={{
+                display: "flex",
+                gap: 2,
+                p: 2,
+                backgroundColor: "#ffffff",
+                borderRadius: 2,
+                boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
+                position: "relative",
+                alignItems: "center",
+              }}
+            >
+              {/* Remove Icon */}
+              <Tooltip title="Remove Product" arrow>
+                <IconButton
+                  onClick={() => removeProductFromCart(item.productDetails.Name)}
+                  sx={{
+                    color: "#192959", // Dark grey color
+                    position: "absolute",
+                    top: 8,
+                    right: 8,
+                    transition: "background-color 0.3s",
+                    "&:hover": {
+                      backgroundColor: "rgba(85, 85, 85, 0.1)", // Background on hover
+                    },
+                  }}
+                >
+                  <DeleteIcon />
+                </IconButton>
+              </Tooltip>
+
+              {/* Product Image */}
+              <Avatar
+                variant="square"
+                src={item.productDetails?.Picture || "/placeholder.jpg"}
+                alt={item.productDetails?.Name || "Product"}
+                sx={{
+                  width: 80,
+                  height: 80,
+                  borderRadius: 2,
+                  flexShrink: 0,
+                }}
+              />
+
+              {/* Product Details */}
+              <Box sx={{ flex: 1, position: "relative" }}>
+                <Typography
+                  variant="subtitle1"
+                  sx={{
+                    fontWeight: "bold",
+                    color: "#333",
+                    mb: 0.5,
+                    whiteSpace: "nowrap",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                  }}
+                >
+                  {item.productDetails?.Name}
+                </Typography>
+                <Typography
+                  variant="body2"
+                  color="textSecondary"
+                  sx={{ mb: 1 }}
+                >
+                  EGP {item.productDetails?.Price?.toFixed(2)}
+                </Typography>
+
+                {/* Quantity Controls */}
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 1,
+                  }}
+                >
+                  <IconButton
+                    onClick={() =>
+                      updateProductQuantity(
+                        item.productDetails?.Name,
+                        item.quantity - 1
+                      )
+                    }
+                    size="small"
+                    sx={{
+                      width: 24,
+                      height: 24,
+                      backgroundColor: "#e0e0e0",
+                      "&:hover": {
+                        backgroundColor: "#d0d0d0",
+                      },
+                    }}
+                  >
+                    <RemoveIcon fontSize="small" />
+                  </IconButton>
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      fontWeight: "bold",
+                      color: "#333",
+                      paddingX: 1,
+                      fontSize: "14px",
+                    }}
+                  >
+                    {item.quantity}
+                  </Typography>
+                  <IconButton
+                    onClick={() =>
+                      updateProductQuantity(
+                        item.productDetails?.Name,
+                        item.quantity + 1
+                      )
+                    }
+                    size="small"
+                    sx={{
+                      width: 24,
+                      height: 24,
+                      backgroundColor: "#e0e0e0",
+                      "&:hover": {
+                        backgroundColor: "#d0d0d0",
+                      },
+                    }}
+                  >
+                    <AddIcon fontSize="small" />
+                  </IconButton>
+                </Box>
+
+                {/* Total Price */}
+                <Typography
+                  variant="body2"
+                  sx={{
+                    fontWeight: "bold",
+                    color: "#192959",
+                    position: "absolute",
+                    bottom: 8,
+                    right: 8,
+                  }}
+                >
+                  Total: EGP{" "}
+                  {(item.productDetails?.Price * item.quantity || 0).toFixed(2)}
+                </Typography>
+              </Box>
+            </Box>
+          ))
+        ) : (
+          <Typography
+            variant="body2"
+            sx={{ textAlign: "center", color: "#555" }}
+          >
+            Your cart is empty.
+          </Typography>
+        )}
+      </Box>
+    </Box>
+
+    {/* Footer */}
+    <Box sx={{ mt: 1 }}>
+      <Typography
+        variant="h6"
+        sx={{
+          textAlign: "right",
+          color: "#192959",
+          fontWeight: "bold",
+          mb: 2,
+        }}
+      >
+        Total: EGP{" "}
+        {cartData
+          .reduce(
+            (total, item) =>
+              total + item.productDetails?.Price * item.quantity,
+            0
+          )
+          .toFixed(2)}
+      </Typography>
+      <Button
+        variant="contained"
+        fullWidth
+        sx={{
+          backgroundColor: "#192959",
+          color: "white",
+          fontWeight: "bold",
+          "&:hover": {
+            backgroundColor: "#3a4a90",
+          },
+        }}
+        onClick={() => navigate("/TouristProductPaymentPage")}
+      >
+        Checkout
+      </Button>
+    </Box>
+  </Box>
+</Drawer>
+<Tooltip title="Wishlist" arrow>
+  <IconButton
+    onClick={toggleWishlistDrawer}
     sx={{
       ...styles.menuButton,
-      
       '&:hover': {
-        backgroundColor: '#e6e7ed', // Lighter hover background
-      color: '#192959',           // Text color on hover
-
+        backgroundColor: '#e6e7ed',
+        color: '#192959',
       },
-      width: '40px', // Ensure square icon button
+      width: '40px',
       height: '40px',
     }}
   >
-    <ShoppingCartOutlinedIcon />
+    <FavoriteBorderIcon />
   </IconButton>
 </Tooltip>
-<Tooltip title="Wishlist" arrow>
-            <IconButton
-                sx={{
-                ...styles.menuButton,
-                
-                '&:hover': {
-                    backgroundColor: '#e6e7ed', // Lighter hover background
-                color: '#192959',           // Text color on hover
 
-                },
-                width: '40px', // Ensure square icon button
-                height: '40px',
+<Drawer
+  anchor="right"
+  open={isWishlistOpen}
+  onClose={toggleWishlistDrawer}
+  sx={{ zIndex: 1300 }}
+>
+  <Box
+    sx={{
+      width: 400,
+      p: 3,
+      backgroundColor: "#f9f9f9",
+      height: "100%",
+      display: "flex",
+      flexDirection: "column",
+    }}
+  >
+    {/* Header */}
+    <Box
+      sx={{
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center",
+        mb: 2,
+      }}
+    >
+      <Typography
+        variant="h6"
+        sx={{ color: "#192959", fontWeight: "bold" }}
+      >
+        My Wishlist
+      </Typography>
+      <IconButton onClick={toggleWishlistDrawer}>
+        <CloseIcon />
+      </IconButton>
+    </Box>
+
+    {/* Wishlist Items */}
+    <Box
+      sx={{
+        display: "flex",
+        flexDirection: "column",
+        gap: 2,
+        flexGrow: 1,
+        overflowY: "auto",
+      }}
+    >
+      {isLoading ? (
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            height: "100%",
+          }}
+        >
+          <CircularProgress />
+        </Box>
+      ) : wishlistData.length > 0 ? (
+        wishlistData.map((item, index) => (
+          <Box
+            key={index}
+            sx={{
+              display: "flex",
+              gap: 2,
+              p: 2,
+              backgroundColor: "#ffffff",
+              borderRadius: 2,
+              boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
+              alignItems: "center",
+              position: "relative",
+            }}
+          >
+            {/* Product Image */}
+            <Avatar
+              variant="square"
+              src={item.Picture || "/placeholder.jpg"}
+              alt={item.Name || "Product"}
+              sx={{
+                width: 80,
+                height: 80,
+                borderRadius: 2,
+                flexShrink: 0,
+              }}
+            />
+
+            {/* Product Details */}
+            <Box sx={{ flex: 1 }}>
+              <Typography
+                variant="subtitle1"
+                sx={{
+                  fontWeight: "bold",
+                  color: "#333",
+                  mb: 0.5,
+                  whiteSpace: "nowrap",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
                 }}
-            >
-    <FavoriteBorderIcon/>
-  </IconButton>
-</Tooltip>
+              >
+                {item.Name}
+              </Typography>
+              <Typography
+                variant="body2"
+                color="textSecondary"
+                sx={{ mb: 1 }}
+              >
+                EGP {item.Price?.toFixed(2)}
+              </Typography>
+            </Box>
+
+            {/* Icons: Add to Cart and Remove */}
+            <Box sx={{ display: "flex", gap: 1 }}>
+              <Tooltip title="Move to Cart" arrow>
+                <IconButton
+                  sx={{
+                    color: "#192959",
+                    transition: "background-color 0.3s",
+                    "&:hover": {
+                      backgroundColor: "rgba(76, 175, 80, 0.1)",
+                    },
+                  }}
+                  onClick={() => handleAddToCartFromWishlist(item.Name)}
+                >
+                  <ShoppingCartCheckoutIcon />
+                </IconButton>
+              </Tooltip>
+
+              <Tooltip title="Remove from Wishlist" arrow>
+                <IconButton
+                  sx={{
+                    color: "#192959",
+                    transition: "background-color 0.3s",
+                    "&:hover": {
+                      backgroundColor: "rgba(85, 85, 85, 0.1)",
+                    },
+                  }}
+                  onClick={() => handleRemoveFromWishlist(item.Name)}
+                >
+                  <DeleteIcon />
+                </IconButton>
+              </Tooltip>
+            </Box>
+          </Box>
+        ))
+      ) : (
+        <Typography
+          variant="body2"
+          sx={{ textAlign: "center", color: "#555" }}
+        >
+          Your wishlist is empty.
+        </Typography>
+      )}
+    </Box>
+  </Box>
+</Drawer>
 <Tooltip title="Logout" arrow>
             <IconButton
                 sx={{
