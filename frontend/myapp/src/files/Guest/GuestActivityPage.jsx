@@ -616,11 +616,7 @@ const [searchQuery, setSearchQuery] = useState(initialSearchQuery); // Search qu
       
 {/* Main Content Area with Activities */}
 <Box sx={styles.activitiesContainer}>
-  {isLoading ? (
-    <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
-      <CircularProgress sx={{ color: '#192959' }} /> {/* Circular loader */}
-    </Box>
-  ) : activities.length > 0 ? (
+  {activities.length > 0 ? (
     activities.map((activity, index) => (
       <Box
         key={index}
@@ -800,6 +796,7 @@ const [searchQuery, setSearchQuery] = useState(initialSearchQuery); // Search qu
 </Box>
 
 
+
       <Modal
   open={filterModalOpen}
   onClose={() => setFilterModalOpen(false)}
@@ -893,7 +890,27 @@ const [searchQuery, setSearchQuery] = useState(initialSearchQuery); // Search qu
           Back to Top
         </Button>
       )}
-
+<Box sx={styles.activitiesContainer}>
+      {isLoading ? (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+        {/* Circular Progress for loading */}
+        <CircularProgress />
+      </Box>
+    ) : activities.length > 0 ? (
+      activities.map((product, index) => (
+      <Box key={index} sx={{ marginBottom: '40px' }}>
+        {/* Your product card code */}
+      </Box>
+    ))
+  ) : (
+    <Typography
+      variant="h6"
+      sx={{ textAlign: 'center', color: '#192959', marginTop: '20px' }}
+    >
+      No Activities available
+    </Typography>
+  )}
+</Box>
     
     </Box>
   );
