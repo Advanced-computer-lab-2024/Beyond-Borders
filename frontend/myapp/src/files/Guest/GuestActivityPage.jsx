@@ -1,71 +1,40 @@
-import React, { useState, useEffect } from 'react';
-import { Box, Button, Typography, IconButton,Tooltip, TextField, InputAdornment, Modal,MenuItem,Select,FormControl,InputLabel,} from '@mui/material';
+import React, { useState, useEffect, useRef } from 'react';
+import { Box, Button, Typography, IconButton,Tooltip, TextField, InputAdornment, Modal,MenuItem,Select,FormControl,InputLabel,CircularProgress } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import MenuIcon from '@mui/icons-material/Menu';
-// import NotificationsIcon from '@mui/icons-material/Notifications';
-// import LogoutIcon from '@mui/icons-material/Logout';
-// import AssignmentIcon from '@mui/icons-material/Assignment';
-// import LocalActivityIcon from '@mui/icons-material/LocalActivity';
-// import StorefrontIcon from '@mui/icons-material/Storefront';
 import MapIcon from '@mui/icons-material/Map';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import PersonIcon from '@mui/icons-material/Person';
-// import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import StarIcon from '@mui/icons-material/Star';
 import StarBorderIcon from '@mui/icons-material/StarBorder';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
-// import AddIcon from '@mui/icons-material/Add';
-// import SearchIcon from '@mui/icons-material/Search';
-// import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
-// import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
-// import ChecklistIcon from '@mui/icons-material/Checklist';
-// import EventAvailableIcon from '@mui/icons-material/EventAvailable';
-// import ScheduleIcon from '@mui/icons-material/Schedule';
+import SearchIcon from '@mui/icons-material/Search';
 import AccountBalanceIcon from '@mui/icons-material/AccountBalance';
 import ChurchIcon from '@mui/icons-material/Church';
-import DirectionsBusIcon from '@mui/icons-material/DirectionsBus';
-// import CommuteIcon from '@mui/icons-material/Commute';
-// import FlightIcon from '@mui/icons-material/Flight';
-// import BedIcon from '@mui/icons-material/Bed';
-// import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
-// import InventoryIcon from '@mui/icons-material/Inventory';
-// import  FeedbackIcon  from '@mui/icons-material/Feedback';
-// import ShoppingCartOutlinedIcon from '@mui/icons-material/ShoppingCartOutlined';
-// import NotificationsNoneOutlinedIcon from '@mui/icons-material/NotificationsNoneOutlined';
 import AccountCircleIcon from '@mui/icons-material/AccountCircleRounded';
-// import BookmarkBorderOutlinedIcon from '@mui/icons-material/BookmarkBorderOutlined';
 import FilterAltIcon from '@mui/icons-material/FilterAlt';
 import SwapVertIcon from '@mui/icons-material/SwapVert';
 import PaymentIcon from '@mui/icons-material/Payment';
-import ContentCopyIcon from '@mui/icons-material/ContentCopy';
-// import IosShareIcon from '@mui/icons-material/IosShare';
-import ShareIcon from '@mui/icons-material/Share';
 import LanguageIcon from '@mui/icons-material/Language';
+import { useLocation } from "react-router-dom";
 import axios from 'axios';
 
 function GuestActivityPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activities, setActivities] = useState([]);
   const [scrollPositions, setScrollPositions] = useState({});
-  const [showBackToTop, setShowBackToTop] = useState(false); // State for button visibility
+  const [showBackToTop, setShowBackToTop] = useState(false);
+  const [isLoading, setIsLoading] = useState(true); // State for button visibility
   //done for categories and tags
   const [categories, setCategories] = useState([]);
   const [tags, setTags] = useState([]);
   const [activeModal, setActiveModal] = useState(null);
 
-  // const [activitiesOpen, setActivitiesOpen] = useState(false);
-  // const [itinerariesOpen, setItinerariesOpen] = useState(false);
-  // const [historicalPlacesOpen, setHistoricalPlacesOpen] = useState(false);
-  // const [museumsOpen, setMuseumsOpen] = useState(false);
-  // const [transportationOpen, setTransportationOpen] = useState(false);
-  // const [productsOpen, setProductsOpen] = useState(false);
-  // const [complaintsOpen, setComplaintsOpen] = useState(false);
-  // //search bar
-  const [searchQuery, setSearchQuery] = useState(''); // Search query state
+  
   //filter activities
   const [filterModalOpen, setFilterModalOpen] = useState(false);
   const [filterInputs, setFilterInputs] = useState({
@@ -85,6 +54,15 @@ const [sharedLink, setSharedLink] = useState(''); // Shared link state
 const [currentActivityName, setCurrentActivityName] = useState(''); // Trac
 const [convertedPrices, setConvertedPrices] = useState({});
 const [currency, setCurrency] = useState('EGP'); // Default currency is EGP
+const [bookmarkStatuses, setBookmarkStatuses] = useState({});
+const [subscriptionStatus, setSubscriptionStatus] = useState({});
+const location = useLocation();
+const query = new URLSearchParams(location.search);
+const targetName = query.get("Name");
+const refs = useRef({});
+const queryParams = new URLSearchParams(location.search);
+const initialSearchQuery = queryParams.get('search') || ''; 
+const [searchQuery, setSearchQuery] = useState(initialSearchQuery); // Search query state
 
   const navigate = useNavigate();
 
@@ -118,8 +96,56 @@ const [currency, setCurrency] = useState('EGP'); // Default currency is EGP
     // Cleanup event listener on component unmount
     return () => window.removeEventListener('scroll', handleScroll);
   }, [searchQuery]); // Depend on `searchQuery` to refetch activities when it changes
+  useEffect(() => {
+    // Trigger search logic if the search query exists
+    if (initialSearchQuery) {
+      searchActivities(initialSearchQuery);
+    }
+  }, [initialSearchQuery]); 
+  useEffect(() => {
+    if (targetName && refs.current[targetName]) {
+      setTimeout(() => {
+        refs.current[targetName].scrollIntoView({
+          behavior: "smooth",
+          block: "center",
+        });
+      }, 100); // Delay to ensure refs are populated
+    }
+  }, [targetName, activities]); // Add HPs to dependencies
+  
+  const fetchSubscriptionStatus = async () => {
+    const username = localStorage.getItem('username'); // Current user's username
+    if (!username) return;
+  
+    const newSubscriptionStatus = {};
+  
+    await Promise.all(
+      activities.map(async (activity) => {
+        try {
+          const response = await axios.get('/api/checkTouristSubscription', {
+            params:{username:username,
+            eventName: activity.Name,
+            eventType: "Activity"},
+          });
+  
+          // Save subscription status with hp._id as the key
+          newSubscriptionStatus[activity._id] = response.data.message.includes('is subscribed');
+        } catch (error) {
+          console.error(`Error checking subscription for ${activity._id}:`, error);
+          newSubscriptionStatus[activity._id] = false; // Default to not subscribed in case of error
+        }
+      })
+    );
+  
+    setSubscriptionStatus(newSubscriptionStatus);
+  };
 
-
+  useEffect(() => {
+    if (activities.length > 0) {
+      fetchSubscriptionStatus();
+    }
+  }, [activities]);
+    
   useEffect(() => {
     if (currency !== 'EGP') {
       convertActivityPrices();
@@ -145,17 +171,45 @@ const [currency, setCurrency] = useState('EGP'); // Default currency is EGP
     setConvertedPrices(newConvertedPrices);
   };
   
-  
-  
-
-  const fetchActivities = async () => {
+  const checkBookmarkStatus = async (eventName) => {
+    const username = localStorage.getItem("username");
     try {
-      const response = await axios.get('/api/ViewAllUpcomingActivities');
-      setActivities(response.data);
+      const response = await axios.get("/api/checkIfInBookmarkedEvents", {
+        params: { touristUsername: username, eventName },
+      });
+      return response.data.inBookmarkedEvents;
     } catch (error) {
-      console.error('Error fetching activities:', error);
+      console.error("Error checking bookmark status:", error);
+      return false;
     }
   };
+  
+ 
+  
+  
+  const fetchActivities = async () => {
+    setIsLoading(true);
+    try {
+      const response = await axios.get("/api/ViewAllUpcomingActivities");
+      const fetchedActivities = response.data;
+  
+      // Fetch bookmark status for each activity
+      const bookmarkStatuses = {};
+      for (const activity of fetchedActivities) {
+        const isBookmarked = await checkBookmarkStatus(activity.Name);
+        bookmarkStatuses[activity._id] = isBookmarked; // Use activity ID to track status
+      }
+  
+      setBookmarkStatuses(bookmarkStatuses); // Update state with bookmark statuses
+      setActivities(fetchedActivities); // Set activities state
+    } catch (error) {
+      console.error("Error fetching activities:", error);
+      setActivities([]);
+    }finally {
+      setIsLoading(false); // End loading
+    }
+  };
+  
 
   const searchActivities = async (query) => {
     try {
@@ -245,58 +299,7 @@ const [currency, setCurrency] = useState('EGP'); // Default currency is EGP
     }
   };
   //book
-
-  //share
-
-  const handleOpenShareModal = async (activityName) => {
-    try {
-      const response = await axios.post('/getCopyLink', {
-        entityType: 'activity',
-        entityName: activityName,
-      });
-      setSharedLink(response.data.link); // Set the generated link
-      setCurrentActivityName(activityName); // Store the activity name in state
-      setShareModalOpen(true); // Open the modal
-    } catch (error) {
-      console.error('Error generating link:', error);
-      alert('An error occurred while generating the link.');
-    }
-  };
   
-  
-  const handleSendEmail = async (activityName) => {
-    if (!email || !sharedLink) {
-      alert('Please provide a valid email and ensure the link is generated.');
-      return;
-    }
-  
-    try {
-      const response = await axios.post('/getCopyLink', {
-        entityType: 'activity',
-        entityName: activityName,
-        email,
-      });
-      alert(response.data.msg); // Show success message
-      setShareModalOpen(false); // Close modal
-    } catch (error) {
-      console.error('Error sending email:', error);
-      alert(error.response?.data?.msg || 'An error occurred while sending the email.');
-    }
-  };
-  
-  
-  const handleCopyToClipboard = () => {
-    navigator.clipboard.writeText(sharedLink).then(() => {
-      alert('Link copied to clipboard!');
-    }).catch((err) => {
-      console.error('Failed to copy link: ', err);
-      alert('Failed to copy link.');
-    });
-  };
-  
-  
-  
-
   // Fetch tags from backend
   const fetchTags = async () => {
     try {
@@ -361,7 +364,7 @@ const [currency, setCurrency] = useState('EGP'); // Default currency is EGP
 
 
 
- 
+  
   
   return (
     <Box sx={styles.container}>
@@ -380,84 +383,62 @@ const [currency, setCurrency] = useState('EGP'); // Default currency is EGP
         </Box>
         <Box sx={styles.topMenuRight}>
         <Button
-        onClick={() => navigate('/')} 
-         sx={{
-         ...styles.menuButton,
-         '&:hover': {
-         backgroundColor: '#e6e7ed', // Background color on hover
-            color: '#192959',           // Text color on hover
-        },
-        }}
-        startIcon={<AccountCircleIcon />}
+          sx={{
+            ...styles.menuButton,
+            '&:hover': {
+              backgroundColor: '#e6e7ed', // Background color on hover
+              color: '#192959',           // Text color on hover
+            },
+          }}
+          startIcon={<AccountCircleIcon />}
+          onClick={() => navigate('/New')} // Fetch profile data and open modal
         >
-        Register
+          Register Now
         </Button>
-    
-
         </Box>
       </Box>
-
+      
       {/* Collapsible Sidebar */}
       <Box
-        sx={{
-          ...styles.sidebar,
-          width: sidebarOpen ? '280px' : '60px',
-        }}
-        onMouseEnter={() => setSidebarOpen(true)}
-        onMouseLeave={() => setSidebarOpen(false)}
-      >
-               {/* Itineraries Dropdown */}
-<Box>
+  sx={{
+    ...styles.sidebar,
+    width: sidebarOpen ? "280px" : "60px",
+  }}
+  onMouseEnter={() => setSidebarOpen(true)}
+  onMouseLeave={() => setSidebarOpen(false)}
+>
+
+  {/* Itineraries */}
   <Button
-    onClick={() => navigate('/Guestitinerary')} // Toggle dropdown for itineraries
+    onClick={() => navigate("/GuestItinerary")}
     sx={styles.sidebarButton}
   >
     <MapIcon sx={styles.icon} />
-    {sidebarOpen && (
-      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
-        Itineraries
-      </Box>
-    )}
+    {sidebarOpen && "Itineraries"}
   </Button>
 
-</Box>
-{/* Historical Places Dropdown */}
-<Box>
+  {/* Historical Places */}
   <Button
-    onClick={() => navigate('/GuestHP')} // Toggle dropdown for historical places
+    onClick={() => navigate("/GuestHP")}
     sx={styles.sidebarButton}
   >
     <ChurchIcon sx={styles.icon} />
-    {sidebarOpen && (
-      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
-        Historical Places
-      </Box>
-    )}
+    {sidebarOpen && "Historical Places"}
   </Button>
- 
-</Box>
-<Box>
+
+  {/* Museums */}
   <Button
-    onClick={() => navigate('/GuestMuseum')} // Toggle dropdown for museums
+    onClick={() => navigate("/GuestMuseum")}
     sx={styles.sidebarButton}
   >
-    <AccountBalanceIcon sx={styles.icon} /> {/* Suitable icon for Museums */}
-    {sidebarOpen && (
-      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
-        Museums
-      </Box>
-    )}
+    <AccountBalanceIcon sx={styles.icon} />
+    {sidebarOpen && "Museums"}
   </Button>
-</Box>
-
-<Box>
- 
   <Button onClick={() => navigate('/homeGuest')} sx={styles.sidebarButton}>
           <DashboardIcon sx={styles.icon} />
           {sidebarOpen && 'Back to Dashboard'}
         </Button>
 </Box>
-      </Box>
 
 
 
@@ -465,19 +446,52 @@ const [currency, setCurrency] = useState('EGP'); // Default currency is EGP
       <Box
   sx={{
     display: 'flex',
-    justifyContent: 'space-between', // Maintain space between elements
+    justifyContent: 'space-between', // Ensure space between search bar and the rest
     alignItems: 'center',           // Align items vertically in the center
     marginBottom: '20px',
     marginTop: '20px',
     marginLeft: '150px',
-    marginRight: '60px',           // Consistent spacing on the right
+    marginRight: '60px',           // Add margin to the right for consistent spacing
   }}
 >
-  {/* Placeholder for the search bar space */}
-  <Box sx={{ width: '30%' }}></Box>
+  {/* Search Bar */}
+  <TextField
+    label="Search"
+    variant="outlined"
+    value={searchQuery}
+    onChange={handleSearchChange}
+    sx={{
+      width: '30%',
+      '& .MuiOutlinedInput-root': {
+        '& fieldset': {
+          borderColor: '#192959', // Default outline color
+          borderWidth: '2px',
+        },
+        '&:hover fieldset': {
+          borderColor: '#192959', // Hover outline color
+          borderWidth: '2.5px',
+        },
+        '&.Mui-focused fieldset': {
+          borderColor: '#192959', // Focused outline color
+          borderWidth: '2.5px',
+        },
+      },
+      '& .MuiInputLabel-root': {
+        color: '#192959', // Label color
+        fontSize: '18px',
+      },
+    }}
+    InputProps={{
+      startAdornment: (
+        <Box sx={{ display: 'flex', alignItems: 'center', color: '#192959', paddingLeft: '5px' }}>
+          <SearchIcon />
+        </Box>
+      ),
+    }}
+  />
 
   {/* Sort Dropdown and Filter Icon */}
-  <Box sx={{ display: 'flex', alignItems: 'right', gap: '10px', marginLeft: '100px' }}>
+  <Box sx={{ display: 'flex', alignItems: 'right', gap: '10px', marginLeft: '100px'}}>
     <TextField
       select
       label={
@@ -526,56 +540,59 @@ const [currency, setCurrency] = useState('EGP'); // Default currency is EGP
     >
       <MenuItem value="priceAsc">Price: Low to High</MenuItem>
       <MenuItem value="priceDesc">Price: High to Low</MenuItem>
+      <MenuItem value="ratingAsc">Rating: Low to High</MenuItem>
+      <MenuItem value="ratingDesc">Rating: High to Low</MenuItem>
     </TextField>
 
     <TextField
-      select
-      label="Currency"
-      value={currency}
-      onChange={(e) => setCurrency(e.target.value)}
-      variant="outlined"
-      sx={{
-        width: '210px',
-        '& .MuiOutlinedInput-root': {
-          '& fieldset': {
-            borderColor: '#192959', // Default border color
-            borderWidth: '2px',
-          },
-          '&:hover fieldset': {
-            borderColor: '#33416b', // Hover border color
-            borderWidth: '2.5px',
-          },
-          '&.Mui-focused fieldset': {
-            borderColor: '#192959', // Focused border color
-            borderWidth: '2.5px',
-          },
-        },
-        '& .MuiInputLabel-root': {
-          color: '#192959', // Label color
-          fontSize: '18px',
-        },
-      }}
-      InputProps={{
-        startAdornment: (
-          <Box
-            sx={{
-              display: 'flex',
-              alignItems: 'center',
-              color: '#192959',
-              paddingLeft: '5px',
-            }}
-          >
-            <LanguageIcon />
-          </Box>
-        ),
-      }}
-    >
-      <MenuItem value="EGP">EGP</MenuItem>
-      <MenuItem value="USD">USD</MenuItem>
-      <MenuItem value="EUR">EUR</MenuItem>
-      <MenuItem value="GBP">GBP</MenuItem>
-      <MenuItem value="JPY">JPY</MenuItem>
-    </TextField>
+  select
+  label="Currency"
+  value={currency}
+  onChange={(e) => setCurrency(e.target.value)}
+  variant="outlined"
+  sx={{
+    width: '210px',
+    '& .MuiOutlinedInput-root': {
+      '& fieldset': {
+        borderColor: '#192959', // Default border color
+        borderWidth: '2px',
+      },
+      '&:hover fieldset': {
+        borderColor: '#33416b', // Hover border color
+        borderWidth: '2.5px',
+      },
+      '&.Mui-focused fieldset': {
+        borderColor: '#192959', // Focused border color
+        borderWidth: '2.5px',
+      },
+    },
+    '& .MuiInputLabel-root': {
+      color: '#192959', // Label color
+      fontSize: '18px',
+    },
+  }}
+  InputProps={{
+    startAdornment: (
+      <Box
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          color: '#192959',
+          paddingLeft: '5px',
+        }}
+      >
+        <LanguageIcon />
+      </Box>
+    ),
+  }}
+>
+  <MenuItem value="EGP">EGP </MenuItem>
+  <MenuItem value="USD">USD </MenuItem>
+  <MenuItem value="EUR">EUR </MenuItem>
+  <MenuItem value="GBP">GBP </MenuItem>
+  <MenuItem value="JPY">JPY </MenuItem>
+</TextField>
+
 
     {/* Filter Icon */}
     <Tooltip title="Filter" placement="bottom" arrow>
@@ -596,221 +613,191 @@ const [currency, setCurrency] = useState('EGP'); // Default currency is EGP
 
 
 
-
       
-      {/* Main Content Area with Activities */}
-      <Box sx={styles.activitiesContainer}>
-        {activities.map((activity, index) => (
-          <Box key={index} sx={{ marginBottom: '20px' }}>
-            <Box
+{/* Main Content Area with Activities */}
+<Box sx={styles.activitiesContainer}>
+  {isLoading ? (
+    <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
+      <CircularProgress sx={{ color: '#192959' }} /> {/* Circular loader */}
+    </Box>
+  ) : activities.length > 0 ? (
+    activities.map((activity, index) => (
+      <Box
+        key={index}
+        ref={(el) => (refs.current[activity.Name] = el)}
+        sx={{ marginBottom: '20px' }}
+      >
+        <Box
+          sx={{
+            ...styles.activityCard,
+            backgroundColor: activity.flagged ? '#cccfda' : 'white',
+          }}
+        >
+          <Box sx={styles.activityInfo}>
+            <Typography
+              variant="h6"
               sx={{
-                ...styles.activityCard,
-                backgroundColor: activity.flagged ? '#cccfda' : 'white',
+                fontWeight: 'bold',
+                fontSize: '24px',
+                marginBottom: '5px',
+                display: 'flex',
+                alignItems: 'center',
               }}
             >
-              <Box sx={styles.activityInfo}>
-                <Typography variant="h6" sx={{ fontWeight: 'bold',fontSize: '24px', marginBottom: '5px', display: 'flex', alignItems: 'center' }}>{activity.Name}</Typography>
-                <Typography variant="body2" sx={{ display: 'flex', fontSize: '18px', alignItems: 'center' }}>
-                  <LocationOnIcon fontSize="small" sx={{ mr: 1 }} />
-                  {activity.Location?.address || 'N/A'}
+              {activity.Name}
+            </Typography>
+            <Typography
+              variant="body2"
+              sx={{
+                display: 'flex',
+                fontSize: '18px',
+                alignItems: 'center',
+              }}
+            >
+              <LocationOnIcon fontSize="small" sx={{ mr: 1 }} />
+              {activity.Location?.address || 'N/A'}
+            </Typography>
+            <Typography
+              variant="body2"
+              sx={{
+                display: 'flex',
+                fontSize: '18px',
+                alignItems: 'center',
+              }}
+            >
+              <PersonIcon fontSize="small" sx={{ mr: 1 }} />
+              {activity.AdvertiserName}
+            </Typography>
+            <Typography
+              variant="body2"
+              sx={{
+                display: 'flex',
+                fontSize: '18px',
+                alignItems: 'center',
+              }}
+            >
+              <PaymentIcon fontSize="small" sx={{ mr: 1 }} />
+              {currency === 'EGP'
+                ? `${activity.Price} EGP`
+                : `${convertedPrices[activity._id] || 'Loading...'} ${currency}`}
+            </Typography>
+            <Typography
+              variant="body2"
+              sx={{
+                display: 'flex',
+                fontSize: '18px',
+                alignItems: 'center',
+              }}
+            >
+              <CalendarTodayIcon fontSize="small" sx={{ mr: 1 }} />
+              {new Date(activity.Date).toLocaleDateString()}
+            </Typography>
+            <Typography
+              variant="body2"
+              sx={{
+                display: 'flex',
+                fontSize: '18px',
+                alignItems: 'center',
+              }}
+            >
+              <AccessTimeIcon fontSize="small" sx={{ mr: 1 }} />
+              {activity.Time}
+            </Typography>
+            <Box sx={styles.quickFacts}>
+              <Box
+                sx={{
+                  ...styles.infoContainer,
+                  backgroundColor: activity.flagged ? '#b3b8c8' : '#f3f4f6',
+                }}
+              >
+                <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
+                  Category:
                 </Typography>
-                <Typography variant="body2" sx={{ display: 'flex', fontSize: '18px', alignItems: 'center' }}>
-                  <PersonIcon fontSize="small" sx={{ mr: 1 }} />
-                  {activity.AdvertiserName}
+                <Typography variant="body2">{activity.Category}</Typography>
+              </Box>
+              <Box
+                sx={{
+                  ...styles.infoContainer,
+                  backgroundColor: activity.flagged ? '#b3b8c8' : '#f3f4f6',
+                }}
+              >
+                <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
+                  Tags:
                 </Typography>
-                <Typography variant="body2" sx={{ display: 'flex', fontSize: '18px', alignItems: 'center' }}>
-                <PaymentIcon fontSize="small" sx={{ mr: 1 }} />
-                {currency === 'EGP'
-                  ? `${activity.Price} EGP`
-                  : `${convertedPrices[activity._id] || 'Loading...'} ${currency}`}
-              </Typography>
-
-                <Typography variant="body2" sx={{ display: 'flex', fontSize: '18px', alignItems: 'center' }}>
-                  <CalendarTodayIcon fontSize="small" sx={{ mr: 1 }} />
-                  {new Date(activity.Date).toLocaleDateString()}
-                </Typography>
-                <Typography variant="body2" sx={{ display: 'flex', fontSize: '18px', alignItems: 'center' }}>
-                  <AccessTimeIcon fontSize="small" sx={{ mr: 1 }} />
-                  {activity.Time}
-                </Typography>
-                <Box sx={styles.quickFacts}>
-                  <Box sx={{ ...styles.infoContainer, backgroundColor: activity.flagged ? '#b3b8c8' : '#f3f4f6' }}>
-                    <Typography variant="body2" sx={{ fontWeight: 'bold' }}>Category:</Typography>
-                    <Typography variant="body2">{activity.Category}</Typography>
-                  </Box>
-                  <Box sx={{ ...styles.infoContainer, backgroundColor: activity.flagged ? '#b3b8c8' : '#f3f4f6' }}>
-                    <Typography variant="body2" sx={{ fontWeight: 'bold' }}>Tags:</Typography>
-                    <Typography variant="body2">{activity.Tags.join(', ')}</Typography>
-                  </Box>
-                </Box>
+                <Typography variant="body2">{activity.Tags.join(', ')}</Typography>
               </Box>
-              <Box sx={styles.activityRating}>
-                {renderRating(activity.Rating)}
-              </Box>
-              <Box sx={styles.discountContainer}>
-                <Box sx={{...styles.infoContainer, backgroundColor: activity.flagged ? '#b3b8c8' : '#f3f4f6'}}>
-                  <Typography variant="body2" sx={{ fontWeight: 'bold' }}>Special Discount:</Typography>
-                  <Typography variant="body2">{activity.SpecialDiscount}</Typography>
-                </Box>
-              </Box>
-              <Box sx={styles.bookingOpenContainer}>
-                <Box sx={{...styles.infoContainer, backgroundColor: activity.flagged ? '#b3b8c8' : '#f3f4f6'}}>
-                  <Typography variant="body2" sx={{ fontWeight: 'bold' }}>Booking Open:</Typography>
-                  <Typography variant="body2">{activity.BookingOpen ? 'Yes' : 'No'}</Typography>
-                </Box>
-              </Box>
-
-              
-
-       
-       
-
-
-
             </Box>
-            <Box sx={styles.commentsSection}>
-  {activity.Comments && activity.Comments.length > 0 ? (
-    <>
-      {/* Show the scroll left button only if there's content to scroll back */}
-      {scrollPositions[index] > 0 && (
-        <IconButton sx={styles.scrollButton} onClick={() => scrollCommentsLeft(index)}>
-          <ArrowBackIcon />
-        </IconButton>
-      )}
-      
-      <Box
-        sx={styles.commentsContainer}
-        id={`commentsContainer-${index}`}
-        onScroll={(e) => updateScrollPosition(index, e.target.scrollLeft)}
-      >
-        {activity.Comments.map((comment, idx) => (
-          <Box key={idx} sx={styles.commentCard}>
-            <Typography variant="body2">{comment.Comment || 'No comment available'}</Typography>
-            <Typography variant="caption">@ {comment.touristUsername || 'Anonymous'}</Typography>
           </Box>
-        ))}
-      </Box>
-      
-      {/* Show the scroll right button only if there are 3 or more comments */}
-      {activity.Comments.length >= 3 && (
-        <IconButton sx={styles.scrollButton} onClick={() => scrollCommentsRight(index)}>
-          <ArrowForwardIcon />
-        </IconButton>
-      )}
-    </>
-  ) : (
-    <Typography variant="body2">No comments available</Typography>
-  )}
-</Box>
-
- 
+          <Box sx={styles.activityRating}>{renderRating(activity.Rating)}</Box>
+          <Box sx={styles.discountContainer}>
+            <Box
+              sx={{
+                ...styles.infoContainer,
+                backgroundColor: '#f3f4f6',
+              }}
+            >
+              <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
+                Special Discount:
+              </Typography>
+              <Typography variant="body2">{activity.SpecialDiscount}</Typography>
+            </Box>
           </Box>
-        ))}
-      </Box>
+        </Box>
 
-      <Box sx={styles.activitiesContainer}>
-  {activities.length > 0 ? (
-    activities.map((activity, index) => (
-      <Box key={index} sx={{ marginBottom: '20px' }}>
-        {/* Your activity card code */}
+        {/* Comments Section */}
+        <Box sx={styles.commentsSection}>
+          {activity.Comments && activity.Comments.length > 0 ? (
+            <>
+              {scrollPositions[index] > 0 && (
+                <IconButton
+                  sx={styles.scrollButton}
+                  onClick={() => scrollCommentsLeft(index)}
+                >
+                  <ArrowBackIcon />
+                </IconButton>
+              )}
+              <Box
+                sx={styles.commentsContainer}
+                id={`commentsContainer-${index}`}
+                onScroll={(e) =>
+                  updateScrollPosition(index, e.target.scrollLeft)
+                }
+              >
+                {activity.Comments.map((comment, idx) => (
+                  <Box key={idx} sx={styles.commentCard}>
+                    <Typography variant="body2">
+                      {comment.Comment || 'No comment available'}
+                    </Typography>
+                    <Typography variant="caption">
+                      @ {comment.touristUsername || 'Anonymous'}
+                    </Typography>
+                  </Box>
+                ))}
+              </Box>
+              {activity.Comments.length >= 3 && (
+                <IconButton
+                  sx={styles.scrollButton}
+                  onClick={() => scrollCommentsRight(index)}
+                >
+                  <ArrowForwardIcon />
+                </IconButton>
+              )}
+            </>
+          ) : (
+            <Typography variant="body2">No comments available</Typography>
+          )}
+        </Box>
       </Box>
     ))
   ) : (
-    <Typography variant="h6" sx={{ textAlign: 'center', color: '#192959', marginTop: '20px' }}>
-      No Activities Found Matching Your Criteria.
+    <Typography
+      variant="h6"
+      sx={{ textAlign: 'center', color: '#192959', marginTop: '20px' }}
+    >
+      No Upcoming Activities
     </Typography>
   )}
 </Box>
-
-
-<Modal
-  open={isShareModalOpen}
-  onClose={() => setShareModalOpen(false)}
-  aria-labelledby="share-modal-title"
-  aria-describedby="share-modal-description"
->
-  <Box
-    sx={{
-      position: 'absolute',
-      top: '50%',
-      left: '50%',
-      transform: 'translate(-50%, -50%)',
-      width: 400,
-      bgcolor: 'background.paper',
-      boxShadow: 24,
-      p: 4,
-      borderRadius: '10px',
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      gap: '10px',
-    }}
-  >
-    <Typography id="share-modal-title" variant="h6" component="h2">
-      Share Activity
-    </Typography>
-
-    {/* Copy to Clipboard Button */}
-    <Button
-      variant="contained"
-      onClick={handleCopyToClipboard}
-      sx={{
-        backgroundColor: '#192959',
-        color: '#fff',
-        '&:hover': { backgroundColor: '#33416b' },
-        display: 'flex',
-        alignItems: 'center',
-        gap: '8px',
-        width: '100%',
-      }}
-    >
-      <ContentCopyIcon />
-      Copy to Clipboard
-    </Button>
-
-    {/* Share via Email and Send Buttons */}
-    {!showEmailField ? (
-      <Button
-        variant="contained"
-        onClick={() => setShowEmailField(true)} // Toggle to show email input and "Send" button
-        sx={{
-          backgroundColor: '#192959',
-          color: '#fff',
-          '&:hover': { backgroundColor: '#33416b' },
-          display: 'flex',
-          alignItems: 'center',
-          gap: '8px',
-          width: '100%',
-        }}
-      >
-        <ShareIcon />
-        Share via Email
-      </Button>
-    ) : (
-      <>
-        <TextField
-          fullWidth
-          label="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-        />
-        <Button
-          variant="contained"
-          onClick={() => handleSendEmail(currentActivityName)} // Pass activityName
-          sx={{
-            backgroundColor: '#192959',
-            color: '#fff',
-            '&:hover': { backgroundColor: '#33416b' },
-            width: '100%',
-          }}
-        >
-          Send
-        </Button>
-      </>
-    )}
-  </Box>
-</Modal>
-
 
 
       <Modal
