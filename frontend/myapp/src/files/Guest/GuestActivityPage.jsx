@@ -790,7 +790,6 @@ const [searchQuery, setSearchQuery] = useState(initialSearchQuery); // Search qu
       variant="h6"
       sx={{ textAlign: 'center', color: '#192959', marginTop: '20px' }}
     >
-      No Upcoming Activities
     </Typography>
   )}
 </Box>
