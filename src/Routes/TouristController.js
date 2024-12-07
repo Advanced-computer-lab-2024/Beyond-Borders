@@ -2850,11 +2850,11 @@ const payActivityByCard = async (req, res) => {
 
 
 const payActivityStripe = async (req, res) => {
-  const { touristUsername, activityName } = req.body;
+  const { touristUsername, activityName ,paymentMethodId} = req.body;
 
   try {
 
-    const paymentMethodId = "pm_card_visa";
+    //const paymentMethodId = "pm_card_visa";
     // Find the activity by name
     const activity = await ActivityModel.findOne({ Name: activityName });
     if (!activity) {
@@ -2872,7 +2872,7 @@ const payActivityStripe = async (req, res) => {
 
     // Process payment with Stripe
     const paymentIntent = await stripe.paymentIntents.create({
-      amount: Math.round(ticketPrice * 100), // Stripe uses the smallest currency unit (e.g., cents for USD, piastres for EGP)
+      amount: 100000, // Stripe uses the smallest currency unit (e.g., cents for USD, piastres for EGP)
       currency: 'usd', // Use EGP as the currency
       payment_method: paymentMethodId, // Payment method ID from the frontend
       confirm: true, // Automatically confirm the payment
@@ -3228,10 +3228,10 @@ const payItineraryByCard = async (req, res) => {
 };
 
 const payItineraryStripe = async (req, res) => {
-  const { touristUsername, ItineraryName } = req.body;
+  const { touristUsername, ItineraryName ,paymentMethodId} = req.body;
 
   try {
-    const paymentMethodId ="pm_card_visa";
+    //const paymentMethodId ="pm_card_visa";
     // Find the itinerary by name
     const itinerary = await ItineraryModel.findOne({ Title: ItineraryName });
     if (!itinerary) {
@@ -3566,10 +3566,10 @@ res.status(500).json({ error: error.message });
 };
 
 const payMuseumStripe = async (req, res) => {
-  const { touristUsername, museumName } = req.body;
+  const { touristUsername, museumName,paymentMethodId } = req.body;
 
   try {
-    const paymentMethodId = 'pm_card_visa'; // You can replace this with the actual PaymentMethod ID sent from the frontend
+    //const paymentMethodId = 'pm_card_visa'; // You can replace this with the actual PaymentMethod ID sent from the frontend
 
     // Find the museum by name
     const museum = await MuseumModel.findOne({ name: museumName });
@@ -3904,10 +3904,10 @@ const payHPByCard = async (req, res) => {
 };
 
 const payHPStripe = async (req, res) => {
-  const { touristUsername, HPName } = req.body;
+  const { touristUsername, HPName ,paymentMethodId} = req.body;
 
   try {
-    const paymentMethodId = 'pm_card_visa'; // Replace with actual PaymentMethod ID from the frontend
+    // paymentMethodId = 'pm_card_visa'; // Replace with actual PaymentMethod ID from the frontend
 
     // Find the historical place by name
     const hp = await HistoricalPlacesModel.findOne({ name: HPName });

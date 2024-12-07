@@ -191,7 +191,12 @@ function App() {
               </Elements>
             }
           />
-          <Route path="/TouristEventsPaymentPage" element={<TouristEventsPaymentPage/>}/>
+          <Route path="/TouristEventsPaymentPage" element={
+              <Elements stripe={stripePromise}>
+                <TouristEventsPaymentPage />
+              </Elements>
+            }
+          />
           <Route path="/TouristEventsPrePaymentPage" element={<TouristEventsPrePaymentPage/>}/>
           <Route path="/TouristBookedFlights" element={<TouristBookedFlights/>}/>
           <Route path="/TouristBookedHotels" element={<TouristBookedHotels/>}/>
