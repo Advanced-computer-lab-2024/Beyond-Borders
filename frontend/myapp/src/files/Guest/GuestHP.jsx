@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Box, Button, Typography, Divider,IconButton,Tooltip, TextField, InputAdornment, Modal,MenuItem,Select,FormControl,InputLabel,} from '@mui/material';
+import React, { useState, useEffect,useRef } from 'react';
+import { Box, Button, Typography, Divider,IconButton,Tooltip,  CircularProgress,TextField, InputAdornment, Modal,MenuItem,Select,FormControl,InputLabel,} from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import MenuIcon from '@mui/icons-material/Menu';
 import NotificationsIcon from '@mui/icons-material/Notifications';
@@ -45,9 +45,19 @@ import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import IosShareIcon from '@mui/icons-material/IosShare';
 import ShareIcon from '@mui/icons-material/Share';
 import LanguageIcon from '@mui/icons-material/Language';
+import PriorityHighIcon from '@mui/icons-material/PriorityHigh'; // Icon for generic user type
+import NotificationImportantIcon from '@mui/icons-material/NotificationImportant';
+import DoneAllIcon from '@mui/icons-material/DoneAll';
+import NotificationsActiveOutlinedIcon from '@mui/icons-material/NotificationsActiveOutlined';
+import BookmarkIcon from '@mui/icons-material/Bookmark';
+import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
 import axios from 'axios';
-
-function GuestHP() {
+import { useLocation } from "react-router-dom";
+function TouristUpcomingHP() {
+  const location = useLocation();
+  const query = new URLSearchParams(location.search);
+  const targetName = query.get("name");
+  const refs = useRef({});
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activities, setActivities] = useState([]);
   const [scrollPositions, setScrollPositions] = useState({});
@@ -64,8 +74,9 @@ function GuestHP() {
   const [transportationOpen, setTransportationOpen] = useState(false);
   const [productsOpen, setProductsOpen] = useState(false);
   const [complaintsOpen, setComplaintsOpen] = useState(false);
+  const [bookmarkStatuses, setBookmarkStatuses] = useState({});
   //search bar
-  const [searchQuery, setSearchQuery] = useState(''); // Search query state
+  //const [searchQuery, setSearchQuery] = useState(''); // Search query state
   //filter activities
   const [filterModalOpen, setFilterModalOpen] = useState(false);
   const [filterInputs, setFilterInputs] = useState({
@@ -88,9 +99,18 @@ const [currency, setCurrency] = useState('EGP'); // Default currency is EGP
 
 //hps
 const [HPs, setHPs] = useState([]);
-const navigate = useNavigate();
 const [expanded, setExpanded] = React.useState({});
+//notifications
+const [notifications, setNotifications] = useState([]);
+const [isNotificationsSidebarOpen, setNotificationsSidebarOpen] = useState(false);
+const [allNotificationsRead, setAllNotificationsRead] = useState(true);
+const [subscriptionStatus, setSubscriptionStatus] = useState({});
+const queryParams = new URLSearchParams(location.search);
+const initialSearchQuery = queryParams.get('search') || ''; 
+const [searchQuery, setSearchQuery] = useState(initialSearchQuery);
+const [loading, setLoading] = useState(true);
 
+const navigate = useNavigate();
   useEffect(() => {
     // Function to handle fetching or searching activities
     const fetchOrSearchHPs = async () => {
@@ -106,6 +126,7 @@ const [expanded, setExpanded] = React.useState({});
     fetchOrSearchHPs(); // Call the fetch or search logic
     fetchCategories(); // Fetch categories
     fetchTags(); // Fetch tags
+    //checkNotificationsStatus();
   
     // Handle scroll to show/hide "Back to Top" button
     const handleScroll = () => {
@@ -125,6 +146,12 @@ const [expanded, setExpanded] = React.useState({});
   // useEffect(() => {
   //   fetchHistoricalPlaces();
   // }, []);
+  useEffect(() => {
+    // Trigger search logic if the search query exists
+    if (initialSearchQuery) {
+      searchHPs(initialSearchQuery);
+    }
+  }, [initialSearchQuery]); 
 
   useEffect(() => {
     if (currency !== 'EGP') {
@@ -132,6 +159,17 @@ const [expanded, setExpanded] = React.useState({});
     }
   }, [currency, HPs]);
 
+  useEffect(() => {
+    if (targetName && refs.current[targetName]) {
+      setTimeout(() => {
+        refs.current[targetName].scrollIntoView({
+          behavior: "smooth",
+          block: "center",
+        });
+      }, 100); // Delay to ensure refs are populated
+    }
+  }, [targetName, HPs]); // Add HPs to dependencies
+  
   // const convertActivityPrices = async () => {
   //   const newConvertedPrices = {};
   //   await Promise.all(
@@ -150,6 +188,41 @@ const [expanded, setExpanded] = React.useState({});
   //   );
   //   setConvertedPrices(newConvertedPrices);
   // };
+
+  const fetchSubscriptionStatus = async () => {
+    const username = localStorage.getItem('username'); // Current user's username
+    if (!username) return;
+  
+    const newSubscriptionStatus = {};
+  
+    await Promise.all(
+      HPs.map(async (hp) => {
+        try {
+          const response = await axios.get('/api/checkTouristSubscription', {
+            params:{username:username,
+            eventName: hp.name,
+            eventType: "HistoricalPlace"},
+          });
+  
+          // Save subscription status with hp._id as the key
+          newSubscriptionStatus[hp._id] = response.data.message.includes('is subscribed');
+        } catch (error) {
+          console.error(`Error checking subscription for ${hp._id}:`, error);
+          newSubscriptionStatus[hp._id] = false; // Default to not subscribed in case of error
+        }
+      })
+    );
+  
+    setSubscriptionStatus(newSubscriptionStatus);
+  };
+
+  useEffect(() => {
+    if (HPs.length > 0) {
+      fetchSubscriptionStatus();
+    }
+  }, [HPs]);
+    
+
 
   const convertActivityPrices = async () => {
     const newConvertedPrices = {};
@@ -184,13 +257,28 @@ const [expanded, setExpanded] = React.useState({});
   
   
   const fetchHistoricalPlaces = async () => {
+    setLoading(true); // Set loading to true before starting the fetch
+
     try {
-      const response = await axios.get('/api/ViewAllUpcomingHistoricalPlacesEventsTourist');
-      setHPs(response.data);
+      const response = await axios.get("/api/ViewAllUpcomingHistoricalPlacesEventsTourist");
+      const fetchedHistoricalPlaces = response.data;
+  
+      // Fetch bookmark status for each historical place
+      const bookmarkStatuses = {};
+      for (const hp of fetchedHistoricalPlaces) {
+        const isBookmarked = await checkBookmarkStatus(hp.name);
+        bookmarkStatuses[hp._id] = isBookmarked; // Use historical place ID to track status
+      }
+  
+      setBookmarkStatuses(bookmarkStatuses); // Update state with bookmark statuses
+      setHPs(fetchedHistoricalPlaces); // Set historical places state
     } catch (error) {
-      console.error('Error fetching hps:', error);
+      console.error("Error fetching historical places:", error);
+    }finally {
+      setLoading(false); // Set loading to false after the fetch
     }
   };
+  
 
   const handleToggleDescription = (index) => {
     setExpanded((prev) => ({
@@ -250,8 +338,8 @@ const [expanded, setExpanded] = React.useState({});
         tags: filterInputs.Tags ? filterInputs.Tags.split(',').map(tag => tag.trim()) : [], // Split by commas and trim spaces
       };
   
-      // Send the request to the backend    
-      const response = await axios.post('/api/getHistoricalPlacesByTagGuest', sanitizedInputs);
+      // Send the request to the backend
+      const response = await axios.post('/getHistoricalPlacesByTagTourist', sanitizedInputs);
   
       // Update the hps state with the filtered results
       setHPs(response.data);
@@ -266,6 +354,10 @@ const [expanded, setExpanded] = React.useState({});
       setFilterModalOpen(false);
     }
   };
+
+
+  
+    
 
 
   // const handleSortChange = async (event) => {
@@ -301,25 +393,25 @@ const [expanded, setExpanded] = React.useState({});
   //book
 
 
-//   const handleBookActivity = async (activityName) => {
-//     const touristUsername = localStorage.getItem('username'); // Assuming username is stored in localStorage
+  const handleBookActivity = async (activityName) => {
+    const touristUsername = localStorage.getItem('username'); // Assuming username is stored in localStorage
   
-//     if (!touristUsername) {
-//       alert('Please log in to book activities.');
-//       return;
-//     }
+    if (!touristUsername) {
+      alert('Please log in to book activities.');
+      return;
+    }
   
-//     try {
-//       const response = await axios.put('/bookActivity', { touristUsername, activityName });
-//       navigate('/TouristPaymentPage');
-//     } catch (error) {
-//       alert(error.response?.data?.msg || 'An error occurred while booking the activity.');
-//     }
-//   };
+    try {
+      const response = await axios.put('/bookActivity', { touristUsername, activityName });
+      navigate('/TouristPaymentPage');
+    } catch (error) {
+      alert(error.response?.data?.msg || 'An error occurred while booking the activity.');
+    }
+  };
 
 
   //book
-  const handleBookHistoricalPlace = async (historicalPlaceName) => {
+  const handleBookHistoricalPlace = async (hp) => {
     const touristUsername = localStorage.getItem('username'); // Assuming username is stored in localStorage
   
     if (!touristUsername) {
@@ -328,8 +420,21 @@ const [expanded, setExpanded] = React.useState({});
     }
   
     try {
-      const response = await axios.put('/bookHistoricalPlace', { touristUsername, historicalPlaceName });
-      navigate('/TouristPaymentPage');
+      const response = await axios.put('/bookHistoricalPlace', { touristUsername, historicalPlaceName: hp.name });
+      if (response.status === 201) {
+        const { ticketPrice } = response.data;
+        alert(`Event booked successfully!`);
+        navigate('/TouristEventsPrePaymentPage', {
+          state: {
+            type: 'historicalPlace', // Specify type as activity
+            name: hp.name, // Pass the activity name
+            totalCost:ticketPrice, // Include the total cost for payment processing
+          },
+        });
+      } else {
+        alert(response.data.msg || 'Failed to book activity.');
+      }
+      
     } catch (error) {
       alert(error.response?.data?.msg || 'An error occurred while booking the HP.');
     }
@@ -447,12 +552,143 @@ const [expanded, setExpanded] = React.useState({});
     });
   };
 
+  const fetchNotifications = async () => {
+    const username = localStorage.getItem('username');
+    if (!username) return;
+  
+    try {
+      const response = await axios.get(`/api/getTouristNotifications`, {
+        params: { username },
+      });
+      setNotifications(response.data.notifications); // Assuming backend sends an array of notifications
+    } catch (error) {
+      console.error('Error fetching notifications:', error);
+    }
+  };
 
+  const toggleNotificationsSidebar = () => {
+    setNotificationsSidebarOpen((prev) => !prev);
+    if (!isNotificationsSidebarOpen) {
+      fetchNotifications(); // Fetch notifications when opening
+      checkNotificationsStatus(); // Update notification icon status
+    }
+  };
+  
 
+  const checkNotificationsStatus = async () => {
+    const username = localStorage.getItem('username');
+    if (!username) return;
+  
+    try {
+      const response = await axios.get('/api/areAllTouristNotificationsRead', {
+        params: { username },
+      });
+  
+      setAllNotificationsRead(response.data.allRead);
+    } catch (error) {
+      console.error('Error checking notification status:', error);
+    }
+  };
+
+  const markAllAsRead = async () => {
+    const username = localStorage.getItem('username'); // Get the username from localStorage
+    if (!username) {
+      alert('You need to log in first.');
+      return;
+    }
+  
+    try {
+      const response = await axios.put('/api/allNotificationsTouristRead', { username });
+      if (response.status === 200) {
+        //alert('All notifications marked as read.');
+        checkNotificationsStatus(); // Update notification icon status
+      } else {
+        alert('Failed to mark notifications as read.');
+      }
+    } catch (error) {
+      console.error('Error marking notifications as read:', error);
+      alert('An error occurred while marking notifications as read.');
+    }
+  };
+  
+  const handleNotifyMe = async (historicalPlaceName,eventId) => {
+    const username = localStorage.getItem('username'); // Replace this with the actual username (e.g., from context or state)
+  
+    if (!username) {
+      alert('Please log in to subscribe to notifications.');
+      return;
+    }
+  
+    try {
+      const response = await axios.put('/addNotificationSubscriberHP', {
+        username,
+        historicalPlaceName,
+      });
+      setSubscriptionStatus((prevStatus) => ({
+        ...prevStatus,
+        [eventId]: true, // Mark this event as subscribed
+      }));
+      //alert(response.data.message); // Show success message
+    } catch (error) {
+      console.error('Error subscribing to notifications:', error);
+      alert(error.response?.data?.error || 'An error occurred while subscribing to notifications.');
+    }
+  };
+
+  //bookmark
+  const handleToggleBookmark = async (eventName, activityId) => {
+    const username = localStorage.getItem('username');
+  
+    if (!username) {
+      alert('Please log in to bookmark historical places.');
+      return;
+    }
+  
+    try {
+      const isCurrentlyBookmarked = bookmarkStatuses[activityId];
+  
+      if (isCurrentlyBookmarked) {
+        await axios.post('/removeFromBookmarkedEvents', {
+          touristUsername: username,
+          eventName,
+        });
+      } else {
+        await axios.put('/addBookmark', { touristUsername: username, eventName });
+      }
+  
+      setBookmarkStatuses((prev) => ({
+        ...prev,
+        [activityId]: !isCurrentlyBookmarked,
+      }));
+  
+      alert(
+        isCurrentlyBookmarked
+          ? 'Bookmark removed successfully!'
+          : 'Bookmark added successfully!'
+      );
+    } catch (error) {
+      console.error('Error toggling bookmark:', error);
+      alert('An error occurred while updating your bookmark.');
+    }
+  };
+  const checkBookmarkStatus = async (eventName) => {
+    const username = localStorage.getItem('username'); // Retrieve username
+    try {
+      const response = await axios.get('/api/checkIfInBookmarkedEvents', {
+        params: { touristUsername: username, eventName }, // Pass username and event name as query params
+      });
+      return response.data.inBookmarkedEvents; // Return true/false
+    } catch (error) {
+      console.error('Error checking bookmark status:', error);
+      return false; // Default to not bookmarked if an error occurs
+    }
+  };
+  
  
   
   return (
-    <Box sx={styles.container}>
+    
+      <Box sx={styles.container}>
       {/* Dim overlay when sidebar is open */}
       {sidebarOpen && <Box sx={styles.overlay} onClick={() => setSidebarOpen(false)} />}
 
@@ -550,28 +786,64 @@ const [expanded, setExpanded] = React.useState({});
       <Box
   sx={{
     display: 'flex',
-    justifyContent: 'space-between', // Maintain spacing
+    justifyContent: 'space-between', // Ensure space between search bar and the rest
     alignItems: 'center',           // Align items vertically in the center
     marginBottom: '20px',
     marginTop: '20px',
     marginLeft: '150px',
-    marginRight: '60px',           // Consistent spacing on the right
+    marginRight: '60px',           // Add margin to the right for consistent spacing
   }}
 >
-  {/* Placeholder for the search bar space */}
-  <Box sx={{ width: '30%' }}></Box>
+  {/* Search Bar */}
+  <TextField
+    label="Search"
+    variant="outlined"
+    value={searchQuery}
+    onChange={handleSearchChange}
+    sx={{
+      width: '30%',
+      '& .MuiOutlinedInput-root': {
+        '& fieldset': {
+          borderColor: '#192959', // Default outline color
+          borderWidth: '2px',
+        },
+        '&:hover fieldset': {
+          borderColor: '#192959', // Hover outline color
+          borderWidth: '2.5px',
+        },
+        '&.Mui-focused fieldset': {
+          borderColor: '#192959', // Focused outline color
+          borderWidth: '2.5px',
+        },
+      },
+      '& .MuiInputLabel-root': {
+        color: '#192959', // Label color
+        fontSize: '18px',
+      },
+    }}
+    InputProps={{
+      startAdornment: (
+        <Box sx={{ display: 'flex', alignItems: 'center', color: '#192959', paddingLeft: '5px' }}>
+          <SearchIcon />
+        </Box>
+      ),
+    }}
+  />
 
   {/* Sort Dropdown and Filter Icon */}
-  <Box sx={{ display: 'flex', alignItems: 'right', gap: '10px', marginLeft: '100px' }}>
-    {/* Currency Dropdown */}
-    <TextField
+  <Box sx={{ display: 'flex', alignItems: 'right', gap: '10px', marginLeft: '100px'}}>
+    {/* <TextField
       select
-      label="Currency"
-      value={currency}
-      onChange={(e) => setCurrency(e.target.value)}
+      label={
+        <Box sx={{ display: 'flex', alignItems: 'right', gap: '8px' }}>
+          Sort By
+        </Box>
+      }
       variant="outlined"
+      value={sortOption}
+      onChange={handleSortChange}
       sx={{
-        width: '150px',
+        width: '80%',
         '& .MuiOutlinedInput-root': {
           '& fieldset': {
             borderColor: '#192959', // Default border color
@@ -601,17 +873,66 @@ const [expanded, setExpanded] = React.useState({});
               paddingLeft: '5px',
             }}
           >
-            <LanguageIcon />
+            <SwapVertIcon />
           </Box>
         ),
       }}
     >
-      <MenuItem value="EGP">EGP</MenuItem>
-      <MenuItem value="USD">USD</MenuItem>
-      <MenuItem value="EUR">EUR</MenuItem>
-      <MenuItem value="GBP">GBP</MenuItem>
-      <MenuItem value="JPY">JPY</MenuItem>
-    </TextField>
+      <MenuItem value="priceAsc">Price: Low to High</MenuItem>
+      <MenuItem value="priceDesc">Price: High to Low</MenuItem>
+      <MenuItem value="ratingAsc">Rating: Low to High</MenuItem>
+      <MenuItem value="ratingDesc">Rating: High to Low</MenuItem>
+    </TextField> */}
+
+    <TextField
+  select
+  label="Currency"
+  value={currency}
+  onChange={(e) => setCurrency(e.target.value)}
+  variant="outlined"
+  sx={{
+    width: '150px',
+    '& .MuiOutlinedInput-root': {
+      '& fieldset': {
+        borderColor: '#192959', // Default border color
+        borderWidth: '2px',
+      },
+      '&:hover fieldset': {
+        borderColor: '#33416b', // Hover border color
+        borderWidth: '2.5px',
+      },
+      '&.Mui-focused fieldset': {
+        borderColor: '#192959', // Focused border color
+        borderWidth: '2.5px',
+      },
+    },
+    '& .MuiInputLabel-root': {
+      color: '#192959', // Label color
+      fontSize: '18px',
+    },
+  }}
+  InputProps={{
+    startAdornment: (
+      <Box
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          color: '#192959',
+          paddingLeft: '5px',
+        }}
+      >
+        <LanguageIcon />
+      </Box>
+    ),
+  }}
+>
+  <MenuItem value="EGP">EGP </MenuItem>
+  <MenuItem value="USD">USD </MenuItem>
+  <MenuItem value="EUR">EUR </MenuItem>
+  <MenuItem value="GBP">GBP </MenuItem>
+  <MenuItem value="JPY">JPY </MenuItem>
+</TextField>
+
 
     {/* Filter Icon */}
     <Tooltip title="Filter" placement="bottom" arrow>
@@ -632,12 +953,11 @@ const [expanded, setExpanded] = React.useState({});
 
 
 
-
       
 {/* Main Content Area with Historical Places */}
 <Box sx={styles.activitiesContainer}>
   {HPs.map((hp, index) => (
-    <Box key={index} sx={{ marginBottom: '20px' }}>
+    <Box key={index} ref={(el) => (refs.current[hp.name] = el)} sx={{ marginBottom: '20px' }}>
       <Box
         sx={{
           ...styles.activityCard,
@@ -724,11 +1044,12 @@ const [expanded, setExpanded] = React.useState({});
       {hp.dateOfEvent ? new Date(hp.dateOfEvent).toLocaleDateString() : 'N/A'}
     </Typography>
     <Box sx={{ ...styles.quickFacts, marginTop: '10px' /* Added spacing above quick facts */ }}>
-    <Box sx={{ ...styles.infoContainer, backgroundColor: '#b3b8c8'  }}>
+    <Box sx={{ ...styles.infoContainer, backgroundColor: '#f3f4f6'  }}>
                     <Typography variant="body2" sx={{ fontWeight: 'bold' }}>Tags:</Typography>
                     <Typography variant="body2">{hp.Tags.join(', ')}</Typography>
                   </Box>
     </Box>
+  
   </Box>
 
 {/* Divider */}
@@ -793,36 +1114,6 @@ const [expanded, setExpanded] = React.useState({});
         </Box>
 
 
-        <Button
-          variant="contained"
-          onClick={() => handleBookHistoricalPlace(hp.name)}
-          sx={{
-            position: 'absolute',
-            top: '60px',
-            right: '60px',
-            backgroundColor: '#192959',
-            color: '#fff',
-            '&:hover': { backgroundColor: '#33416b' },
-          }}
-        >
-          Book
-        </Button>
-        <Tooltip title="Share" arrow>
-          <IconButton
-            onClick={() => handleOpenShareModal(hp.name)}
-            sx={{
-              position: 'absolute',
-              top: '60px',
-              right: '140px',
-              color: '#192959',
-              '&:hover': { color: '#33416b' },
-            }}
-          >
-            <IosShareIcon />
-          </IconButton>
-        </Tooltip>
-
-
 
      </Box>
             <Box sx={styles.commentsSection}>
@@ -866,15 +1157,23 @@ const [expanded, setExpanded] = React.useState({});
       </Box>
 
       <Box sx={styles.activitiesContainer}>
-  {activities.length > 0 ? (
-    activities.map((activity, index) => (
-      <Box key={index} sx={{ marginBottom: '20px' }}>
-        {/* Your activity card code */}
+      {loading ? (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+        {/* Circular Progress for loading */}
+        <CircularProgress />
+      </Box>
+    ) : HPs.length > 0 ? (
+      HPs.map((product, index) => (
+      <Box key={index} sx={{ marginBottom: '40px' }}>
+        {/* Your product card code */}
       </Box>
     ))
   ) : (
-    <Typography variant="h6" sx={{ textAlign: 'center', color: '#192959', marginTop: '20px' }}>
-      
+    <Typography
+      variant="h6"
+      sx={{ textAlign: 'center', color: '#192959', marginTop: '20px' }}
+    >
+      No Historical Place events available
     </Typography>
   )}
 </Box>
@@ -1186,7 +1485,7 @@ const styles = {
   },
   activityRating: {
     position: 'absolute',
-    bottom: '60px',
+    bottom: '80px',
     right: '60px',
     display: 'flex',
     flexDirection: 'column',
@@ -1320,4 +1619,4 @@ const styles = {
   },
 };
 
-export default GuestHP;
+export default TouristUpcomingHP;

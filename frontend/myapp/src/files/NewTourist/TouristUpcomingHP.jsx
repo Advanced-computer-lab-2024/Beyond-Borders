@@ -1,5 +1,5 @@
 import React, { useState, useEffect,useRef } from 'react';
-import { Box, Button, Typography, Divider,IconButton,Tooltip, TextField, InputAdornment, Modal,MenuItem,Select,FormControl,InputLabel,} from '@mui/material';
+import { Box, Button, Typography, Divider,IconButton,Tooltip, CircularProgress,TextField, InputAdornment, Modal,MenuItem,Select,FormControl,InputLabel,} from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import MenuIcon from '@mui/icons-material/Menu';
 import NotificationsIcon from '@mui/icons-material/Notifications';
@@ -108,6 +108,7 @@ const [subscriptionStatus, setSubscriptionStatus] = useState({});
 const queryParams = new URLSearchParams(location.search);
 const initialSearchQuery = queryParams.get('search') || ''; 
 const [searchQuery, setSearchQuery] = useState(initialSearchQuery);
+const [loading, setLoading] = useState(true);
 
 const navigate = useNavigate();
   useEffect(() => {
@@ -256,6 +257,8 @@ const navigate = useNavigate();
   
   
   const fetchHistoricalPlaces = async () => {
+    setLoading(true); // Set loading to true before starting the fetch
+
     try {
       const response = await axios.get("/api/ViewAllUpcomingHistoricalPlacesEventsTourist");
       const fetchedHistoricalPlaces = response.data;
@@ -271,6 +274,8 @@ const navigate = useNavigate();
       setHPs(fetchedHistoricalPlaces); // Set historical places state
     } catch (error) {
       console.error("Error fetching historical places:", error);
+    }finally {
+      setLoading(false); // Set loading to false after the fetch
     }
   };
   
@@ -1646,15 +1651,23 @@ const navigate = useNavigate();
       </Box>
 
       <Box sx={styles.activitiesContainer}>
-  {activities.length > 0 ? (
-    activities.map((activity, index) => (
-      <Box key={index} sx={{ marginBottom: '20px' }}>
-        {/* Your activity card code */}
+      {loading ? (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+        {/* Circular Progress for loading */}
+        <CircularProgress />
+      </Box>
+    ) : HPs.length > 0 ? (
+      HPs.map((product, index) => (
+      <Box key={index} sx={{ marginBottom: '40px' }}>
+        {/* Your product card code */}
       </Box>
     ))
   ) : (
-    <Typography variant="h6" sx={{ textAlign: 'center', color: '#192959', marginTop: '20px' }}>
-      
+    <Typography
+      variant="h6"
+      sx={{ textAlign: 'center', color: '#192959', marginTop: '20px' }}
+    >
+      No Historical Place events available
     </Typography>
   )}
 </Box>
