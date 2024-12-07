@@ -1,5 +1,5 @@
 import React, { useState, useEffect,useRef } from 'react';
-import { Box, Button, Typography, IconButton,Tooltip,Divider,TextField, InputAdornment, Modal,MenuItem,Select,FormControl,InputLabel,} from '@mui/material';
+import { Box, Button, Typography, IconButton,Tooltip,Divider,TextField, CircularProgress, InputAdornment, Modal,MenuItem,Select,FormControl,InputLabel,} from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import MenuIcon from '@mui/icons-material/Menu';
 import NotificationsIcon from '@mui/icons-material/Notifications';
@@ -69,7 +69,7 @@ function TouristUpcomingItineraries() {
   const [productsOpen, setProductsOpen] = useState(false);
   const [complaintsOpen, setComplaintsOpen] = useState(false);
   //search bar
-  const [searchQuery, setSearchQuery] = useState(''); // Search query state
+  //const [searchQuery, setSearchQuery] = useState(''); // Search query state
   //filter activities
   const [filterModalOpen, setFilterModalOpen] = useState(false);
   const [filterInputs, setFilterInputs] = useState({
@@ -93,11 +93,17 @@ const [expanded, setExpanded] = useState(false);
 const [bookmarkStatuses, setBookmarkStatuses] = useState({});
 
 const [subscriptionStatus, setSubscriptionStatus] = useState({});
+const [loading, setLoading] = useState(true);
+
 
 const location = useLocation();
   const query = new URLSearchParams(location.search);
   const targetName = query.get("Title");
   const refs = useRef({});
+  const queryParams = new URLSearchParams(location.search);
+const initialSearchQuery = queryParams.get('search') || '';
+const [searchQuery, setSearchQuery] = useState(initialSearchQuery); // Search query state
+
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -130,6 +136,13 @@ const location = useLocation();
     // Cleanup event listener on component unmount
     return () => window.removeEventListener('scroll', handleScroll);
   }, [searchQuery]); // Depend on `searchQuery` to refetch activities when it changes
+
+  useEffect(() => {
+    // Trigger search logic if the search query exists
+    if (initialSearchQuery) {
+      searchItineraries(initialSearchQuery);
+    }
+  }, [initialSearchQuery]);
 
   useEffect(() => {
     if (targetName && refs.current[targetName]) {
@@ -205,6 +218,7 @@ const location = useLocation();
   
 
   const fetchItineraries = async () => {
+    setLoading(true); // Set loading to true before starting the fetch
     try {
       const response = await axios.get('/api/ViewAllUpcomingItinerariesTourist');
       const fetchedItineraries = response.data;
@@ -220,6 +234,9 @@ const location = useLocation();
       setActivities(fetchedItineraries); // Set activities state
     } catch (error) {
       console.error("Error fetching itineraries:", error);
+    }
+    finally {
+      setLoading(false); // Set loading to false after the fetch
     }
   };
   
@@ -1689,15 +1706,20 @@ const location = useLocation();
       </Box>
 
       <Box sx={styles.activitiesContainer}>
-  {activities.length > 0 ? (
-    activities.map((activity, index) => (
-      <Box key={index} sx={{ marginBottom: '20px' }}>
-        {/* Your activity card code */}
+      {loading ? (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+        {/* Circular Progress for loading */}
+        <CircularProgress />
+      </Box>
+    ) : activities.length > 0 ? (
+      activities.map((activity, index) => (
+      <Box key={index} sx={{ marginBottom: '40px' }}>
+        {/* Your product card code */}
       </Box>
     ))
   ) : (
     <Typography variant="h6" sx={{ textAlign: 'center', color: '#192959', marginTop: '20px' }}>
-      No Activities Found Matching Your Criteria.
+      No Itineraries Found Matching Your Criteria.
     </Typography>
   )}
 </Box>
