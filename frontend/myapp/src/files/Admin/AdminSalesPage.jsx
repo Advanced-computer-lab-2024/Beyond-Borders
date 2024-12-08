@@ -1050,100 +1050,177 @@ return (
   </Box>
 
   {/* Table for Admin Products */}
-  <Box
-    sx={{
-      backgroundColor: '#ffffff',
-      borderRadius: '8px',
-      padding: '15px',
-      marginTop: '30px', // Slightly reduced margin to move the table up
-      width: '98%', // Increased table width
-      maxWidth: '1700px', // Match the combined width of the charts
-      boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.1)',
-    }}
-  >
-    <Typography variant="h6" sx={{ marginBottom: '10px', color: '#192959' }}>
-      Filtered Admin Products
-    </Typography>
+<Box
+  sx={{
+    backgroundColor: '#ffffff',
+    borderRadius: '8px',
+    padding: '15px',
+    marginTop: '30px', // Slightly reduced margin to move the table up
+    width: '98%', // Increased table width
+    maxWidth: '1700px', // Match the combined width of the charts
+    boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.1)',
+  }}
+>
+  <Typography variant="h6" sx={{ marginBottom: '10px', color: '#192959' }}>
+    Filtered Admin Products
+  </Typography>
 
-    {/* Filter Controls */}
-    <Box sx={{ display: 'flex', gap: '15px', marginBottom: '15px' }}>
-      <TextField
-        label="Product Name"
-        variant="outlined"
-        size="small"
-        value={adminProductFilters.name}
-        onChange={(e) => setAdminProductFilters({ ...adminProductFilters, name: e.target.value })}
-      />
-      <TextField
-        label="Order Date"
-        type="date"
-        variant="outlined"
-        size="small"
-        value={adminProductFilters.date}
-        onChange={(e) => setAdminProductFilters({ ...adminProductFilters, date: e.target.value })}
-        InputLabelProps={{ shrink: true }}
-      />
-      <TextField
-        label="Month"
-        type="number"
-        variant="outlined"
-        size="small"
-        value={adminProductFilters.month}
-        onChange={(e) => setAdminProductFilters({ ...adminProductFilters, month: e.target.value })}
-        InputProps={{ inputProps: { min: 1, max: 12 } }}
-      />
-      <Button variant="contained" color="primary" onClick={fetchAdminFilteredProducts}>
-        Apply Filters
-      </Button>
-    </Box>
+  {/* Filter Controls */}
+  <Box sx={{ display: 'flex', gap: '15px', marginBottom: '15px' }}>
+    <TextField
+      label="Product Name"
+      variant="outlined"
+      size="small"
+      value={adminProductFilters.name}
+      onChange={(e) => setAdminProductFilters({ ...adminProductFilters, name: e.target.value })}
+    />
+    <TextField
+      label="Order Date"
+      type="date"
+      variant="outlined"
+      size="small"
+      value={adminProductFilters.date}
+      onChange={(e) => setAdminProductFilters({ ...adminProductFilters, date: e.target.value })}
+      InputLabelProps={{ shrink: true }}
+    />
+    <TextField
+      label="Month"
+      type="number"
+      variant="outlined"
+      size="small"
+      value={adminProductFilters.month}
+      onChange={(e) => setAdminProductFilters({ ...adminProductFilters, month: e.target.value })}
+      InputProps={{ inputProps: { min: 1, max: 12 } }}
+    />
+    <Button variant="contained" color="primary" onClick={fetchAdminFilteredProducts}>
+      Apply Filters
+    </Button>
+  </Box>
 
-    {/* Table */}
-    {loadingAdminProducts ? (
-      <Typography>Loading products...</Typography>
-    ) : filteredAdminProducts.length > 0 ? (
-      <Box sx={{ overflowX: 'auto', overflowY: 'scroll', maxHeight: '250px' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-          <thead>
-            <tr style={{ backgroundColor: '#192959', color: '#ffffff' }}>
-              <th style={{ padding: '10px', border: '1px solid #cccccc', color: '#ffffff' }}>Product Name</th>
-              <th style={{ padding: '10px', border: '1px solid #cccccc', color: '#ffffff' }}>Quantity</th>
-              <th style={{ padding: '10px', border: '1px solid #cccccc', color: '#ffffff' }}>Price</th>
-              <th style={{ padding: '10px', border: '1px solid #cccccc', color: '#ffffff' }}>Order Date</th>
-              <th style={{ padding: '10px', border: '1px solid #cccccc', color: '#ffffff' }}>Revenue</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredAdminProducts.map((product, index) => (
-              <tr key={index} style={{ backgroundColor: index % 2 === 0 ? '#f3f4f6' : '#ffffff' }}>
-                <td style={{ padding: '10px', border: '1px solid #cccccc', color: '#333333' }}>{product.productName}</td>
-                <td style={{ padding: '10px', border: '1px solid #cccccc', color: '#333333' }}>{product.quantity}</td>
-                <td style={{ padding: '10px', border: '1px solid #cccccc', color: '#333333' }}>${product.price}</td>
-                <td style={{ padding: '10px', border: '1px solid #cccccc', color: '#333333' }}>
-                  {new Date(product.orderDate).toLocaleDateString()}
-                </td>
-                <td style={{ padding: '10px', border: '1px solid #cccccc', color: '#333333' }}>${product.revenue}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </Box>
-    ) : (
-      <Typography>{filterErrorAdminProducts || 'No filtered products available.'}</Typography>
-    )}
-
-    {/* Total Revenue */}
-    <Typography
-      variant="h6"
+  {/* Table */}
+  {loadingAdminProducts ? (
+    <Typography>Loading products...</Typography>
+  ) : filteredAdminProducts.length > 0 ? (
+    <Box
       sx={{
-        marginTop: '15px',
-        fontWeight: 'bold',
-        color: '#192959',
-        textAlign: 'center',
+        overflowX: 'auto',
+        overflowY: 'scroll',
+        maxHeight: '160px', // Set the max height for the scroll area
       }}
     >
-      Total Revenue: ${parseFloat(totalAdminRevenue || 0).toFixed(2)}
-    </Typography>
-  </Box>
+      <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+        <thead>
+          <tr style={{ backgroundColor: '#192959', color: '#ffffff' }}>
+            <th
+              style={{
+                padding: '10px',
+                border: '1px solid #cccccc',
+                color: '#ffffff',
+                position: 'sticky', // Makes header sticky
+                top: 0, // Stick to the top
+                backgroundColor: '#192959', // Ensure the header has a background
+                zIndex: 1, // Ensure it stays above the rows
+              }}
+            >
+              Product Name
+            </th>
+            <th
+              style={{
+                padding: '10px',
+                border: '1px solid #cccccc',
+                color: '#ffffff',
+                position: 'sticky',
+                top: 0,
+                backgroundColor: '#192959',
+                zIndex: 1,
+              }}
+            >
+              Quantity
+            </th>
+            <th
+              style={{
+                padding: '10px',
+                border: '1px solid #cccccc',
+                color: '#ffffff',
+                position: 'sticky',
+                top: 0,
+                backgroundColor: '#192959',
+                zIndex: 1,
+              }}
+            >
+              Price
+            </th>
+            <th
+              style={{
+                padding: '10px',
+                border: '1px solid #cccccc',
+                color: '#ffffff',
+                position: 'sticky',
+                top: 0,
+                backgroundColor: '#192959',
+                zIndex: 1,
+              }}
+            >
+              Order Date
+            </th>
+            <th
+              style={{
+                padding: '10px',
+                border: '1px solid #cccccc',
+                color: '#ffffff',
+                position: 'sticky',
+                top: 0,
+                backgroundColor: '#192959',
+                zIndex: 1,
+              }}
+            >
+              Revenue
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          {filteredAdminProducts.map((product, index) => (
+            <tr
+              key={index}
+              style={{ backgroundColor: index % 2 === 0 ? '#f3f4f6' : '#ffffff' }}
+            >
+              <td style={{ padding: '10px', border: '1px solid #cccccc', color: '#333333' }}>
+                {product.productName}
+              </td>
+              <td style={{ padding: '10px', border: '1px solid #cccccc', color: '#333333' }}>
+                {product.quantity}
+              </td>
+              <td style={{ padding: '10px', border: '1px solid #cccccc', color: '#333333' }}>
+                ${product.price}
+              </td>
+              <td style={{ padding: '10px', border: '1px solid #cccccc', color: '#333333' }}>
+                {new Date(product.orderDate).toLocaleDateString()}
+              </td>
+              <td style={{ padding: '10px', border: '1px solid #cccccc', color: '#333333' }}>
+                ${product.revenue}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </Box>
+  ) : (
+    <Typography>{filterErrorAdminProducts || 'No filtered products available.'}</Typography>
+  )}
+
+  {/* Total Revenue */}
+  <Typography
+    variant="h6"
+    sx={{
+      marginTop: '15px',
+      fontWeight: 'bold',
+      color: '#192959',
+      textAlign: 'center',
+    }}
+  >
+    Total Revenue: ${parseFloat(totalAdminRevenue || 0).toFixed(2)}
+  </Typography>
+</Box>
 </Box>
 
 

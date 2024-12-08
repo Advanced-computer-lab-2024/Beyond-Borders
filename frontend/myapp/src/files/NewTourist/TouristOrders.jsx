@@ -109,6 +109,8 @@ const [selectedOrder, setSelectedOrder] = useState(null);
 const [isModalOpen, setIsModalOpen] = useState(false);
 const [selectedOrderProducts, setSelectedOrderProducts] = useState([]);
 const [loading, setLoading] = useState(true);
+const [flightsOpen, setFlightsOpen] = useState(false); // Manage the dropdown state for Flights
+const [hotelsOpen, setHotelsOpen] = useState(false); // Manage the dropdown state for Hotels
 
   const navigate = useNavigate();
 
@@ -163,7 +165,7 @@ const [loading, setLoading] = useState(true);
   const convertActivityPrices = async () => {
     const newConvertedPrices = {};
     await Promise.all(
-      currentOrders.map(async (order) => {
+      [...currentOrders, ...pastOrders].map(async (order) => {
         // Loop through productsPurchased array in each order
         await Promise.all(
           order.productsPurchased.map(async (product) => {
@@ -189,6 +191,7 @@ const [loading, setLoading] = useState(true);
     // Update the state with the converted prices
     setConvertedPrices(newConvertedPrices);
   };
+  
   
   
   
@@ -336,6 +339,7 @@ const [loading, setLoading] = useState(true);
 
 
 const fetchOrders = async () => {
+  setLoading(true); // Set loading to true before starting the fetch
     try {
       const username = localStorage.getItem('username'); // Retrieve the logged-in username
   
@@ -373,6 +377,9 @@ const fetchOrders = async () => {
       setPastOrders(detailedPastOrders);
     } catch (error) {
       console.error('Error fetching orders:', error);
+    }
+    finally {
+      setLoading(false); // Set loading to false after the fetch
     }
   };
   
@@ -820,6 +827,7 @@ const fetchOrders = async () => {
                 width: '40px', // Ensure square icon button
                 height: '40px',
                 }}
+                onClick={() => navigate('/')}
             >
     <LogoutIcon />
   </IconButton>
@@ -828,7 +836,7 @@ const fetchOrders = async () => {
       </Box>
 
       {/* Collapsible Sidebar */}
-      <Box
+   <Box
         sx={{
           ...styles.sidebar,
           width: sidebarOpen ? '280px' : '60px',
@@ -836,24 +844,128 @@ const fetchOrders = async () => {
         onMouseEnter={() => setSidebarOpen(true)}
         onMouseLeave={() => setSidebarOpen(false)}
       >
-        <Button onClick={() => navigate('/TouristFlights')} sx={styles.sidebarButton}>
-          <FlightIcon sx={styles.icon} />
-          {sidebarOpen && 'Flights'}
-        </Button>
-        <Button onClick={() => navigate('/TouristHotels')} sx={styles.sidebarButton}>
-          <BedIcon sx={styles.icon} />
-          {sidebarOpen && 'Hotels'}
-        </Button>
+        <Box>
+  {/* Flights Button */}
+  <Button
+    onClick={() => setFlightsOpen(!flightsOpen)} // Toggle dropdown for flights
+    sx={styles.sidebarButton}
+  >
+    <FlightIcon sx={styles.icon} /> {/* Flights Icon */}
+    {sidebarOpen && (
+      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+        Flights
+        {flightsOpen ? (
+          <KeyboardArrowUpIcon sx={{ fontSize: '18px', marginLeft: '5px' }} />
+        ) : (
+          <KeyboardArrowDownIcon sx={{ fontSize: '18px', marginLeft: '5px' }} />
+        )}
+      </Box>
+    )}
+  </Button>
+  
+  {/* Dropdown Menu */}
+  {flightsOpen && (
+    <Box sx={{ display: 'flex', flexDirection: 'column', marginLeft: sidebarOpen ? '20px' : '0px' }}>
+     
+      {/* Find Flights */}
+      <Button
+        onClick={() => navigate('/TouristFlights')}
+        sx={{
+          ...styles.sidebarButton,
+          fontSize: '14px',
+          paddingLeft: sidebarOpen ? '20px' : '10px',
+          padding: '5px 20px',
+        }}
+      >
+        <SearchIcon sx={{ fontSize: '18px', marginRight: '10px' }} /> {/* Icon for Find Flights */}
+        {sidebarOpen && 'Find Flights'}
+      </Button>
+       {/* Booked Flights */}
+       <Button
+        onClick={() => navigate('/TouristBookedFlights')}
+        sx={{
+          ...styles.sidebarButton,
+          fontSize: '14px',
+          paddingLeft: sidebarOpen ? '20px' : '10px',
+          padding: '5px 20px',
+        }}
+      >
+        <EventAvailableIcon sx={{ fontSize: '18px', marginRight: '10px' }} /> {/* Icon for Booked */}
+        {sidebarOpen && 'Booked'}
+      </Button>
+      
+    </Box>
+    
+  )}
+</Box>
 
-        <Button onClick={() => navigate('/TouristComplaints')} sx={styles.sidebarButton}>
-          <AssignmentIcon sx={styles.icon} />
-          {sidebarOpen && 'Complaints'}
-        </Button>
 
-        <Button onClick={() => navigate('/TouristOrders')} sx={styles.sidebarButton}>
-          <ShoppingBagIcon sx={styles.icon} />
-          {sidebarOpen && 'Orders'}
-        </Button>
+<Box>
+  {/* Hotels Dropdown */}
+  <Button
+    onClick={() => setHotelsOpen(!hotelsOpen)}
+    sx={styles.sidebarButton}
+  >
+    <BedIcon sx={styles.icon} />
+    {sidebarOpen && (
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          width: "100%",
+        }}
+      >
+        Hotels
+        {hotelsOpen ? (
+          <KeyboardArrowUpIcon sx={{ fontSize: "18px", marginLeft: "5px" }} />
+        ) : (
+          <KeyboardArrowDownIcon sx={{ fontSize: "18px", marginLeft: "5px" }} />
+        )}
+      </Box>
+    )}
+  </Button>
+  {hotelsOpen && (
+    <Box
+      sx={{
+        display: "flex",
+        flexDirection: "column",
+        marginLeft: sidebarOpen ? "20px" : "0px",
+      }}
+    >
+     
+      <Button
+        onClick={() => navigate("/TouristHotels")}
+        sx={{
+          ...styles.sidebarButton,
+          fontSize: "14px",
+          paddingLeft: sidebarOpen ? "20px" : "10px",
+          padding: "5px 20px",
+        }}
+      >
+        <SearchIcon sx={{ fontSize: "18px", marginRight: "10px" }} />
+        {sidebarOpen && "Find Hotels"}
+      </Button>
+      <Button
+        onClick={() => navigate("/TouristBookedHotels")}
+        sx={{
+          ...styles.sidebarButton,
+          fontSize: "14px",
+          paddingLeft: sidebarOpen ? "20px" : "10px",
+          padding: "5px 20px",
+        }}
+      >
+        <EventAvailableIcon sx={{ fontSize: "18px", marginRight: "10px" }} />
+        {sidebarOpen && "Reservations"}
+      </Button>
+    </Box>
+  )}
+</Box>
+
+
+      
+
+       
         <Box>
   <Button
     onClick={() => setProductsOpen(!productsOpen)} // Toggle dropdown for products
@@ -903,24 +1015,52 @@ const fetchOrders = async () => {
     </Box>
   )}
 </Box>
-        {/* Activities Dropdown */}
+
+         {/* Activities Dropdown */}
         <Box>
         <Button
-            onClick={() => setActivitiesOpen(!activitiesOpen)}
-            sx={styles.sidebarButton}
-        >
-            <LocalActivityIcon sx={styles.icon} />
-            {sidebarOpen && (
-            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
-                Activities
-                {activitiesOpen ? (
-                <KeyboardArrowUpIcon sx={{ fontSize: '18px', marginLeft: '5px' }} />
-                ) : (
-                <KeyboardArrowDownIcon sx={{ fontSize: '18px', marginLeft: '5px' }} />
-                )}
-            </Box>
-            )}
-        </Button>
+  onClick={async () => {
+    try {
+      // First, toggle the activities open/close state
+      setActivitiesOpen(!activitiesOpen);
+
+      // Get the username from localStorage
+      const username = localStorage.getItem('username');
+
+      if (!username) {
+        alert('User not logged in.');
+        return;
+      }
+
+      // Call the `addCompletedActivities` function via an API request
+      const response = await axios.put('/addCompletedActivities', { touristUsername: username });
+
+      if (response.status === 200) {
+        // Handle success, maybe show a success message or update local state
+        //alert('Completed activities updated successfully!');
+      } else {
+        //alert('Failed to update completed activities.');
+      }
+    } catch (error) {
+      console.error('Error updating completed activities:', error);
+      alert('An error occurred while updating completed activities.');
+    }
+  }}
+  sx={styles.sidebarButton}
+>
+  <LocalActivityIcon sx={styles.icon} />
+  {sidebarOpen && (
+    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+      Activities
+      {activitiesOpen ? (
+        <KeyboardArrowUpIcon sx={{ fontSize: '18px', marginLeft: '5px' }} />
+      ) : (
+        <KeyboardArrowDownIcon sx={{ fontSize: '18px', marginLeft: '5px' }} />
+      )}
+    </Box>
+  )}
+</Button>
+
         {activitiesOpen && (
             <Box sx={{ display: 'flex', flexDirection: 'column', marginLeft: sidebarOpen ? '20px' : '0px' }}>
             <Button
@@ -965,24 +1105,52 @@ const fetchOrders = async () => {
             </Box>
         )}
         </Box>
-               {/* Itineraries Dropdown */}
+
+       {/* Itineraries Dropdown */}
 <Box>
-  <Button
-    onClick={() => setItinerariesOpen(!itinerariesOpen)} // Toggle dropdown for itineraries
-    sx={styles.sidebarButton}
-  >
-    <MapIcon sx={styles.icon} />
-    {sidebarOpen && (
-      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
-        Itineraries
-        {itinerariesOpen ? (
-          <KeyboardArrowUpIcon sx={{ fontSize: '18px', marginLeft: '5px' }} />
-        ) : (
-          <KeyboardArrowDownIcon sx={{ fontSize: '18px', marginLeft: '5px' }} />
-        )}
-      </Box>
-    )}
-  </Button>
+<Button
+  onClick={async () => {
+    try {
+      // Toggle the itineraries dropdown open/close
+      setItinerariesOpen(!itinerariesOpen);
+
+      // Get the username from localStorage
+      const username = localStorage.getItem('username');
+
+      if (!username) {
+        alert('User not logged in.');
+        return;
+      }
+
+      // Call the `addCompletedItinerary` function via an API request
+      const response = await axios.put('/addCompletedItinerary', { touristUsername: username });
+
+      if (response.status === 200) {
+        // Handle success, maybe show a success message or update local state
+        //alert('Completed itineraries updated successfully!');
+      } else {
+        //alert('Failed to update completed itineraries.');
+      }
+    } catch (error) {
+      console.error('Error updating completed itineraries:', error);
+      alert('An error occurred while updating completed itineraries.');
+    }
+  }}
+  sx={styles.sidebarButton}
+>
+  <MapIcon sx={styles.icon} />
+  {sidebarOpen && (
+    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+      Itineraries
+      {itinerariesOpen ? (
+        <KeyboardArrowUpIcon sx={{ fontSize: '18px', marginLeft: '5px' }} />
+      ) : (
+        <KeyboardArrowDownIcon sx={{ fontSize: '18px', marginLeft: '5px' }} />
+      )}
+    </Box>
+  )}
+</Button>
+
   {itinerariesOpen && (
     <Box sx={{ display: 'flex', flexDirection: 'column', marginLeft: sidebarOpen ? '20px' : '0px' }}>
       <Button
@@ -1010,7 +1178,7 @@ const fetchOrders = async () => {
         {sidebarOpen && 'Completed '}
       </Button>
       <Button
-         onClick={() => navigate('TouristBookedItineraries')}
+        onClick={() => navigate('/TouristBookedItineraries')}
         sx={{
           ...styles.sidebarButton,
           fontSize: '14px',
@@ -1026,22 +1194,49 @@ const fetchOrders = async () => {
 </Box>
 {/* Historical Places Dropdown */}
 <Box>
-  <Button
-    onClick={() => setHistoricalPlacesOpen(!historicalPlacesOpen)} // Toggle dropdown for historical places
-    sx={styles.sidebarButton}
-  >
-    <ChurchIcon sx={styles.icon} />
-    {sidebarOpen && (
-      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
-        Historical Places
-        {historicalPlacesOpen ? (
-          <KeyboardArrowUpIcon sx={{ fontSize: '18px', marginLeft: '5px' }} />
-        ) : (
-          <KeyboardArrowDownIcon sx={{ fontSize: '18px', marginLeft: '5px' }} />
-        )}
-      </Box>
-    )}
-  </Button>
+<Button
+  onClick={async () => {
+    try {
+      // Toggle the historical places dropdown open/close
+      setHistoricalPlacesOpen(!historicalPlacesOpen);
+
+      // Get the username from localStorage
+      const username = localStorage.getItem('username');
+
+      if (!username) {
+        alert('User not logged in.');
+        return;
+      }
+
+      // Call the `addCompletedHPEvents` function via an API request
+      const response = await axios.put('/addCompletedHPEvents', { touristUsername: username });
+
+      if (response.status === 200) {
+        // Handle success, maybe show a success message or update local state
+        //alert('Historical Place events updated successfully!');
+      } else {
+        //alert('Failed to update historical place events.');
+      }
+    } catch (error) {
+      console.error('Error updating historical place events:', error);
+      alert('An error occurred while updating historical place events.');
+    }
+  }}
+  sx={styles.sidebarButton}
+>
+  <ChurchIcon sx={styles.icon} />
+  {sidebarOpen && (
+    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+      Historical Places
+      {historicalPlacesOpen ? (
+        <KeyboardArrowUpIcon sx={{ fontSize: '18px', marginLeft: '5px' }} />
+      ) : (
+        <KeyboardArrowDownIcon sx={{ fontSize: '18px', marginLeft: '5px' }} />
+      )}
+    </Box>
+  )}
+</Button>
+
   {historicalPlacesOpen && (
     <Box sx={{ display: 'flex', flexDirection: 'column', marginLeft: sidebarOpen ? '20px' : '0px' }}>
       <Button
@@ -1069,7 +1264,7 @@ const fetchOrders = async () => {
         {sidebarOpen && 'Visited '}
       </Button>
       <Button
-         onClick={() => navigate('/TouristBookedHP')}
+        onClick={() => navigate('/TouristBookedHP')}
         sx={{
           ...styles.sidebarButton,
           fontSize: '14px',
@@ -1080,26 +1275,56 @@ const fetchOrders = async () => {
         <EventAvailableIcon sx={{ fontSize: '18px', marginRight: '10px' }} />
         {sidebarOpen && 'Booked '}
       </Button>
+      
     </Box>
   )}
 </Box>
+
+
 <Box>
-  <Button
-    onClick={() => setMuseumsOpen(!museumsOpen)} // Toggle dropdown for museums
-    sx={styles.sidebarButton}
-  >
-    <AccountBalanceIcon sx={styles.icon} /> {/* Suitable icon for Museums */}
-    {sidebarOpen && (
-      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
-        Museums
-        {museumsOpen ? (
-          <KeyboardArrowUpIcon sx={{ fontSize: '18px', marginLeft: '5px' }} />
-        ) : (
-          <KeyboardArrowDownIcon sx={{ fontSize: '18px', marginLeft: '5px' }} />
-        )}
-      </Box>
-    )}
-  </Button>
+<Button
+  onClick={async () => {
+    try {
+      // Toggle the museums dropdown open/close
+      setMuseumsOpen(!museumsOpen);
+
+      // Get the username from localStorage
+      const username = localStorage.getItem('username');
+
+      if (!username) {
+        alert('User not logged in.');
+        return;
+      }
+
+      // Call the `addCompletedMuseumEvents` function via an API request
+      const response = await axios.put('/addCompletedMuseumEvents', { touristUsername: username });
+
+      if (response.status === 200) {
+        // Handle success, maybe show a success message or update local state
+        //alert('Museum events updated successfully!');
+      } else {
+        //alert('Failed to update museum events.');
+      }
+    } catch (error) {
+      console.error('Error updating museum events:', error);
+      alert('An error occurred while updating museum events.');
+    }
+  }}
+  sx={styles.sidebarButton}
+>
+  <AccountBalanceIcon sx={styles.icon} /> {/* Suitable icon for Museums */}
+  {sidebarOpen && (
+    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+      Museums
+      {museumsOpen ? (
+        <KeyboardArrowUpIcon sx={{ fontSize: '18px', marginLeft: '5px' }} />
+      ) : (
+        <KeyboardArrowDownIcon sx={{ fontSize: '18px', marginLeft: '5px' }} />
+      )}
+    </Box>
+  )}
+</Button>
+
   {museumsOpen && (
     <Box sx={{ display: 'flex', flexDirection: 'column', marginLeft: sidebarOpen ? '20px' : '0px' }}>
       {/* Upcoming Museums */}
@@ -1146,6 +1371,9 @@ const fetchOrders = async () => {
     </Box>
   )}
 </Box>
+
+
+
 <Box>
   <Button
     onClick={() => setTransportationOpen(!transportationOpen)} // Toggle dropdown for transportation
@@ -1181,7 +1409,7 @@ const fetchOrders = async () => {
       
       {/* Booked Transportation */}
       <Button
-       onClick={() => navigate('/TouristBookedTransportation')}
+        onClick={() => navigate('/TouristBookedTransportation')}
         sx={{
           ...styles.sidebarButton,
           fontSize: '14px',
@@ -1193,16 +1421,43 @@ const fetchOrders = async () => {
         {sidebarOpen && 'Booked '}
       </Button>
     </Box>
+    
   )}
 </Box>
-<Box>
-  
-  <Button onClick={() => navigate('/NewTouristHomePage')} sx={styles.sidebarButton}>
+<Button onClick={() => navigate('/TouristComplaints')} sx={styles.sidebarButton}>
+          <AssignmentIcon sx={styles.icon} />
+          {sidebarOpen && 'Complaints'}
+        </Button>
+        <Button onClick={() => navigate('/TouristSavedEvents')} sx={styles.sidebarButton}>
+          <BookmarkIcon sx={styles.icon} />
+          {sidebarOpen && 'Saved Events'}
+        </Button>
+
+        <Button
+  onClick={async () => {
+    try {
+      // Call the markOrdersAsDelivered function via an API request
+      await axios.put('/markOrdersAsDelivered'); // Assuming your API route is '/markOrdersAsDelivered'
+      
+      // Navigate to the orders page after successfully marking orders as delivered
+      navigate('/TouristOrders');
+    } catch (error) {
+      console.error('Error marking orders as delivered:', error);
+      alert('Failed to update orders. Please try again.');
+    }
+  }}
+  sx={styles.sidebarButton}
+>
+  <ShoppingBagIcon sx={styles.icon} />
+  {sidebarOpen && 'Orders'}
+</Button>
+<Button onClick={() => navigate('/NewTouristHomePage')} sx={styles.sidebarButton}>
           <DashboardIcon sx={styles.icon} />
           {sidebarOpen && 'Back to Dashboard'}
         </Button>
+
+
 </Box>
-      </Box>
 
 
 
@@ -1281,7 +1536,13 @@ const fetchOrders = async () => {
   <Typography variant="h5" sx={{ fontWeight: 'bold', marginBottom: '20px' }}>
     Current Orders
   </Typography>
-  {currentOrders.length > 0 ? (
+  
+  {loading ? (
+    // Show loader while fetching orders
+    <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '50vh' }}>
+      <CircularProgress />
+    </Box>
+  ) :currentOrders.length > 0 ? (
     currentOrders.map((order, index) => (
       <Box
         key={index}
@@ -1332,7 +1593,6 @@ const fetchOrders = async () => {
   <LocalShippingIcon fontSize="small" sx={{ mr: 1 }} />
   {order.orderStatus}
 </Typography>
-
 
 
 
@@ -1451,9 +1711,12 @@ const fetchOrders = async () => {
               {/* Product Quantity */}
               <Typography variant="body2">{product.quantity}</Typography>
               {/* Product Total */}
-              <Typography variant="body2">
-                {product.price * product.quantity} EGP
-              </Typography>
+<Typography variant="body2">
+  {currency === 'EGP'
+    ? `${product.price * product.quantity} EGP`
+    : `${((convertedPrices[product._id] || 0) * product.quantity).toFixed(2)} ${currency}`}
+</Typography>
+
             </Box>
           ))}
         </Box>
@@ -1479,17 +1742,23 @@ const fetchOrders = async () => {
           </Typography>
 
           {/* Total Price */}
-          <Typography
-            variant="body2"
-            sx={{
-              fontWeight: 'bold',
-              fontSize: '18px',
-              marginTop: '5px',
-            }}
-          >
-            Total Price: {order.productsPurchased.reduce((sum, product) => sum + product.price * product.quantity, 0)}{' '}
-            EGP
-          </Typography>
+<Typography
+  variant="body2"
+  sx={{
+    fontWeight: 'bold',
+    fontSize: '18px',
+    marginTop: '5px',
+  }}
+>
+  Total Price: 
+  {currency === 'EGP'
+    ? `${order.productsPurchased.reduce((sum, product) => sum + product.price * product.quantity, 0)} EGP`
+    : `${order.productsPurchased.reduce(
+        (sum, product) => sum + (convertedPrices[product._id] || 0) * product.quantity,
+        0
+      ).toFixed(2)} ${currency}`}
+</Typography>
+
         </Box>
       </Box>
     ))
@@ -1530,7 +1799,12 @@ const fetchOrders = async () => {
   <Typography variant="h5" sx={{ fontWeight: 'bold', marginBottom: '20px' }}>
     Past Orders
   </Typography>
-  {pastOrders.length > 0 ? (
+  {loading ? (
+    // Show loader while fetching orders
+    <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '50vh' }}>
+      <CircularProgress />
+    </Box>
+  ) :pastOrders.length > 0 ? (
     pastOrders.map((order, index) => (
       <Box
         key={index}
@@ -1683,13 +1957,19 @@ const fetchOrders = async () => {
                 <Typography variant="body2">{product.productDetails?.Name || 'N/A'}</Typography>
               </Box>
               {/* Product Price */}
-              <Typography variant="body2">{product.price} EGP</Typography>
+              <Typography variant="body2">
+              {currency === 'EGP'
+                ? `${product.price} EGP`
+                : `${convertedPrices[product._id] || 'Loading...'} ${currency}`}
+            </Typography>
               {/* Product Quantity */}
               <Typography variant="body2">{product.quantity}</Typography>
               {/* Product Total */}
               <Typography variant="body2">
-                {product.price * product.quantity} EGP
-              </Typography>
+  {currency === 'EGP'
+    ? `${product.price * product.quantity} EGP`
+    : `${((convertedPrices[product._id] || 0) * product.quantity).toFixed(2)} ${currency}`}
+</Typography>
             </Box>
           ))}
         </Box>
@@ -1716,16 +1996,22 @@ const fetchOrders = async () => {
 
           {/* Total Price */}
           <Typography
-            variant="body2"
-            sx={{
-              fontWeight: 'bold',
-              fontSize: '18px',
-              marginTop: '5px',
-            }}
-          >
-            Total Price: {order.productsPurchased.reduce((sum, product) => sum + product.price * product.quantity, 0)}{' '}
-            EGP
-          </Typography>
+  variant="body2"
+  sx={{
+    fontWeight: 'bold',
+    fontSize: '18px',
+    marginTop: '5px',
+  }}
+>
+  Total Price: 
+  {currency === 'EGP'
+    ? `${order.productsPurchased.reduce((sum, product) => sum + product.price * product.quantity, 0)} EGP`
+    : `${order.productsPurchased.reduce(
+        (sum, product) => sum + (convertedPrices[product._id] || 0) * product.quantity,
+        0
+      ).toFixed(2)} ${currency}`}
+</Typography>
+
         </Box>
       </Box>
     ))
