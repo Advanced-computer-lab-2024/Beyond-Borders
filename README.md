@@ -45,3 +45,83 @@ Our code follows a clean and consistent coding style to ensure maintainability a
 ![Flights Page](src/screenshots/flights.PNG)
 #### Flights API Search Results
 ![Flights Page](src/screenshots/flights2.PNG)
+
+### Tech/Framework Used
+Below is the list of technologies and frameworks used in the Beyond-Borders project:
+
+- **Node.js**: Used for building the backend server and handling business logic.
+- **Express**: A Node.js framework for creating APIs and managing server-side routes.
+- **React**: Used for developing the frontend and creating interactive user interfaces.
+- **Mongoose**: For object data modeling (ODM) and interacting with the MongoDB database.
+- **MongoDB Compass**: GUI for querying and managing the MongoDB database.
+- **Postman**: For testing APIs during the development process.
+- **Git and GitHub**: For version control and project collaboration.
+
+This stack provides a robust and scalable foundation for the Beyond-Borders platform, enabling seamless integration of backend and frontend components.
+### How to Use
+
+Follow these steps to use the Beyond-Borders platform:
+#### Guest
+1. **Login as a Guest**:
+   - On the login page, select the **Continue as Guest** option.
+   - You will be redirected to the **Guest Homepage**.
+
+2. **Guest Homepage**:
+   - The homepage provides a top bar containing :
+     - **Register Now Button**:
+       - Click this button to go to the registration page.
+       - On the registration page, you can choose to register as one of the following:
+         - **Tourist**
+         - **Tour Guide**
+         - **Advertiser**
+         - **Transportation Advertiser**
+         - **Seller**
+
+3. **Navigation**:
+   - The platform includes a **side navigation bar** with buttons for the following features:
+     - **Activities**: Explore upcoming activities available.
+     - **Itineraries**: View upcoming itineraries.
+     - **Museums**: Discover upcoming museum events and exhibitions.
+     - **Historical Places**: Find and view details about upcoming events at historical landmarks.
+   - Click on any button to be redirected to the corresponding page for more information.
+
+The guest experience is designed to provide a preview of what the platform offers, while also encouraging registration for a more personalized and feature-rich experience.
+#### Tourist
+
+1. **Login**:
+   - Use your registered username and password to log in to the platform.
+   - If you forgot your password, click the **Forgot Password** button.
+   - An OTP will be sent to your registered email. Use it to reset your password.
+
+2. **Tourist Homepage**:
+   - After logging in, you will be redirected to the **Tourist Homepage**.
+   - The homepage features cards displaying activities, itineraries, and historical places.
+   - Click on any card to view more details and access the relevant page.
+
+3. **Navigation**:
+   - The platform includes a **side navigation bar** with buttons for the following features:
+     - **Flights**: View and book flights.
+     - **Hotels**: Browse and reserve accommodations.
+     - **Activities**: Explore and book upcoming activities.
+     - **Itineraries**: Access upcoming, completed, and saved itineraries.
+     - **Museums**: Discover and book museum events.
+     - **Historical Places**: Find and book visits to historical landmarks.
+     - **Products**: Browse and purchase products.
+     - **Transportation**: View and book transportation options.
+     - **Complaints**: File complaints or view submitted ones.
+     - **Saved Events**: Access events you’ve saved for later.
+     - **Orders**: View your product orders.
+
+4. **Top Bar**:
+   - The top bar contains the following features:
+     - **Profile Button**: View and update your profile details.
+     - **Notifications Bell**: Check notifications for updates and alerts.
+     - **Cart Icon**: Access your shopping cart to review or update your product selections.
+     - **Wishlist Icon**: View and manage your wishlist items.
+     - **Logout Button**: Log out of your account.
+
+5. **Bookings and Purchases**:
+   - You can view all your current and past bookings, including activities, itineraries, events, flights and hotel reservations.
+   - Book events, buy products, and explore various travel options seamlessly on the platform.
+
+
