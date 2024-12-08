@@ -2150,22 +2150,89 @@ const calculateTotalAppRevenue = async (req, res) => {
   }
 };
 
+// const notifyAdminOfOutOfStock = async (req, res) => {
+//   try {
+//     const products = await NewProduct.find({ Quantity: 0 });
+//     if (products.length === 0) {
+//       return res.status(200).json({ message: "No products out of stock." });
+//     }
+
+//     const admin = await NewAdminModel.findOne({ Username: "jj" }); // Replace with dynamic admin username if necessary
+//     if (!admin) {
+//       return res.status(404).json({ error: "Admin not found." });
+//     }
+
+//     const outOfStockMessages = products.map(
+//       (product) => `Product "${product.Name}" is out of stock.`
+//     );
+
+//     admin.Notifications.push(
+//       ...outOfStockMessages.map((msg) => ({
+//         NotificationText: msg,
+//       }))
+//     );
+
+//     await admin.save();
+
+//      // Send email notification
+//      const transporter = nodemailer.createTransport({
+//       service: "gmail",
+//       auth: {
+//         user: 'malook25062003@gmail.com', // Your email
+//         pass: 'sxvo feuu woie gpfn', // Your email password or app-specific password
+//       },
+//     });
+
+//     const emailContent = `
+//       <h1>Out-of-Stock Notification</h1>
+//       <p>The following products are out of stock:</p>
+//       <ul>
+//         ${outOfStockMessages.map((msg) => `<li>${msg}</li>`).join("")}
+//       </ul>
+//     `;
+
+//     await transporter.sendMail({
+//       from: "BeyondBorders@gmail.com", // Replace with your email
+//       to:  "malook25062003@gmail.com", // Assuming admin's email is stored in `Username`
+//       subject: "Out-of-Stock Products Notification",
+//       html: emailContent,
+//     });
+
+//     res.status(200).json({
+//       message: "Out-of-stock notifications sent to admin successfully.",
+//     });
+//   } catch (error) {
+//     console.error("Error notifying admin:", error);
+//     res.status(500).json({ error: "An error occurred." });
+//   }
+// };
+
 const notifyAdminOfOutOfStock = async (req, res) => {
   try {
+    // Fetch products with quantity 0 (out of stock)
     const products = await NewProduct.find({ Quantity: 0 });
     if (products.length === 0) {
       return res.status(200).json({ message: "No products out of stock." });
     }
 
-    const admin = await NewAdminModel.findOne({ Username: "jj" }); // Replace with dynamic admin username if necessary
+    // Get the admin username dynamically
+    const { adminUsername } = req.body; // Assuming the admin username is passed in the request body
+    if (!adminUsername) {
+      return res.status(400).json({ error: "Admin username is required." });
+    }
+
+    // Find the admin using the provided username
+    const admin = await NewAdminModel.findOne({ Username: adminUsername });
     if (!admin) {
       return res.status(404).json({ error: "Admin not found." });
     }
 
+    // Prepare out-of-stock messages
     const outOfStockMessages = products.map(
       (product) => `Product "${product.Name}" is out of stock.`
     );
 
+    // Add notifications to the admin's notifications array
     admin.Notifications.push(
       ...outOfStockMessages.map((msg) => ({
         NotificationText: msg,
@@ -2174,12 +2241,12 @@ const notifyAdminOfOutOfStock = async (req, res) => {
 
     await admin.save();
 
-     // Send email notification
-     const transporter = nodemailer.createTransport({
+    // Send email notification
+    const transporter = nodemailer.createTransport({
       service: "gmail",
       auth: {
-        user: 'malook25062003@gmail.com', // Your email
-        pass: 'sxvo feuu woie gpfn', // Your email password or app-specific password
+        user: "your-email@gmail.com", // Replace with your email
+        pass: "your-app-specific-password", // Replace with your email password or app-specific password
       },
     });
 
@@ -2193,7 +2260,7 @@ const notifyAdminOfOutOfStock = async (req, res) => {
 
     await transporter.sendMail({
       from: "BeyondBorders@gmail.com", // Replace with your email
-      to:  "malook25062003@gmail.com", // Assuming admin's email is stored in `Username`
+      to: admin.Email, // Use the admin's email from the database
       subject: "Out-of-Stock Products Notification",
       html: emailContent,
     });
@@ -2206,6 +2273,7 @@ const notifyAdminOfOutOfStock = async (req, res) => {
     res.status(500).json({ error: "An error occurred." });
   }
 };
+
 
 
 const allNotificationsReadAdmin = async (req, res) => {
