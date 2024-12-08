@@ -623,7 +623,7 @@ const allNotificationsReadSeller = async (req, res) => {
       return res.status(400).json({ error: "Username is required." });
     }
 
-    const seller = await NewAcceptedSeller.findOne({ Username: username });
+    const seller = await AcceptedSellerModel.findOne({ Username: username });
     if (!seller) {
       return res.status(404).json({ error: "Seller not found." });
     }
@@ -653,7 +653,7 @@ const areAllNotificationsReadSeller = async (req, res) => {
       return res.status(400).json({ error: "Username is required." });
     }
 
-    const seller = await NewAcceptedSeller.findOne({ Username: username }, "Notifications");
+    const seller = await AcceptedSellerModel.findOne({ Username: username }, "Notifications");
     if (!seller) {
       return res.status(404).json({ error: "Seller not found." });
     }
@@ -673,7 +673,7 @@ const getSellerNotifications = async (req, res) => {
       return res.status(400).json({ error: "Username is required." });
     }
 
-    const seller = await NewAcceptedSeller.findOne({ Username: username }, "Notifications");
+    const seller = await AcceptedSellerModel.findOne({ Username: username }, "Notifications");
     if (!seller) {
       return res.status(404).json({ error: "Seller not found." });
     }
