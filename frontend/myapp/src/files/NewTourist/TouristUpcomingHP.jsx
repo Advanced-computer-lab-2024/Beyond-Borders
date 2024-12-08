@@ -716,18 +716,7 @@ const navigate = useNavigate();
 </Box>
         </Box>
         <Box sx={styles.topMenuRight}>
-        <Button
-         sx={{
-         ...styles.menuButton,
-         '&:hover': {
-         backgroundColor: '#e6e7ed', // Background color on hover
-            color: '#192959',           // Text color on hover
-        },
-        }}
-        startIcon={<AccountCircleIcon />}
-        >
-        My Profile
-        </Button>
+      
        
         
 
@@ -744,6 +733,7 @@ const navigate = useNavigate();
                 width: '40px', // Ensure square icon button
                 height: '40px',
                 }}
+                onClick={() => navigate('/')}
             >
     <LogoutIcon />
   </IconButton>

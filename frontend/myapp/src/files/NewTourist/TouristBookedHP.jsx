@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Button, Typography, Dialog ,DialogContent ,DialogContentText, DialogActions ,Divider,IconButton,Tooltip, TextField, InputAdornment, Modal,MenuItem,Select,FormControl,InputLabel,} from '@mui/material';
+import { Box, Button, Typography, Dialog ,DialogContent ,DialogContentText, DialogActions ,Divider,IconButton,Tooltip, TextField, InputAdornment, Modal,MenuItem,Select,FormControl,InputLabel,CircularProgress} from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import MenuIcon from '@mui/icons-material/Menu';
 import NotificationsIcon from '@mui/icons-material/Notifications';
@@ -98,6 +98,7 @@ const navigate = useNavigate();
 const [flightsOpen, setFlightsOpen] = useState(false); // Manage the dropdown state for Flights
 const [hotelsOpen, setHotelsOpen] = useState(false); // Manage the dropdown state for Hotels
 const [expanded, setExpanded] = React.useState({});
+const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     // Function to handle fetching or searching activities
@@ -193,6 +194,7 @@ const [expanded, setExpanded] = React.useState({});
   
   const fetchHistoricalPlaces = async () => {
     const username = localStorage.getItem('username'); // Retrieve logged-in user's username
+    setLoading(true); // Set loading to true before starting the fetch
   
     if (!username) {
       console.error('User not logged in.');
@@ -206,6 +208,9 @@ const [expanded, setExpanded] = React.useState({});
       setHPs(response.data); // Set state with the booked historical places
     } catch (error) {
       console.error('Error fetching booked historical places:', error);
+    }
+    finally {
+      setLoading(false); // Set loading to false after the fetch
     }
   };
   
@@ -534,18 +539,7 @@ const [expanded, setExpanded] = React.useState({});
   />
 </Box>
         <Box sx={styles.topMenuRight}>
-        <Button
-         sx={{
-         ...styles.menuButton,
-         '&:hover': {
-         backgroundColor: '#e6e7ed', // Background color on hover
-            color: '#192959',           // Text color on hover
-        },
-        }}
-        startIcon={<AccountCircleIcon />}
-        >
-        My Profile
-        </Button>
+       
        
 <Tooltip title="Logout" arrow>
             <IconButton
@@ -560,6 +554,7 @@ const [expanded, setExpanded] = React.useState({});
                 width: '40px', // Ensure square icon button
                 height: '40px',
                 }}
+                onClick={() => navigate('/')}
             >
     <LogoutIcon />
   </IconButton>
@@ -1541,7 +1536,12 @@ const [expanded, setExpanded] = React.useState({});
       </Box>
 
       <Box sx={styles.activitiesContainer}>
-  {activities.length > 0 ? (
+      {loading ? (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+        {/* Circular Progress for loading */}
+        <CircularProgress />
+      </Box>
+    ) : activities.length > 0 ? (
     activities.map((activity, index) => (
       <Box key={index} sx={{ marginBottom: '20px' }}>
         {/* Your activity card code */}

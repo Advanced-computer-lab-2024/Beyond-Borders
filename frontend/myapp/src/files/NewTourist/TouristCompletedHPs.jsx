@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Button, Typography, Divider,IconButton,Tooltip, TextField, InputAdornment, Modal,MenuItem,Select,FormControl,InputLabel,} from '@mui/material';
+import { Box, Button, Typography, Divider,IconButton,Tooltip, TextField, InputAdornment, Modal,MenuItem,Select,FormControl,InputLabel,CircularProgress} from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import MenuIcon from '@mui/icons-material/Menu';
 import NotificationsIcon from '@mui/icons-material/Notifications';
@@ -101,6 +101,7 @@ function TouristCompletedHPs() {
  const [hotelsOpen, setHotelsOpen] = useState(false); // Manage the dropdown state for Hotels
   const navigate = useNavigate();
   const [expanded, setExpanded] = React.useState({});
+  const [loading, setLoading] = useState(true);
   
     useEffect(() => {
       // Function to handle fetching or searching activities
@@ -178,6 +179,7 @@ function TouristCompletedHPs() {
     
     
     const fetchHistoricalPlaces = async () => {
+      setLoading(true); // Set loading to true before starting the fetch
       try {
         const Username = localStorage.getItem('username');
         if (!Username) {
@@ -191,6 +193,9 @@ function TouristCompletedHPs() {
         setHPs(response.data);
       } catch (error) {
         console.error('Error fetching hps:', error);
+      }
+      finally {
+        setLoading(false); // Set loading to false after the fetch
       }
     };
   
@@ -645,18 +650,7 @@ function TouristCompletedHPs() {
   />
 </Box>
           <Box sx={styles.topMenuRight}>
-          <Button
-           sx={{
-           ...styles.menuButton,
-           '&:hover': {
-           backgroundColor: '#e6e7ed', // Background color on hover
-              color: '#192959',           // Text color on hover
-          },
-          }}
-          startIcon={<AccountCircleIcon />}
-          >
-          My Profile
-          </Button>
+         
         
           
   
@@ -673,6 +667,7 @@ function TouristCompletedHPs() {
                   width: '40px', // Ensure square icon button
                   height: '40px',
                   }}
+                  onClick={() => navigate('/')}
               >
       <LogoutIcon />
     </IconButton>
@@ -1670,7 +1665,12 @@ function TouristCompletedHPs() {
         </Box>
   
         <Box sx={styles.activitiesContainer}>
-    {activities.length > 0 ? (
+        {loading ? (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+        {/* Circular Progress for loading */}
+        <CircularProgress />
+      </Box>
+    ) : activities.length > 0 ? (
       activities.map((activity, index) => (
         <Box key={index} sx={{ marginBottom: '20px' }}>
           {/* Your activity card code */}
