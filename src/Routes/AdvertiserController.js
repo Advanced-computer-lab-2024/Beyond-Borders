@@ -8,6 +8,7 @@ const DeleteRequestsModel = require('../Models/DeleteRequests.js');
 
 const { default: mongoose } = require('mongoose');
 
+
 // const createAdvertiser = async(req,res) => {
 //         //Destructure Name, Email, Age from the request body
 //         const{Username,Email,Password,Website,Hotline,CompanyProfile} = req.body;
@@ -933,5 +934,77 @@ const calculateCurrentMonthRevenueForAdvertiser = async (req, res) => {
   }
 };
 
+const calculateRevenueForAdvertiser = async (req, res) => {
+  const { username, date, month } = req.query;
 
-      module.exports = {ReadAdvertiserProfile , updateAdvertiser, createNewActivity, readActivity, updateActivity, deleteActivity, getActivitiesByAuthor, loginAdvertiser, updateAdvertiserPassword, decrementLoginCountAdvertiser,requestDeleteAccountAdvertiser, allNotificationsRead, areAllNotificationsRead, getAdvertiserNotifications,calculateAdvertiserRevenue,getUsersWhoBookedActivity,getRevenueFromActivity,filterAdvertiserActivities,getTotalTouristsForAdvertiser,getTouristsByActivityAndMonth,getHighestRevenueActivity,calculateCurrentMonthRevenueForAdvertiser};
+  if (!username || (!date && !month)) {
+    return res.status(400).json({ error: 'Advertiser username and either date or month are required.' });
+  }
+
+  try {
+    // Step 1: Find all activities created by the advertiser
+    const activities = await ActivityModel.find({ AdvertiserName: username });
+
+    if (!activities.length) {
+      return res.status(404).json({ error: 'No activities found for this advertiser.' });
+    }
+
+    // Step 2: Prepare date filters based on input
+    let dateFilter = {};
+    if (date) {
+      const startOfDay = new Date(date);
+      startOfDay.setHours(0, 0, 0, 0); // Start of the day
+
+      const endOfDay = new Date(date);
+      endOfDay.setHours(23, 59, 59, 999); // End of the day
+
+      dateFilter = {
+        'BookedActivities.DateOfBooking': { $gte: startOfDay, $lte: endOfDay },
+      };
+    } else if (month) {
+      const year = new Date().getFullYear(); // Default to current year
+      const startOfMonth = new Date(year, month - 1, 1); // Start of the month
+      const endOfMonth = new Date(year, month, 0); // End of the month
+
+      dateFilter = {
+        'BookedActivities.DateOfBooking': { $gte: startOfMonth, $lte: endOfMonth },
+      };
+    }
+
+    // Step 3: Find all tourists who booked activities from this advertiser within the date range
+    const activityNames = activities.map(activity => activity.Name); // Get all activity names
+    const tourists = await TouristModel.find({
+      'BookedActivities.activityName': { $in: activityNames },
+      'BookedActivities.booked': true,
+      ...dateFilter,
+    });
+
+    // Step 4: Calculate total revenue
+    const revenue = tourists.reduce((total, tourist) => {
+      const bookings = tourist.BookedActivities.filter(
+        booking => activityNames.includes(booking.activityName) && booking.booked
+      );
+
+      const activityRevenue = bookings.reduce((sum, booking) => {
+        const activity = activities.find(act => act.Name === booking.activityName);
+        return activity ? sum + activity.Price : sum;
+      }, 0);
+
+      return total + activityRevenue;
+    }, 0);
+
+    // Step 5: Respond with the calculated revenue
+    res.status(200).json({
+      advertiserUsername: username,
+      revenue,
+      bookings: tourists.length,
+    });
+  } catch (error) {
+    console.error('Error calculating advertiser revenue:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+
+
+      module.exports = {ReadAdvertiserProfile , updateAdvertiser, createNewActivity, readActivity, updateActivity, deleteActivity, getActivitiesByAuthor, loginAdvertiser, updateAdvertiserPassword, decrementLoginCountAdvertiser,requestDeleteAccountAdvertiser, allNotificationsRead, areAllNotificationsRead, getAdvertiserNotifications,calculateAdvertiserRevenue,getUsersWhoBookedActivity,getRevenueFromActivity,filterAdvertiserActivities,getTotalTouristsForAdvertiser,getTouristsByActivityAndMonth,getHighestRevenueActivity,calculateCurrentMonthRevenueForAdvertiser,calculateRevenueForAdvertiser};

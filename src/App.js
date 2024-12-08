@@ -24,7 +24,7 @@ const {readSellerProfile, updateSeller, editProductSeller, createNewProductSelle
 const {createNewHistoricalTag,createMuseumsAsTourismGoverner,getMuseumsByAuthorAsTourismGoverner
   ,createHistoricalPlaceAsTourismGoverner , getHistoricalPlaceByNameAsTourismGoverner , updateHistoricalPlaceAsTourismGoverner , deletePlaceAsTourismGoverner , getHistoricalByAuthorAsTourismGoverner, getMuseumByNameAsTourismGoverner, updateMuseumByNameAsTourismGoverner, deleteMuseumByNameAsTourismGoverner,
   loginGoverner, updateGovernorPassword} = require("./Routes/TourismGovernorController");
-const{ReadAdvertiserProfile , updateAdvertiser, createNewActivity, readActivity, updateActivity, deleteActivity, getActivitiesByAuthor, loginAdvertiser, updateAdvertiserPassword, decrementLoginCountAdvertiser,requestDeleteAccountAdvertiser, allNotificationsRead, areAllNotificationsRead, getAdvertiserNotifications ,calculateAdvertiserRevenue,getUsersWhoBookedActivity,getRevenueFromActivity,filterAdvertiserActivities,getTotalTouristsForAdvertiser,getTouristsByActivityAndMonth,getHighestRevenueActivity,calculateCurrentMonthRevenueForAdvertiser} = require("./Routes/AdvertiserController");
+const{ReadAdvertiserProfile , updateAdvertiser, createNewActivity, readActivity, updateActivity, deleteActivity, getActivitiesByAuthor, loginAdvertiser, updateAdvertiserPassword, decrementLoginCountAdvertiser,requestDeleteAccountAdvertiser, allNotificationsRead, areAllNotificationsRead, getAdvertiserNotifications ,calculateAdvertiserRevenue,getUsersWhoBookedActivity,getRevenueFromActivity,filterAdvertiserActivities,getTotalTouristsForAdvertiser,getTouristsByActivityAndMonth,getHighestRevenueActivity,calculateCurrentMonthRevenueForAdvertiser,calculateRevenueForAdvertiser} = require("./Routes/AdvertiserController");
 const {filterActivitiesGuest, getMuseumsByTagGuest, ViewAllUpcomingActivitiesGuest, ViewAllUpcomingMuseumEventsGuest, getHistoricalPlacesByTagGuest, ViewAllUpcomingHistoricalPlacesEventsGuest, sortActivitiesPriceAscendingGuest, sortActivitiesPriceDescendingGuest, sortActivitiesRatingDescendingGuest, sortActivitiesRatingAscendingGuest, ViewAllUpcomingItinerariesGuest, sortItinerariesPriceDescendingGuest, sortItinerariesPriceAscendingGuest, filterItinerariesGuest,ChooseActivitiesByCategoryGuest} = require("./Routes/GuestController");
 
 //const {createNewTourismGoverner, createNewAdmin, createNewProduct, editProduct} = require("./Routes/AdminController");
@@ -300,6 +300,8 @@ app.post('/api/notifySellerOfOutOfStock', notifySellerOfOutOfStock);
 app.put('/api/allNotificationsReadSeller', allNotificationsReadSeller);
 app.get('/api/areAllNotificationsReadSeller', areAllNotificationsReadSeller);
 app.get('/api/getSellerNotifications', getSellerNotifications);
+app.get("/api/calculateRevenueForAdvertiser", calculateRevenueForAdvertiser);
+
 
 
 //SPRINT 2 MALAK AND JANA
@@ -483,7 +485,7 @@ app.get("/api/viewAllOrders",viewAllOrders);
 app.get("/fetchCityCode",fetchCityCode);
 app.post("/createPromo",createPromoCode);
 app.post("/sendNotificationWithPromoCode",sendNotificationWithPromoCode)
-cron.schedule('0 8 * * *', async () => { // Run every day at 8 AM
+cron.schedule('0 9 * * *', async () => { // Run every day at 8 AM
   console.log('Running upcoming events reminder...');
   await sendUpcomingEventNotifications();
 });
