@@ -41,7 +41,20 @@ const New = () => {
   };
 
   return (
-    <Box>
+    <Box
+    sx={{
+      minHeight: '100vh',
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundImage: `url(/images/beach2.jpg)`, // Set the background image
+      backgroundSize: 'cover', // Cover the entire container
+      backgroundRepeat: 'no-repeat',
+      backgroundPosition: 'center',
+    }}
+    >
+     
       {/* Welcome Message */}
       <Box
         sx={{
@@ -62,7 +75,8 @@ const New = () => {
           textAlign: 'center',
           margin: '20px',
           padding: '25px',
-          backgroundColor: '#fff',
+          backgroundColor: 'rgba(255, 255, 255, 0.7)', // Translucent background
+          //backgroundColor: '#fff',
           borderRadius: '8px',
           boxShadow: '0 0 10px rgba(0, 0, 0, 0.3)',
           width: '650px',

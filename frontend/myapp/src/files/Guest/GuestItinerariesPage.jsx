@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef  } from 'react';
 import { Box, Button, Typography, IconButton,Tooltip,Divider,TextField, InputAdornment, Modal,MenuItem,Select,FormControl,InputLabel,} from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import MenuIcon from '@mui/icons-material/Menu';
@@ -44,7 +44,9 @@ import PaymentIcon from '@mui/icons-material/Payment';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 // import IosShareIcon from '@mui/icons-material/IosShare';
 import ShareIcon from '@mui/icons-material/Share';
+import SearchIcon from '@mui/icons-material/Search';
 import LanguageIcon from '@mui/icons-material/Language';
+import { useLocation } from "react-router-dom";
 import axios from 'axios';
 
 function GuestitinerariesPage() {
@@ -54,6 +56,7 @@ function GuestitinerariesPage() {
   const [showBackToTop, setShowBackToTop] = useState(false); // State for button visibility
   //done for categories and tags
   const [categories, setCategories] = useState([]);
+  const [expanded, setExpanded] = useState(false);
   const [tags, setTags] = useState([]);
   // const [activeModal, setActiveModal] = useState(null);
 
@@ -65,7 +68,7 @@ function GuestitinerariesPage() {
   // const [productsOpen, setProductsOpen] = useState(false);
   // const [complaintsOpen, setComplaintsOpen] = useState(false);
   //search bar
-  const [searchQuery, setSearchQuery] = useState(''); // Search query state
+  //const [searchQuery, setSearchQuery] = useState(''); // Search query state
   //filter activities
   const [filterModalOpen, setFilterModalOpen] = useState(false);
   const [filterInputs, setFilterInputs] = useState({
@@ -85,6 +88,13 @@ const [sharedLink, setSharedLink] = useState(''); // Shared link state
 const [currentActivityName, setCurrentActivityName] = useState(''); // Trac
 const [convertedPrices, setConvertedPrices] = useState({});
 const [currency, setCurrency] = useState('EGP'); // Default currency is EGP
+const location = useLocation();
+const query = new URLSearchParams(location.search);
+const targetName = query.get("Name");
+const refs = useRef({});
+const queryParams = new URLSearchParams(location.search);
+const initialSearchQuery = queryParams.get('search') || ''; 
+const [searchQuery, setSearchQuery] = useState(initialSearchQuery); // Search query state
 
   const navigate = useNavigate();
 
@@ -119,7 +129,22 @@ const [currency, setCurrency] = useState('EGP'); // Default currency is EGP
     return () => window.removeEventListener('scroll', handleScroll);
   }, [searchQuery]); // Depend on `searchQuery` to refetch activities when it changes
 
-
+  useEffect(() => {
+    // Trigger search logic if the search query exists
+    if (initialSearchQuery) {
+      searchItineraries(initialSearchQuery);
+    }
+  }, [initialSearchQuery]); 
+  useEffect(() => {
+    if (targetName && refs.current[targetName]) {
+      setTimeout(() => {
+        refs.current[targetName].scrollIntoView({
+          behavior: "smooth",
+          block: "center",
+        });
+      }, 100); // Delay to ensure refs are populated
+    }
+  }, [targetName, activities]); // Add HPs to dependencies
   useEffect(() => {
     if (currency !== 'EGP') {
       convertActivityPrices();
@@ -147,10 +172,16 @@ const [currency, setCurrency] = useState('EGP'); // Default currency is EGP
   
   
   
+  const handleToggleDescription = (index) => {
+    setExpanded((prev) => ({
+      ...prev,
+      [index]: !prev[index], // Toggle expanded state for the specific index
+    }));
+  };
 
   const fetchItineraries = async () => {
     try {
-      const response = await axios.get('/api/ViewAllUpcomingItinerariesGuest');
+      const response = await axios.get('/api/ViewAllUpcomingItinerariesTourist');
       setActivities(response.data); // Assuming you're using `setActivities` to populate the UI
     } catch (error) {
       console.error('Error fetching itineraries:', error);
@@ -178,6 +209,11 @@ const [currency, setCurrency] = useState('EGP'); // Default currency is EGP
         alert(error.response?.data?.msg || 'An error occurred while searching itineraries.'); // Show error message for other errors
       }
     }
+  };
+
+
+  const handleSearchChange = (event) => {
+    setSearchQuery(event.target.value); // Update search query state
   };
   
   // Handle search input change
@@ -219,7 +255,7 @@ const [currency, setCurrency] = useState('EGP'); // Default currency is EGP
       );
   
       // Send the sanitized inputs to the backend for filtering itineraries
-      const response = await axios.post('/filterItinerariesGuest', sanitizedInputs);
+      const response = await axios.post('/api/filterItinerariesTourist', sanitizedInputs);
   
       // Update activities with the filtered results
       setActivities(response.data);
@@ -238,6 +274,7 @@ const [currency, setCurrency] = useState('EGP'); // Default currency is EGP
       }
     }
   };
+  
   
 
 
@@ -500,7 +537,41 @@ const [currency, setCurrency] = useState('EGP'); // Default currency is EGP
   }}
 >
   {/* Placeholder for the search bar space */}
-  <Box sx={{ width: '30%' }}></Box>
+  {/* Search Bar */}
+  <TextField
+    label="Search"
+    variant="outlined"
+    value={searchQuery}
+    onChange={handleSearchChange}
+    sx={{
+      width: '30%',
+      '& .MuiOutlinedInput-root': {
+        '& fieldset': {
+          borderColor: '#192959', // Default outline color
+          borderWidth: '2px',
+        },
+        '&:hover fieldset': {
+          borderColor: '#192959', // Hover outline color
+          borderWidth: '2.5px',
+        },
+        '&.Mui-focused fieldset': {
+          borderColor: '#192959', // Focused outline color
+          borderWidth: '2.5px',
+        },
+      },
+      '& .MuiInputLabel-root': {
+        color: '#192959', // Label color
+        fontSize: '18px',
+      },
+    }}
+    InputProps={{
+      startAdornment: (
+        <Box sx={{ display: 'flex', alignItems: 'center', color: '#192959', paddingLeft: '5px' }}>
+          <SearchIcon />
+        </Box>
+      ),
+    }}
+  />
 
   {/* Sort Dropdown and Filter Icon */}
   <Box sx={{ display: 'flex', alignItems: 'right', gap: '10px', marginLeft: '100px' }}>
@@ -631,7 +702,7 @@ const [currency, setCurrency] = useState('EGP'); // Default currency is EGP
             <Box
               sx={{
                 ...styles.activityCard,
-                backgroundColor: activity.flagged ? '#cccfda' : 'white',
+                backgroundColor: activity.flagged ? 'white' : 'white',
               }}
             >
               <Box sx={styles.activityInfo}>
@@ -655,10 +726,54 @@ const [currency, setCurrency] = useState('EGP'); // Default currency is EGP
                   <CalendarTodayIcon fontSize="small" sx={{ mr: 1 }} />
                   {new Date(activity.Date).toLocaleDateString()}
                 </Typography>
-                <Typography variant="body2" sx={{ display: 'flex', fontSize: '18px', alignItems: 'center' }}>
-                  <AccessTimeIcon fontSize="small" sx={{ mr: 1 }} />
-                  {activity.Timeline}
-                </Typography>
+                <Box sx={{ flex: 1, textAlign: 'left' }}>
+  <Typography
+    variant="body2"
+    sx={{
+      fontSize: '18px',
+      wordWrap: 'break-word', // Break long words
+      whiteSpace: 'normal',  // Wrap text normally
+      maxWidth: '550px',     // Ensure width consistency
+      cursor: activity.Timeline.length > 15 ? 'pointer' : 'default', // Make clickable only if necessary
+      marginTop: '10px',
+    }}
+  >
+    <AccessTimeIcon fontSize="small" sx={{ mr: 1, color: '#8088a3' }} />
+    {expanded[index] || activity.Timeline.length <= 15 ? (
+      <span>
+        {activity.Timeline}
+        {activity.Timeline.length > 15 && (
+          <span
+            style={{
+              color: '#8088a3',
+             
+              fontWeight: 'bold',
+              cursor: 'pointer',
+            }}
+            onClick={() => handleToggleDescription(index)} // Trigger toggle
+          >
+            {" "}Read Less
+          </span>
+        )}
+      </span>
+    ) : (
+      <span>
+        {activity.Timeline.substring(0, 15)}... {/* Truncate timeline */}
+        <span
+          style={{
+            color: '#8088a3',
+            marginLeft: '5px',
+            fontWeight: 'bold',
+            cursor: 'pointer'
+          }}
+          onClick={() => handleToggleDescription(index)} // Trigger toggle
+        >
+          {" "}Read More
+        </span>
+      </span>
+    )}
+  </Typography>
+</Box>
                 <Box sx={styles.quickFacts}>
                   
                 <Box sx={styles.quickFacts}>

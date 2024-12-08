@@ -1309,7 +1309,7 @@ const [searchQuery, setSearchQuery] = useState(initialSearchQuery); // Search qu
             <Box
               sx={{
                 ...styles.activityCard,
-                backgroundColor: activity.flagged ? '#cccfda' : 'white',
+                backgroundColor: activity.flagged ? 'white' : 'white',
               }}
             >
               <Box sx={styles.activityInfo}>
