@@ -366,7 +366,7 @@ app.post('/api/acceptTranspAdvertiser', acceptTranspAdvertiser);
 app.post('/createNewTransportation', createNewTransportation);
 app.get("/ReadTransportationAdvertiserProfile",ReadTransportationAdvertiserProfile);
 app.get("/viewPreferenceTags",viewPreferenceTags);
-app.get("/getTourGuideComments",getTourGuideComments);
+app.get("/api/getTourGuideComments",getTourGuideComments);
 
 app.put("/bookTransportation",bookTransportation);
 app.put("/addPreferences",addPreferences);
