@@ -116,9 +116,19 @@ function YAdminComplaintsPage() {
           <IconButton onMouseEnter={() => setSidebarOpen(true)} color="inherit">
             <MenuIcon />
           </IconButton>
-          <Typography variant="h6" component="div" sx={styles.logo}>
-            Beyond Borders
-          </Typography>
+          <Box sx={{ display: 'flex', alignItems: 'right', gap: 1 }}>
+  {/* Add your image here */}
+  <img
+    src="/images/logo.png" // Replace with the actual path to your image
+    alt="Logo"
+    style={{
+      height: '40px', // Adjusted size
+      width: '200px',  // Adjusted size
+      objectFit: 'contain', // Ensures the image doesn't get distorted
+      marginLeft: '20px', // Moves the logo to the right
+    }}
+  />
+</Box>
         </Box>
         {/* <Box sx={styles.topMenuRight}>
           <IconButton sx={styles.iconButton}>
@@ -155,7 +165,7 @@ function YAdminComplaintsPage() {
           <MapIcon sx={styles.icon} />
           {sidebarOpen && 'Itineraries'}
         </Button>
-        <Button onClick={() => navigate('/YAdminDashboard')} sx={styles.sidebarButton}>
+        <Button onClick={() => navigate('/AdminSalesPage')} sx={styles.sidebarButton}>
           <DashboardIcon sx={styles.icon} />
           {sidebarOpen && 'Back to Dashboard'}
         </Button>

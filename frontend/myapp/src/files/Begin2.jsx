@@ -205,7 +205,7 @@ const Begin2 = () => {
         navigate('/TourismGovernorDashboard');
         break;
       case 'Admin':
-        navigate('/YAdminDashboard');
+        navigate('/AdminSalesPage');
         break;
       case 'TransportationAdvertiser':
         navigate('/transportAdvertiserHome');
