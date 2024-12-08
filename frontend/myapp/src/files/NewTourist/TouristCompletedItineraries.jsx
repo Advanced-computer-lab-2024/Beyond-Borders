@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Button, Typography, IconButton,Tooltip,Divider,TextField, InputAdornment, Modal,MenuItem,Select,FormControl,InputLabel,} from '@mui/material';
+import { Box, Button, Typography, IconButton,Tooltip,Divider,TextField, InputAdornment, Modal,MenuItem,Select,FormControl,InputLabel,CircularProgress} from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import MenuIcon from '@mui/icons-material/Menu';
 import NotificationsIcon from '@mui/icons-material/Notifications';
@@ -68,6 +68,7 @@ function TouristCompletedItineraries() {
   const [transportationOpen, setTransportationOpen] = useState(false);
   const [productsOpen, setProductsOpen] = useState(false);
   const [complaintsOpen, setComplaintsOpen] = useState(false);
+  
   //search bar
   const [searchQuery, setSearchQuery] = useState(''); // Search query state
   //filter activities
@@ -119,39 +120,39 @@ const [hotelsOpen, setHotelsOpen] = useState(false); // Manage the dropdown stat
   
 
 
-  useEffect(() => {
-    const fetchAllTourGuideComments = async () => {
-      try {
-        // Fetch comments for all activities in parallel
-        const updatedActivities = await Promise.all(
-          activities.map(async (activity) => {
-            try {
-              const response = await axios.get('/api/getTourGuideComments', {
-                params: { tourGuideUsername: activity.AuthorUsername }, // Send query parameter
-              });
+  // useEffect(() => {
+  //   const fetchAllTourGuideComments = async () => {
+  //     try {
+  //       // Fetch comments for all activities in parallel
+  //       const updatedActivities = await Promise.all(
+  //         activities.map(async (activity) => {
+  //           try {
+  //             const response = await axios.get('/api/getTourGuideComments', {
+  //               params: { tourGuideUsername: activity.AuthorUsername }, // Send query parameter
+  //             });
   
-              return { ...activity, tourGuideComments: response.data.comments || [] };
-            } catch (error) {
-              console.error(
-                `Error fetching comments for tour guide: ${activity.AuthorUsername}`,
-                error
-              );
-              return { ...activity, tourGuideComments: [] };
-            }
-          })
-        );
+  //             return { ...activity, tourGuideComments: response.data.comments || [] };
+  //           } catch (error) {
+  //             console.error(
+  //               `Error fetching comments for tour guide: ${activity.AuthorUsername}`,
+  //               error
+  //             );
+  //             return { ...activity, tourGuideComments: [] };
+  //           }
+  //         })
+  //       );
   
-        // Update state with the updated activities
-        setActivities(updatedActivities);
-      } catch (error) {
-        console.error('Error fetching all tour guide comments:', error);
-      }
-    };
+  //       // Update state with the updated activities
+  //       setActivities(updatedActivities);
+  //     } catch (error) {
+  //       console.error('Error fetching all tour guide comments:', error);
+  //     }
+  //   };
   
-    if (activities.length > 0) {
-      fetchAllTourGuideComments();
-    }
-  }, [activities]);
+  //   if (activities.length > 0) {
+  //     fetchAllTourGuideComments();
+  //   }
+  // }, [activities]);
 
 
   useEffect(() => {
@@ -215,6 +216,7 @@ const [hotelsOpen, setHotelsOpen] = useState(false); // Manage the dropdown stat
   
 
   const fetchActivities = async () => {
+    setLoading(true);
     try {
       // Retrieve the Username from localStorage or any other source
       const Username = localStorage.getItem('username');
@@ -233,6 +235,9 @@ const [hotelsOpen, setHotelsOpen] = useState(false); // Manage the dropdown stat
       setActivities(response.data);
     } catch (error) {
       console.error('Error fetching Itineraries:', error);
+    }
+    finally {
+      setLoading(false); // Set loading to false after the fetch
     }
   };
 
@@ -539,7 +544,34 @@ const [hotelsOpen, setHotelsOpen] = useState(false); // Manage the dropdown stat
     }
   };
 
-
+  const fetchAllTourGuideComments = async () => {
+    try {
+      // Fetch comments for all activities in parallel
+      const updatedActivities = await Promise.all(
+        activities.map(async (activity) => {
+          try {
+            const response = await axios.get('/api/getTourGuideComments', {
+              params: { tourGuideUsername: activity.AuthorUsername }, // Send query parameter
+            });
+  
+            return { ...activity, tourGuideComments: response.data.comments || [] };
+          } catch (error) {
+            console.error(
+              `Error fetching comments for tour guide: ${activity.AuthorUsername}`,
+              error
+            );
+            return { ...activity, tourGuideComments: [] };
+          }
+        })
+      );
+  
+      // Update state with the updated activities
+      setActivities(updatedActivities);
+    } catch (error) {
+      console.error('Error fetching all tour guide comments:', error);
+    }
+  };
+  
 
   const handleTourGuideCommentSubmit = async () => {
     const touristUsername = localStorage.getItem('username');
@@ -831,14 +863,21 @@ const [hotelsOpen, setHotelsOpen] = useState(false); // Manage the dropdown stat
 
       {/* Top Menu Bar */}
       <Box sx={styles.topMenu}>
-        <Box sx={styles.menuIconContainer}>
-          <IconButton onMouseEnter={() => setSidebarOpen(true)} color="inherit">
-            <MenuIcon />
-          </IconButton>
-          <Typography variant="h6" component="div" sx={styles.logo}>
-            Beyond Borders
-          </Typography>
-        </Box>
+      <Box sx={styles.menuIconContainer}>
+  <IconButton onMouseEnter={() => setSidebarOpen(true)} color="inherit">
+    <MenuIcon />
+  </IconButton>
+  {/* Replace text with logo */}
+  <img
+    src="/images/logo.png" // Replace with your logo's actual path
+    alt="Logo"
+    style={{
+      height: '30px', // Adjust the height as per your design
+      width: 'auto', // Maintain aspect ratio
+      marginLeft: '10px', // Add spacing from the MenuIcon
+    }}
+  />
+</Box>
         <Box sx={styles.topMenuRight}>
         <Button
          sx={{
@@ -1982,7 +2021,7 @@ const [hotelsOpen, setHotelsOpen] = useState(false); // Manage the dropdown stat
   {/* Itinerary Comments */}
   {activity.Comments && activity.Comments.length > 0 ? (
     <>
-    <Typography variant="h6" sx={{ marginBottom: '-35px',textAlign:'left' }}>
+    <Typography variant="h6" sx={{ marginBottom: '25px',textAlign:'left' }}>
         Itineraries Comments:
       </Typography>
       {/* Scroll Buttons */}
@@ -2030,9 +2069,10 @@ const [hotelsOpen, setHotelsOpen] = useState(false); // Manage the dropdown stat
   {/* Tour Guide Comments */}
   {activity.tourGuideComments && activity.tourGuideComments.length > 0 ? (
     <>
-      <Typography variant="h6" sx={{ marginBottom: '-35px',marginTop:'10px', textAlign:'left' }}>
-        Tour Guide Comments:
+     <Typography variant="h6" sx={{ marginBottom: '25px',textAlign:'left' }}>
+        Tour guide Comments:
       </Typography>
+     
 
       {/* Scroll Buttons */}
       <Box sx={styles.scrollButtonContainer}>
@@ -2076,7 +2116,7 @@ const [hotelsOpen, setHotelsOpen] = useState(false); // Manage the dropdown stat
     </>
   ) : (
     <Typography variant="body2">
-      No comments available for the tour guide.
+     
     </Typography>
   )}
 </Box>
@@ -2091,7 +2131,12 @@ const [hotelsOpen, setHotelsOpen] = useState(false); // Manage the dropdown stat
       </Box>
 
       <Box sx={styles.activitiesContainer}>
-  {activities.length > 0 ? (
+      {loading ? (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+        {/* Circular Progress for loading */}
+        <CircularProgress />
+      </Box>
+    ) : activities.length > 0 ? (
     activities.map((activity, index) => (
       <Box key={index} sx={{ marginBottom: '20px' }}>
         {/* Your activity card code */}
@@ -2554,11 +2599,11 @@ const styles = {
     top: '160%', // Center vertically
     transform: 'translateY(-50%)', // Aligns vertically in the middle
   },
-  scrollButtonContainer: {
-    position: 'relative', // Ensure buttons position relative to the container
-    width: '100%',
-    height: '50px', // Reserve space for buttons
-  },
+  // scrollButtonContainer: {
+  //   position: 'relative', // Ensure buttons position relative to the container
+  //   width: '100%',
+  //   height: '50px', // Reserve space for buttons
+  // },
 
   commentsContainer: {
     display: 'flex',
