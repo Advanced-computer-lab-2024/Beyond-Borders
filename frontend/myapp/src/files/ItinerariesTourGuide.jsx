@@ -8,6 +8,8 @@ import AssignmentIcon from '@mui/icons-material/Assignment';
 import LocalActivityIcon from '@mui/icons-material/LocalActivity';
 import StorefrontIcon from '@mui/icons-material/Storefront';
 import MapIcon from '@mui/icons-material/Map';
+import MenuItem from '@mui/material/MenuItem';
+
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import PersonIcon from '@mui/icons-material/Person';
@@ -73,6 +75,7 @@ const [isModalOpen, setIsModalOpen] = useState(false); // Modal state
     activities: '',
     locations: '',
     timeline: '',
+    BookingOpen: '',
     language: '',
     price: '',
     date: '',
@@ -150,6 +153,7 @@ const [isModalOpen, setIsModalOpen] = useState(false); // Modal state
       Price: itineraryData.price,
       Locations: itineraryData.locations,
       Activities: itineraryData.activities,
+      BookingOpen:itineraryData.BookingOpen,
       accessibility: itineraryData.accessibility,
       pickupLocation: itineraryData.pickupLocation,
       dropoffLocation: itineraryData.dropoffLocation,
@@ -173,6 +177,7 @@ const [isModalOpen, setIsModalOpen] = useState(false); // Modal state
         price: '',
         date: '',
         accessibility: false,
+        BookingOpen: false,
         pickupLocation: '',
         dropoffLocation: '',
         tags: '',
@@ -524,15 +529,21 @@ const [isModalOpen, setIsModalOpen] = useState(false); // Modal state
 
       {/* Top Menu Bar */}
       <Box sx={styles.topMenu}>
-        <Box sx={styles.menuIconContainer}>
-          <IconButton onMouseEnter={() => setSidebarOpen(true)} color="inherit">
-            <MenuIcon />
-          </IconButton>
-          <Typography variant="h6" component="div" sx={styles.logo}>
-            Beyond Borders
-          </Typography>
-          
-        </Box>
+      <Box sx={styles.menuIconContainer}>
+  <IconButton onMouseEnter={() => setSidebarOpen(true)} color="inherit">
+    <MenuIcon />
+  </IconButton>
+  {/* Replace text with logo */}
+  <img
+    src="/images/logo.png" // Replace with your logo's actual path
+    alt="Logo"
+    style={{
+      height: '30px', // Adjust the height as per your design
+      width: 'auto', // Maintain aspect ratio
+      marginLeft: '10px', // Add spacing from the MenuIcon
+    }}
+  />
+</Box>
         <Box sx={styles.topMenuRight}>
         {/* <Button onClick={() => setActiveModal('viewCategories')} sx={styles.menuButton}>
           Activity Categories
@@ -815,6 +826,9 @@ const [isModalOpen, setIsModalOpen] = useState(false); // Modal state
                 }
                 sx={{ marginBottom: '10px' }}
               />
+
+              
+              
               <TextField
                 label="Locations"
                 value={activity.Locations}
@@ -857,6 +871,9 @@ const [isModalOpen, setIsModalOpen] = useState(false); // Modal state
           }
           sx={{ marginBottom: '10px' }}
         />
+       
+
+
             </>
           ) : (
             <>
@@ -892,7 +909,7 @@ const [isModalOpen, setIsModalOpen] = useState(false); // Modal state
                 key={tagIndex}
                 sx={{
                   ...styles.tag,
-                  backgroundColor: activity.flagged ? '#b3b8c8' : '#cccfda',
+                  backgroundColor: activity.flagged ? '#cccfda' : '#cccfda',
                   color: activity.flagged ? '#192959' : '#192959',
                 }}
               >
@@ -900,6 +917,8 @@ const [isModalOpen, setIsModalOpen] = useState(false); // Modal state
               </Typography>
             ))}
           </Box>
+           {/* Booking Open Display (Non-edit Mode) */}
+      
         </Box>
             </>
           )}
@@ -907,6 +926,7 @@ const [isModalOpen, setIsModalOpen] = useState(false); // Modal state
 
           {/* Divider Line */}
           <Divider orientation="vertical" flexItem sx={styles.verticalDivider} />
+          
 
           {/* Right Side */}
           {/* Right Side */}
@@ -961,6 +981,22 @@ const [isModalOpen, setIsModalOpen] = useState(false); // Modal state
           fullWidth
           sx={{ marginBottom: '10px', maxWidth: '400px' }}
         />
+
+      {/* Booking Open Field */}
+        {/* Booking Open (Edit Mode) */}
+        <TextField
+  select
+  label="Booking Open"
+  value={activity.BookingOpen ? 'true' : 'false'} // Display 'Yes' or 'No' based on the boolean value
+  onChange={(e) => {
+    const updatedValue = e.target.value === 'true'; // Convert to boolean: true for 'Yes', false for 'No'
+    handleEditFieldChange(index, 'BookingOpen', updatedValue); // Update state with boolean value
+  }}
+  sx={{ marginBottom: '10px', maxWidth: '400px' }}
+>
+  <MenuItem value="true">Yes</MenuItem>
+  <MenuItem value="false">No</MenuItem>
+</TextField>
       </>
     ) : (
       <>
@@ -979,6 +1015,10 @@ const [isModalOpen, setIsModalOpen] = useState(false); // Modal state
         <Typography variant="body2" sx={{ fontSize: '16px' }}>
           <strong>Drop-off Location:</strong> {activity.dropoffLocation}
         </Typography>
+        <Typography variant="body2" sx={{ fontSize: '16px' }}>
+        <strong>Booking Open:</strong> {activity.BookingOpen ? 'Yes' : 'No'}
+      </Typography>
+       
       </>
     )}
   </Box>
@@ -989,6 +1029,7 @@ const [isModalOpen, setIsModalOpen] = useState(false); // Modal state
         <Box sx={styles.activityRating}>
     {renderRating(activity.Ratings)}
   </Box>
+ 
 
        {/* Timeline with Read More / Read Less */}
   {editing[index] ? (
@@ -1216,6 +1257,18 @@ const [isModalOpen, setIsModalOpen] = useState(false); // Modal state
           />
         }
         label="Accessibility"
+        sx={{ marginTop: "10px", marginBottom: "10px" }}
+      />
+
+      <FormControlLabel
+        control={
+          <Switch
+            name="BookingOpen"
+            checked={itineraryData.BookingOpen}
+            onChange={handleChange}
+          />
+        }
+        label="Booking Open"
         sx={{ marginTop: "10px", marginBottom: "10px" }}
       />
       <Button
