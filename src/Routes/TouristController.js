@@ -14,7 +14,7 @@ const TransportationModel = require('../Models/Transportation.js');
 const TagsModel = require('../Models/Tags.js');
 const axios = require('axios');
 const nodemailer = require('nodemailer'); 
-
+const AcceptedSellerModel = require('../Models/AcceptedSeller.js');
 const Stripe = require("stripe");
 const stripe = Stripe('sk_test_51QLqHGP7Sjm96OcqEPPQmxSyVbLV9L7Rnj9v67b7lvTT37QGD1aUroGnGnpU4rm8a7CgNrTpNOalXtiXfwofP3pC00FSmMdarL');
 
@@ -6605,7 +6605,74 @@ const payOrderWallet = async (req, res) => {
       product.Sales += quantity;
       product.TotalPriceOfSales += price;
       await product.save();
+      if (product.Quantity === 0) {
+        try {
+          const sellerUsername = product.Seller;
+      
+          // Check if the seller exists in the Admin model
+          const admin = await NewAdminModel.findOne({ Username: sellerUsername });
+      
+          // Check if the seller exists in the Seller model
+          const seller = await AcceptedSellerModel.findOne({ Username: sellerUsername });
+      
+          if (!admin && !seller) {
+            console.error(`Seller with username ${sellerUsername} not found in Admin or Seller models.`);
+            return;
+          }
+      
+          // Prepare the notification message
+          const notificationMessage = `The product "${product.Name}" is out of stock.`;
+      
+          // Add notification to the respective model's Notifications array
+          if (admin) {
+            admin.Notifications.push({
+              NotificationText: notificationMessage,
+              Read: false, // Mark it as unread
+            });
+            await admin.save();
+          }
+      
+          if (seller) {
+            seller.Notifications.push({
+              NotificationText: notificationMessage,
+              Read: false, // Mark it as unread
+            });
+            await seller.save();
+          }
+      
+         // Set up nodemailer transporter
+    const transporter1 = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: "malook25062003@gmail.com", // Your email
+        pass: "sxvo feuu woie gpfn", // Your email app password
+      },
+    });
 
+    // Determine the recipient and send the email
+    const emailRecipient = admin ? "malakelmasry@hotmail.com" : seller.Email;
+    const mailOptions = {
+      from: "malook25062003@gmail.com",
+      to: emailRecipient,
+      subject: `Out of Stock: ${product.Name}`,
+      text: `
+        Dear ${admin ? "Admin" : seller.Username},
+        
+        The product "${product.Name}" is currently out of stock.
+        
+        Please restock this product as soon as possible to ensure availability for customers.
+        
+        Thank you for your attention to this matter.
+      `,
+    };
+
+    await transporter1.sendMail(mailOptions);
+
+    console.log(`Notification email sent to ${emailRecipient} for product: ${product.Name}`);
+        } catch (error) {
+          console.error("Error while notifying admin or seller:", error);
+        }
+      }
       productsPurchased.push({ productName: product.Name, quantity, price: pricePerUnit });
 
       const existingProduct = tourist.purchasedProducts.find(p => p.productName === product.Name);
@@ -6735,7 +6802,74 @@ const payOrderCash = async (req, res) => {
       product.Sales += quantity;
       product.TotalPriceOfSales += price;
       await product.save();
+      if (product.Quantity === 0) {
+        try {
+          const sellerUsername = product.Seller;
+      
+          // Check if the seller exists in the Admin model
+          const admin = await NewAdminModel.findOne({ Username: sellerUsername });
+      
+          // Check if the seller exists in the Seller model
+          const seller = await AcceptedSellerModel.findOne({ Username: sellerUsername });
+      
+          if (!admin && !seller) {
+            console.error(`Seller with username ${sellerUsername} not found in Admin or Seller models.`);
+            return;
+          }
+      
+          // Prepare the notification message
+          const notificationMessage = `The product "${product.Name}" is out of stock.`;
+      
+          // Add notification to the respective model's Notifications array
+          if (admin) {
+            admin.Notifications.push({
+              NotificationText: notificationMessage,
+              Read: false, // Mark it as unread
+            });
+            await admin.save();
+          }
+      
+          if (seller) {
+            seller.Notifications.push({
+              NotificationText: notificationMessage,
+              Read: false, // Mark it as unread
+            });
+            await seller.save();
+          }
+      
+         // Set up nodemailer transporter
+    const transporter1 = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: "malook25062003@gmail.com", // Your email
+        pass: "sxvo feuu woie gpfn", // Your email app password
+      },
+    });
 
+    // Determine the recipient and send the email
+    const emailRecipient = admin ? "malakelmasry@hotmail.com" : seller.Email;
+    const mailOptions = {
+      from: "malook25062003@gmail.com",
+      to: emailRecipient,
+      subject: `Out of Stock: ${product.Name}`,
+      text: `
+        Dear ${admin ? "Admin" : seller.Username},
+        
+        The product "${product.Name}" is currently out of stock.
+        
+        Please restock this product as soon as possible to ensure availability for customers.
+        
+        Thank you for your attention to this matter.
+      `,
+    };
+
+    await transporter1.sendMail(mailOptions);
+
+    console.log(`Notification email sent to ${emailRecipient} for product: ${product.Name}`);
+        } catch (error) {
+          console.error("Error while notifying admin or seller:", error);
+        }
+      }
       productsPurchased.push({ productName: product.Name, quantity, price: pricePerUnit });
 
       const existingProduct = tourist.purchasedProducts.find(p => p.productName === product.Name);
@@ -6861,7 +6995,74 @@ const payOrderStripe = async (req, res) => {
       product.Sales += quantity;
       product.TotalPriceOfSales += price;
       await product.save();
+      if (product.Quantity === 0) {
+        try {
+          const sellerUsername = product.Seller;
+      
+          // Check if the seller exists in the Admin model
+          const admin = await NewAdminModel.findOne({ Username: sellerUsername });
+      
+          // Check if the seller exists in the Seller model
+          const seller = await AcceptedSellerModel.findOne({ Username: sellerUsername });
+      
+          if (!admin && !seller) {
+            console.error(`Seller with username ${sellerUsername} not found in Admin or Seller models.`);
+            return;
+          }
+      
+          // Prepare the notification message
+          const notificationMessage = `The product "${product.Name}" is out of stock.`;
+      
+          // Add notification to the respective model's Notifications array
+          if (admin) {
+            admin.Notifications.push({
+              NotificationText: notificationMessage,
+              Read: false, // Mark it as unread
+            });
+            await admin.save();
+          }
+      
+          if (seller) {
+            seller.Notifications.push({
+              NotificationText: notificationMessage,
+              Read: false, // Mark it as unread
+            });
+            await seller.save();
+          }
+      
+         // Set up nodemailer transporter
+    const transporter1 = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: "malook25062003@gmail.com", // Your email
+        pass: "sxvo feuu woie gpfn", // Your email app password
+      },
+    });
 
+    // Determine the recipient and send the email
+    const emailRecipient = admin ? "malakelmasry@hotmail.com" : seller.Email;
+    const mailOptions = {
+      from: "malook25062003@gmail.com",
+      to: emailRecipient,
+      subject: `Out of Stock: ${product.Name}`,
+      text: `
+        Dear ${admin ? "Admin" : seller.Username},
+        
+        The product "${product.Name}" is currently out of stock.
+        
+        Please restock this product as soon as possible to ensure availability for customers.
+        
+        Thank you for your attention to this matter.
+      `,
+    };
+
+    await transporter1.sendMail(mailOptions);
+
+    console.log(`Notification email sent to ${emailRecipient} for product: ${product.Name}`);
+        } catch (error) {
+          console.error("Error while notifying admin or seller:", error);
+        }
+      }
       productsPurchased.push({ productName: product.Name, quantity, price: pricePerUnit });
 
       const existingProduct = tourist.purchasedProducts.find(p => p.productName === product.Name);
