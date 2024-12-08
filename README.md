@@ -89,11 +89,11 @@ const createNewActivity = async (req, res) => {
     }
 };
 ```
-## App.js:
+### App.js:
 ```javascript
 app.post("/api/createNewActivity", createNewActivity);
 ```
-## Frontend Implementation:
+### Frontend Implementation:
 ```javascript
 const handleCreateActivitySubmit = async (e) => {
     e.preventDefault();
@@ -268,6 +268,106 @@ const handleCreateActivitySubmit = async (e) => {
   </Box>
 </Modal>
 ```
+## Postman Testing:
+To test the `createNewActivity` endpoint using Postman, follow these steps:
+
+1. **Set the HTTP Method**: `POST`
+2. **Enter the URL**: http://localhost:8000/api/createNewActivity
+3. **Set the Headers**: 
+- `Content-Type`: `application/json`
+4. **Select the Body Tab**: Choose the **raw** option and set the body type to `JSON`.
+5. **Provide the Request Body**:
+Example JSON payload:
+```json
+{
+  "AdvertiserName": "yassinotifa5",
+  "Name": "Painting Workshop in Paris",
+  "Date": "2024-12-20",
+  "Time": "14:00",
+  "SpecialDiscount": "20%",
+  "BookingOpen": true,
+  "Price": 80,
+  "Location": {
+    "type": "Point",
+    "coordinates": [2.3428, 48.8867],
+    "address": "Montmartre, Paris, France"
+  },
+  "Category": "Arts and crafts",
+  "Tags": ["Cultural", "Romantic", "Historical"]
+}
+```
+
+### Installation
+
+Follow these steps to set up the project locally:
+
+#### Backend Installation
+
+```bash
+# Navigate to the desktop
+cd desktop
+
+# Clone the repository
+git clone https://github.com/Advanced-computer-lab-2024/Beyond-Borders.git
+
+# Navigate into the project directory
+cd Beyond-Borders
+
+# Open the project in Visual Studio Code
+code .
+
+# Install backend dependencies
+npm install
+
+# Navigate to the source folder
+cd src
+
+# Start the backend server
+node app
+```
+#### Frontend Installation
+
+```bash
+# Navigate to the frontend folder
+cd frontend
+
+# Navigate to the React app folder
+cd myapp
+
+# Install frontend dependencies
+npm install
+
+# Start the frontend development server
+npm start
+```
+### API References
+
+Below are the APIs used in the Beyond-Borders project:
+
+- **City Codes API**:  
+  [https://test.api.amadeus.com/v1/reference-data/locations](https://test.api.amadeus.com/v1/reference-data/locations)
+
+- **Flights API**:  
+  [https://test.api.amadeus.com/v2/shopping/flight-offers](https://test.api.amadeus.com/v2/shopping/flight-offers)
+
+- **Hotels by City API**:  
+  [https://test.api.amadeus.com/v1/reference-data/locations/hotels/by-city](https://test.api.amadeus.com/v1/reference-data/locations/hotels/by-city)
+
+- **Hotel Offers API**:  
+  [https://test.api.amadeus.com/v3/shopping/hotel-offers](https://test.api.amadeus.com/v3/shopping/hotel-offers)
+
+- **Currency Exchange Rates API**:  
+  [https://api.exchangerate-api.com/v4/latest/EGP](https://api.exchangerate-api.com/v4/latest/EGP)
+
+   **Stripe API**:  
+  Stripe is used for secure payment processing in the Beyond-Borders platform. Below are the keys used for integrating Stripe:
+  - **Secret Key**:  
+    `sk_test_51QLqHGP7Sjm96OcqEPPQmxSyVbLV9L7Rnj9v67b7lvTT37QGD1aUroGnGnpU4rm8a7CgNrTpNOalXtiXfwofP3pC00FSmMdarL`
+  - **Publishable Key**:  
+    `pk_test_51QLqHGP7Sjm96OcqAOCQWfQuEwmMBxXj7hieiaUq1Q0m4qd0xaW9xi2GwrQbTb89OHEXUoIyhuAP29EhDlNYXYlC00HnsADGB1`
+
+> **Note**: The secret key should be kept private and used only in server-side code to maintain security. Avoid exposing it in frontend code or public repositories.
+
 ### How to Use
 
 Follow these steps to use the Beyond-Borders platform:
@@ -333,6 +433,163 @@ The guest experience is designed to provide a preview of what the platform offer
 5. **Bookings and Purchases**:
    - You can view all your current and past bookings, including activities, itineraries, events, flights and hotel reservations.
    - Book events, buy products, and explore various travel options seamlessly on the platform.
+#### Admin
+
+1. **Login as Admin**:
+   - Enter your admin credentials on the login page.
+   - Upon successful login, you will be redirected to the **Admin Statistics/App Revenue Dashboard**.
+
+2. **Top Bar Features**:
+   - The top bar provides the following functionalities:
+     - **Change My Password**:
+       - Click this button to change your current password.
+       - A form will appear to enter the current password and the new password.
+     - **Manage Access**:
+       - Click this button to view a dropdown menu with the following options:
+         - **Add Admin**: Add new administrators to the platform.
+         - **Add Tourism Governor**: Assign new tourism governors to manage their respective areas.
+         - **Requests**: View and manage pending user or event-related requests.
+         - **Delete Requests**: Review and delete specific requests or records as needed.
+     - **Notifications Bell**:
+       - Displays notifications for any out-of-stock products created by the admin.
+       - Clicking the bell shows a dropdown list of recent notifications.
+     - **Logout**:
+       - Allows the admin to securely log out of the platform.
+
+3. **Side Navigation Bar**:
+   - The side navigation bar includes the following features for managing platform content:
+     - **Complaints**: View and address user complaints or feedback.
+     - **Products**: Manage product listings, including adding, editing, or removing products.
+     - **Activities**: Oversee and update activities available on the platform.
+     - **Itineraries**: Manage itineraries, including creating or editing existing entries.
+
+4. **Admin Interface**:
+   - The admin interface is tailored to provide full control and management capabilities, ensuring the smooth operation of the Beyond-Borders platform.
+#### Advertiser
+
+1. **Login as Advertiser**:
+   - Enter your advertiser credentials on the login page.
+   - Upon successful login, you will be redirected to the **Advertiser Statistics and Revenue Dashboard**, where you can view your performance metrics and revenue details.
+
+2. **Top Bar Features**:
+   - The top bar includes the following functionalities:
+     - **View My Profile**:
+       - Click this button to view your profile information, including personal details and account settings.
+     - **Notifications Bell**:
+       - Displays important notifications related to your activities.
+     - **Logout**:
+       - Click this button to securely log out of your account.
+
+3. **Side Navigation Bar**:
+   - The side navigation bar includes the following feature:
+     - **Activities**:
+       - View and manage your activities.
+       - You can add new activities, update details for existing ones, or remove activities as needed.
+
+4. **Advertiser Interface**:
+   - The advertiser interface is designed to provide insights into your performance and tools to manage your activities efficiently.
+
+---
+
+#### Tour Guide
+
+1. **Login as Tour Guide**:
+   - Enter your tour guide credentials on the login page.
+   - Upon successful login, you will be redirected to the **Tour Guide Statistics and Revenue Dashboard**, where you can view performance metrics and earnings.
+
+2. **Top Bar Features**:
+   - The top bar includes the following functionalities:
+     - **View My Profile**:
+       - Click this button to view your profile information, including personal details and account settings.
+     - **Notifications Bell**:
+       - Displays important notifications related to your itineraries or feedback from tourists.
+     - **Logout**:
+       - Click this button to securely log out of your account.
+
+3. **Side Navigation Bar**:
+   - The side navigation bar includes the following feature:
+     - **Itineraries**:
+       - View and manage your itineraries.
+       - You can create new itineraries, update existing ones, or review feedback related to them.
+
+4. **Tour Guide Interface**:
+   - The tour guide interface is tailored to provide tools for managing itineraries and insights into your performance.
+#### Seller
+
+1. **Login as Seller**:
+   - Enter your seller credentials on the login page.
+   - Upon successful login, you will be redirected to the **Seller Statistics and Revenue Dashboard**, where you can view performance metrics, revenue, and sales data for your products.
+
+2. **Top Bar Features**:
+   - **View My Profile**:
+     - Click this button to view your profile information, including personal details, business details, and account settings.
+   - **Notifications Bell**:
+     - Displays important notifications related to your products, such as low stock or customer feedback.
+   - **Logout**:
+     - Click this button to securely log out of your account.
+
+3. **Side Navigation Bar**:
+   - **Products**:
+     - View and manage your product listings.
+     - Add new products, update details for existing products (e.g., price, description, and stock availability), or remove products from your catalog.
+     - Monitor customer reviews and feedback to improve your offerings.
+
+4. **Seller Interface**:
+   - The seller interface is designed to provide all the tools and insights needed to effectively manage your product catalog, enhance customer satisfaction, and boost sales.
+
+---
+
+#### Tourism Governor
+
+1. **Login as Tourism Governor**:
+   - Enter your credentials on the login page.
+   - Upon successful login, you will be redirected to the **Historical Places and Museums Management Page**, where you can view and manage your listed historical places and museums.
+
+2. **Top Bar Features**:
+   - **View My Profile**:
+     - Click this button to view your profile details, including your account and responsibilities.
+   - **Notifications Bell**:
+     - Displays important notifications, such as feedback from visitors or urgent updates for your locations.
+   - **Logout**:
+     - Click this button to securely log out of your account.
+
+3. **Side Navigation Bar**:
+   - **Historical Places**:
+     - Manage your listed historical places.
+     - Add new locations with details such as descriptions, ticket prices, and opening hours.
+     - Update or remove existing listings as needed.
+   - **Museums**:
+     - View and manage museums under your jurisdiction.
+     - Add new museum events, update exhibits, and adjust visitor details.
+
+4. **Tourism Governor Interface**:
+   - The Tourism Governor dashboard ensures seamless management of historical places and museums while providing tools to enhance visitor experiences and operations.
+
+---
+
+#### Transportation Advertiser
+
+1. **Login as Transportation Advertiser**:
+   - Enter your credentials on the login page.
+   - Upon successful login, you will be redirected to the **Transportation Management Page**, where you can view and manage your transportation services.
+
+2. **Top Bar Features**:
+   - **View My Profile**:
+     - Click this button to view your profile details, including account information and service offerings.
+   - **Notifications Bell**:
+     - Displays important notifications, such as inquiries or updates about your listed transportation services.
+   - **Logout**:
+     - Click this button to securely log out of your account.
+
+3. **Side Navigation Bar**:
+   - **Transportations**:
+     - Manage your listed transportation services.
+     - Add new transportation options, such as buses, taxis, or private cars.
+     - Update or remove existing transportation services.
+     - Monitor customer feedback and bookings for better service optimization.
+
+4. **Transportation Advertiser Interface**:
+   - The Transportation Advertiser dashboard provides all necessary tools for managing and promoting transportation services effectively, ensuring streamlined operations and enhanced visibility.
 
 ### Credits
 
