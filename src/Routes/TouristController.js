@@ -2623,7 +2623,7 @@ const deleteBookedHP= async (req, res) => {
 
 
 const payActivity = async (req, res) => {
-  const { touristUsername, activityName } = req.body;
+  const { touristUsername,promoCode,activityName } = req.body;
 
   try {
     // Find the activity by name
@@ -2660,8 +2660,16 @@ const payActivity = async (req, res) => {
     }
 
     // Calculate ticket price
-    const ticketPrice = activity.Price;
-
+    let  ticketPrice = activity.Price;
+    if (promoCode) {
+      const promo = await PromoCodeModel.findOne({ code: promoCode, isActive: true });
+      if (!promo) {
+        return res.status(400).json({ msg: "Invalid or expired promo code" });
+      }
+      const discount = (ticketPrice * promo.discountPercentage) / 100;
+      ticketPrice -= discount; // Adjust price with discount
+      console.log(ticketPrice);
+    }
     // Check if the tourist has enough funds in the wallet
     if (tourist.Wallet < ticketPrice) {
       // Remove the activity from the booked activities list if funds are insufficient
@@ -2675,6 +2683,12 @@ const payActivity = async (req, res) => {
     // Deduct the ticket price from the tourist's wallet
     tourist.Wallet -= ticketPrice;
 
+    if (promoCode) {
+      await PromoCodeModel.updateOne(
+        { code: promoCode },
+        { $set: { isActive: false } } // Deactivate the promo code
+      );
+    }
     // Update points and badge level
     if (tourist.BadgeLevelOfPoints === 1) {
       tourist.Points += 0.5 * ticketPrice;
@@ -2850,7 +2864,7 @@ const payActivityByCard = async (req, res) => {
 
 
 const payActivityStripe = async (req, res) => {
-  const { touristUsername, activityName ,paymentMethodId} = req.body;
+  const { touristUsername,promoCode,activityName,paymentMethodId} = req.body;
 
   try {
 
@@ -2868,7 +2882,16 @@ const payActivityStripe = async (req, res) => {
     }
 
     // Calculate ticket price
-    const ticketPrice = activity.Price;
+    let  ticketPrice = activity.Price;
+    if (promoCode) {
+      const promo = await PromoCodeModel.findOne({ code: promoCode, isActive: true });
+      if (!promo) {
+        return res.status(400).json({ msg: "Invalid or expired promo code" });
+      }
+      const discount = (ticketPrice * promo.discountPercentage) / 100;
+      ticketPrice -= discount; // Adjust price with discount
+      console.log(ticketPrice);
+    }
 
     // Process payment with Stripe
     const paymentIntent = await stripe.paymentIntents.create({
@@ -2884,6 +2907,12 @@ const payActivityStripe = async (req, res) => {
 
     if (paymentIntent.status !== 'succeeded') {
       return res.status(400).json({ msg: 'Payment failed. Please try again.' });
+    }
+    if (promoCode) {
+      await PromoCodeModel.updateOne(
+        { code: promoCode },
+        { $set: { isActive: false } } // Deactivate the promo code
+      );
     }
 
     // Update activity as booked
@@ -3015,7 +3044,7 @@ const updatepoints = async (req, res) => {
 };
 
 const payItinerary = async (req, res) => {
-  const { touristUsername, ItineraryName } = req.body;
+  const { touristUsername,promoCode, ItineraryName } = req.body;
 
   try {
     // Find the itinerary by name
@@ -3046,7 +3075,16 @@ const payItinerary = async (req, res) => {
     }
 
     // Calculate itinerary price
-    const ticketPrice = itinerary.Price;
+    let ticketPrice = itinerary.Price;
+    if (promoCode) {
+      const promo = await PromoCodeModel.findOne({ code: promoCode, isActive: true });
+      if (!promo) {
+        return res.status(400).json({ msg: "Invalid or expired promo code" });
+      }
+      const discount = (ticketPrice * promo.discountPercentage) / 100;
+      ticketPrice -= discount; // Adjust price with discount
+      console.log(ticketPrice);
+    }
 
     // Check if the tourist has enough funds in the wallet
     if (tourist.Wallet < ticketPrice) {
@@ -3058,6 +3096,12 @@ const payItinerary = async (req, res) => {
 
     // Deduct the ticket price from the tourist's wallet
     tourist.Wallet -= ticketPrice;
+    if (promoCode) {
+      await PromoCodeModel.updateOne(
+        { code: promoCode },
+        { $set: { isActive: false } } // Deactivate the promo code
+      );
+    }
 
     // Update points and badge level
     if (tourist.BadgeLevelOfPoints === 1) {
@@ -3228,7 +3272,7 @@ const payItineraryByCard = async (req, res) => {
 };
 
 const payItineraryStripe = async (req, res) => {
-  const { touristUsername, ItineraryName ,paymentMethodId} = req.body;
+  const { touristUsername, promoCode,ItineraryName,paymentMethodId} = req.body;
 
   try {
     //const paymentMethodId ="pm_card_visa";
@@ -3245,8 +3289,16 @@ const payItineraryStripe = async (req, res) => {
     }
 
     // Calculate itinerary price
-    const ticketPrice = itinerary.Price;
-
+    let ticketPrice = itinerary.Price;
+    if (promoCode) {
+      const promo = await PromoCodeModel.findOne({ code: promoCode, isActive: true });
+      if (!promo) {
+        return res.status(400).json({ msg: "Invalid or expired promo code" });
+      }
+      const discount = (ticketPrice * promo.discountPercentage) / 100;
+      ticketPrice -= discount; // Adjust price with discount
+      console.log(ticketPrice);
+    }
     // Process payment with Stripe
     const paymentIntent = await stripe.paymentIntents.create({
       amount: Math.round(ticketPrice * 100), // Stripe works with the smallest currency unit (e.g., piasters for EGP)
@@ -3261,6 +3313,12 @@ const payItineraryStripe = async (req, res) => {
 
     if (paymentIntent.status !== 'succeeded') {
       return res.status(400).json({ error: 'Payment failed. Please try again.' });
+    }
+    if (promoCode) {
+      await PromoCodeModel.updateOne(
+        { code: promoCode },
+        { $set: { isActive: false } } // Deactivate the promo code
+      );
     }
 
     // Add itinerary to the tourist's booked itineraries
@@ -3339,7 +3397,7 @@ Beyond Borders`,
 
 
 const payMuseum = async (req, res) => {
-  const { touristUsername, museumName } = req.body;
+  const { touristUsername,promoCode,museumName } = req.body;
 
   try {
     // Find the museum by name
@@ -3371,12 +3429,23 @@ const payMuseum = async (req, res) => {
 
     // Calculate ticket price
     let ticketPrice;
+    
     if (tourist.Occupation.toLowerCase() === 'student') {
       ticketPrice = museum.ticketPrices.student;
     } else if (tourist.Nationality.toLowerCase() === 'egyptian') {
       ticketPrice = museum.ticketPrices.native;
     } else {
       ticketPrice = museum.ticketPrices.foreigner;
+    }
+    
+    if (promoCode) {
+      const promo = await PromoCodeModel.findOne({ code: promoCode, isActive: true });
+      if (!promo) {
+        return res.status(400).json({ msg: "Invalid or expired promo code" });
+      }
+      const discount = (ticketPrice * promo.discountPercentage) / 100;
+      ticketPrice -= discount; // Adjust price with discount
+      console.log(ticketPrice);
     }
 
     // Check if the tourist has enough funds in the wallet
@@ -3390,6 +3459,12 @@ const payMuseum = async (req, res) => {
     // Deduct the ticket price from the tourist's wallet
     tourist.Wallet -= ticketPrice;
 
+    if (promoCode) {
+      await PromoCodeModel.updateOne(
+        { code: promoCode },
+        { $set: { isActive: false } } // Deactivate the promo code
+      );
+    }
     // Update points and badge level
     if (tourist.BadgeLevelOfPoints === 1) {
       tourist.Points += 0.5 * ticketPrice;
@@ -3680,7 +3755,7 @@ Beyond Borders Team`,
 };
 
 const payHP = async (req, res) => {
-  const { touristUsername, HPName } = req.body;
+  const { touristUsername,promoCode, HPName } = req.body;
 
   try {
     // Find the historical place by name
@@ -3717,6 +3792,15 @@ const payHP = async (req, res) => {
       ticketPrice = hp.ticketPrices.native;
     } else {
       ticketPrice = hp.ticketPrices.foreigner;
+    }
+     if (promoCode) {
+      const promo = await PromoCodeModel.findOne({ code: promoCode, isActive: true });
+      if (!promo) {
+        return res.status(400).json({ msg: "Invalid or expired promo code" });
+      }
+      const discount = (ticketPrice * promo.discountPercentage) / 100;
+      ticketPrice -= discount; // Adjust price with discount
+      console.log(ticketPrice);
     }
 
     // Check if the tourist has enough funds in the wallet
@@ -7546,6 +7630,8 @@ const getTouristCartDetails = async (req, res) => {
     res.status(500).json({ msg: "An error occurred while fetching the cart details.", error: error.message });
   }
 };
+
+
 
 
 
