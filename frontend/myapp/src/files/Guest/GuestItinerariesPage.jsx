@@ -90,7 +90,7 @@ const [convertedPrices, setConvertedPrices] = useState({});
 const [currency, setCurrency] = useState('EGP'); // Default currency is EGP
 const location = useLocation();
 const query = new URLSearchParams(location.search);
-const targetName = query.get("Name");
+const targetName = query.get("Title");
 const refs = useRef({});
 const queryParams = new URLSearchParams(location.search);
 const initialSearchQuery = queryParams.get('search') || ''; 
@@ -137,14 +137,16 @@ const [searchQuery, setSearchQuery] = useState(initialSearchQuery); // Search qu
   }, [initialSearchQuery]); 
   useEffect(() => {
     if (targetName && refs.current[targetName]) {
-      setTimeout(() => {
-        refs.current[targetName].scrollIntoView({
-          behavior: "smooth",
-          block: "center",
-        });
-      }, 100); // Delay to ensure refs are populated
+      console.log("Scrolling to:", targetName, refs.current[targetName]);
+      refs.current[targetName].scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
+    } else {
+      console.error(`Unable to find element with targetName: ${targetName}`);
     }
-  }, [targetName, activities]); // Add HPs to dependencies
+  }, [targetName, activities]);
+  
   useEffect(() => {
     if (currency !== 'EGP') {
       convertActivityPrices();
@@ -698,7 +700,7 @@ const [searchQuery, setSearchQuery] = useState(initialSearchQuery); // Search qu
       {/* Main Content Area with Activities */}
       <Box sx={styles.activitiesContainer}>
         {activities.map((activity, index) => (
-          <Box key={index} sx={{ marginBottom: '20px' }}>
+          <Box key={index} ref={(el) => (refs.current[activity.Title] = el)} sx={{ marginBottom: '20px' }}>
             <Box
               sx={{
                 ...styles.activityCard,
