@@ -3437,7 +3437,7 @@ const payMuseum = async (req, res) => {
     } else {
       ticketPrice = museum.ticketPrices.foreigner;
     }
-    
+
     if (promoCode) {
       const promo = await PromoCodeModel.findOne({ code: promoCode, isActive: true });
       if (!promo) {
@@ -3641,7 +3641,7 @@ res.status(500).json({ error: error.message });
 };
 
 const payMuseumStripe = async (req, res) => {
-  const { touristUsername, museumName,paymentMethodId } = req.body;
+  const { touristUsername,promoCode,museumName,paymentMethodId } = req.body;
 
   try {
     //const paymentMethodId = 'pm_card_visa'; // You can replace this with the actual PaymentMethod ID sent from the frontend
@@ -3667,6 +3667,15 @@ const payMuseumStripe = async (req, res) => {
     } else {
       ticketPrice = museum.ticketPrices.foreigner;
     }
+    if (promoCode) {
+      const promo = await PromoCodeModel.findOne({ code: promoCode, isActive: true });
+      if (!promo) {
+        return res.status(400).json({ msg: "Invalid or expired promo code" });
+      }
+      const discount = (ticketPrice * promo.discountPercentage) / 100;
+      ticketPrice -= discount; // Adjust price with discount
+      console.log(ticketPrice);
+    }
 
     // Process payment with Stripe
     const paymentIntent = await stripe.paymentIntents.create({
@@ -3682,6 +3691,12 @@ const payMuseumStripe = async (req, res) => {
 
     if (paymentIntent.status !== 'succeeded') {
       return res.status(400).json({ error: 'Payment failed. Please try again.' });
+    }
+    if (promoCode) {
+      await PromoCodeModel.updateOne(
+        { code: promoCode },
+        { $set: { isActive: false } } // Deactivate the promo code
+      );
     }
 
     // Add museum to tourist's booked museums
@@ -3814,6 +3829,12 @@ const payHP = async (req, res) => {
     // Deduct the ticket price from the tourist's wallet
     tourist.Wallet -= ticketPrice;
 
+    if (promoCode) {
+      await PromoCodeModel.updateOne(
+        { code: promoCode },
+        { $set: { isActive: false } } // Deactivate the promo code
+      );
+    }
     // Update points and badge level
     if (tourist.BadgeLevelOfPoints === 1) {
       tourist.Points += 0.5 * ticketPrice;
@@ -3988,7 +4009,7 @@ const payHPByCard = async (req, res) => {
 };
 
 const payHPStripe = async (req, res) => {
-  const { touristUsername, HPName ,paymentMethodId} = req.body;
+  const { touristUsername,promoCode,HPName ,paymentMethodId} = req.body;
 
   try {
     // paymentMethodId = 'pm_card_visa'; // Replace with actual PaymentMethod ID from the frontend
@@ -4014,6 +4035,15 @@ const payHPStripe = async (req, res) => {
     } else {
       ticketPrice = hp.ticketPrices.foreigner;
     }
+    if (promoCode) {
+      const promo = await PromoCodeModel.findOne({ code: promoCode, isActive: true });
+      if (!promo) {
+        return res.status(400).json({ msg: "Invalid or expired promo code" });
+      }
+      const discount = (ticketPrice * promo.discountPercentage) / 100;
+      ticketPrice -= discount; // Adjust price with discount
+      console.log(ticketPrice);
+    }
 
     // Process payment with Stripe
     const paymentIntent = await stripe.paymentIntents.create({
@@ -4029,6 +4059,12 @@ const payHPStripe = async (req, res) => {
 
     if (paymentIntent.status !== 'succeeded') {
       return res.status(400).json({ error: 'Payment failed. Please try again.' });
+    }
+    if (promoCode) {
+      await PromoCodeModel.updateOne(
+        { code: promoCode },
+        { $set: { isActive: false } } // Deactivate the promo code
+      );
     }
 
     // Add historical place to tourist's booked list
