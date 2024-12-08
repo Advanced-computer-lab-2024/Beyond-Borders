@@ -26,7 +26,7 @@ import { useNavigate } from 'react-router-dom';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import SaveIcon from '@mui/icons-material/Save';
 import NotificationsIcon from '@mui/icons-material/Notifications';
-
+import { FormControlLabel, Switch } from '@mui/material';
 const HistoricalPlaceTG = () => {
 const [places, setPlaces] = useState([]);
 const [errorMessage, setErrorMessage] = useState('');
@@ -84,7 +84,7 @@ const [passwordUpdateMessage, setPasswordUpdateMessage] = useState('');
         setResponseMessage('Historical Tag added successfully!');
         setTagName(''); // Reset the form
       } else {
-        setErrorMessage(`Error: ${result.error}`);
+        setErrorMessage('Error: ${result.error}');
       }
     } catch (error) {
       setErrorMessage('An error occurred. Please try again.');
@@ -106,7 +106,7 @@ const [passwordUpdateMessage, setPasswordUpdateMessage] = useState('');
         setNewPassword('');
         togglePasswordModal();
       } else {
-        setErrorMessage(`Error: ${response.data.error}`);
+        setErrorMessage('Error: ${response.data.error}');
       }
     } catch (error) {
       setErrorMessage('An error occurred while updating the password.');
@@ -121,6 +121,7 @@ const [formData, setFormData] = useState({
     ticketPriceNative: '',
     ticketPriceStudent: '',
     tag: '',
+    BookingOpen:''
   });
   const [errors, setErrors] = useState({
     name: '',
@@ -131,6 +132,7 @@ const [formData, setFormData] = useState({
     ticketPriceNative: '',
     ticketPriceStudent: '',
     tag: '',
+    BookingOpen:false
   });
 
   // Validation function to check the input fields
@@ -174,17 +176,23 @@ const [formData, setFormData] = useState({
       formErrors.tag = 'Tags must be comma-separated and non-empty';
       isValid = false;
     }
-
+    if (!formData.BookingOpen) {
+      formErrors.BookingOpen = 'Booking Open is required';
+      isValid = false;
+    }
     setErrors(formErrors);
     return isValid;
   };
   const handleChange = (e) => {
-    const { name, value } = e.target;
+    const { name, checked } = e.target; // Use 'checked' instead of 'value'
+  
+    // Update the state with the new boolean value of BookingOpen
     setFormData((prev) => ({
       ...prev,
-      [name]: value,
+      [name]: checked, // 'checked' will be either true or false
     }));
   };
+  
   const AuthorUsername = localStorage.getItem('username');
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -202,6 +210,7 @@ const [formData, setFormData] = useState({
         student: formData.ticketPriceStudent,
       },
       HistoricalTags: tagsArray,
+      BookingOpen:formData.BookingOpen,
       AuthorUsername,
     };
 
@@ -215,7 +224,8 @@ const [formData, setFormData] = useState({
         alert('Error: ${response.data.error}');
       }
     } catch (error) {
-        alert(`An error occurred: ${error.response?.data?.error || 'Please try again.'}`);
+      alert(`An error occurred: ${error.response?.data?.error || 'Please try again.'}`);
+
    } };
 
    const fetchHistoricalPlacesByAuthor = async () => {
@@ -257,7 +267,7 @@ const [formData, setFormData] = useState({
       window.location.href = "/HistoricalPlaceTG"; // Redirect or reload page after update
     } catch (error) {
       console.error("Error updating Historical Place:", error);
-      alert(`An error occurred while updating the Historical Place: ${error.response?.data?.error || "Unknown error"}`);
+      alert('An error occurred while updating the Historical Place: ${error.response?.data?.error || "Unknown error"}');
     }
   };
 
@@ -291,20 +301,22 @@ const [formData, setFormData] = useState({
     setPlaces((prev) => {
       const updatedPlaces = [...prev];
       const place = { ...updatedPlaces[index] };
-      
-      // Update the specific field in the museum object
+  
+      // Check if the field is a nested property (e.g., 'ticketPrices.foreigner')
       if (field.includes(".")) {
-        // For nested fields (like ticketPrices.foreigner), split the field path
         const fieldParts = field.split(".");
+        // Update the nested field dynamically
         place[fieldParts[0]][fieldParts[1]] = value;
       } else {
+        // For regular fields, directly update
         place[field] = value;
       }
-      
-      updatedPlaces[index] = place; // Replace the old museum data with updated one
+  
+      updatedPlaces[index] = place; // Replace the old place data with the updated one
       return updatedPlaces;
     });
   };
+  
 
   return (
     <Box sx={styles.container}>
@@ -533,6 +545,25 @@ const [formData, setFormData] = useState({
           fullWidth
           sx={{ marginBottom: '10px', maxWidth: '400px' }}
         />
+           <Box sx={styles.bookingOpenContainer}>
+       <Typography variant="body2" sx={{ display: 'flex', fontSize: '18px', alignItems: 'center' }}>
+    <Typography sx={{ fontWeight: 'bold', mr: 1 }}>Booking Open:</Typography>
+    {editing[index] ? (
+      <select
+        value={place.BookingOpen ? 'true' : 'false'}
+        onChange={(e) =>
+          handleEditFieldChange(index, "BookingOpen", e.target.value === "true")
+        }
+        style={{ padding: "4px", fontSize: "14px" }}
+      >
+        <option value="true">Yes</option>
+        <option value="false">No</option>
+      </select>
+    ) : (
+      <>{place.BookingOpen ? "Yes" : "No"}</>
+    )}
+  </Typography>
+</Box>
         <TextField
           label="Native Ticket Price"
           value={place.ticketPrices.native}
@@ -551,6 +582,7 @@ const [formData, setFormData] = useState({
           fullWidth
           sx={{ marginBottom: '10px', maxWidth: '400px' }}
         />
+        
       </>
     ) : (
       <>
@@ -560,6 +592,26 @@ const [formData, setFormData] = useState({
           Foreigner  ${place.ticketPrices.foreigner}, Native  $
           {place.ticketPrices.native}, Student  ${place.ticketPrices.student}
         </Typography>
+        {/* Display Booking*/}
+        <Box sx={styles.bookingOpenContainer}>
+       <Typography variant="body2" sx={{ display: 'flex', fontSize: '18px', alignItems: 'center' }}>
+    <Typography sx={{ fontWeight: 'bold', mr: 1 }}>Booking Open:</Typography>
+    {place.editMode ? (
+      <select
+        value={editing[place.Name]?.BookingOpen !== undefined ? editing[place.Name]?.BookingOpen : place.BookingOpen ? 'true' : 'false'}
+        onChange={(e) =>
+          handleEditFieldChange('BookingOpen', e.target.value === 'true', place.Name)
+        }
+        style={{ padding: '4px', fontSize: '14px' }}
+      >
+        <option value="true">Yes</option>
+        <option value="false">No</option>
+      </select>
+    ) : (
+      place.BookingOpen ? 'Yes' : 'No'
+    )}
+  </Typography>
+</Box>
         {/* Display Description */}
         <Typography variant="body2" sx={{ fontSize: '16px' }}>
           <strong>Description:</strong> {place.description || 'No description provided.'}
@@ -722,6 +774,16 @@ const [formData, setFormData] = useState({
         error={!!errors.tag}
         helperText={errors.tag}
         required
+      />
+      <FormControlLabel
+        control={
+          <Switch
+            name="BookingOpen"
+            checked={formData.BookingOpen}
+            onChange={handleChange}
+          />
+        }
+        label="Booking Open"
       />
       
       {setErrorMessage && (
@@ -1099,5 +1161,3 @@ const styles = {
 };
 
 export default HistoricalPlaceTG;
-
-

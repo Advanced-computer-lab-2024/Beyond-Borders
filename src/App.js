@@ -485,7 +485,7 @@ app.get("/api/viewAllOrders",viewAllOrders);
 app.get("/fetchCityCode",fetchCityCode);
 app.post("/createPromo",createPromoCode);
 app.post("/sendNotificationWithPromoCode",sendNotificationWithPromoCode)
-cron.schedule('0 8 * * *', async () => { // Run every day at 8 AM
+cron.schedule('0 9 * * *', async () => { // Run every day at 8 AM
   console.log('Running upcoming events reminder...');
   await sendUpcomingEventNotifications();
 });
