@@ -479,10 +479,19 @@ const filterSellerProducts = async (req, res) => {
       'productsPurchased.productName': { $in: sellerProductNames },
     };
 
+    // Handle date filtering with normalized time range
     if (date) {
-      query.orderDate = new Date(date);
+      const inputDate = new Date(date);
+      inputDate.setHours(0, 0, 0, 0); // Normalize to start of the day
+
+      // Create date range for the specified day
+      query.orderDate = {
+        $gte: inputDate, // Start of the day
+        $lt: new Date(inputDate.getTime() + 24 * 60 * 60 * 1000), // End of the day
+      };
     }
 
+    // Handle month filtering
     if (month) {
       const year = new Date().getFullYear();
       const startOfMonth = new Date(year, month - 1, 1);
@@ -542,6 +551,7 @@ const filterSellerProducts = async (req, res) => {
     res.status(500).json({ error: "Internal server error" });
   }
 };
+
 
 
 const notifySellerOfOutOfStock = async (req, res) => {
