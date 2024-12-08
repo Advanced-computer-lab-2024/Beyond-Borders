@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Button, Typography, IconButton,Dialog,DialogContent ,DialogContentText, DialogActions ,Tooltip,Divider,TextField, InputAdornment, Modal,MenuItem,Select,FormControl,InputLabel,} from '@mui/material';
+import { Box, Button, Typography, IconButton,Dialog,DialogContent ,DialogContentText,CircularProgress, DialogActions ,Tooltip,Divider,TextField, InputAdornment, Modal,MenuItem,Select,FormControl,InputLabel,} from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import MenuIcon from '@mui/icons-material/Menu';
 import NotificationsIcon from '@mui/icons-material/Notifications';
@@ -46,7 +46,9 @@ import IosShareIcon from '@mui/icons-material/IosShare';
 import ShareIcon from '@mui/icons-material/Share';
 import LanguageIcon from '@mui/icons-material/Language';
 import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined';
+import ShoppingBagIcon from '@mui/icons-material/ShoppingBag';
 import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
+import BookmarkIcon from '@mui/icons-material/Bookmark';
 import axios from 'axios';
 
 function TouristBookedItineraries() {
@@ -65,6 +67,7 @@ function TouristBookedItineraries() {
   const [museumsOpen, setMuseumsOpen] = useState(false);
   const [transportationOpen, setTransportationOpen] = useState(false);
   const [productsOpen, setProductsOpen] = useState(false);
+  const [expanded, setExpanded] = useState(false);
   const [complaintsOpen, setComplaintsOpen] = useState(false);
   //search bar
   const [searchQuery, setSearchQuery] = useState(''); // Search query state
@@ -89,6 +92,9 @@ const [convertedPrices, setConvertedPrices] = useState({});
 const [currency, setCurrency] = useState('EGP'); // Default currency is EGP
 const [openDialog, setOpenDialog] = useState(false);
 const [selectedActivity, setSelectedActivity] = useState(null);
+const [loading, setLoading] = useState(true);
+const [flightsOpen, setFlightsOpen] = useState(false); // Manage the dropdown state for Flights
+const [hotelsOpen, setHotelsOpen] = useState(false); // Manage the dropdown state for Hotels
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -158,6 +164,7 @@ const [selectedActivity, setSelectedActivity] = useState(null);
       console.error('User not logged in.');
       return;
     }
+    setLoading(true); // Set loading to true before starting the fetch
   
     try {
       // Call the backend API to fetch booked itineraries
@@ -169,6 +176,9 @@ const [selectedActivity, setSelectedActivity] = useState(null);
       setActivities(response.data); // Assuming `setActivities` is used to populate the UI
     } catch (error) {
       console.error('Error fetching itineraries:', error);
+    }
+    finally {
+      setLoading(false); // Set loading to false after the fetch
     }
   };
   
@@ -201,6 +211,14 @@ const [selectedActivity, setSelectedActivity] = useState(null);
     const query = event.target.value; // Get the input value
     setSearchQuery(query); // Update search query state
     searchItineraries(query); // Trigger the search functionality
+  };
+
+
+  const handleToggleDescription = (index) => {
+    setExpanded((prev) => ({
+      ...prev,
+      [index]: !prev[index], // Toggle expanded state for the specific index
+    }));
   };
   
 
@@ -494,69 +512,6 @@ const [selectedActivity, setSelectedActivity] = useState(null);
   />
 </Box>
         <Box sx={styles.topMenuRight}>
-        <Button
-         sx={{
-         ...styles.menuButton,
-         '&:hover': {
-         backgroundColor: '#e6e7ed', // Background color on hover
-            color: '#192959',           // Text color on hover
-        },
-        }}
-        startIcon={<AccountCircleIcon />}
-        >
-        My Profile
-        </Button>
-        <Tooltip title="Notifications" arrow>
-        <IconButton
-            sx={{
-            ...styles.menuButton,
-            
-            '&:hover': {
-                backgroundColor: '#e6e7ed', // Lighter hover background
-            color: '#192959',           // Text color on hover
-
-            },
-            width: '40px', // Ensure square icon button
-            height: '40px',
-            }}
-        >
-            <NotificationsNoneOutlinedIcon />
-        </IconButton>
-        </Tooltip>
-        <Tooltip title="Shopping Cart" arrow>
-  <IconButton
-    sx={{
-      ...styles.menuButton,
-      
-      '&:hover': {
-        backgroundColor: '#e6e7ed', // Lighter hover background
-      color: '#192959',           // Text color on hover
-
-      },
-      width: '40px', // Ensure square icon button
-      height: '40px',
-    }}
-  >
-    <ShoppingCartOutlinedIcon />
-  </IconButton>
-</Tooltip>
-<Tooltip title="Wishlist" arrow>
-            <IconButton
-                sx={{
-                ...styles.menuButton,
-                
-                '&:hover': {
-                    backgroundColor: '#e6e7ed', // Lighter hover background
-                color: '#192959',           // Text color on hover
-
-                },
-                width: '40px', // Ensure square icon button
-                height: '40px',
-                }}
-            >
-    <FavoriteBorderIcon/>
-  </IconButton>
-</Tooltip>
 <Tooltip title="Logout" arrow>
             <IconButton
                 sx={{
@@ -570,6 +525,7 @@ const [selectedActivity, setSelectedActivity] = useState(null);
                 width: '40px', // Ensure square icon button
                 height: '40px',
                 }}
+                onClick={() => navigate('/')}
             >
     <LogoutIcon />
   </IconButton>
@@ -577,8 +533,8 @@ const [selectedActivity, setSelectedActivity] = useState(null);
         </Box>
       </Box>
 
-      {/* Collapsible Sidebar */}
-      <Box
+    {/* Collapsible Sidebar */}
+   <Box
         sx={{
           ...styles.sidebar,
           width: sidebarOpen ? '280px' : '60px',
@@ -586,14 +542,128 @@ const [selectedActivity, setSelectedActivity] = useState(null);
         onMouseEnter={() => setSidebarOpen(true)}
         onMouseLeave={() => setSidebarOpen(false)}
       >
-        <Button onClick={() => navigate('/TouristFlights')} sx={styles.sidebarButton}>
-          <FlightIcon sx={styles.icon} />
-          {sidebarOpen && 'Flights'}
-        </Button>
-        <Button onClick={() => navigate('/TouristHotels')} sx={styles.sidebarButton}>
-          <BedIcon sx={styles.icon} />
-          {sidebarOpen && 'Hotels'}
-        </Button>
+        <Box>
+  {/* Flights Button */}
+  <Button
+    onClick={() => setFlightsOpen(!flightsOpen)} // Toggle dropdown for flights
+    sx={styles.sidebarButton}
+  >
+    <FlightIcon sx={styles.icon} /> {/* Flights Icon */}
+    {sidebarOpen && (
+      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+        Flights
+        {flightsOpen ? (
+          <KeyboardArrowUpIcon sx={{ fontSize: '18px', marginLeft: '5px' }} />
+        ) : (
+          <KeyboardArrowDownIcon sx={{ fontSize: '18px', marginLeft: '5px' }} />
+        )}
+      </Box>
+    )}
+  </Button>
+  
+  {/* Dropdown Menu */}
+  {flightsOpen && (
+    <Box sx={{ display: 'flex', flexDirection: 'column', marginLeft: sidebarOpen ? '20px' : '0px' }}>
+     
+      {/* Find Flights */}
+      <Button
+        onClick={() => navigate('/TouristFlights')}
+        sx={{
+          ...styles.sidebarButton,
+          fontSize: '14px',
+          paddingLeft: sidebarOpen ? '20px' : '10px',
+          padding: '5px 20px',
+        }}
+      >
+        <SearchIcon sx={{ fontSize: '18px', marginRight: '10px' }} /> {/* Icon for Find Flights */}
+        {sidebarOpen && 'Find Flights'}
+      </Button>
+       {/* Booked Flights */}
+       <Button
+        onClick={() => navigate('/TouristBookedFlights')}
+        sx={{
+          ...styles.sidebarButton,
+          fontSize: '14px',
+          paddingLeft: sidebarOpen ? '20px' : '10px',
+          padding: '5px 20px',
+        }}
+      >
+        <EventAvailableIcon sx={{ fontSize: '18px', marginRight: '10px' }} /> {/* Icon for Booked */}
+        {sidebarOpen && 'Booked'}
+      </Button>
+      
+    </Box>
+    
+  )}
+</Box>
+
+
+<Box>
+  {/* Hotels Dropdown */}
+  <Button
+    onClick={() => setHotelsOpen(!hotelsOpen)}
+    sx={styles.sidebarButton}
+  >
+    <BedIcon sx={styles.icon} />
+    {sidebarOpen && (
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          width: "100%",
+        }}
+      >
+        Hotels
+        {hotelsOpen ? (
+          <KeyboardArrowUpIcon sx={{ fontSize: "18px", marginLeft: "5px" }} />
+        ) : (
+          <KeyboardArrowDownIcon sx={{ fontSize: "18px", marginLeft: "5px" }} />
+        )}
+      </Box>
+    )}
+  </Button>
+  {hotelsOpen && (
+    <Box
+      sx={{
+        display: "flex",
+        flexDirection: "column",
+        marginLeft: sidebarOpen ? "20px" : "0px",
+      }}
+    >
+     
+      <Button
+        onClick={() => navigate("/TouristHotels")}
+        sx={{
+          ...styles.sidebarButton,
+          fontSize: "14px",
+          paddingLeft: sidebarOpen ? "20px" : "10px",
+          padding: "5px 20px",
+        }}
+      >
+        <SearchIcon sx={{ fontSize: "18px", marginRight: "10px" }} />
+        {sidebarOpen && "Find Hotels"}
+      </Button>
+      <Button
+        onClick={() => navigate("/TouristBookedHotels")}
+        sx={{
+          ...styles.sidebarButton,
+          fontSize: "14px",
+          paddingLeft: sidebarOpen ? "20px" : "10px",
+          padding: "5px 20px",
+        }}
+      >
+        <EventAvailableIcon sx={{ fontSize: "18px", marginRight: "10px" }} />
+        {sidebarOpen && "Reservations"}
+      </Button>
+    </Box>
+  )}
+</Box>
+
+
+      
+
+       
         <Box>
   <Button
     onClick={() => setProductsOpen(!productsOpen)} // Toggle dropdown for products
@@ -615,7 +685,7 @@ const [selectedActivity, setSelectedActivity] = useState(null);
     <Box sx={{ display: 'flex', flexDirection: 'column', marginLeft: sidebarOpen ? '20px' : '0px' }}>
       {/* My Purchased Products */}
       <Button
-        onClick={() => navigate('/my-purchased-products')}
+        onClick={() => navigate('/TouristPurchasedProducts')}
         sx={{
           ...styles.sidebarButton,
           fontSize: '14px',
@@ -629,7 +699,7 @@ const [selectedActivity, setSelectedActivity] = useState(null);
       
       {/* View All Products */}
       <Button
-        onClick={() => navigate('/view-all-products')}
+        onClick={() => navigate('/TouristAllProducts')}
         sx={{
           ...styles.sidebarButton,
           fontSize: '14px',
@@ -643,24 +713,52 @@ const [selectedActivity, setSelectedActivity] = useState(null);
     </Box>
   )}
 </Box>
-        {/* Activities Dropdown */}
+
+         {/* Activities Dropdown */}
         <Box>
         <Button
-            onClick={() => setActivitiesOpen(!activitiesOpen)}
-            sx={styles.sidebarButton}
-        >
-            <LocalActivityIcon sx={styles.icon} />
-            {sidebarOpen && (
-            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
-                Activities
-                {activitiesOpen ? (
-                <KeyboardArrowUpIcon sx={{ fontSize: '18px', marginLeft: '5px' }} />
-                ) : (
-                <KeyboardArrowDownIcon sx={{ fontSize: '18px', marginLeft: '5px' }} />
-                )}
-            </Box>
-            )}
-        </Button>
+  onClick={async () => {
+    try {
+      // First, toggle the activities open/close state
+      setActivitiesOpen(!activitiesOpen);
+
+      // Get the username from localStorage
+      const username = localStorage.getItem('username');
+
+      if (!username) {
+        alert('User not logged in.');
+        return;
+      }
+
+      // Call the `addCompletedActivities` function via an API request
+      const response = await axios.put('/addCompletedActivities', { touristUsername: username });
+
+      if (response.status === 200) {
+        // Handle success, maybe show a success message or update local state
+        //alert('Completed activities updated successfully!');
+      } else {
+        //alert('Failed to update completed activities.');
+      }
+    } catch (error) {
+      console.error('Error updating completed activities:', error);
+      alert('An error occurred while updating completed activities.');
+    }
+  }}
+  sx={styles.sidebarButton}
+>
+  <LocalActivityIcon sx={styles.icon} />
+  {sidebarOpen && (
+    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+      Activities
+      {activitiesOpen ? (
+        <KeyboardArrowUpIcon sx={{ fontSize: '18px', marginLeft: '5px' }} />
+      ) : (
+        <KeyboardArrowDownIcon sx={{ fontSize: '18px', marginLeft: '5px' }} />
+      )}
+    </Box>
+  )}
+</Button>
+
         {activitiesOpen && (
             <Box sx={{ display: 'flex', flexDirection: 'column', marginLeft: sidebarOpen ? '20px' : '0px' }}>
             <Button
@@ -690,7 +788,7 @@ const [selectedActivity, setSelectedActivity] = useState(null);
                 </Button>
 
                 <Button
-                onClick={() => navigate('/my-booked-activities')}
+                onClick={() => navigate('/TouristBookedActivities')}
                 sx={{
                     ...styles.sidebarButton,
                     fontSize: '14px',
@@ -705,28 +803,56 @@ const [selectedActivity, setSelectedActivity] = useState(null);
             </Box>
         )}
         </Box>
-               {/* Itineraries Dropdown */}
+
+       {/* Itineraries Dropdown */}
 <Box>
-  <Button
-    onClick={() => setItinerariesOpen(!itinerariesOpen)} // Toggle dropdown for itineraries
-    sx={styles.sidebarButton}
-  >
-    <MapIcon sx={styles.icon} />
-    {sidebarOpen && (
-      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
-        Itineraries
-        {itinerariesOpen ? (
-          <KeyboardArrowUpIcon sx={{ fontSize: '18px', marginLeft: '5px' }} />
-        ) : (
-          <KeyboardArrowDownIcon sx={{ fontSize: '18px', marginLeft: '5px' }} />
-        )}
-      </Box>
-    )}
-  </Button>
+<Button
+  onClick={async () => {
+    try {
+      // Toggle the itineraries dropdown open/close
+      setItinerariesOpen(!itinerariesOpen);
+
+      // Get the username from localStorage
+      const username = localStorage.getItem('username');
+
+      if (!username) {
+        alert('User not logged in.');
+        return;
+      }
+
+      // Call the `addCompletedItinerary` function via an API request
+      const response = await axios.put('/addCompletedItinerary', { touristUsername: username });
+
+      if (response.status === 200) {
+        // Handle success, maybe show a success message or update local state
+        //alert('Completed itineraries updated successfully!');
+      } else {
+        //alert('Failed to update completed itineraries.');
+      }
+    } catch (error) {
+      console.error('Error updating completed itineraries:', error);
+      alert('An error occurred while updating completed itineraries.');
+    }
+  }}
+  sx={styles.sidebarButton}
+>
+  <MapIcon sx={styles.icon} />
+  {sidebarOpen && (
+    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+      Itineraries
+      {itinerariesOpen ? (
+        <KeyboardArrowUpIcon sx={{ fontSize: '18px', marginLeft: '5px' }} />
+      ) : (
+        <KeyboardArrowDownIcon sx={{ fontSize: '18px', marginLeft: '5px' }} />
+      )}
+    </Box>
+  )}
+</Button>
+
   {itinerariesOpen && (
     <Box sx={{ display: 'flex', flexDirection: 'column', marginLeft: sidebarOpen ? '20px' : '0px' }}>
       <Button
-        onClick={() => navigate('/upcoming-itineraries')}
+        onClick={() => navigate('/TouristUpcomingItineraries')}
         sx={{
           ...styles.sidebarButton,
           fontSize: '14px',
@@ -738,7 +864,7 @@ const [selectedActivity, setSelectedActivity] = useState(null);
         {sidebarOpen && 'Upcoming '}
       </Button>
       <Button
-        onClick={() => navigate('/completed-itineraries')}
+        onClick={() => navigate('/TouristCompletedItineraries')}
         sx={{
           ...styles.sidebarButton,
           fontSize: '14px',
@@ -750,7 +876,7 @@ const [selectedActivity, setSelectedActivity] = useState(null);
         {sidebarOpen && 'Completed '}
       </Button>
       <Button
-        onClick={() => navigate('/my-booked-itineraries')}
+        onClick={() => navigate('/TouristBookedItineraries')}
         sx={{
           ...styles.sidebarButton,
           fontSize: '14px',
@@ -766,26 +892,53 @@ const [selectedActivity, setSelectedActivity] = useState(null);
 </Box>
 {/* Historical Places Dropdown */}
 <Box>
-  <Button
-    onClick={() => setHistoricalPlacesOpen(!historicalPlacesOpen)} // Toggle dropdown for historical places
-    sx={styles.sidebarButton}
-  >
-    <ChurchIcon sx={styles.icon} />
-    {sidebarOpen && (
-      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
-        Historical Places
-        {historicalPlacesOpen ? (
-          <KeyboardArrowUpIcon sx={{ fontSize: '18px', marginLeft: '5px' }} />
-        ) : (
-          <KeyboardArrowDownIcon sx={{ fontSize: '18px', marginLeft: '5px' }} />
-        )}
-      </Box>
-    )}
-  </Button>
+<Button
+  onClick={async () => {
+    try {
+      // Toggle the historical places dropdown open/close
+      setHistoricalPlacesOpen(!historicalPlacesOpen);
+
+      // Get the username from localStorage
+      const username = localStorage.getItem('username');
+
+      if (!username) {
+        alert('User not logged in.');
+        return;
+      }
+
+      // Call the `addCompletedHPEvents` function via an API request
+      const response = await axios.put('/addCompletedHPEvents', { touristUsername: username });
+
+      if (response.status === 200) {
+        // Handle success, maybe show a success message or update local state
+        //alert('Historical Place events updated successfully!');
+      } else {
+        //alert('Failed to update historical place events.');
+      }
+    } catch (error) {
+      console.error('Error updating historical place events:', error);
+      alert('An error occurred while updating historical place events.');
+    }
+  }}
+  sx={styles.sidebarButton}
+>
+  <ChurchIcon sx={styles.icon} />
+  {sidebarOpen && (
+    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+      Historical Places
+      {historicalPlacesOpen ? (
+        <KeyboardArrowUpIcon sx={{ fontSize: '18px', marginLeft: '5px' }} />
+      ) : (
+        <KeyboardArrowDownIcon sx={{ fontSize: '18px', marginLeft: '5px' }} />
+      )}
+    </Box>
+  )}
+</Button>
+
   {historicalPlacesOpen && (
     <Box sx={{ display: 'flex', flexDirection: 'column', marginLeft: sidebarOpen ? '20px' : '0px' }}>
       <Button
-        onClick={() => navigate('/upcoming-historical-places')}
+        onClick={() => navigate('/TouristUpcomingHP')}
         sx={{
           ...styles.sidebarButton,
           fontSize: '14px',
@@ -797,7 +950,7 @@ const [selectedActivity, setSelectedActivity] = useState(null);
         {sidebarOpen && 'Upcoming '}
       </Button>
       <Button
-        onClick={() => navigate('/visited-historical-places')}
+        onClick={() => navigate('/TouristCompletedHPs')}
         sx={{
           ...styles.sidebarButton,
           fontSize: '14px',
@@ -809,7 +962,7 @@ const [selectedActivity, setSelectedActivity] = useState(null);
         {sidebarOpen && 'Visited '}
       </Button>
       <Button
-        onClick={() => navigate('/saved-historical-places')}
+        onClick={() => navigate('/TouristBookedHP')}
         sx={{
           ...styles.sidebarButton,
           fontSize: '14px',
@@ -820,26 +973,56 @@ const [selectedActivity, setSelectedActivity] = useState(null);
         <EventAvailableIcon sx={{ fontSize: '18px', marginRight: '10px' }} />
         {sidebarOpen && 'Booked '}
       </Button>
+      
     </Box>
   )}
 </Box>
+
+
 <Box>
-  <Button
-    onClick={() => setMuseumsOpen(!museumsOpen)} // Toggle dropdown for museums
-    sx={styles.sidebarButton}
-  >
-    <AccountBalanceIcon sx={styles.icon} /> {/* Suitable icon for Museums */}
-    {sidebarOpen && (
-      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
-        Museums
-        {museumsOpen ? (
-          <KeyboardArrowUpIcon sx={{ fontSize: '18px', marginLeft: '5px' }} />
-        ) : (
-          <KeyboardArrowDownIcon sx={{ fontSize: '18px', marginLeft: '5px' }} />
-        )}
-      </Box>
-    )}
-  </Button>
+<Button
+  onClick={async () => {
+    try {
+      // Toggle the museums dropdown open/close
+      setMuseumsOpen(!museumsOpen);
+
+      // Get the username from localStorage
+      const username = localStorage.getItem('username');
+
+      if (!username) {
+        alert('User not logged in.');
+        return;
+      }
+
+      // Call the `addCompletedMuseumEvents` function via an API request
+      const response = await axios.put('/addCompletedMuseumEvents', { touristUsername: username });
+
+      if (response.status === 200) {
+        // Handle success, maybe show a success message or update local state
+        //alert('Museum events updated successfully!');
+      } else {
+        //alert('Failed to update museum events.');
+      }
+    } catch (error) {
+      console.error('Error updating museum events:', error);
+      alert('An error occurred while updating museum events.');
+    }
+  }}
+  sx={styles.sidebarButton}
+>
+  <AccountBalanceIcon sx={styles.icon} /> {/* Suitable icon for Museums */}
+  {sidebarOpen && (
+    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+      Museums
+      {museumsOpen ? (
+        <KeyboardArrowUpIcon sx={{ fontSize: '18px', marginLeft: '5px' }} />
+      ) : (
+        <KeyboardArrowDownIcon sx={{ fontSize: '18px', marginLeft: '5px' }} />
+      )}
+    </Box>
+  )}
+</Button>
+
   {museumsOpen && (
     <Box sx={{ display: 'flex', flexDirection: 'column', marginLeft: sidebarOpen ? '20px' : '0px' }}>
       {/* Upcoming Museums */}
@@ -872,7 +1055,7 @@ const [selectedActivity, setSelectedActivity] = useState(null);
       
       {/* Saved Museums */}
       <Button
-        onClick={() => navigate('/saved-museums')}
+        onClick={() => navigate('/TouristBookedMuseum')}
         sx={{
           ...styles.sidebarButton,
           fontSize: '14px',
@@ -886,6 +1069,9 @@ const [selectedActivity, setSelectedActivity] = useState(null);
     </Box>
   )}
 </Box>
+
+
+
 <Box>
   <Button
     onClick={() => setTransportationOpen(!transportationOpen)} // Toggle dropdown for transportation
@@ -907,7 +1093,7 @@ const [selectedActivity, setSelectedActivity] = useState(null);
     <Box sx={{ display: 'flex', flexDirection: 'column', marginLeft: sidebarOpen ? '20px' : '0px' }}>
       {/* Available Transportation */}
       <Button
-        onClick={() => navigate('/available-transportation')}
+        onClick={() => navigate('/TouristAllTransportation')}
         sx={{
           ...styles.sidebarButton,
           fontSize: '14px',
@@ -921,7 +1107,7 @@ const [selectedActivity, setSelectedActivity] = useState(null);
       
       {/* Booked Transportation */}
       <Button
-        onClick={() => navigate('/booked-transportation')}
+        onClick={() => navigate('/TouristBookedTransportation')}
         sx={{
           ...styles.sidebarButton,
           fontSize: '14px',
@@ -933,63 +1119,44 @@ const [selectedActivity, setSelectedActivity] = useState(null);
         {sidebarOpen && 'Booked '}
       </Button>
     </Box>
-  )}
-</Box>
-<Box>
-  <Button
-    onClick={() => setComplaintsOpen(!complaintsOpen)} // Toggle dropdown for complaints
-    sx={styles.sidebarButton}
-  >
-    <AssignmentIcon sx={styles.icon} /> {/* Complaints Icon */}
-    {sidebarOpen && (
-      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
-        Complaints
-        {complaintsOpen ? (
-          <KeyboardArrowUpIcon sx={{ fontSize: '18px', marginLeft: '5px' }} />
-        ) : (
-          <KeyboardArrowDownIcon sx={{ fontSize: '18px', marginLeft: '5px' }} />
-        )}
-      </Box>
-    )}
-  </Button>
-  {complaintsOpen && (
-    <Box sx={{ display: 'flex', flexDirection: 'column', marginLeft: sidebarOpen ? '20px' : '0px' }}>
-      {/* View All Complaints */}
-      <Button
-        onClick={() => navigate('/view-all-complaints')}
-        sx={{
-          ...styles.sidebarButton,
-          fontSize: '14px',
-          paddingLeft: sidebarOpen ? '20px' : '10px',
-          padding: '5px 20px',
-        }}
-      >
-        <AddIcon sx={{ fontSize: '18px', marginRight: '10px' }} />
-        {sidebarOpen && 'File Complaint'}
-      </Button>
-      
-      {/* My Submitted Complaints */}
-      <Button
-        onClick={() => navigate('/my-submitted-complaints')}
-        sx={{
-          ...styles.sidebarButton,
-          fontSize: '14px',
-          paddingLeft: sidebarOpen ? '20px' : '10px',
-          padding: '5px 20px',
-        }}
-      >
-        <FeedbackIcon sx={{ fontSize: '18px', marginRight: '10px' }} /> {/* Feedback Icon */}
-        {sidebarOpen && 'My Complaints'}
-      </Button>
-    </Box>
     
   )}
-  <Button onClick={() => navigate('/NewTouristHomePage')} sx={styles.sidebarButton}>
+</Box>
+<Button onClick={() => navigate('/TouristComplaints')} sx={styles.sidebarButton}>
+          <AssignmentIcon sx={styles.icon} />
+          {sidebarOpen && 'Complaints'}
+        </Button>
+        <Button onClick={() => navigate('/TouristSavedEvents')} sx={styles.sidebarButton}>
+          <BookmarkIcon sx={styles.icon} />
+          {sidebarOpen && 'Saved Events'}
+        </Button>
+
+        <Button
+  onClick={async () => {
+    try {
+      // Call the markOrdersAsDelivered function via an API request
+      await axios.put('/markOrdersAsDelivered'); // Assuming your API route is '/markOrdersAsDelivered'
+      
+      // Navigate to the orders page after successfully marking orders as delivered
+      navigate('/TouristOrders');
+    } catch (error) {
+      console.error('Error marking orders as delivered:', error);
+      alert('Failed to update orders. Please try again.');
+    }
+  }}
+  sx={styles.sidebarButton}
+>
+  <ShoppingBagIcon sx={styles.icon} />
+  {sidebarOpen && 'Orders'}
+</Button>
+<Button onClick={() => navigate('/NewTouristHomePage')} sx={styles.sidebarButton}>
           <DashboardIcon sx={styles.icon} />
           {sidebarOpen && 'Back to Dashboard'}
         </Button>
+
+
 </Box>
-      </Box>
+
 
 
 
@@ -1103,10 +1270,54 @@ const [selectedActivity, setSelectedActivity] = useState(null);
                   <CalendarTodayIcon fontSize="small" sx={{ mr: 1 }} />
                   {new Date(activity.Date).toLocaleDateString()}
                 </Typography>
-                <Typography variant="body2" sx={{ display: 'flex', fontSize: '18px', alignItems: 'center' }}>
-                  <AccessTimeIcon fontSize="small" sx={{ mr: 1 }} />
-                  {activity.Timeline}
-                </Typography>
+                <Box sx={{ flex: 1, textAlign: 'left' }}>
+  <Typography
+    variant="body2"
+    sx={{
+      fontSize: '18px',
+      wordWrap: 'break-word', // Break long words
+      whiteSpace: 'normal',  // Wrap text normally
+      maxWidth: '550px',     // Ensure width consistency
+      cursor: activity.Timeline.length > 15 ? 'pointer' : 'default', // Make clickable only if necessary
+      marginTop: '10px',
+    }}
+  >
+    <AccessTimeIcon fontSize="small" sx={{ mr: 1, color: '#8088a3' }} />
+    {expanded[index] || activity.Timeline.length <= 15 ? (
+      <span>
+        {activity.Timeline}
+        {activity.Timeline.length > 15 && (
+          <span
+            style={{
+              color: '#8088a3',
+             
+              fontWeight: 'bold',
+              cursor: 'pointer',
+            }}
+            onClick={() => handleToggleDescription(index)} // Trigger toggle
+          >
+            {" "}Read Less
+          </span>
+        )}
+      </span>
+    ) : (
+      <span>
+        {activity.Timeline.substring(0, 15)}... {/* Truncate timeline */}
+        <span
+          style={{
+            color: '#8088a3',
+            marginLeft: '5px',
+            fontWeight: 'bold',
+            cursor: 'pointer'
+          }}
+          onClick={() => handleToggleDescription(index)} // Trigger toggle
+        >
+          {" "}Read More
+        </span>
+      </span>
+    )}
+  </Typography>
+</Box>
                 <Box sx={styles.quickFacts}>
                   
                 <Box sx={styles.quickFacts}>
@@ -1292,7 +1503,7 @@ const [selectedActivity, setSelectedActivity] = useState(null);
               <Box sx={styles.bookingOpenContainer}>
                 <Box sx={{...styles.infoContainer, backgroundColor: '#f3f4f6'}}>
                   <Typography variant="body2" sx={{ fontWeight: 'bold' }}>Booking Open:</Typography>
-                  <Typography variant="body2">{activity.isBooked ? 'Yes' : 'No'}</Typography>
+                  <Typography variant="body2">{activity.BookingOpen ? 'Yes' : 'No'}</Typography>
                 </Box>
               </Box>
 
@@ -1313,9 +1524,6 @@ const [selectedActivity, setSelectedActivity] = useState(null);
             >
             Cancel Booking
             </Button>
-       
-
-
 
             </Box>
             <Box sx={styles.commentsSection}>
@@ -1359,7 +1567,12 @@ const [selectedActivity, setSelectedActivity] = useState(null);
       </Box>
 
       <Box sx={styles.activitiesContainer}>
-  {activities.length > 0 ? (
+      {loading ? (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+        {/* Circular Progress for loading */}
+        <CircularProgress />
+      </Box>
+    ) : activities.length > 0 ? (
     activities.map((activity, index) => (
       <Box key={index} sx={{ marginBottom: '20px' }}>
         {/* Your activity card code */}
@@ -1367,7 +1580,7 @@ const [selectedActivity, setSelectedActivity] = useState(null);
     ))
   ) : (
     <Typography variant="h6" sx={{ textAlign: 'center', color: '#192959', marginTop: '20px' }}>
-      No Activities Found Matching Your Criteria.
+      No Itineraries Found.
     </Typography>
   )}
 </Box>
