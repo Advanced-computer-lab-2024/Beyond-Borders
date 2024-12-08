@@ -100,6 +100,10 @@ const [selectedTourGuide, setSelectedTourGuide] = useState({
   }); // Track selected tour guide
   const [tourGuideCommentModalOpen, setTourGuideCommentModalOpen] = useState(false); // Manage modal visibility
   const [showAverageRating, setShowAverageRating] = useState({}); // Track which activity shows average rating
+  const [tourGuideComments, setTourGuideComments] = useState([]);
+const [selectedTourGuide2, setSelectedTourGuide2] = useState(null); // To track the selected guide
+const [isTourGuideModalOpen, setIsTourGuideModalOpen] = useState(false); // Modal state
+
 
   
 
@@ -188,6 +192,37 @@ const [selectedTourGuide, setSelectedTourGuide] = useState({
       console.error('Error fetching Itineraries:', error);
     }
   };
+
+
+  useEffect(() => {
+    const fetchAllTourGuideComments = async () => {
+      const updatedActivities = await Promise.all(
+        activities.map(async (activity) => {
+          try {
+            const response = await fetch(`/api/getTourGuideComments?tourGuideUsername=${activity.AuthorUsername}`);
+            const data = await response.json();
+  
+            if (response.ok) {
+              return { ...activity, tourGuideComments: data.comments || [] };
+            } else {
+              console.error(data.msg);
+              return { ...activity, tourGuideComments: [] };
+            }
+          } catch (error) {
+            console.error('Error fetching tour guide comments:', error);
+            return { ...activity, tourGuideComments: [] };
+          }
+        })
+      );
+      setActivities(updatedActivities);
+    };
+  
+    if (activities.length > 0) {
+      fetchAllTourGuideComments();
+    }
+  }, [activities]);
+  
+  
 
   const searchActivities = async (query) => {
     try {
@@ -664,6 +699,21 @@ const [selectedTourGuide, setSelectedTourGuide] = useState({
     container.scrollLeft += 200; // Adjust scroll amount as needed
     updateScrollPosition(index, container.scrollLeft + 200);
   };
+
+
+
+  const scrollTourGuideCommentsLeft = (index) => {
+    const container = document.getElementById(`tourGuideCommentsContainer-${index}`);
+    container.scrollLeft -= 200; // Adjust scroll amount as needed
+    updateScrollPosition(`tourGuide-${index}`, container.scrollLeft - 200);
+  };
+  
+  const scrollTourGuideCommentsRight = (index) => {
+    const container = document.getElementById(`tourGuideCommentsContainer-${index}`);
+    container.scrollLeft += 200; // Adjust scroll amount as needed
+    updateScrollPosition(`tourGuide-${index}`, container.scrollLeft + 200);
+  };
+  
   
   const updateScrollPosition = (index, scrollLeft) => {
     setScrollPositions((prev) => ({ ...prev, [index]: scrollLeft }));
@@ -1632,15 +1682,33 @@ const [selectedTourGuide, setSelectedTourGuide] = useState({
 
             </Box>
             <Box sx={styles.commentsSection}>
+  {/* Itinerary Comments */}
   {activity.Comments && activity.Comments.length > 0 ? (
     <>
-      {/* Show the scroll left button only if there's content to scroll back */}
-      {scrollPositions[index] > 0 && (
-        <IconButton sx={styles.scrollButton} onClick={() => scrollCommentsLeft(index)}>
-          <ArrowBackIcon />
-        </IconButton>
-      )}
-      
+    <Typography variant="h6" sx={{ marginBottom: '-35px',textAlign:'left' }}>
+        Itineraries Comments:
+      </Typography>
+      {/* Scroll Buttons */}
+      <Box sx={styles.scrollButtonContainer}>
+        {scrollPositions[index] > 0 && (
+          <IconButton
+            sx={styles.scrollButtonLeft}
+            onClick={() => scrollCommentsLeft(index)}
+          >
+            <ArrowBackIcon />
+          </IconButton>
+        )}
+        {activity.Comments.length >= 3 && (
+          <IconButton
+            sx={styles.scrollButtonRight}
+            onClick={() => scrollCommentsRight(index)}
+          >
+            <ArrowForwardIcon />
+          </IconButton>
+        )}
+      </Box>
+
+      {/* Comments */}
       <Box
         sx={styles.commentsContainer}
         id={`commentsContainer-${index}`}
@@ -1648,23 +1716,77 @@ const [selectedTourGuide, setSelectedTourGuide] = useState({
       >
         {activity.Comments.map((comment, idx) => (
           <Box key={idx} sx={styles.commentCard}>
-            <Typography variant="body2">{comment.Comment || 'No comment available'}</Typography>
-            <Typography variant="caption">@ {comment.touristUsername || 'Anonymous'}</Typography>
+            <Typography variant="body2">
+              {comment.Comment || 'No comment available'}
+            </Typography>
+            <Typography variant="caption">
+              @ {comment.touristUsername || 'Anonymous'}
+            </Typography>
           </Box>
         ))}
       </Box>
-      
-      {/* Show the scroll right button only if there are 3 or more comments */}
-      {activity.Comments.length >= 3 && (
-        <IconButton sx={styles.scrollButton} onClick={() => scrollCommentsRight(index)}>
-          <ArrowForwardIcon />
-        </IconButton>
-      )}
     </>
   ) : (
     <Typography variant="body2">No comments available</Typography>
   )}
+
+  {/* Tour Guide Comments */}
+  {activity.tourGuideComments && activity.tourGuideComments.length > 0 ? (
+    <>
+      <Typography variant="h6" sx={{ marginBottom: '-35px',marginTop:'10px', textAlign:'left' }}>
+        Tour Guide Comments:
+      </Typography>
+
+      {/* Scroll Buttons */}
+      <Box sx={styles.scrollButtonContainer}>
+        {scrollPositions[`tourGuide-${index}`] > 0 && (
+          <IconButton
+            sx={styles.scrollButtonLeft}
+            onClick={() => scrollTourGuideCommentsLeft(index)}
+          >
+            <ArrowBackIcon />
+          </IconButton>
+        )}
+        {activity.tourGuideComments.length >= 3 && (
+          <IconButton
+            sx={styles.scrollButtonRight}
+            onClick={() => scrollTourGuideCommentsRight(index)}
+          >
+            <ArrowForwardIcon />
+          </IconButton>
+        )}
+      </Box>
+
+      {/* Comments */}
+      <Box
+        sx={styles.commentsContainer}
+        id={`tourGuideCommentsContainer-${index}`}
+        onScroll={(e) =>
+          updateScrollPosition(`tourGuide-${index}`, e.target.scrollLeft)
+        }
+      >
+        {activity.tourGuideComments.map((comment, idx) => (
+          <Box key={idx} sx={styles.commentCard}>
+            <Typography variant="body2">
+              {comment.Comment || 'No comment available'}
+            </Typography>
+            <Typography variant="caption">
+              @ {comment.TouristUsername || 'Anonymous'}
+            </Typography>
+          </Box>
+        ))}
+      </Box>
+    </>
+  ) : (
+    <Typography variant="body2">
+      No comments available for the tour guide.
+    </Typography>
+  )}
 </Box>
+
+
+
+
 
  
           </Box>
@@ -2074,11 +2196,12 @@ const styles = {
     alignItems: 'flex-end',
   },
   commentsSection: {
-    display: 'flex',
-    alignItems: 'center',
     marginTop: '10px',
-    overflow: 'hidden',
     width: '100%',
+    display: 'flex',
+    flexDirection: 'column',  // Change to column for stacking vertically
+    alignItems: 'flex-start',  // Align items to the start (left) of the section
+    overflow: 'hidden',
   },
   commentsContainer: {
     display: 'flex',
@@ -2090,13 +2213,72 @@ const styles = {
       display: 'none', // Hide scrollbar for a cleaner look
     },
   },
+  // scrollButtonContainer: {
+  //   display: 'flex',
+  //   justifyContent: 'center', // Center the buttons horizontally
+  //   gap: '10px', // Space between buttons
+  //   marginBottom: '10px', // Space between buttons and comments container
+  //   width: '100%', // Take full width
+  // },
+
+
+  scrollButtonContainer: {
+    position: 'relative', // Ensures the scroll buttons are positioned correctly
+    width: '100%', // Matches the container's width
+    display: 'flex', // Flexbox for alignment
+    justifyContent: 'space-between', // Places arrows on left and right
+    alignItems: 'center', // Aligns vertically in the middle
+    height: '0', // Prevents overlapping with the comment cards
+  },
   scrollButton: {
-    color: '#192959',
-    backgroundColor: '#e6e7ed',
+    color: '#192959', // Default color
+    backgroundColor: '#e6e7ed', // Background color
+    borderRadius: '50%', // Makes the button circular
+    width: '40px',
+    height: '40px',
+    boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.1)', // Adds depth
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 2, // Ensures buttons are above the content
     '&:hover': {
-      backgroundColor: '#d1d5db',
+      backgroundColor: '#d1d5db', // Darker on hover
     },
   },
+  scrollButtonLeft: {
+    position: 'absolute',
+    left: '-50px', // Adjust this to move the left button further left
+    top: '160%', // Center vertically
+    transform: 'translateY(-50%)', // Aligns vertically in the middle
+  },
+  scrollButtonRight: {
+    position: 'absolute',
+    right: '-50px', // Adjust this to move the right button further right
+    top: '160%', // Center vertically
+    transform: 'translateY(-50%)', // Aligns vertically in the middle
+  },
+  scrollButtonContainer: {
+    position: 'relative', // Ensure buttons position relative to the container
+    width: '100%',
+    height: '50px', // Reserve space for buttons
+  },
+
+  commentsContainer: {
+    display: 'flex',
+    overflowX: 'auto', // Enables horizontal scrolling
+    scrollBehavior: 'smooth',
+    padding: '10px',
+    '&::-webkit-scrollbar': {
+      display: 'none', // Hides the scrollbar for cleaner UI
+    },
+  },
+
+  commentsSection: {
+    marginTop: '10px',
+    position: 'relative', // Ensures buttons align correctly with the container
+    width: '100%',
+  },
+  
   commentCard: {
     minWidth: '400px',
     backgroundColor: '#f3f4f6',
