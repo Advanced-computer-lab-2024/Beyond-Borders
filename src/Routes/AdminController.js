@@ -24,6 +24,7 @@ const DeleteRequestsModel = require('../Models/DeleteRequests.js');
 const DeactivatedItineraries = require('../Models/DeactivatedItineraries.js');
 const DeactivatedActivitiesModel = require('../Models/DeactivatedActivities.js');
 const PromoCode = require('../Models/PromoCode'); 
+const Order = require('../Models/Orders.js');
 const nodemailer = require('nodemailer'); 
 
 const { default: mongoose } = require('mongoose');
@@ -2149,6 +2150,298 @@ const calculateTotalAppRevenue = async (req, res) => {
   }
 };
 
+const notifyAdminOfOutOfStock = async (req, res) => {
+  try {
+    const products = await NewProduct.find({ Quantity: 0 });
+    if (products.length === 0) {
+      return res.status(200).json({ message: "No products out of stock." });
+    }
+
+    const admin = await NewAdminModel.findOne({ Username: "jj" }); // Replace with dynamic admin username if necessary
+    if (!admin) {
+      return res.status(404).json({ error: "Admin not found." });
+    }
+
+    const outOfStockMessages = products.map(
+      (product) => `Product "${product.Name}" is out of stock.`
+    );
+
+    admin.Notifications.push(
+      ...outOfStockMessages.map((msg) => ({
+        NotificationText: msg,
+      }))
+    );
+
+    await admin.save();
+
+     // Send email notification
+     const transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: 'malook25062003@gmail.com', // Your email
+        pass: 'sxvo feuu woie gpfn', // Your email password or app-specific password
+      },
+    });
+
+    const emailContent = `
+      <h1>Out-of-Stock Notification</h1>
+      <p>The following products are out of stock:</p>
+      <ul>
+        ${outOfStockMessages.map((msg) => `<li>${msg}</li>`).join("")}
+      </ul>
+    `;
+
+    await transporter.sendMail({
+      from: "BeyondBorders@gmail.com", // Replace with your email
+      to:  "malook25062003@gmail.com", // Assuming admin's email is stored in `Username`
+      subject: "Out-of-Stock Products Notification",
+      html: emailContent,
+    });
+
+    res.status(200).json({
+      message: "Out-of-stock notifications sent to admin successfully.",
+    });
+  } catch (error) {
+    console.error("Error notifying admin:", error);
+    res.status(500).json({ error: "An error occurred." });
+  }
+};
+
+
+const allNotificationsReadAdmin = async (req, res) => {
+  try {
+    const { username } = req.body; // Extract admin username from request body
+    if (!username) {
+      return res.status(400).json({ error: "Username is required." });
+    }
+
+    const admin = await NewAdminModel.findOne({ Username: username });
+    if (!admin) {
+      return res.status(404).json({ error: "Admin not found." });
+    }
+
+    if (!admin.Notifications || admin.Notifications.length === 0) {
+      return res.status(200).json({
+        message: "No notifications to mark as read.",
+        admin,
+      });
+    }
+
+    // Update notifications to "Read: true"
+    admin.Notifications.forEach((notification) => {
+      notification.Read = true;
+    });
+    await admin.save();
+
+    res.status(200).json({
+      message: "All notifications marked as read successfully.",
+      admin,
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+
+
+const areAllNotificationsReadAdmin = async (req, res) => {
+  try {
+    const { username } = req.query;
+    if (!username) {
+      return res.status(400).json({ error: "Username is required." });
+    }
+
+    const admin = await NewAdminModel.findOne({ Username: username }, "Notifications");
+    if (!admin) {
+      return res.status(404).json({ error: "Admin not found." });
+    }
+
+    const allRead = admin.Notifications.every((notification) => notification.Read);
+
+    res.status(200).json({ allRead });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+const getAdminNotifications = async (req, res) => {
+  try {
+    const { username } = req.query;
+    if (!username) {
+      return res.status(400).json({ error: "Username is required." });
+    }
+
+    const admin = await NewAdminModel.findOne({ Username: username }, "Notifications");
+    if (!admin) {
+      return res.status(404).json({ error: "Admin not found." });
+    }
+
+    res.status(200).json({ notifications: admin.Notifications });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+
+const filterAdminProducts = async (req, res) => {
+  const { username, name, date, month } = req.query;
+
+  if (!username) {
+    return res.status(400).json({ error: 'Admin username is required' });
+  }
+
+  try {
+    const adminProducts = await NewProduct.find({ Seller: new RegExp(`^${username}$`, "i") });
+    console.log("Admin Products Found:", adminProducts);
+
+    if (adminProducts.length === 0) {
+      return res.status(404).json({ message: 'No products found for this admin.' });
+    }
+
+    const adminProductNames = adminProducts.map((product) => product.Name);
+    const query = {
+      'productsPurchased.productName': { $in: adminProductNames },
+    };
+
+    if (date) {
+      query.orderDate = new Date(date);
+    }
+
+    if (month) {
+      const year = new Date().getFullYear();
+      const startOfMonth = new Date(year, month - 1, 1);
+      const endOfMonth = new Date(year, month, 0);
+      query.orderDate = { $gte: startOfMonth, $lte: endOfMonth };
+    }
+
+    const orders = await Order.find(query);
+    console.log("Orders Found:", orders);
+
+    if (orders.length === 0) {
+      return res.status(404).json({
+        totalRevenue: "0.00",
+        filteredProducts: [],
+        message: "No matching orders found.",
+      });
+    }
+
+    let totalRevenue = 0;
+    const filteredProducts = [];
+    orders.forEach((order) => {
+      order.productsPurchased.forEach((product) => {
+        if (
+          adminProductNames.includes(product.productName) &&
+          (!name || product.productName.toLowerCase().includes(name.toLowerCase()))
+        ) {
+          const revenue = product.quantity * product.price;
+          totalRevenue += revenue;
+          filteredProducts.push({
+            productName: product.productName,
+            quantity: product.quantity,
+            price: product.price,
+            orderDate: order.orderDate,
+            revenue,
+          });
+        }
+      });
+    });
+
+    if (filteredProducts.length === 0) {
+      return res.status(404).json({
+        totalRevenue: "0.00",
+        filteredProducts: [],
+        message: "No matching products found.",
+      });
+    }
+
+    res.status(200).json({
+      totalRevenue: totalRevenue.toFixed(2),
+      filteredProducts,
+    });
+  } catch (error) {
+    console.error("Error filtering products for admin:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+const getProductsByAdmin = async (req, res) => {
+  try {
+    // Assuming you get the author's username from query parameters
+    const { username } = req.query; 
+    
+    // Validate that AuthorUsername is provided
+    if (!username) {
+      return res.status(400).json({ error: "Admin username is required." });
+    }
+
+    const products = await NewProduct.find({Seller: username });
+
+    if (!products.length) {
+      return res.status(404).json({ error: "You have not created any products." });
+    }
+
+    res.status(200).json(products);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+const getOrderedProductsBySeller = async (req, res) => {
+  try {
+    const { sellerUsername } = req.query; // Get the seller's username from query parameters
+
+    // Validate that the sellerUsername is provided
+    if (!sellerUsername) {
+      return res.status(400).json({ error: "Seller username is required." });
+    }
+
+    console.log('Fetching products for seller:', sellerUsername);
+
+    // Step 1: Find all products for the seller
+    const sellerProducts = await NewProduct.find({ Seller: sellerUsername });
+    if (!sellerProducts.length) {
+      console.log('No products found for this seller.');
+      return res.status(404).json({ error: "No products found for this seller." });
+    }
+
+    // Extract product names from the seller's products
+    const sellerProductNames = sellerProducts.map((product) => product.Name);
+    console.log('Seller Product Names:', sellerProductNames);
+
+    // Step 2: Find orders that contain these product names
+    const orders = await Order.find({
+      'productsPurchased.productName': { $in: sellerProductNames },
+    });
+
+    if (!orders.length) {
+      console.log('No orders found for seller products.');
+      return res.status(404).json({ error: "No orders found for seller products." });
+    }
+
+    // Step 3: Extract and format ordered products
+    const orderedProducts = orders.flatMap((order) =>
+      order.productsPurchased
+        .filter((product) => sellerProductNames.includes(product.productName)) // Filter for this seller's products
+        .map((product) => ({
+          orderNumber: order.orderNumber,
+          orderDate: order.orderDate,
+          productName: product.productName,
+          quantity: product.quantity,
+          price: product.price,
+          paymentStatus: order.paymentStatus,
+          orderStatus: order.orderStatus,
+          deliveryAddress: order.deliveryAddress,
+        }))
+    );
+
+    console.log('Ordered Products:', orderedProducts);
+    res.status(200).json(orderedProducts); // Respond with the list of ordered products
+  } catch (error) {
+    console.error('Error fetching ordered products by seller:', error.message);
+    res.status(500).json({ error: error.message });
+  }
+};
+
 
 
 
@@ -2159,5 +2452,5 @@ module.exports = {createNewAdmin, createNewTourismGoverner, createNewProduct, ed
     getAdminPassword,viewAdvertiserDocument,viewTourGuideDocuments,viewSellerDocument,getAllUnregisteredAdvertisers,getAllUnregisteredTourGuides,getAllUnregisteredSellers,getAllUnregisteredTransportationAdvertisers,  createPromoCode, getTotalTourists, getTouristsByMonth
     , getTotalTourismGovernors, getTourismGovernorsByMonth, getTotalTourGuides, getTourGuidesByMonth, getTotalSellers, getSellersByMonth, getTotalAdvertisers, getAdvertisersByMonth, getTotalTransportationAdvertisers, getTransportationAdvertisersByMonth, getTotalUsers, getTotalUsersByMonth, loginUser,findUserTypeByUsername
     ,calculateAppRevenueItinerary
-    ,calculateAppRevenueActivity,calculateAppRevenueProduct,calculateTotalAppRevenue
+    ,calculateAppRevenueActivity,calculateAppRevenueProduct,calculateTotalAppRevenue,calculateAppRevenueActivity,calculateAppRevenueProduct,calculateTotalAppRevenue,notifyAdminOfOutOfStock,allNotificationsReadAdmin,areAllNotificationsReadAdmin,getAdminNotifications,filterAdminProducts,getProductsByAdmin,getOrderedProductsBySeller
   };
