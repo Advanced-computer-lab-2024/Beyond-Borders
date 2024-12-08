@@ -60,6 +60,31 @@ const TouristEventsPaymentPage = () => {
   
   // Retrieve data from state
   const { type, name, totalCost } = location.state || {};
+  const applyPromoCode = async () => {
+    try {
+      // Make the API call to the backend with the promo code
+      const response = await axios.get('/applyPromoCode', { params: { promoCode } });
+
+      // If promo code is valid, apply discount and update UI
+      const { discountPercentage } = response.data;
+      console.log(discountPercentage);
+      setDiscount(discountPercentage);
+      console.log(totalCost);
+      const discountedAmount = totalCost * (1 - discountPercentage / 100);
+      setTotalAmount(discountedAmount); // Set the updated total amount after discount     
+      setPromoApplied(true);
+      setPromoCodeError(""); // Clear any previous errors
+
+    } catch (error) {
+      // Handle errors (invalid promo code or backend issues)
+      if (error.response && error.response.status === 404) {
+        alert("Invalid or expired promo code.");
+      } else {
+        alert("An error occurred. Please try again.");
+      }
+      setPromoApplied(false); // Reset promo applied state if there's an error
+    }
+  };
 
   const handlePayment = async () => {
     const touristUsername = localStorage.getItem("username");
@@ -144,6 +169,7 @@ const TouristEventsPaymentPage = () => {
       if (paymentMethod === "Wallet") {
         const payload = {
           touristUsername,
+          promoCode: promoCode || null, // Add promoCode here, setting it to null if it's not available
           activityName: type === "activity" ? name : undefined,
           museumName: type === "museum" ? name : undefined,
           HPName: type === "historicalPlace" ? name : undefined,
@@ -178,6 +204,7 @@ const TouristEventsPaymentPage = () => {
   
         const stripePayload = {
           touristUsername,
+          promoCode: promoCode || null, // Add promoCode here, setting it to null if it's not available
           paymentMethodId: stripePaymentMethod.id, // Include the payment method ID from Stripe
           activityName: type === "activity" ? name : undefined,
           museumName: type === "museum" ? name : undefined,
@@ -204,31 +231,7 @@ const TouristEventsPaymentPage = () => {
   };
   
   // Function to handle promo code application
-  const applyPromoCode = async () => {
-    try {
-      // Make the API call to the backend with the promo code
-      const response = await axios.get('/applyPromoCode', { params: { promoCode } });
-
-      // If promo code is valid, apply discount and update UI
-      const { discountPercentage } = response.data;
-      console.log(discountPercentage);
-      setDiscount(discountPercentage);
-      console.log(totalCost);
-      const discountedAmount = totalCost * (1 - discountPercentage / 100);
-      setTotalAmount(discountedAmount); // Set the updated total amount after discount     
-      setPromoApplied(true);
-      setPromoCodeError(""); // Clear any previous errors
-
-    } catch (error) {
-      // Handle errors (invalid promo code or backend issues)
-      if (error.response && error.response.status === 404) {
-        alert("Invalid or expired promo code.");
-      } else {
-        alert("An error occurred. Please try again.");
-      }
-      setPromoApplied(false); // Reset promo applied state if there's an error
-    }
-  };
+ 
 
 
   return (
