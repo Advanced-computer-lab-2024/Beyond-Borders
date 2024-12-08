@@ -1536,21 +1536,15 @@ const markAllAsRead = async () => {
   <IconButton onMouseEnter={() => setSidebarOpen(true)} color="inherit">
     <MenuIcon />
   </IconButton>
-  <Box sx={{ display: 'flex', alignItems: 'right', gap: 1 }}>
-  {/* Add your image here */}
   <img
-    src="/images/logo.png" // Replace with the actual path to your image
+    src="/images/logo.png" // Replace with the actual path to your logo image
     alt="Logo"
     style={{
-      height: '200px', // Adjusted size
-      width: '200px',  // Adjusted size
-      objectFit: 'contain', // Ensures the image doesn't get distorted
-      marginLeft: '20px', // Moves the logo to the right
+      height: '30px', // Adjust the height as needed
+      width: 'auto',  // Maintain the aspect ratio
+      marginLeft: '10px', // Add spacing from the MenuIcon
     }}
   />
-</Box>
-
-
 </Box>
 
         <Box sx={styles.topMenuRight}>

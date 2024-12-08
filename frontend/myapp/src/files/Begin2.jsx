@@ -193,19 +193,19 @@ const Begin2 = () => {
         navigate('/NewTouristHomePage');
         break;
       case 'Advertiser':
-        navigate('/YAdvertiserDashboard');
+        navigate('/YAdvertiserSalesPage');
         break;
       case 'TourGuide':
-        navigate('/YTourGuideDashboard');
+        navigate('/YTourGuideSalesPage');
         break;
       case 'Seller':
-        navigate('/YSellerDashboard');
+        navigate('/YSellerSalesPage');
         break;
       case 'TourismGovernor':
         navigate('/TourismGovernorDashboard');
         break;
       case 'Admin':
-        navigate('/YAdminDashboard');
+        navigate('/AdminSalesPage');
         break;
       case 'TransportationAdvertiser':
         navigate('/transportAdvertiserHome');
