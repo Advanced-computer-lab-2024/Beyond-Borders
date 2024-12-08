@@ -109,6 +109,14 @@ function YAdvertiserSalesPage() {
   };
   const navigate = useNavigate();
 
+  useEffect(() => {
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = 'auto';
+    };
+  }, []);
+  
+
   ///////////////// SALES PAGE 
   const handleItineraryClick = (itinerary) => {
     setSelectedItinerary(itinerary);
@@ -162,22 +170,23 @@ function YAdvertiserSalesPage() {
   
       const detailedItineraries = await Promise.all(
         itineraries.map(async (itinerary) => {
-          const title = itinerary.Name;
-          console.log(title);
+          const activityName = itinerary.Name;
+          console.log(activityName);
           console.log("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
 
-          const [bookingsResponse, revenueResponse, monthRevenueResponse] = await Promise.all([
-            axios.get('/api/getUsersWhoBookedActivity', { params: { username, name: title } }),
-            axios.get('/api/getRevenueFromActivity', { params: { username, name: title } }),
-            axios.get('/api/getTouristsByActivityAndMonth', { params: { activityName: title, month: new Date().getMonth() + 1 } }),
-            axios.get('/api/calculateRevenueForAdvertiser', { params: { username, month: new Date().getMonth() + 1 } }),
+          const [bookingsResponse, revenueResponse, monthRevenueResponse,hmm] = await Promise.all([
+            axios.get('/api/getUsersWhoBookedActivity', { params: { username, name: activityName } }),
+            axios.get('/api/getRevenueFromActivity', { params: { username, name: activityName } }),
+            axios.get('/api/getTouristsByActivityAndMonth', { params: { activityName: activityName, month: new Date().getMonth() + 1 } }),
+            axios.get('/api/calculateRevenueForAdvertiser', { params: { activityName: activityName, month: new Date().getMonth() + 1 } }),
           ]);
 
           //console.log(bookingsResponse);
 
           return {
-            title,
-            totalTourists: bookingsResponse.data.numberOfUsersBooked,
+            activityName,
+            allMonthsTourists: bookingsResponse.data.numberOfUsersBooked,
+            totalTourists: hmm.data.bookings || 0,
             totalRevenue: revenueResponse.data.totalRevenue,
             currentMonthRevenue: monthRevenueResponse.data.totalTourists * itinerary.Price,
           };
@@ -263,9 +272,9 @@ function YAdvertiserSalesPage() {
       // Process itineraries to include bookings and revenue
       const updatedItineraries = await Promise.all(
         itineraries.map(async (itinerary) => {
-          const title = itinerary.Title;
+          const activityName = itinerary.Name;
   
-          let filterParams = { title }; // Base filter parameters
+          let filterParams = { activityName }; // Base filter parameters
           if (filterDate) {
             filterParams.date = filterDate;
           } else if (filterMonth) {
@@ -274,13 +283,13 @@ function YAdvertiserSalesPage() {
   
           // Fetch bookings and revenue data
           const [revenueResponse, filterResponse, allMonthsTouristsResponse] = await Promise.all([
-            axios.get('/api/getRevenueFromActivity', { params: { username, title } }),
-            axios.get('/api/calculateRevenueForActivity', { params: filterParams }),
-            axios.get('/api/getUsersWhoBookedActivity', { params: { username, title } })
+            axios.get('/api/getRevenueFromActivity', { params: { username, name: activityName} }),
+            axios.get('/api/calculateRevenueForAdvertiser', { params: filterParams }),
+            axios.get('/api/getUsersWhoBookedActivity', { params: { username, name: activityName } })
           ]);
   
           return {
-            title,
+            activityName,
             totalTourists: filterResponse.data.bookings || 0,
             allMonthsTourists: allMonthsTouristsResponse.data.numberOfUsersBooked,
             totalRevenue: revenueResponse.data.totalRevenue,
@@ -1232,7 +1241,7 @@ const handleAccountDeletion = async () => {
         }}
         onClick={() => handleItineraryClick(itinerary)} // Add this line
       >
-        {itinerary.title}
+        {itinerary.activityName}
       </td>
       <td style={styles.tableCell}>{itinerary.allMonthsTourists}</td>
       <td style={styles.tableCell}>{itinerary.totalTourists}</td>
@@ -1316,7 +1325,7 @@ const handleAccountDeletion = async () => {
         </thead>
         <tbody>
           <tr>
-            <td style={styles.tableCell}>{selectedItinerary.title}</td>
+            <td style={styles.tableCell}>{selectedItinerary.activityName}</td>
             <td style={styles.tableCell}>{selectedItinerary.allMonthsTourists}</td>
             <td style={styles.tableCell}>
               {selectedItinerary.totalTourists}
