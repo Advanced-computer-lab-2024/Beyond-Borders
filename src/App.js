@@ -488,6 +488,14 @@ cron.schedule('0 8 * * *', async () => { // Run every day at 8 AM
   await sendUpcomingEventNotifications();
 });
 
+// Schedule to run every day at midnight
+cron.schedule('4 8 * * *', async () => {
+  console.log('Running send notification with promo code...');
+  
+ await sendNotificationWithPromoCode();
+});
+
+
 
 app.use(express.static('public')); //shaghal el html
 
