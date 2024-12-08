@@ -294,9 +294,19 @@ function YSellerAllProductsPage() {
           <IconButton onMouseEnter={() => setSidebarOpen(true)} color="inherit">
             <MenuIcon />
           </IconButton>
-          <Typography variant="h6" component="div" sx={styles.logo}>
-            Beyond Borders
-          </Typography>
+          <Box sx={{ display: 'flex', alignItems: 'right', gap: 1 }}>
+  {/* Add your image here */}
+  <img
+    src="/images/logo.png" // Replace with the actual path to your image
+    alt="Logo"
+    style={{
+      height: '40px', // Adjusted size
+      width: '200px',  // Adjusted size
+      objectFit: 'contain', // Ensures the image doesn't get distorted
+      marginLeft: '20px', // Moves the logo to the right
+    }}
+  />
+</Box>
         </Box>
         {/* <Box sx={styles.topMenuRight}>
           <Button
@@ -340,10 +350,6 @@ function YSellerAllProductsPage() {
           {sidebarOpen && ' All Products'}
         </Button>
         <Button onClick={() => navigate('/YSellerSalesPage')} sx={styles.sidebarButton}>
-          <AssignmentIcon sx={styles.icon} />
-          {sidebarOpen && 'Sales Reports'}
-        </Button>
-        <Button onClick={() => navigate('/YSellerDashboard')} sx={styles.sidebarButton}>
           <DashboardIcon sx={styles.icon} />
           {sidebarOpen && 'Back to Dashboard'}
         </Button>
