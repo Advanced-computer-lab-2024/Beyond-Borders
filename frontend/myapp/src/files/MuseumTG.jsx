@@ -26,6 +26,8 @@ import { useNavigate } from 'react-router-dom';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import SaveIcon from '@mui/icons-material/Save';
 import NotificationsIcon from '@mui/icons-material/Notifications';
+import { FormControlLabel, Switch } from '@mui/material';
+
 const MuseumTG = () => {
   const [museums, setMuseums] = useState([]);
   const [errorMessage, setErrorMessage] = useState("");
@@ -120,7 +122,9 @@ const MuseumTG = () => {
       student: ''
     },
     historicalTags: '',
+    BookingOpen:false,
     dateOfEvent: ''
+   
   });
   const [errors, setErrors] = useState({
     name: '',
@@ -132,7 +136,8 @@ const MuseumTG = () => {
       student: ''
     },
     historicalTags: '',
-    dateOfEvent: ''
+    dateOfEvent: '',
+    BookingOpen:''
   });
 
   const validate = () => {
@@ -177,14 +182,17 @@ const MuseumTG = () => {
       formErrors.dateOfEvent = 'Date of event is required';
       isValid = false;
     }
-  
+    if (!museumData.BookingOpen) {
+      formErrors.BookingOpen = 'Booking Open is required';
+      isValid = false;
+    }
     setErrors(formErrors);
     return isValid;
   };
   
   const handleChange = (e) => {
-    const { name, value } = e.target;
-
+    const { name, value, type, checked } = e.target;
+  
     // Check if the field is a ticket price field
     if (name === 'foreigner' || name === 'native' || name === 'student') {
       setMuseumData((prevData) => ({
@@ -194,13 +202,23 @@ const MuseumTG = () => {
           [name]: value // Directly updating the correct ticket price
         }
       }));
-    } else {
+    }
+    // Handle boolean fields like BookingOpen
+    else if (type === 'checkbox') {
       setMuseumData((prevData) => ({
         ...prevData,
-        [name]: value
+        [name]: checked // If it's a checkbox, use the checked value (true/false)
+      }));
+    }
+    // For other fields (general case)
+    else {
+      setMuseumData((prevData) => ({
+        ...prevData,
+        [name]: value // Update other fields as usual
       }));
     }
   };
+  
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -266,6 +284,12 @@ const MuseumTG = () => {
       console.error("Error updating museum:", error);
       alert(`An error occurred while updating the museum: ${error.response?.data?.error || "Unknown error"}`);
     }
+  };
+  const toggleEditMode = (index) => {
+    setEditing((prevEditing) => ({
+      ...prevEditing,
+      [index]: !prevEditing[index],
+    }));
   };
   
   
@@ -569,6 +593,29 @@ const MuseumTG = () => {
           fullWidth
           sx={{ marginBottom: '10px', maxWidth: '400px' }}
         />
+                <Box sx={styles.bookingOpenContainer}>
+       <Typography variant="body2" sx={{ display: 'flex', fontSize: '18px', alignItems: 'center' }}>
+    <Typography sx={{ fontWeight: 'bold', mr: 1 }}>Booking Open:</Typography>
+    {editing[index] ? (
+      <select
+        value={museum.BookingOpen ? 'true' : 'false'}
+        onChange={(e) =>
+          handleEditFieldChange(index, "BookingOpen", e.target.value === "true")
+        }
+        style={{ padding: "4px", fontSize: "14px" }}
+      >
+        <option value="true">Yes</option>
+        <option value="false">No</option>
+      </select>
+    ) : (
+      <>{museum.BookingOpen ? "Yes" : "No"}</>
+    )}
+  </Typography>
+</Box>
+       
+      
+
+             
         {/* Editable Event Date */}
         <TextField
           label="Event Date"
@@ -590,6 +637,40 @@ const MuseumTG = () => {
           Foreigner  ${museum.ticketPrices.foreigner}, Native  $
           {museum.ticketPrices.native}, Student  ${museum.ticketPrices.student}
         </Typography>
+        <Box sx={styles.bookingOpenContainer}>
+       <Typography variant="body2" sx={{ display: 'flex', fontSize: '18px', alignItems: 'center' }}>
+    <Typography sx={{ fontWeight: 'bold', mr: 1 }}>Booking Open:</Typography>
+    {editing[index] ? (
+      <select
+        value={museum.BookingOpen ? 'true' : 'false'}
+        onChange={(e) =>
+          handleEditFieldChange(index, "BookingOpen", e.target.value === "true")
+        }
+        style={{ padding: "4px", fontSize: "14px" }}
+      >
+        <option value="true">Yes</option>
+        <option value="false">No</option>
+      </select>
+    ) : (
+      <>{museum.BookingOpen ? "Yes" : "No"}</>
+    )}
+  </Typography>
+</Box>
+
+{/* <IconButton
+  onClick={() => {
+    if (editing[index]) {
+      handleUpdateMuseum(index); // Save changes
+    }
+    toggleEditMode(index); // Toggle editing state
+  }}
+>
+  {editing[index] ? <SaveIcon /> : <EditIcon />}
+</IconButton> */}
+
+
+
+        
         {/* Display Event Date */}
         <Typography variant="body2" sx={{ display: 'flex', fontSize: '18px', alignItems: 'right' }}>
           <CalendarTodayIcon fontSize="small" sx={{ mr: 1 }} />
@@ -758,6 +839,16 @@ const MuseumTG = () => {
       error={!!errors.historicalTags}  // Check for historicalTags error
       helperText={errors.historicalTags}  // Show error message for historicalTags
       required
+      />
+        <FormControlLabel
+        control={
+          <Switch
+            name="BookingOpen"
+            checked={museumData.BookingOpen}  // Ensure it's properly bound to the state
+            onChange={(e) => handleChange(e)} // Handle the change to update state
+          />
+        }
+        label="Booking Open"
       />
 
       <TextField
@@ -1142,6 +1233,7 @@ const styles = {
     textAlign: 'center',
     boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.1)',
   },
+ 
   
 };
 
