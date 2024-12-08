@@ -216,7 +216,7 @@ function App() {
           <Route path="/AdminArchivedProducts" element={<AdminArchivedProducts/>}/>
           <Route path="/AdminDeleteRequest" element={<AdminDeleteRequestsModal/>}/>
           <Route path="/YTourGuideSalesPage" element={<YTourGuideSalesPage/>}/>
-
+          <Route path="/transportAdvertiserHome" element={<HomePageTransportationAdvertiser />} />
 
           <Route path="/CompletedItineraries" element={<CompletedItineraries/>}/>
           <Route path="/CompletedActivity" element={<CompletedActivity/>}/>
