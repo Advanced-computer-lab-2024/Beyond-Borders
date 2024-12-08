@@ -591,6 +591,38 @@ The guest experience is designed to provide a preview of what the platform offer
 4. **Transportation Advertiser Interface**:
    - The Transportation Advertiser dashboard provides all necessary tools for managing and promoting transportation services effectively, ensuring streamlined operations and enhanced visibility.
 
+### Contribution
+We welcome contributions to improve *Beyond-Borders*! Follow these steps:
+
+1.*Fork the Repository*.
+2.*Clone Your Fork*:
+ ```bash
+   git clone https://github.com/your-username/Beyond-Borders.git
+ ```
+3.*Create a New Branch:*
+ ```bash
+   git checkout -b feature/your-feature-name
+ ```
+4.*Make Changes.*
+5.*Commit Changes*:
+  ```bash
+   git commit -m "Add your commit message"
+   ```
+6.*Push Changes*:
+  ```bash
+    git push origin feature/your-feature-name
+  ```
+7.*Submit a Pull Request*
+
+### Contribution Guidelines
+
+- *Ensure clean and modular code*: Write code that is easy to understand and reusable.
+- *Test thoroughly before submitting*: Verify that your changes work as intended and do not introduce bugs.
+- *Reference any issues your contribution resolves*: Link to the relevant issue(s) in your pull request description.
+- *Be respectful and constructive during reviews*: Foster a positive and collaborative environment.
+
+Together, let's build a better *Beyond-Borders*!
+
 ### Credits
 
 We would like to acknowledge and thank the following sources of inspiration and resources that helped in building Beyond-Borders:
