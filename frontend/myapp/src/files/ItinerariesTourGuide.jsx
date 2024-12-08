@@ -585,10 +585,10 @@ const [isModalOpen, setIsModalOpen] = useState(false); // Modal state
       >
        
         
-        <Button onClick={() => navigate('/ItinerariesTourguide')} sx={styles.sidebarButton}>
+        {/* <Button onClick={() => navigate('/ItinerariesTourguide')} sx={styles.sidebarButton}>
           <MapIcon sx={styles.icon} />
           {sidebarOpen && 'My Itineraries'}
-        </Button>
+        </Button> */}
 
         {/* <Button
     sx={{
@@ -609,7 +609,7 @@ const [isModalOpen, setIsModalOpen] = useState(false); // Modal state
     <BlockIcon style={styles.icon} />
     {sidebarOpen && "Deactivated Itineraries"}
   </Button> */}
-        <Button onClick={() => navigate('/YTourGuideDashboard')} sx={styles.sidebarButton}>
+        <Button onClick={() => navigate('/YTourGuideSalesPage')} sx={styles.sidebarButton}>
           <DashboardIcon sx={styles.icon} />
           {sidebarOpen && 'Back to Dashboard'}
         </Button>
