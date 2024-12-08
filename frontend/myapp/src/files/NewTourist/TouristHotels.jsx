@@ -570,70 +570,6 @@ const [errorMessage, setErrorMessage] = useState('');
 </Box>
         </Box>
         <Box sx={styles.topMenuRight}>
-        <Button
-  sx={{
-    ...styles.menuButton,
-    '&:hover': {
-      backgroundColor: '#e6e7ed', // Background color on hover
-      color: '#192959',           // Text color on hover
-    },
-  }}
-  startIcon={<AccountCircleIcon />}
->
-  My Profile
-</Button>
-<Tooltip title="Notifications" arrow>
-  <IconButton
-    sx={{
-      ...styles.menuButton,
-      
-      '&:hover': {
-        backgroundColor: '#e6e7ed', // Lighter hover background
-      color: '#192959',           // Text color on hover
-
-      },
-      width: '40px', // Ensure square icon button
-      height: '40px',
-    }}
-  >
-    <NotificationsNoneOutlinedIcon />
-  </IconButton>
-</Tooltip>
-<Tooltip title="Shopping Cart" arrow>
-  <IconButton
-    sx={{
-      ...styles.menuButton,
-      
-      '&:hover': {
-        backgroundColor: '#e6e7ed', // Lighter hover background
-      color: '#192959',           // Text color on hover
-
-      },
-      width: '40px', // Ensure square icon button
-      height: '40px',
-    }}
-  >
-    <ShoppingCartOutlinedIcon />
-  </IconButton>
-</Tooltip>
-<Tooltip title="Wishlist" arrow>
-            <IconButton
-                sx={{
-                ...styles.menuButton,
-                
-                '&:hover': {
-                    backgroundColor: '#e6e7ed', // Lighter hover background
-                color: '#192959',           // Text color on hover
-
-                },
-                width: '40px', // Ensure square icon button
-                height: '40px',
-                }}
-            >
-    <FavoriteBorderIcon/>
-  </IconButton>
-</Tooltip>
-
 <Tooltip title="Logout" arrow>
             <IconButton
                 sx={{
@@ -647,6 +583,7 @@ const [errorMessage, setErrorMessage] = useState('');
                 width: '40px', // Ensure square icon button
                 height: '40px',
                 }}
+                onClick={() => navigate('/')}
             >
     <LogoutIcon />
   </IconButton>
