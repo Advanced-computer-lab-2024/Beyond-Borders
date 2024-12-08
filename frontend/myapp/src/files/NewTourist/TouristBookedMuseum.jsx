@@ -423,14 +423,21 @@ const [hotelsOpen, setHotelsOpen] = useState(false); // Manage the dropdown stat
 
       {/* Top Menu Bar */}
       <Box sx={styles.topMenu}>
-        <Box sx={styles.menuIconContainer}>
-          <IconButton onMouseEnter={() => setSidebarOpen(true)} color="inherit">
-            <MenuIcon />
-          </IconButton>
-          <Typography variant="h6" component="div" sx={styles.logo}>
-            Beyond Borders
-          </Typography>
-        </Box>
+      <Box sx={styles.menuIconContainer}>
+  <IconButton onMouseEnter={() => setSidebarOpen(true)} color="inherit">
+    <MenuIcon />
+  </IconButton>
+  {/* Replace text with logo */}
+  <img
+    src="/images/logo.png" // Replace with your logo's actual path
+    alt="Logo"
+    style={{
+      height: '30px', // Adjust the height as per your design
+      width: 'auto', // Maintain aspect ratio
+      marginLeft: '10px', // Add spacing from the MenuIcon
+    }}
+  />
+</Box>
         <Box sx={styles.topMenuRight}>
         <Button
          sx={{

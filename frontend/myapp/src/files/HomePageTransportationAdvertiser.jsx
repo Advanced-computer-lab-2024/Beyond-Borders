@@ -173,18 +173,26 @@ function HomePageTransportationAdvertiser() {
   
   const fetchTransportations = async () => {
     try {
-      const response = await axios.get('/api/viewAllTransportation', { params: { AuthorUsername: username } });
-      const transportationsWithTags = response.data.map((transportations) => ({
-        ...transportations,
+      const username = localStorage.getItem('username');
+      const response = await axios.get('/api/viewMyTransportations', {
+        params: { advertiserName: username }, // Use the `advertiserName` query parameter
+      });
+  
+      // Extract transportations from the API response
+      const transportationsWithTags = response.data.transportations.map((transportation) => ({
+        ...transportation,
       }));
+  
       setTransportations(transportationsWithTags);
     } catch (error) {
       console.error('Error fetching transportations:', error);
     }
   };
+  
   useEffect(() => {
     fetchTransportations();
   }, []);
+  
 
 
 
@@ -500,9 +508,19 @@ const saveActivity = async (activity) => {
       <Box sx={styles.topMenu}>
         <Box sx={styles.menuIconContainer}>
           
-          <Typography variant="h6" component="div" sx={styles.logo}>
-            Beyond Borders
-          </Typography>
+        <Box sx={{ display: 'flex', alignItems: 'right', gap: 1 }}>
+  {/* Add your image here */}
+  <img
+    src="/images/logo.png" // Replace with the actual path to your image
+    alt="Logo"
+    style={{
+      height: '40px', // Adjusted size
+      width: '200px',  // Adjusted size
+      objectFit: 'contain', // Ensures the image doesn't get distorted
+      marginLeft: '20px', // Moves the logo to the right
+    }}
+  />
+</Box>
         </Box>
         <Box sx={styles.topMenuRight}>
         {/* <Button onClick={() => setActiveModal('viewCategories')} sx={styles.menuButton}>

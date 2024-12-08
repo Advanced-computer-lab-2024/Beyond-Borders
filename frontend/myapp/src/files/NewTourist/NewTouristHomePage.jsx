@@ -1533,13 +1533,20 @@ const markAllAsRead = async () => {
     padding: '0 20px', // Horizontal padding
   }}>
         <Box className="menuIconContainer" sx={styles.menuIconContainer}>
-          <IconButton  onMouseEnter={() => setSidebarOpen(true)} color="inherit">
-            <MenuIcon />
-          </IconButton>
-          <Typography variant="h6" component="div" sx={styles.logo}>
-            Beyond Borders
-          </Typography>
-        </Box>
+  <IconButton onMouseEnter={() => setSidebarOpen(true)} color="inherit">
+    <MenuIcon />
+  </IconButton>
+  <img
+    src="/images/logo.png" // Replace with the actual path to your logo image
+    alt="Logo"
+    style={{
+      height: '30px', // Adjust the height as needed
+      width: 'auto',  // Maintain the aspect ratio
+      marginLeft: '10px', // Add spacing from the MenuIcon
+    }}
+  />
+</Box>
+
         <Box sx={styles.topMenuRight}>
           {/* <Button onClick={() => setChangePasswordModal(true)} sx={styles.menuButton}>
             Change My Password

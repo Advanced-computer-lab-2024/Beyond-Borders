@@ -922,14 +922,21 @@ const handleAccountDeletion = async () => {
 
       {/* Top Menu Bar */}
       <Box sx={styles.topMenu}>
-        <Box sx={styles.menuIconContainer}>
-          <IconButton onMouseEnter={() => setSidebarOpen(true)} color="inherit">
-            <MenuIcon />
-          </IconButton>
-          <Typography variant="h6" component="div" sx={styles.logo}>
-            Beyond Borders
-          </Typography>
-        </Box>
+      <Box sx={styles.menuIconContainer}>
+  <IconButton onMouseEnter={() => setSidebarOpen(true)} color="inherit">
+    <MenuIcon />
+  </IconButton>
+  {/* Replace text with logo */}
+  <img
+    src="/images/logo.png" // Replace with your logo's actual path
+    alt="Logo"
+    style={{
+      height: '30px', // Adjust the height as per your design
+      width: 'auto', // Maintain aspect ratio
+      marginLeft: '10px', // Add spacing from the MenuIcon
+    }}
+  />
+</Box>
         <Box sx={styles.topMenuRight}>
           {/* <Button onClick={readMyProfile} sx={styles.menuButton}>
             My Profile
@@ -1017,10 +1024,10 @@ const handleAccountDeletion = async () => {
           <MapIcon sx={styles.icon} />
           {sidebarOpen && ' My Itineraries'}
         </Button>
-        <Button onClick={() => navigate('/YAdvertiserSalesPage')} sx={styles.sidebarButton}>
+        {/* <Button onClick={() => navigate('/YTourGuideSalesPage')} sx={styles.sidebarButton}>
           <AssignmentIcon sx={styles.icon} />
           {sidebarOpen && 'Sales Reports'}
-        </Button>
+        </Button> */}
         {/* <Button onClick={() => navigate('/YAdminItinerariesPage')} sx={styles.sidebarButton}>
           <MapIcon sx={styles.icon} />
           {sidebarOpen && 'Itineraries'}
@@ -1040,7 +1047,7 @@ const handleAccountDeletion = async () => {
             <Typography variant="h4" sx={{ fontWeight: 'bold', mb: 2, color: '#192959', textAlign: 'left' }}>
                 Welcome back, {username}!
             </Typography>
-            <Typography variant="body1" sx={{ fontSize: '18px', lineHeight: '1.8', color: '#192959', textAlign: 'left' }}>
+            <Typography variant="body1" sx={{ fontSize: '24px', lineHeight: '1.8', color: '#192959', textAlign: 'left' }}>
                 Thank you for choosing Beyond Borders. Use your dashboard to track your itineraries,
                 explore new opportunities, and stay connected with the vibrant tourism ecosystem.
                 Let's create unforgettable experiences together!
@@ -1989,7 +1996,7 @@ const styles = {
         width: '100%',
       },      
     revenueContainer: {
-        height: '235px',
+        height: '375px',
         backgroundColor: '#f3f4f6',
         color: '#192959',
         borderRadius: '15px',

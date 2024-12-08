@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Button, Typography, IconButton,Tooltip,Divider,TextField, InputAdornment, Modal,MenuItem,Select,FormControl,InputLabel,} from '@mui/material';
+import { Box, Button, Typography, IconButton,Tooltip,Divider,TextField, InputAdornment, Modal,MenuItem,Select,FormControl,InputLabel,CircularProgress} from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import MenuIcon from '@mui/icons-material/Menu';
 import NotificationsIcon from '@mui/icons-material/Notifications';
@@ -15,6 +15,8 @@ import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import StarIcon from '@mui/icons-material/Star';
+import ShoppingBagIcon from '@mui/icons-material/ShoppingBag';
+import BookmarkIcon from '@mui/icons-material/Bookmark';
 import StarBorderIcon from '@mui/icons-material/StarBorder';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
@@ -66,6 +68,7 @@ function TouristCompletedItineraries() {
   const [transportationOpen, setTransportationOpen] = useState(false);
   const [productsOpen, setProductsOpen] = useState(false);
   const [complaintsOpen, setComplaintsOpen] = useState(false);
+  
   //search bar
   const [searchQuery, setSearchQuery] = useState(''); // Search query state
   //filter activities
@@ -103,6 +106,9 @@ const [selectedTourGuide, setSelectedTourGuide] = useState({
   const [tourGuideComments, setTourGuideComments] = useState([]);
 const [selectedTourGuide2, setSelectedTourGuide2] = useState(null); // To track the selected guide
 const [isTourGuideModalOpen, setIsTourGuideModalOpen] = useState(false); // Modal state
+const [loading, setLoading] = useState(true);
+const [flightsOpen, setFlightsOpen] = useState(false); // Manage the dropdown state for Flights
+const [hotelsOpen, setHotelsOpen] = useState(false); // Manage the dropdown state for Hotels
 
 
   
@@ -110,6 +116,44 @@ const [isTourGuideModalOpen, setIsTourGuideModalOpen] = useState(false); // Moda
 
 
   const navigate = useNavigate();
+
+  
+
+
+  // useEffect(() => {
+  //   const fetchAllTourGuideComments = async () => {
+  //     try {
+  //       // Fetch comments for all activities in parallel
+  //       const updatedActivities = await Promise.all(
+  //         activities.map(async (activity) => {
+  //           try {
+  //             const response = await axios.get('/api/getTourGuideComments', {
+  //               params: { tourGuideUsername: activity.AuthorUsername }, // Send query parameter
+  //             });
+  
+  //             return { ...activity, tourGuideComments: response.data.comments || [] };
+  //           } catch (error) {
+  //             console.error(
+  //               `Error fetching comments for tour guide: ${activity.AuthorUsername}`,
+  //               error
+  //             );
+  //             return { ...activity, tourGuideComments: [] };
+  //           }
+  //         })
+  //       );
+  
+  //       // Update state with the updated activities
+  //       setActivities(updatedActivities);
+  //     } catch (error) {
+  //       console.error('Error fetching all tour guide comments:', error);
+  //     }
+  //   };
+  
+  //   if (activities.length > 0) {
+  //     fetchAllTourGuideComments();
+  //   }
+  // }, [activities]);
+
 
   useEffect(() => {
     // Function to handle fetching or searching activities
@@ -172,6 +216,7 @@ const [isTourGuideModalOpen, setIsTourGuideModalOpen] = useState(false); // Moda
   
 
   const fetchActivities = async () => {
+    setLoading(true);
     try {
       // Retrieve the Username from localStorage or any other source
       const Username = localStorage.getItem('username');
@@ -191,36 +236,14 @@ const [isTourGuideModalOpen, setIsTourGuideModalOpen] = useState(false); // Moda
     } catch (error) {
       console.error('Error fetching Itineraries:', error);
     }
+    finally {
+      setLoading(false); // Set loading to false after the fetch
+    }
   };
 
 
-  useEffect(() => {
-    const fetchAllTourGuideComments = async () => {
-      const updatedActivities = await Promise.all(
-        activities.map(async (activity) => {
-          try {
-            const response = await fetch(`/api/getTourGuideComments?tourGuideUsername=${activity.AuthorUsername}`);
-            const data = await response.json();
+ 
   
-            if (response.ok) {
-              return { ...activity, tourGuideComments: data.comments || [] };
-            } else {
-              console.error(data.msg);
-              return { ...activity, tourGuideComments: [] };
-            }
-          } catch (error) {
-            console.error('Error fetching tour guide comments:', error);
-            return { ...activity, tourGuideComments: [] };
-          }
-        })
-      );
-      setActivities(updatedActivities);
-    };
-  
-    if (activities.length > 0) {
-      fetchAllTourGuideComments();
-    }
-  }, [activities]);
   
   
 
@@ -521,7 +544,34 @@ const [isTourGuideModalOpen, setIsTourGuideModalOpen] = useState(false); // Moda
     }
   };
 
-
+  const fetchAllTourGuideComments = async () => {
+    try {
+      // Fetch comments for all activities in parallel
+      const updatedActivities = await Promise.all(
+        activities.map(async (activity) => {
+          try {
+            const response = await axios.get('/api/getTourGuideComments', {
+              params: { tourGuideUsername: activity.AuthorUsername }, // Send query parameter
+            });
+  
+            return { ...activity, tourGuideComments: response.data.comments || [] };
+          } catch (error) {
+            console.error(
+              `Error fetching comments for tour guide: ${activity.AuthorUsername}`,
+              error
+            );
+            return { ...activity, tourGuideComments: [] };
+          }
+        })
+      );
+  
+      // Update state with the updated activities
+      setActivities(updatedActivities);
+    } catch (error) {
+      console.error('Error fetching all tour guide comments:', error);
+    }
+  };
+  
 
   const handleTourGuideCommentSubmit = async () => {
     const touristUsername = localStorage.getItem('username');
@@ -581,7 +631,7 @@ const [isTourGuideModalOpen, setIsTourGuideModalOpen] = useState(false); // Moda
       // Update the comments in the activity state
       setActivities((prevActivities) =>
         prevActivities.map((act) =>
-          act._id === currentActivityId ? { ...act, Comments: comments, showCommentButton: true } : act
+          act._id === currentActivityId ? { ...act, Comments: comments } : act
         )
       );
   
@@ -596,12 +646,71 @@ const [isTourGuideModalOpen, setIsTourGuideModalOpen] = useState(false); // Moda
   
   
 
+  // const handleRatingClick = async (activityId, rating) => {
+  //   const username = localStorage.getItem('username');
+  //   const activity = activities.find((activity) => activity._id === activityId);
+  
+  //   if (!username || !activity) {
+  //     alert('User not logged in or activity not found.');
+  //     return;
+  //   }
+  
+  //   try {
+  //     const response = await axios.put('/rateCompletedItinerary', {
+  //       touristUsername: username,
+  //       itineraryName: activity.Title,
+  //       rating,
+  //     });
+  
+  //     const { newAverageRating } = response.data;
+  
+  //     // Update activities state to ensure Add Comment button is persistently visible
+  //     setActivities((prevActivities) =>
+  //       prevActivities.map((act) =>
+  //         act._id === activityId
+  //           ? {
+  //               ...act,
+  //               userRating: rating,
+  //               averageRating: newAverageRating,
+  //               showCommentButton: true, // Persist visibility of Add Comment button
+  //             }
+  //           : act
+  //       )
+  //     );
+  
+  //     // Set showAverageRating to persistently display the average rating
+  //     setShowAverageRating((prev) => ({ ...prev, [activityId]: true }));
+  
+  //     console.log('Rating submitted successfully:', {
+  //       activityId,
+  //       rating,
+  //       showCommentButton: true,
+  //     });
+  //   } catch (error) {
+  //     console.error('Error submitting rating:', error);
+  //     alert(error.response?.data?.msg || 'Failed to submit rating.');
+  //   }
+  // };
+  
+
   const handleRatingClick = async (activityId, rating) => {
     const username = localStorage.getItem('username');
+  
+    if (!username) {
+      alert('User not logged in.');
+      return;
+    }
+  
+    if (!activities || activities.length === 0) {
+      console.error('Activities data is not available.');
+      alert('Activities are not loaded. Please try again later.');
+      return;
+    }
+  
     const activity = activities.find((activity) => activity._id === activityId);
   
-    if (!username || !activity) {
-      alert('User not logged in or activity not found.');
+    if (!activity) {
+      alert('Activity not found.');
       return;
     }
   
@@ -614,33 +723,37 @@ const [isTourGuideModalOpen, setIsTourGuideModalOpen] = useState(false); // Moda
   
       const { newAverageRating } = response.data;
   
-      // Temporarily show user rating
+      // Update activities state to persist showCommentButton
       setActivities((prevActivities) =>
         prevActivities.map((act) =>
           act._id === activityId
-            ? { ...act, userRating: rating }
+            ? {
+                ...act,
+                userRating: rating, // Update user's rating
+                Ratings: newAverageRating, // Update the average rating
+                showCommentButton: true, // Persist Add Comment button
+              }
             : act
         )
       );
   
-      // Wait for 2 seconds, then switch to showing the average rating
-      setTimeout(() => {
-        setActivities((prevActivities) =>
-          prevActivities.map((act) =>
-            act._id === activityId
-              ? { ...act, userRating: 0, averageRating: newAverageRating, showCommentButton: true } // Reset userRating, show average
-              : act
-          )
-        );
-        
-        setShowAverageRating((prev) => ({ ...prev, [activityId]: true }));}, 2000); // 2-second delay
+      // Ensure average rating is displayed
+      setShowAverageRating((prev) => ({ ...prev, [activityId]: true }));
     } catch (error) {
       console.error('Error submitting rating:', error);
       alert(error.response?.data?.msg || 'Failed to submit rating.');
     }
   };
+  
+  
+  
+  
 
   const renderAverageRating = (averageRating) => {
+    if (!averageRating) {
+      return null; // Handle edge cases where average rating is undefined
+    }
+  
     const fullStars = Math.floor(averageRating);
     const halfStars = averageRating > fullStars ? 1 : 0;
     const emptyStars = 5 - fullStars - halfStars;
@@ -685,6 +798,7 @@ const [isTourGuideModalOpen, setIsTourGuideModalOpen] = useState(false); // Moda
       </Box>
     );
   };
+  
   
   
 
@@ -749,14 +863,21 @@ const [isTourGuideModalOpen, setIsTourGuideModalOpen] = useState(false); // Moda
 
       {/* Top Menu Bar */}
       <Box sx={styles.topMenu}>
-        <Box sx={styles.menuIconContainer}>
-          <IconButton onMouseEnter={() => setSidebarOpen(true)} color="inherit">
-            <MenuIcon />
-          </IconButton>
-          <Typography variant="h6" component="div" sx={styles.logo}>
-            Beyond Borders
-          </Typography>
-        </Box>
+      <Box sx={styles.menuIconContainer}>
+  <IconButton onMouseEnter={() => setSidebarOpen(true)} color="inherit">
+    <MenuIcon />
+  </IconButton>
+  {/* Replace text with logo */}
+  <img
+    src="/images/logo.png" // Replace with your logo's actual path
+    alt="Logo"
+    style={{
+      height: '30px', // Adjust the height as per your design
+      width: 'auto', // Maintain aspect ratio
+      marginLeft: '10px', // Add spacing from the MenuIcon
+    }}
+  />
+</Box>
         <Box sx={styles.topMenuRight}>
         <Button
          sx={{
@@ -841,8 +962,8 @@ const [isTourGuideModalOpen, setIsTourGuideModalOpen] = useState(false); // Moda
         </Box>
       </Box>
 
-      {/* Collapsible Sidebar */}
-      <Box
+       {/* Collapsible Sidebar */}
+   <Box
         sx={{
           ...styles.sidebar,
           width: sidebarOpen ? '280px' : '60px',
@@ -850,14 +971,128 @@ const [isTourGuideModalOpen, setIsTourGuideModalOpen] = useState(false); // Moda
         onMouseEnter={() => setSidebarOpen(true)}
         onMouseLeave={() => setSidebarOpen(false)}
       >
-        <Button onClick={() => navigate('/TouristFlights')} sx={styles.sidebarButton}>
-          <FlightIcon sx={styles.icon} />
-          {sidebarOpen && 'Flights'}
-        </Button>
-        <Button onClick={() => navigate('/TouristHotels')} sx={styles.sidebarButton}>
-          <BedIcon sx={styles.icon} />
-          {sidebarOpen && 'Hotels'}
-        </Button>
+        <Box>
+  {/* Flights Button */}
+  <Button
+    onClick={() => setFlightsOpen(!flightsOpen)} // Toggle dropdown for flights
+    sx={styles.sidebarButton}
+  >
+    <FlightIcon sx={styles.icon} /> {/* Flights Icon */}
+    {sidebarOpen && (
+      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+        Flights
+        {flightsOpen ? (
+          <KeyboardArrowUpIcon sx={{ fontSize: '18px', marginLeft: '5px' }} />
+        ) : (
+          <KeyboardArrowDownIcon sx={{ fontSize: '18px', marginLeft: '5px' }} />
+        )}
+      </Box>
+    )}
+  </Button>
+  
+  {/* Dropdown Menu */}
+  {flightsOpen && (
+    <Box sx={{ display: 'flex', flexDirection: 'column', marginLeft: sidebarOpen ? '20px' : '0px' }}>
+     
+      {/* Find Flights */}
+      <Button
+        onClick={() => navigate('/TouristFlights')}
+        sx={{
+          ...styles.sidebarButton,
+          fontSize: '14px',
+          paddingLeft: sidebarOpen ? '20px' : '10px',
+          padding: '5px 20px',
+        }}
+      >
+        <SearchIcon sx={{ fontSize: '18px', marginRight: '10px' }} /> {/* Icon for Find Flights */}
+        {sidebarOpen && 'Find Flights'}
+      </Button>
+       {/* Booked Flights */}
+       <Button
+        onClick={() => navigate('/TouristBookedFlights')}
+        sx={{
+          ...styles.sidebarButton,
+          fontSize: '14px',
+          paddingLeft: sidebarOpen ? '20px' : '10px',
+          padding: '5px 20px',
+        }}
+      >
+        <EventAvailableIcon sx={{ fontSize: '18px', marginRight: '10px' }} /> {/* Icon for Booked */}
+        {sidebarOpen && 'Booked'}
+      </Button>
+      
+    </Box>
+    
+  )}
+</Box>
+
+
+<Box>
+  {/* Hotels Dropdown */}
+  <Button
+    onClick={() => setHotelsOpen(!hotelsOpen)}
+    sx={styles.sidebarButton}
+  >
+    <BedIcon sx={styles.icon} />
+    {sidebarOpen && (
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          width: "100%",
+        }}
+      >
+        Hotels
+        {hotelsOpen ? (
+          <KeyboardArrowUpIcon sx={{ fontSize: "18px", marginLeft: "5px" }} />
+        ) : (
+          <KeyboardArrowDownIcon sx={{ fontSize: "18px", marginLeft: "5px" }} />
+        )}
+      </Box>
+    )}
+  </Button>
+  {hotelsOpen && (
+    <Box
+      sx={{
+        display: "flex",
+        flexDirection: "column",
+        marginLeft: sidebarOpen ? "20px" : "0px",
+      }}
+    >
+     
+      <Button
+        onClick={() => navigate("/TouristHotels")}
+        sx={{
+          ...styles.sidebarButton,
+          fontSize: "14px",
+          paddingLeft: sidebarOpen ? "20px" : "10px",
+          padding: "5px 20px",
+        }}
+      >
+        <SearchIcon sx={{ fontSize: "18px", marginRight: "10px" }} />
+        {sidebarOpen && "Find Hotels"}
+      </Button>
+      <Button
+        onClick={() => navigate("/TouristBookedHotels")}
+        sx={{
+          ...styles.sidebarButton,
+          fontSize: "14px",
+          paddingLeft: sidebarOpen ? "20px" : "10px",
+          padding: "5px 20px",
+        }}
+      >
+        <EventAvailableIcon sx={{ fontSize: "18px", marginRight: "10px" }} />
+        {sidebarOpen && "Reservations"}
+      </Button>
+    </Box>
+  )}
+</Box>
+
+
+      
+
+       
         <Box>
   <Button
     onClick={() => setProductsOpen(!productsOpen)} // Toggle dropdown for products
@@ -907,24 +1142,52 @@ const [isTourGuideModalOpen, setIsTourGuideModalOpen] = useState(false); // Moda
     </Box>
   )}
 </Box>
-        {/* Activities Dropdown */}
+
+         {/* Activities Dropdown */}
         <Box>
         <Button
-            onClick={() => setActivitiesOpen(!activitiesOpen)}
-            sx={styles.sidebarButton}
-        >
-            <LocalActivityIcon sx={styles.icon} />
-            {sidebarOpen && (
-            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
-                Activities
-                {activitiesOpen ? (
-                <KeyboardArrowUpIcon sx={{ fontSize: '18px', marginLeft: '5px' }} />
-                ) : (
-                <KeyboardArrowDownIcon sx={{ fontSize: '18px', marginLeft: '5px' }} />
-                )}
-            </Box>
-            )}
-        </Button>
+  onClick={async () => {
+    try {
+      // First, toggle the activities open/close state
+      setActivitiesOpen(!activitiesOpen);
+
+      // Get the username from localStorage
+      const username = localStorage.getItem('username');
+
+      if (!username) {
+        alert('User not logged in.');
+        return;
+      }
+
+      // Call the `addCompletedActivities` function via an API request
+      const response = await axios.put('/addCompletedActivities', { touristUsername: username });
+
+      if (response.status === 200) {
+        // Handle success, maybe show a success message or update local state
+        //alert('Completed activities updated successfully!');
+      } else {
+        //alert('Failed to update completed activities.');
+      }
+    } catch (error) {
+      console.error('Error updating completed activities:', error);
+      alert('An error occurred while updating completed activities.');
+    }
+  }}
+  sx={styles.sidebarButton}
+>
+  <LocalActivityIcon sx={styles.icon} />
+  {sidebarOpen && (
+    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+      Activities
+      {activitiesOpen ? (
+        <KeyboardArrowUpIcon sx={{ fontSize: '18px', marginLeft: '5px' }} />
+      ) : (
+        <KeyboardArrowDownIcon sx={{ fontSize: '18px', marginLeft: '5px' }} />
+      )}
+    </Box>
+  )}
+</Button>
+
         {activitiesOpen && (
             <Box sx={{ display: 'flex', flexDirection: 'column', marginLeft: sidebarOpen ? '20px' : '0px' }}>
             <Button
@@ -969,24 +1232,52 @@ const [isTourGuideModalOpen, setIsTourGuideModalOpen] = useState(false); // Moda
             </Box>
         )}
         </Box>
-               {/* Itineraries Dropdown */}
+
+       {/* Itineraries Dropdown */}
 <Box>
-  <Button
-    onClick={() => setItinerariesOpen(!itinerariesOpen)} // Toggle dropdown for itineraries
-    sx={styles.sidebarButton}
-  >
-    <MapIcon sx={styles.icon} />
-    {sidebarOpen && (
-      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
-        Itineraries
-        {itinerariesOpen ? (
-          <KeyboardArrowUpIcon sx={{ fontSize: '18px', marginLeft: '5px' }} />
-        ) : (
-          <KeyboardArrowDownIcon sx={{ fontSize: '18px', marginLeft: '5px' }} />
-        )}
-      </Box>
-    )}
-  </Button>
+<Button
+  onClick={async () => {
+    try {
+      // Toggle the itineraries dropdown open/close
+      setItinerariesOpen(!itinerariesOpen);
+
+      // Get the username from localStorage
+      const username = localStorage.getItem('username');
+
+      if (!username) {
+        alert('User not logged in.');
+        return;
+      }
+
+      // Call the `addCompletedItinerary` function via an API request
+      const response = await axios.put('/addCompletedItinerary', { touristUsername: username });
+
+      if (response.status === 200) {
+        // Handle success, maybe show a success message or update local state
+        //alert('Completed itineraries updated successfully!');
+      } else {
+        //alert('Failed to update completed itineraries.');
+      }
+    } catch (error) {
+      console.error('Error updating completed itineraries:', error);
+      alert('An error occurred while updating completed itineraries.');
+    }
+  }}
+  sx={styles.sidebarButton}
+>
+  <MapIcon sx={styles.icon} />
+  {sidebarOpen && (
+    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+      Itineraries
+      {itinerariesOpen ? (
+        <KeyboardArrowUpIcon sx={{ fontSize: '18px', marginLeft: '5px' }} />
+      ) : (
+        <KeyboardArrowDownIcon sx={{ fontSize: '18px', marginLeft: '5px' }} />
+      )}
+    </Box>
+  )}
+</Button>
+
   {itinerariesOpen && (
     <Box sx={{ display: 'flex', flexDirection: 'column', marginLeft: sidebarOpen ? '20px' : '0px' }}>
       <Button
@@ -1014,7 +1305,7 @@ const [isTourGuideModalOpen, setIsTourGuideModalOpen] = useState(false); // Moda
         {sidebarOpen && 'Completed '}
       </Button>
       <Button
-        onClick={() => navigate('/my-booked-itineraries')}
+        onClick={() => navigate('/TouristBookedItineraries')}
         sx={{
           ...styles.sidebarButton,
           fontSize: '14px',
@@ -1030,22 +1321,49 @@ const [isTourGuideModalOpen, setIsTourGuideModalOpen] = useState(false); // Moda
 </Box>
 {/* Historical Places Dropdown */}
 <Box>
-  <Button
-    onClick={() => setHistoricalPlacesOpen(!historicalPlacesOpen)} // Toggle dropdown for historical places
-    sx={styles.sidebarButton}
-  >
-    <ChurchIcon sx={styles.icon} />
-    {sidebarOpen && (
-      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
-        Historical Places
-        {historicalPlacesOpen ? (
-          <KeyboardArrowUpIcon sx={{ fontSize: '18px', marginLeft: '5px' }} />
-        ) : (
-          <KeyboardArrowDownIcon sx={{ fontSize: '18px', marginLeft: '5px' }} />
-        )}
-      </Box>
-    )}
-  </Button>
+<Button
+  onClick={async () => {
+    try {
+      // Toggle the historical places dropdown open/close
+      setHistoricalPlacesOpen(!historicalPlacesOpen);
+
+      // Get the username from localStorage
+      const username = localStorage.getItem('username');
+
+      if (!username) {
+        alert('User not logged in.');
+        return;
+      }
+
+      // Call the `addCompletedHPEvents` function via an API request
+      const response = await axios.put('/addCompletedHPEvents', { touristUsername: username });
+
+      if (response.status === 200) {
+        // Handle success, maybe show a success message or update local state
+        //alert('Historical Place events updated successfully!');
+      } else {
+        //alert('Failed to update historical place events.');
+      }
+    } catch (error) {
+      console.error('Error updating historical place events:', error);
+      alert('An error occurred while updating historical place events.');
+    }
+  }}
+  sx={styles.sidebarButton}
+>
+  <ChurchIcon sx={styles.icon} />
+  {sidebarOpen && (
+    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+      Historical Places
+      {historicalPlacesOpen ? (
+        <KeyboardArrowUpIcon sx={{ fontSize: '18px', marginLeft: '5px' }} />
+      ) : (
+        <KeyboardArrowDownIcon sx={{ fontSize: '18px', marginLeft: '5px' }} />
+      )}
+    </Box>
+  )}
+</Button>
+
   {historicalPlacesOpen && (
     <Box sx={{ display: 'flex', flexDirection: 'column', marginLeft: sidebarOpen ? '20px' : '0px' }}>
       <Button
@@ -1084,26 +1402,56 @@ const [isTourGuideModalOpen, setIsTourGuideModalOpen] = useState(false); // Moda
         <EventAvailableIcon sx={{ fontSize: '18px', marginRight: '10px' }} />
         {sidebarOpen && 'Booked '}
       </Button>
+      
     </Box>
   )}
 </Box>
+
+
 <Box>
-  <Button
-    onClick={() => setMuseumsOpen(!museumsOpen)} // Toggle dropdown for museums
-    sx={styles.sidebarButton}
-  >
-    <AccountBalanceIcon sx={styles.icon} /> {/* Suitable icon for Museums */}
-    {sidebarOpen && (
-      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
-        Museums
-        {museumsOpen ? (
-          <KeyboardArrowUpIcon sx={{ fontSize: '18px', marginLeft: '5px' }} />
-        ) : (
-          <KeyboardArrowDownIcon sx={{ fontSize: '18px', marginLeft: '5px' }} />
-        )}
-      </Box>
-    )}
-  </Button>
+<Button
+  onClick={async () => {
+    try {
+      // Toggle the museums dropdown open/close
+      setMuseumsOpen(!museumsOpen);
+
+      // Get the username from localStorage
+      const username = localStorage.getItem('username');
+
+      if (!username) {
+        alert('User not logged in.');
+        return;
+      }
+
+      // Call the `addCompletedMuseumEvents` function via an API request
+      const response = await axios.put('/addCompletedMuseumEvents', { touristUsername: username });
+
+      if (response.status === 200) {
+        // Handle success, maybe show a success message or update local state
+        //alert('Museum events updated successfully!');
+      } else {
+        //alert('Failed to update museum events.');
+      }
+    } catch (error) {
+      console.error('Error updating museum events:', error);
+      alert('An error occurred while updating museum events.');
+    }
+  }}
+  sx={styles.sidebarButton}
+>
+  <AccountBalanceIcon sx={styles.icon} /> {/* Suitable icon for Museums */}
+  {sidebarOpen && (
+    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+      Museums
+      {museumsOpen ? (
+        <KeyboardArrowUpIcon sx={{ fontSize: '18px', marginLeft: '5px' }} />
+      ) : (
+        <KeyboardArrowDownIcon sx={{ fontSize: '18px', marginLeft: '5px' }} />
+      )}
+    </Box>
+  )}
+</Button>
+
   {museumsOpen && (
     <Box sx={{ display: 'flex', flexDirection: 'column', marginLeft: sidebarOpen ? '20px' : '0px' }}>
       {/* Upcoming Museums */}
@@ -1150,6 +1498,9 @@ const [isTourGuideModalOpen, setIsTourGuideModalOpen] = useState(false); // Moda
     </Box>
   )}
 </Box>
+
+
+
 <Box>
   <Button
     onClick={() => setTransportationOpen(!transportationOpen)} // Toggle dropdown for transportation
@@ -1171,7 +1522,7 @@ const [isTourGuideModalOpen, setIsTourGuideModalOpen] = useState(false); // Moda
     <Box sx={{ display: 'flex', flexDirection: 'column', marginLeft: sidebarOpen ? '20px' : '0px' }}>
       {/* Available Transportation */}
       <Button
-        onClick={() => navigate('/available-transportation')}
+        onClick={() => navigate('/TouristAllTransportation')}
         sx={{
           ...styles.sidebarButton,
           fontSize: '14px',
@@ -1185,7 +1536,7 @@ const [isTourGuideModalOpen, setIsTourGuideModalOpen] = useState(false); // Moda
       
       {/* Booked Transportation */}
       <Button
-        onClick={() => navigate('/booked-transportation')}
+        onClick={() => navigate('/TouristBookedTransportation')}
         sx={{
           ...styles.sidebarButton,
           fontSize: '14px',
@@ -1197,63 +1548,44 @@ const [isTourGuideModalOpen, setIsTourGuideModalOpen] = useState(false); // Moda
         {sidebarOpen && 'Booked '}
       </Button>
     </Box>
-  )}
-</Box>
-<Box>
-  <Button
-    onClick={() => setComplaintsOpen(!complaintsOpen)} // Toggle dropdown for complaints
-    sx={styles.sidebarButton}
-  >
-    <AssignmentIcon sx={styles.icon} /> {/* Complaints Icon */}
-    {sidebarOpen && (
-      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
-        Complaints
-        {complaintsOpen ? (
-          <KeyboardArrowUpIcon sx={{ fontSize: '18px', marginLeft: '5px' }} />
-        ) : (
-          <KeyboardArrowDownIcon sx={{ fontSize: '18px', marginLeft: '5px' }} />
-        )}
-      </Box>
-    )}
-  </Button>
-  {complaintsOpen && (
-    <Box sx={{ display: 'flex', flexDirection: 'column', marginLeft: sidebarOpen ? '20px' : '0px' }}>
-      {/* View All Complaints */}
-      <Button
-        onClick={() => navigate('/view-all-complaints')}
-        sx={{
-          ...styles.sidebarButton,
-          fontSize: '14px',
-          paddingLeft: sidebarOpen ? '20px' : '10px',
-          padding: '5px 20px',
-        }}
-      >
-        <AddIcon sx={{ fontSize: '18px', marginRight: '10px' }} />
-        {sidebarOpen && 'File Complaint'}
-      </Button>
-      
-      {/* My Submitted Complaints */}
-      <Button
-        onClick={() => navigate('/my-submitted-complaints')}
-        sx={{
-          ...styles.sidebarButton,
-          fontSize: '14px',
-          paddingLeft: sidebarOpen ? '20px' : '10px',
-          padding: '5px 20px',
-        }}
-      >
-        <FeedbackIcon sx={{ fontSize: '18px', marginRight: '10px' }} /> {/* Feedback Icon */}
-        {sidebarOpen && 'My Complaints'}
-      </Button>
-    </Box>
     
   )}
-  <Button onClick={() => navigate('/NewTouristHomePage')} sx={styles.sidebarButton}>
+</Box>
+<Button onClick={() => navigate('/TouristComplaints')} sx={styles.sidebarButton}>
+          <AssignmentIcon sx={styles.icon} />
+          {sidebarOpen && 'Complaints'}
+        </Button>
+        <Button onClick={() => navigate('/TouristSavedEvents')} sx={styles.sidebarButton}>
+          <BookmarkIcon sx={styles.icon} />
+          {sidebarOpen && 'Saved Events'}
+        </Button>
+
+        <Button
+  onClick={async () => {
+    try {
+      // Call the markOrdersAsDelivered function via an API request
+      await axios.put('/markOrdersAsDelivered'); // Assuming your API route is '/markOrdersAsDelivered'
+      
+      // Navigate to the orders page after successfully marking orders as delivered
+      navigate('/TouristOrders');
+    } catch (error) {
+      console.error('Error marking orders as delivered:', error);
+      alert('Failed to update orders. Please try again.');
+    }
+  }}
+  sx={styles.sidebarButton}
+>
+  <ShoppingBagIcon sx={styles.icon} />
+  {sidebarOpen && 'Orders'}
+</Button>
+<Button onClick={() => navigate('/NewTouristHomePage')} sx={styles.sidebarButton}>
           <DashboardIcon sx={styles.icon} />
           {sidebarOpen && 'Back to Dashboard'}
         </Button>
+
+
 </Box>
-      </Box>
+
 
 
 
@@ -1455,44 +1787,48 @@ const [isTourGuideModalOpen, setIsTourGuideModalOpen] = useState(false); // Moda
 
                 </Box>
               </Box>
-             {/* Ratings and Add Comment */}
-             <Box sx={styles.activityRating}>
+              <Box sx={styles.activityRating}>
   {showAverageRating[activity._id]
     ? renderAverageRating(activity.Ratings) // Show average rating after submission
     : renderRating(activity._id, activity.userRating, activity.Ratings, handleRatingClick)}
 
-          {/* Reserve space for the Add Comment button */}
-          <Box
-            sx={{
-              height: '24px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'flex-start',
-            }}
-          >
-            {activity.showCommentButton && (
-              <Button
-                variant="text"
-                onClick={() => {
-                setCurrentActivityId(activity._id);
-                  setCommentModalOpen(true);
-                }}
-                startIcon={<AddIcon />}
-                sx={{
-                  fontSize: '14px',
-                  padding: '2px 6px',
-                  color: '#192959',
-                  textTransform: 'none',
-                  '&:hover': {
-                    backgroundColor: 'rgba(25, 41, 89, 0.1)',
-                  },
-                }}
-              >
-                Add Comment
-              </Button>
-            )}
-          </Box>
-        </Box>
+  {/* Add Comment Button */}
+  {activity.showCommentButton && (
+    <Box
+      sx={{
+        height: 'auto',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'flex-start',
+        marginTop: '8px',
+      }}
+    >
+      <Button
+        variant="text"
+        onClick={() => {
+          setCurrentActivityId(activity._id);
+          setCommentModalOpen(true);
+        }}
+        startIcon={<AddIcon />}
+        sx={{
+          fontSize: '14px',
+          padding: '2px 6px',
+          color: '#192959',
+          textTransform: 'none',
+          '&:hover': {
+            backgroundColor: 'rgba(25, 41, 89, 0.1)',
+          },
+        }}
+      >
+        Add Comment
+      </Button>
+    </Box>
+  )}
+</Box>
+
+
+
+
                {/* Divider Line */}
                <Divider orientation="vertical" flexItem sx={{ marginRight: '10px', borderColor: '#ccc' }} />
 
@@ -1685,7 +2021,7 @@ const [isTourGuideModalOpen, setIsTourGuideModalOpen] = useState(false); // Moda
   {/* Itinerary Comments */}
   {activity.Comments && activity.Comments.length > 0 ? (
     <>
-    <Typography variant="h6" sx={{ marginBottom: '-35px',textAlign:'left' }}>
+    <Typography variant="h6" sx={{ marginBottom: '25px',textAlign:'left' }}>
         Itineraries Comments:
       </Typography>
       {/* Scroll Buttons */}
@@ -1733,9 +2069,10 @@ const [isTourGuideModalOpen, setIsTourGuideModalOpen] = useState(false); // Moda
   {/* Tour Guide Comments */}
   {activity.tourGuideComments && activity.tourGuideComments.length > 0 ? (
     <>
-      <Typography variant="h6" sx={{ marginBottom: '-35px',marginTop:'10px', textAlign:'left' }}>
-        Tour Guide Comments:
+     <Typography variant="h6" sx={{ marginBottom: '25px',textAlign:'left' }}>
+        Tour guide Comments:
       </Typography>
+     
 
       {/* Scroll Buttons */}
       <Box sx={styles.scrollButtonContainer}>
@@ -1779,7 +2116,7 @@ const [isTourGuideModalOpen, setIsTourGuideModalOpen] = useState(false); // Moda
     </>
   ) : (
     <Typography variant="body2">
-      No comments available for the tour guide.
+     
     </Typography>
   )}
 </Box>
@@ -1794,7 +2131,12 @@ const [isTourGuideModalOpen, setIsTourGuideModalOpen] = useState(false); // Moda
       </Box>
 
       <Box sx={styles.activitiesContainer}>
-  {activities.length > 0 ? (
+      {loading ? (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+        {/* Circular Progress for loading */}
+        <CircularProgress />
+      </Box>
+    ) : activities.length > 0 ? (
     activities.map((activity, index) => (
       <Box key={index} sx={{ marginBottom: '20px' }}>
         {/* Your activity card code */}
@@ -2257,11 +2599,11 @@ const styles = {
     top: '160%', // Center vertically
     transform: 'translateY(-50%)', // Aligns vertically in the middle
   },
-  scrollButtonContainer: {
-    position: 'relative', // Ensure buttons position relative to the container
-    width: '100%',
-    height: '50px', // Reserve space for buttons
-  },
+  // scrollButtonContainer: {
+  //   position: 'relative', // Ensure buttons position relative to the container
+  //   width: '100%',
+  //   height: '50px', // Reserve space for buttons
+  // },
 
   commentsContainer: {
     display: 'flex',
