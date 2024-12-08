@@ -738,7 +738,12 @@ const saveActivity = async (activity) => {
 
       {/* Back to Top Button */}
       {showBackToTop && (
-        <Button onClick={scrollToTop} sx={styles.backToTop}>
+        <Button onClick={scrollToTop}  sx={{
+          // backgroundColor: "#192959",
+          color: "#192959",
+          fontWeight:"bold",
+          "&:hover": { color: "#192959",backgroundColor: "#e6e7ed" },
+        }}>
           Back to Top
         </Button>
       )}
@@ -824,7 +829,7 @@ const saveActivity = async (activity) => {
         {newTransportation.schedule.map((schedule, index) => (
           <Box key={index} sx={{ marginBottom: '10px' }}>
             <TextField
-              fullWidth
+            
               margin="normal"
              
               name={'day'}
@@ -833,25 +838,43 @@ const saveActivity = async (activity) => {
               type="date"
             />
             <TextField
-              fullWidth
+              
               margin="normal"
-              label={'Departure Time '}
+             
               name={'departureTime'}
               type="time"
               value={schedule.departureTime}
               onChange={(e) => updateSchedule(index, 'departureTime', e.target.value)}
             />
             <TextField
-              fullWidth
+              
               margin="normal"
-              label={'Arrival Time '}
+             
               name={'arrivalTime'}
               type="time"
               value={schedule.arrivalTime}
               onChange={(e) => updateSchedule(index, 'arrivalTime', e.target.value)}
             />
           </Box>
+          
         ))}
+        {/* Display all added schedules below the form */}
+      <Box sx={{ marginTop: '30px' }}>
+        <Typography variant="h6">All Schedules:</Typography>
+        {newTransportation.schedule.length > 0 ? (
+          <Box>
+            {newTransportation.schedule.map((schedule, index) => (
+              <Box key={index} sx={{ marginBottom: '10px', border: '1px solid #ccc', padding: '10px' }}>
+                <Typography>Day: {schedule.day}</Typography>
+                <Typography>Departure Time: {schedule.departureTime}</Typography>
+                <Typography>Arrival Time: {schedule.arrivalTime}</Typography>
+              </Box>
+            ))}
+          </Box>
+        ) : (
+          <Typography>No schedules added yet.</Typography>
+        )}
+      </Box>
         <Button
           variant="outlined"
           onClick={addSchedule}
