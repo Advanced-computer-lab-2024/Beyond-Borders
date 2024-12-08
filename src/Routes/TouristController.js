@@ -2623,7 +2623,7 @@ const deleteBookedHP= async (req, res) => {
 
 
 const payActivity = async (req, res) => {
-  const { touristUsername, activityName } = req.body;
+  const { touristUsername,promoCode,activityName } = req.body;
 
   try {
     // Find the activity by name
@@ -2660,8 +2660,16 @@ const payActivity = async (req, res) => {
     }
 
     // Calculate ticket price
-    const ticketPrice = activity.Price;
-
+    let  ticketPrice = activity.Price;
+    if (promoCode) {
+      const promo = await PromoCodeModel.findOne({ code: promoCode, isActive: true });
+      if (!promo) {
+        return res.status(400).json({ msg: "Invalid or expired promo code" });
+      }
+      const discount = (ticketPrice * promo.discountPercentage) / 100;
+      ticketPrice -= discount; // Adjust price with discount
+      console.log(ticketPrice);
+    }
     // Check if the tourist has enough funds in the wallet
     if (tourist.Wallet < ticketPrice) {
       // Remove the activity from the booked activities list if funds are insufficient
@@ -2675,6 +2683,12 @@ const payActivity = async (req, res) => {
     // Deduct the ticket price from the tourist's wallet
     tourist.Wallet -= ticketPrice;
 
+    if (promoCode) {
+      await PromoCodeModel.updateOne(
+        { code: promoCode },
+        { $set: { isActive: false } } // Deactivate the promo code
+      );
+    }
     // Update points and badge level
     if (tourist.BadgeLevelOfPoints === 1) {
       tourist.Points += 0.5 * ticketPrice;
@@ -2850,7 +2864,7 @@ const payActivityByCard = async (req, res) => {
 
 
 const payActivityStripe = async (req, res) => {
-  const { touristUsername, activityName ,paymentMethodId} = req.body;
+  const { touristUsername,promoCode,activityName,paymentMethodId} = req.body;
 
   try {
 
@@ -2868,7 +2882,16 @@ const payActivityStripe = async (req, res) => {
     }
 
     // Calculate ticket price
-    const ticketPrice = activity.Price;
+    let  ticketPrice = activity.Price;
+    if (promoCode) {
+      const promo = await PromoCodeModel.findOne({ code: promoCode, isActive: true });
+      if (!promo) {
+        return res.status(400).json({ msg: "Invalid or expired promo code" });
+      }
+      const discount = (ticketPrice * promo.discountPercentage) / 100;
+      ticketPrice -= discount; // Adjust price with discount
+      console.log(ticketPrice);
+    }
 
     // Process payment with Stripe
     const paymentIntent = await stripe.paymentIntents.create({
@@ -2884,6 +2907,12 @@ const payActivityStripe = async (req, res) => {
 
     if (paymentIntent.status !== 'succeeded') {
       return res.status(400).json({ msg: 'Payment failed. Please try again.' });
+    }
+    if (promoCode) {
+      await PromoCodeModel.updateOne(
+        { code: promoCode },
+        { $set: { isActive: false } } // Deactivate the promo code
+      );
     }
 
     // Update activity as booked
@@ -3015,7 +3044,7 @@ const updatepoints = async (req, res) => {
 };
 
 const payItinerary = async (req, res) => {
-  const { touristUsername, ItineraryName } = req.body;
+  const { touristUsername,promoCode, ItineraryName } = req.body;
 
   try {
     // Find the itinerary by name
@@ -3046,7 +3075,16 @@ const payItinerary = async (req, res) => {
     }
 
     // Calculate itinerary price
-    const ticketPrice = itinerary.Price;
+    let ticketPrice = itinerary.Price;
+    if (promoCode) {
+      const promo = await PromoCodeModel.findOne({ code: promoCode, isActive: true });
+      if (!promo) {
+        return res.status(400).json({ msg: "Invalid or expired promo code" });
+      }
+      const discount = (ticketPrice * promo.discountPercentage) / 100;
+      ticketPrice -= discount; // Adjust price with discount
+      console.log(ticketPrice);
+    }
 
     // Check if the tourist has enough funds in the wallet
     if (tourist.Wallet < ticketPrice) {
@@ -3058,6 +3096,12 @@ const payItinerary = async (req, res) => {
 
     // Deduct the ticket price from the tourist's wallet
     tourist.Wallet -= ticketPrice;
+    if (promoCode) {
+      await PromoCodeModel.updateOne(
+        { code: promoCode },
+        { $set: { isActive: false } } // Deactivate the promo code
+      );
+    }
 
     // Update points and badge level
     if (tourist.BadgeLevelOfPoints === 1) {
@@ -3228,7 +3272,7 @@ const payItineraryByCard = async (req, res) => {
 };
 
 const payItineraryStripe = async (req, res) => {
-  const { touristUsername, ItineraryName ,paymentMethodId} = req.body;
+  const { touristUsername, promoCode,ItineraryName,paymentMethodId} = req.body;
 
   try {
     //const paymentMethodId ="pm_card_visa";
@@ -3245,8 +3289,16 @@ const payItineraryStripe = async (req, res) => {
     }
 
     // Calculate itinerary price
-    const ticketPrice = itinerary.Price;
-
+    let ticketPrice = itinerary.Price;
+    if (promoCode) {
+      const promo = await PromoCodeModel.findOne({ code: promoCode, isActive: true });
+      if (!promo) {
+        return res.status(400).json({ msg: "Invalid or expired promo code" });
+      }
+      const discount = (ticketPrice * promo.discountPercentage) / 100;
+      ticketPrice -= discount; // Adjust price with discount
+      console.log(ticketPrice);
+    }
     // Process payment with Stripe
     const paymentIntent = await stripe.paymentIntents.create({
       amount: Math.round(ticketPrice * 100), // Stripe works with the smallest currency unit (e.g., piasters for EGP)
@@ -3261,6 +3313,12 @@ const payItineraryStripe = async (req, res) => {
 
     if (paymentIntent.status !== 'succeeded') {
       return res.status(400).json({ error: 'Payment failed. Please try again.' });
+    }
+    if (promoCode) {
+      await PromoCodeModel.updateOne(
+        { code: promoCode },
+        { $set: { isActive: false } } // Deactivate the promo code
+      );
     }
 
     // Add itinerary to the tourist's booked itineraries
@@ -3339,7 +3397,7 @@ Beyond Borders`,
 
 
 const payMuseum = async (req, res) => {
-  const { touristUsername, museumName } = req.body;
+  const { touristUsername,promoCode,museumName } = req.body;
 
   try {
     // Find the museum by name
@@ -3371,12 +3429,23 @@ const payMuseum = async (req, res) => {
 
     // Calculate ticket price
     let ticketPrice;
+    
     if (tourist.Occupation.toLowerCase() === 'student') {
       ticketPrice = museum.ticketPrices.student;
     } else if (tourist.Nationality.toLowerCase() === 'egyptian') {
       ticketPrice = museum.ticketPrices.native;
     } else {
       ticketPrice = museum.ticketPrices.foreigner;
+    }
+    
+    if (promoCode) {
+      const promo = await PromoCodeModel.findOne({ code: promoCode, isActive: true });
+      if (!promo) {
+        return res.status(400).json({ msg: "Invalid or expired promo code" });
+      }
+      const discount = (ticketPrice * promo.discountPercentage) / 100;
+      ticketPrice -= discount; // Adjust price with discount
+      console.log(ticketPrice);
     }
 
     // Check if the tourist has enough funds in the wallet
@@ -3390,6 +3459,12 @@ const payMuseum = async (req, res) => {
     // Deduct the ticket price from the tourist's wallet
     tourist.Wallet -= ticketPrice;
 
+    if (promoCode) {
+      await PromoCodeModel.updateOne(
+        { code: promoCode },
+        { $set: { isActive: false } } // Deactivate the promo code
+      );
+    }
     // Update points and badge level
     if (tourist.BadgeLevelOfPoints === 1) {
       tourist.Points += 0.5 * ticketPrice;
@@ -3680,7 +3755,7 @@ Beyond Borders Team`,
 };
 
 const payHP = async (req, res) => {
-  const { touristUsername, HPName } = req.body;
+  const { touristUsername,promoCode, HPName } = req.body;
 
   try {
     // Find the historical place by name
@@ -3717,6 +3792,15 @@ const payHP = async (req, res) => {
       ticketPrice = hp.ticketPrices.native;
     } else {
       ticketPrice = hp.ticketPrices.foreigner;
+    }
+     if (promoCode) {
+      const promo = await PromoCodeModel.findOne({ code: promoCode, isActive: true });
+      if (!promo) {
+        return res.status(400).json({ msg: "Invalid or expired promo code" });
+      }
+      const discount = (ticketPrice * promo.discountPercentage) / 100;
+      ticketPrice -= discount; // Adjust price with discount
+      console.log(ticketPrice);
     }
 
     // Check if the tourist has enough funds in the wallet
@@ -7551,6 +7635,8 @@ const getTouristCartDetails = async (req, res) => {
 
 
 
+
+
 // Function to check if the tourist is subscribed to notifications
 const checkTouristSubscription = async (req, res) => {
   const { username, eventName, eventType } = req.query; // Get values from req.body
@@ -7717,11 +7803,34 @@ const viewBookedFlights = async (req, res) => {
   }
 };
 
+const applyPromoCode = async (req, res) => {
+  const { promoCode } = req.query; // Extract promo code from query parameters
 
+  try {
+    if (!promoCode) {
+      return res.status(400).json({ error: "Promo code is required." });
+    }
+
+    // Find the promo code in the PromoCodeModel and check if it's active
+    const promo = await PromoCodeModel.findOne(
+      { code: promoCode, isActive: true },
+      "discountPercentage" // Only select the discountPercentage field
+    );
+
+    if (!promo) {
+      return res.status(404).json({ error: "Invalid or expired promo code." });
+    }
+
+    // Return the discount percentage if the promo code is valid
+    res.status(200).json({ discountPercentage: promo.discountPercentage });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
 
 
 
 module.exports = {createTourist, getTourist, updateTourist, searchProductTourist, filterActivities, filterProductByPriceTourist, ActivityRating, sortProductsDescendingTourist, sortProductsAscendingTourist, ViewAllUpcomingActivities, ViewAllUpcomingMuseumEventsTourist, getMuseumsByTagTourist, getHistoricalPlacesByTagTourist, ViewAllUpcomingHistoricalPlacesEventsTourist,viewProductsTourist, sortActivitiesPriceAscendingTourist, sortActivitiesPriceDescendingTourist, sortActivitiesRatingAscendingTourist, sortActivitiesRatingDescendingTourist, loginTourist, ViewAllUpcomingItinerariesTourist, sortItinerariesPriceAscendingTourist, sortItinerariesPriceDescendingTourist, filterItinerariesTourist, ActivitiesSearchAll, ItinerarySearchAll, MuseumSearchAll, HistoricalPlacesSearchAll, ProductRating, createComplaint, getComplaintsByTouristUsername,ChooseActivitiesByCategoryTourist,bookActivity,bookItinerary,bookMuseum,bookHistoricalPlace, ratePurchasedProduct, addPurchasedProducts, reviewPurchasedProduct, addCompletedItinerary, rateTourGuide, commentOnTourGuide, rateCompletedItinerary, commentOnItinerary, addCompletedActivities, addCompletedMuseumEvents, addCompletedHPEvents, rateCompletedActivity, rateCompletedMuseum, rateCompletedHP, commentOnActivity, commentOnMuseum, commentOnHP,deleteBookedActivity,deleteBookedItinerary,deleteBookedMuseum,deleteBookedHP,payActivity,updateWallet,updatepoints,payItinerary,payMuseum,payHP,redeemPoints, convertEgp, fetchFlights,viewBookedItineraries, requestDeleteAccountTourist,convertCurr,getActivityDetails,getHistoricalPlaceDetails,getMuseumDetails,GetCopyLink, bookFlight
   ,fetchHotelsByCity, fetchHotels, bookHotel,bookTransportation,addPreferences, viewMyCompletedActivities, viewMyCompletedItineraries, viewMyCompletedMuseums, viewMyCompletedHistoricalPlaces,viewMyBookedActivities,viewMyBookedItineraries,viewMyBookedMuseums,viewMyBookedHistoricalPlaces,viewTourGuidesCompleted,viewAllTransportation, getItineraryDetails, viewPreferenceTags,viewPurchasedProducts,viewBookedActivities,viewMyBookedTransportation,addBookmark
 , payActivityByCard, payItineraryByCard, payMuseumByCard, payHPByCard, sendOtp, loginTouristOTP,viewBookmarks, addToWishList, viewMyWishlist, removeFromWishlist, addToCartFromWishlist, addToCart, removeFromCart, changeProductQuantityInCart, checkout, addDeliveryAddress, viewDeliveryAddresses,chooseDeliveryAddress,payOrderWallet,payOrderCash,viewOrderDetails,cancelOrder,cancelOrder,markOrdersAsDelivered,viewAllOrders,sendUpcomingEventNotifications,payOrderStripe
-,payItineraryStripe,payActivityStripe,payMuseumStripe,payHPStripe, fetchCityCode, checkIfInWishlist, getTourGuideComments,addNotificationSubscriberHP,addNotificationSubscriberMuseum,addNotificationSubscriberActivity,addNotificationSubscriberItinerary,allNotificationsTouristRead,areAllTouristNotificationsRead,getTouristNotifications, getTouristCartDetails,checkTouristSubscription, checkIfInBookmarkedEvents, removeFromBookmarkedEvents, viewBookedHotels, viewBookedFlights,sendNotificationWithPromoCode};
+,payItineraryStripe,payActivityStripe,payMuseumStripe,payHPStripe, fetchCityCode, checkIfInWishlist, getTourGuideComments,addNotificationSubscriberHP,addNotificationSubscriberMuseum,addNotificationSubscriberActivity,addNotificationSubscriberItinerary,allNotificationsTouristRead,areAllTouristNotificationsRead,getTouristNotifications, getTouristCartDetails,checkTouristSubscription, checkIfInBookmarkedEvents, removeFromBookmarkedEvents, viewBookedHotels, viewBookedFlights,sendNotificationWithPromoCode , applyPromoCode};

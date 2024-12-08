@@ -39,7 +39,13 @@ const TouristEventsPaymentPage = () => {
   const navigate = useNavigate();
   const [successDialogOpen, setSuccessDialogOpen] = useState(false); // Success message dialog state
   const [paymentLoading, setPaymentLoading] = useState(false); // Loading state for payment
- 
+  const [promoCode, setPromoCode] = useState(""); // State for Promo Code
+  const [discount, setDiscount] = useState(0); // State to store discount amount
+  const [totalAmount, setTotalAmount] = useState(100); // Example total amount (you can change this)
+  const [promoApplied, setPromoApplied] = useState(false); // Flag to check if promo is applied
+  const [promoCodeError, setPromoCodeError] = useState(""); // Error state for promo code
+
+
   const [userInfoErrors, setUserInfoErrors] = useState({
     firstName: "",
     lastName: "",
@@ -197,6 +203,33 @@ const TouristEventsPaymentPage = () => {
     }
   };
   
+  // Function to handle promo code application
+  const applyPromoCode = async () => {
+    try {
+      // Make the API call to the backend with the promo code
+      const response = await axios.get('/applyPromoCode', { params: { promoCode } });
+
+      // If promo code is valid, apply discount and update UI
+      const { discountPercentage } = response.data;
+      console.log(discountPercentage);
+      setDiscount(discountPercentage);
+      console.log(totalCost);
+      const discountedAmount = totalCost * (1 - discountPercentage / 100);
+      setTotalAmount(discountedAmount); // Set the updated total amount after discount     
+      setPromoApplied(true);
+      setPromoCodeError(""); // Clear any previous errors
+
+    } catch (error) {
+      // Handle errors (invalid promo code or backend issues)
+      if (error.response && error.response.status === 404) {
+        alert("Invalid or expired promo code.");
+      } else {
+        alert("An error occurred. Please try again.");
+      }
+      setPromoApplied(false); // Reset promo applied state if there's an error
+    }
+  };
+
 
   return (
     <Box
@@ -409,6 +442,65 @@ const TouristEventsPaymentPage = () => {
             </Typography>
             <Typography variant="body2">EGP {totalCost}</Typography>
           </Box>
+      {/* Promo Code Input */}
+      <Box sx={{ marginBottom: "20px" }}>
+        <TextField
+          label="PromoCode"
+          variant="outlined"
+          fullWidth
+          value={promoCode}
+          onChange={(e) => setPromoCode(e.target.value)}
+          sx={{
+            '& .MuiOutlinedInput-root': {
+              borderRadius: '10px',
+              backgroundColor: '#f9f9f9',
+              padding: '10px 12px',
+              borderColor: '#ccc',
+              '&:hover': {
+                borderColor: '#999',
+              },
+            },
+          }}
+        />
+      </Box>
+
+      {/* Apply Promo Code Button */}
+      <Box sx={{ marginBottom: "20px" }}>
+        <Button 
+          variant="contained" 
+          color="primary" 
+          onClick={applyPromoCode}
+          fullWidth
+          sx={{
+            borderRadius: '12px',
+            padding: '12px',
+            fontWeight: 'bold',
+            textTransform: 'none',
+            backgroundColor: '#192959', // Dark blue color
+            '&:hover': {
+              backgroundColor: '#33416b', // Darker green on hover
+            },
+          }}
+        >
+          Apply Promo Code
+        </Button>
+      </Box>
+            {/* Display Discount */}
+            {discount > 0 && promoApplied &&(
+        <Box sx={{ display: "flex", justifyContent: "space-between", marginBottom: "10px" }}>
+          <Typography variant="body1" sx={{ fontWeight: "bold" }}>
+            Discount Applied 
+          </Typography>
+          <Typography variant="body1">{`EGP ${(totalCost *( discount / 100)).toFixed(2)}`}</Typography>
+        </Box>
+      )}
+
+      {/* Display Updated Total */}
+      {promoApplied &&(
+      <Box sx={{ display: "flex", justifyContent: "space-between", marginBottom: "10px" }}>
+        <Typography variant="body1" sx={{ fontWeight: "bold" }}>Final Total</Typography>
+        <Typography variant="body1">{`EGP ${totalAmount.toFixed(2)}`}</Typography>
+      </Box>)}
         </Box>
       </Box>
 
