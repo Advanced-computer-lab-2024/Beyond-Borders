@@ -20,6 +20,8 @@ import { Bar, Pie } from 'react-chartjs-2';
 import {Chart as ChartJS,BarElement,Tooltip,Legend,CategoryScale,LinearScale,} from 'chart.js';
 import FilterAltIcon from '@mui/icons-material/FilterAlt';
 import { Menu,MenuItem } from '@mui/material';
+import NotificationImportantIcon from '@mui/icons-material/NotificationImportant';
+import DoneAllIcon from '@mui/icons-material/DoneAll';
 import axios from 'axios';
 
 
@@ -92,6 +94,56 @@ const [revenueData, setRevenueData] = useState({
     totalAppRevenue: 0,
   });
 
+  const [notifications, setNotifications] = useState([]);
+  const [isNotificationsSidebarOpen, setNotificationsSidebarOpen] = useState(false);
+  const [allNotificationsRead, setAllNotificationsRead] = useState(true);
+
+
+// Add these states and functions at the beginning of your component
+const [adminProductFilters, setAdminProductFilters] = useState({ name: '', date: '', month: '' });
+const [filteredAdminProducts, setFilteredAdminProducts] = useState([]);
+const [totalAdminRevenue, setTotalAdminRevenue] = useState(0);
+const [loadingAdminProducts, setLoadingAdminProducts] = useState(false);
+const [filterErrorAdminProducts, setFilterErrorAdminProducts] = useState('');
+
+const fetchAdminFilteredProducts = async () => {
+  const username = localStorage.getItem('username');
+  if (!username) {
+    setFilterErrorAdminProducts('No seller username found in local storage.');
+    setFilteredAdminProducts([]);
+    setTotalAdminRevenue(0);
+    return;
+  }
+
+  setLoadingAdminProducts(true);
+  setFilterErrorAdminProducts('');
+
+  try {
+    const response = await axios.get('http://localhost:8000/api/filterAdminProducts', {
+      params: { username, ...adminProductFilters },
+    });
+
+    if (response.data && Array.isArray(response.data.filteredProducts)) {
+      setFilteredAdminProducts(response.data.filteredProducts);
+      setTotalAdminRevenue(response.data.totalRevenue || 0);
+    } else {
+      setFilteredAdminProducts([]);
+      setTotalAdminRevenue(0);
+      setFilterErrorAdminProducts('No filtered products found.');
+    }
+  } catch (err) {
+    setFilterErrorAdminProducts(err.response?.data?.error || 'Error fetching filtered products.');
+    setFilteredAdminProducts([]);
+    setTotalAdminRevenue(0);
+  } finally {
+    setLoadingAdminProducts(false);
+  }
+};
+
+// Fetch products when component mounts
+useEffect(() => {
+  fetchAdminFilteredProducts();
+}, []);
 
 
   const navigate = useNavigate();
@@ -553,6 +605,7 @@ const chartData = {
 };
 
   useEffect(() => {
+    checkAdminNotificationsStatus();
     fetchRevenueData();
     fetchUserCounts(selectedMonth);
   }, [selectedMonth]);
@@ -589,13 +642,192 @@ const pieChartOptions = {
     maintainAspectRatio: false, // Ensures the chart fits its container dimensions
   };
   
+  const fetchAdminNotifications = async () => {
+    try {
+      const username = localStorage.getItem('username');
+      if (!username) {
+        console.error("Username not found in localStorage");
+        return;
+      }
   
+      // Perform a GET request with the username as a query parameter
+      const response = await axios.get('/api/getAdminNotifications', {
+        params: { username }, // Pass username in the query string
+      });
+  
+      console.log("Fetched Notifications Response:", response.data);
+  
+      // Check and set notifications state
+      if (response.data.notifications && Array.isArray(response.data.notifications)) {
+        setNotifications(response.data.notifications); // Update state with notifications array
+        console.log("Notifications state updated:", response.data.notifications);
+      } else {
+        console.warn("No notifications array found in the response.");
+        setNotifications([]); // Fallback: empty notifications
+      }
+    } catch (error) {
+      console.error("Error fetching admin notifications:", error.message);
+      setNotifications([]); // Handle errors by resetting notifications
+    }
+  };
+  
+  
+  
+  
+  const toggleNotificationsSidebar = () => {
+    setNotificationsSidebarOpen((prev) => !prev);
+    if (!isNotificationsSidebarOpen) {
+      fetchAdminNotifications(); // Fetch notifications when opening
+      checkAdminNotificationsStatus(); // Update notification icon status
+    }
+  };
   
 
+  const checkAdminNotificationsStatus = async () => {
+    const username = localStorage.getItem('username'); // Get admin's username
+    if (!username) return;
+  
+    try {
+      const response = await axios.get('/api/areAllNotificationsReadAdmin', {
+        params: { username },
+      });
+  
+      setAllNotificationsRead(response.data.allRead); // Update state with the read status
+    } catch (error) {
+      console.error('Error checking admin notification status:', error);
+    }
+  };
+  const markAllAsRead = async () => {
+    const username = localStorage.getItem('username'); // Get admin's username
+    if (!username) {
+      alert('You need to log in first.');
+      return;
+    }
+  
+    try {
+      const response = await axios.put('/api/allNotificationsReadAdmin', { username });
+      if (response.status === 200) {
+        alert('All admin notifications marked as read.');
+        checkAdminNotificationsStatus(); // Update notification icon status
+      } else {
+        alert('Failed to mark admin notifications as read.');
+      }
+    } catch (error) {
+      console.error('Error marking admin notifications as read:', error);
+      alert('An error occurred while marking admin notifications as read.');
+    }
+  };
+    
+ 
 
 return (
     <Box sx={styles.container}>
      {sidebarOpen && <Box sx={styles.overlay} onClick={() => setSidebarOpen(false)} />}
+     {isNotificationsSidebarOpen && (
+  <>
+  <Box
+  sx={{
+    position: 'fixed',
+    top: '60px', // Matches the height of the top bar to align correctly
+    right: 0,
+    width: '350px',
+    height: 'calc(100% - 60px)', // Subtracts the top bar height to fill the rest of the screen
+    backgroundColor: '#cccfda',
+    boxShadow: '-2px 0 8px rgba(0, 0, 0, 0.2)',
+    zIndex: 10,
+    padding: '20px',
+    display: 'flex',
+    flexDirection: 'column',
+    overflowY: 'auto', // Enable vertical scrolling
+    scrollbarWidth: 'thin', // Firefox scrollbar styling
+    '&::-webkit-scrollbar': {
+      width: '8px', // Scrollbar width
+    },
+    '&::-webkit-scrollbar-track': {
+      backgroundColor: '#e6e7ed', // Scrollbar track color
+    },
+    '&::-webkit-scrollbar-thumb': {
+      backgroundColor: '#192959', // Scrollbar thumb color
+      borderRadius: '4px', // Rounded edges
+    },
+  }}
+>
+
+<Box
+    sx={{
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: '10px',
+    }}
+  >
+    <Typography variant="h6" textAlign="left" sx={{ color: '#192959' }}>
+      Notifications
+    </Typography>
+    <Button
+      variant="outlined"
+      size="small"
+      sx={{
+        color: '#192959',
+        borderColor: '#192959',
+        '&:hover': {
+          backgroundColor: '#192959',
+          color: '#ffffff',
+        },
+      }}
+      startIcon={<DoneAllIcon />} // Adds the DoneAllIcon to the left of the text
+      onClick={async () => {
+        await markAllAsRead();
+        fetchAdminNotifications(); // Refresh notifications after marking all as read
+      }}
+    >
+      Mark all as read
+    </Button>
+  </Box>
+  {notifications.length > 0 ? (
+  notifications.map((notification, index) => (
+    <Box
+    key={index}
+    sx={{
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      padding: '10px',
+      marginBottom: '10px',
+      backgroundColor: notification.Read ? '#f0f0f0' : '#ffbaba',
+      borderRadius: '5px',
+      boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+    }}
+    >
+      <Typography variant="body1" textAlign="left" sx={{ color: '#192959' }}>
+        {notification.NotificationText || "No notification text available"}
+      </Typography>
+      {!notification.Read && <NotificationImportantIcon sx={{ color: 'red' }} />}
+    </Box>
+  ))
+) : (
+  <Typography variant="body1" textAlign="left" sx={{ color: '#192959' }}>
+    No notifications
+  </Typography>
+)}
+
+</Box>
+
+<Box
+      sx={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        width: '100%',
+        height: '100%',
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        zIndex: 5,
+      }}
+      onClick={toggleNotificationsSidebar}
+    />
+  </>
+)}
+
      {/* Top Menu Bar */}
       <Box sx={styles.topMenu}>
         <Box sx={styles.menuIconContainer}>
@@ -625,14 +857,22 @@ return (
               </Box>
             )}
           </Box>
-          <IconButton sx={styles.iconButton}>
-            <NotificationsIcon />
+          <IconButton
+            onClick={toggleNotificationsSidebar}
+            sx={styles.iconButton}
+          >
+            {allNotificationsRead ? (
+              <NotificationsIcon />
+            ) : (
+              <NotificationImportantIcon sx={{ color: 'red' }} />
+            )}
           </IconButton>
           <IconButton onClick={() => navigate('/')}sx={styles.iconButton}>
             <LogoutIcon />
           </IconButton>
         </Box>
       </Box>
+
 
       {/* Collapsible Sidebar */}
       <Box
@@ -664,8 +904,8 @@ return (
           {sidebarOpen && 'Back to Dashboard'}
         </Button> */}
       </Box>
-
-      <Box
+{/* Main Container */}
+<Box
   sx={{
     display: 'flex',
     flexDirection: 'column',
@@ -674,9 +914,8 @@ return (
     minHeight: '100vh',
     marginLeft: sidebarOpen ? '280px' : '60px',
     transition: 'margin-left 0.3s ease',
-    overflow: 'hidden', // Prevent scrolling
-    alignItems: 'center', // Center the content
-    justifyContent: 'flex-start', // Align content at the top
+    alignItems: 'center',
+    justifyContent: 'flex-start',
   }}
 >
   {/* Row Container for Bar Chart and Pie Chart */}
@@ -686,98 +925,190 @@ return (
       justifyContent: 'space-between',
       gap: '20px',
       width: '100%',
-      maxWidth: '1400px', // Increased maxWidth for a wider layout
-      marginTop: '30px', // Move the containers closer to the top
+      maxWidth: '1600px', // Maximum width for layout
+      marginTop: '30px',
     }}
   >
-    {/* User Statistics Container */}
-    <Box
-      sx={{
-        width: '50%', // Slightly increased width
-        backgroundColor: '#ffffff',
-        borderRadius: '8px',
-        padding: '20px',
-        boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.1)',
-        height: '420px', // Adjusted height for consistency
-        display: 'flex',
-        flexDirection: 'column',
-      }}
+{/* User Statistics Container */}
+<Box
+  sx={{
+    width: '60%', // Increased width of the container
+    backgroundColor: '#ffffff',
+    borderRadius: '8px',
+    padding: '20px',
+    boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.1)',
+    height: '450px', // Adjusted height
+    display: 'flex',
+    flexDirection: 'column',
+  }}
+>
+  <Box sx={{ display: 'flex', alignItems: 'center', marginBottom: '20px' }}>
+    <Typography variant="h6" sx={{ marginRight: '10px', color: '#333333', fontWeight: 'bold' }}>
+      User Statistics
+    </Typography>
+    <IconButton onClick={(e) => setAnchorEl(e.currentTarget)}>
+      <FilterAltIcon />
+    </IconButton>
+    <Menu
+      anchorEl={anchorEl}
+      open={Boolean(anchorEl)}
+      onClose={() => setAnchorEl(null)}
     >
-      <Box sx={{ display: 'flex', alignItems: 'center', marginBottom: '20px' }}>
-        <Typography variant="h6" sx={{ marginRight: '10px' }}>
-          User Statistics
-        </Typography>
-        <IconButton onClick={(e) => setAnchorEl(e.currentTarget)}>
-          <FilterAltIcon />
-        </IconButton>
-        <Menu
-          anchorEl={anchorEl}
-          open={Boolean(anchorEl)}
-          onClose={() => setAnchorEl(null)}
-        >
-          <MenuItem
-            onClick={() => {
-              setSelectedMonth('all');
-              setAnchorEl(null);
-            }}
-          >
-            All Time
-          </MenuItem>
-          {Array.from({ length: 12 }, (_, i) => (
-            <MenuItem
-              key={i + 1}
-              onClick={() => {
-                setSelectedMonth(String(i + 1));
-                setAnchorEl(null);
-              }}
-            >
-              {new Date(0, i).toLocaleString('default', { month: 'long' })}
-            </MenuItem>
-          ))}
-        </Menu>
-      </Box>
-      <Box sx={{ width: '100%', height: '320px' }}>
-        <Bar
-          data={chartData}
-          options={{ responsive: true, plugins: { legend: { display: true } } }}
-        />
-      </Box>
-    </Box>
-
-    {/* App Revenue Container */}
-    <Box
-      sx={{
-        width: '50%', // Slightly increased width
-        backgroundColor: '#ffffff',
-        borderRadius: '8px',
-        padding: '20px',
-        boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.1)',
-        height: '420px', // Adjusted height for consistency
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-      }}
-    >
-      <Typography variant="h6" sx={{ marginBottom: '10px' }}>
-        App Revenue
-      </Typography>
-      <Box sx={{ width: '300px', height: '300px' }}> {/* Increased size */}
-        <Pie data={pieChartData} options={pieChartOptions} />
-      </Box>
-      <Typography
-        variant="h6"
-        sx={{ marginTop: '10px', fontWeight: 'bold', color: '#192959' }}
+      <MenuItem
+        onClick={() => {
+          setSelectedMonth('all');
+          setAnchorEl(null);
+        }}
       >
-        Total Revenue: $
-        {typeof revenueData.totalAppRevenue === 'number'
-          ? revenueData.totalAppRevenue.toFixed(2)
-          : revenueData.totalAppRevenue}
-      </Typography>
-    </Box>
+        All Time
+      </MenuItem>
+      {Array.from({ length: 12 }, (_, i) => (
+        <MenuItem
+          key={i + 1}
+          onClick={() => {
+            setSelectedMonth(String(i + 1));
+            setAnchorEl(null);
+          }}
+        >
+          {new Date(0, i).toLocaleString('default', { month: 'long' })}
+        </MenuItem>
+      ))}
+    </Menu>
+  </Box>
+  <Box sx={{ width: '100%', height: '350px' }}>
+    <Bar
+      data={chartData}
+      options={{ responsive: true, plugins: { legend: { display: true } } }}
+    />
   </Box>
 </Box>
 
+{/* App Revenue Container */}
+<Box
+  sx={{
+    width: '40%', // Increased width
+    backgroundColor: '#ffffff',
+    borderRadius: '8px',
+    padding: '20px',
+    boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.1)',
+    height: '450px', // Adjusted height
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+  }}
+>
+  <Typography variant="h6" sx={{ marginBottom: '10px', color: '#333333', fontWeight: 'bold' }}>
+    App Revenue
+  </Typography>
+  <Box sx={{ width: '350px', height: '350px' }}> {/* Increased size */}
+    <Pie data={pieChartData} options={pieChartOptions} />
+  </Box>
+  <Typography
+    variant="h6"
+    sx={{ marginTop: '10px', fontWeight: 'bold', color: '#192959' }}
+  >
+    Total Revenue: $
+    {typeof revenueData.totalAppRevenue === 'number'
+      ? revenueData.totalAppRevenue.toFixed(2)
+      : revenueData.totalAppRevenue}
+  </Typography>
+</Box>
+</Box>
+
+
+{/* Table for Admin Products */}
+<Box
+  sx={{
+    backgroundColor: '#ffffff',
+    borderRadius: '8px',
+    padding: '20px',
+    marginTop: '30px',
+    width: '100%',
+    maxWidth: '1600px', // Match the combined width of the charts
+    boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.1)',
+  }}
+>
+  <Typography variant="h6" sx={{ marginBottom: '10px', color: '#192959' }}>
+    Filtered Admin Products
+  </Typography>
+
+  {/* Filter Controls */}
+  <Box sx={{ display: 'flex', gap: '20px', marginBottom: '20px' }}>
+    <TextField
+      label="Product Name"
+      variant="outlined"
+      size="small"
+      value={adminProductFilters.name}
+      onChange={(e) => setAdminProductFilters({ ...adminProductFilters, name: e.target.value })}
+    />
+    <TextField
+      label="Order Date"
+      type="date"
+      variant="outlined"
+      size="small"
+      value={adminProductFilters.date}
+      onChange={(e) => setAdminProductFilters({ ...adminProductFilters, date: e.target.value })}
+      InputLabelProps={{ shrink: true }}
+    />
+    <TextField
+      label="Month"
+      type="number"
+      variant="outlined"
+      size="small"
+      value={adminProductFilters.month}
+      onChange={(e) => setAdminProductFilters({ ...adminProductFilters, month: e.target.value })}
+      InputProps={{ inputProps: { min: 1, max: 12 } }}
+    />
+    <Button variant="contained" color="primary" onClick={fetchAdminFilteredProducts}>
+      Apply Filters
+    </Button>
+  </Box>
+
+  {/* Table */}
+  {loadingAdminProducts ? (
+    <Typography>Loading products...</Typography>
+  ) : filteredAdminProducts.length > 0 ? (
+    <Box sx={{ overflowX: 'auto' }}>
+      <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+        <thead>
+          <tr style={{ backgroundColor: '#192959', color: '#ffffff' }}>
+            <th style={{ padding: '10px', border: '1px solid #cccccc', color: '#333333' }}>Product Name</th>
+            <th style={{ padding: '10px', border: '1px solid #cccccc', color: '#333333' }}>Quantity</th>
+            <th style={{ padding: '10px', border: '1px solid #cccccc', color: '#333333' }}>Price</th>
+            <th style={{ padding: '10px', border: '1px solid #cccccc', color: '#333333' }}>Order Date</th>
+            <th style={{ padding: '10px', border: '1px solid #cccccc', color: '#333333' }}>Revenue</th>
+          </tr>
+        </thead>
+        <tbody>
+          {filteredAdminProducts.map((product, index) => (
+            <tr key={index} style={{ backgroundColor: index % 2 === 0 ? '#f3f4f6' : '#ffffff' }}>
+              <td style={{ padding: '10px', border: '1px solid #cccccc', color: '#333333' }}>{product.productName}</td>
+              <td style={{ padding: '10px', border: '1px solid #cccccc', color: '#333333' }}>{product.quantity}</td>
+              <td style={{ padding: '10px', border: '1px solid #cccccc', color: '#333333' }}>${product.price}</td>
+              <td style={{ padding: '10px', border: '1px solid #cccccc', color: '#333333' }}>
+                {new Date(product.orderDate).toLocaleDateString()}
+              </td>
+              <td style={{ padding: '10px', border: '1px solid #cccccc', color: '#333333' }}>${product.revenue}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </Box>
+  ) : (
+    <Typography>{filterErrorAdminProducts || 'No filtered products available.'}</Typography>
+  )}
+
+  {/* Total Revenue */}
+  <Typography
+    variant="h6"
+    sx={{ marginTop: '20px', fontWeight: 'bold', color: '#192959' }}
+  >
+    Total Revenue: ${parseFloat(totalAdminRevenue).toFixed(2)}
+  </Typography>
+</Box>
+
+</Box>
 
 
        {/* Change Password Modal */}
