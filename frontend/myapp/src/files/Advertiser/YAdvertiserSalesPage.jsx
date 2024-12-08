@@ -882,9 +882,19 @@ const handleAccountDeletion = async () => {
           <IconButton onMouseEnter={() => setSidebarOpen(true)} color="inherit">
             <MenuIcon />
           </IconButton>
-          <Typography variant="h6" component="div" sx={styles.logo}>
-            Beyond Borders
-          </Typography>
+          <Box sx={{ display: 'flex', alignItems: 'right', gap: 1 }}>
+  {/* Add your image here */}
+  <img
+    src="/images/logo.png" // Replace with the actual path to your image
+    alt="Logo"
+    style={{
+      height: '40px', // Adjusted size
+      width: '200px',  // Adjusted size
+      objectFit: 'contain', // Ensures the image doesn't get distorted
+      marginLeft: '20px', // Moves the logo to the right
+    }}
+  />
+</Box>
         </Box>
         <Box sx={styles.topMenuRight}>
           {/* <Button onClick={readMyProfile} sx={styles.menuButton}>
@@ -969,14 +979,11 @@ const handleAccountDeletion = async () => {
           <StorefrontIcon sx={styles.icon} />
           {sidebarOpen && 'Products'}
         </Button> */}
-        <Button onClick={() => navigate('/ItinerariesTourGuide')} sx={styles.sidebarButton}>
-          <MapIcon sx={styles.icon} />
-          {sidebarOpen && ' My Itineraries'}
+        <Button onClick={() => navigate('/YAdvertiserActivitiesPage')} sx={styles.sidebarButton}>
+          <LocalActivityIcon sx={styles.icon} />
+          {sidebarOpen && ' My Activities'}
         </Button>
-        <Button onClick={() => navigate('/YAdvertiserSalesPage')} sx={styles.sidebarButton}>
-          <AssignmentIcon sx={styles.icon} />
-          {sidebarOpen && 'Sales Reports'}
-        </Button>
+    
         {/* <Button onClick={() => navigate('/YAdminItinerariesPage')} sx={styles.sidebarButton}>
           <MapIcon sx={styles.icon} />
           {sidebarOpen && 'Itineraries'}
