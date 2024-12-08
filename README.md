@@ -334,4 +334,18 @@ The guest experience is designed to provide a preview of what the platform offer
    - You can view all your current and past bookings, including activities, itineraries, events, flights and hotel reservations.
    - Book events, buy products, and explore various travel options seamlessly on the platform.
 
+### Credits
+
+We would like to acknowledge and thank the following sources of inspiration and resources that helped in building Beyond-Borders:
+
+1. **Talabat**:
+   - Inspired us to design the **Products Page**, including features like ratings, shopping cart functionality, and wishlist.
+
+2. **Amazon**:
+   - Provided inspiration for implementing an efficient **Products Page**, focusing on user-friendly shopping experiences with comprehensive product details.
+
+3. **TripAdvisor**:
+   - Served as a reference for creating the **Homepages** for both tourists and guests, ensuring an intuitive layout and easy navigation to explore activities, itineraries, museums, and historical places.
+
+The ideas and concepts from these platforms guided us in crafting a cohesive and feature-rich experience for our users.
 
