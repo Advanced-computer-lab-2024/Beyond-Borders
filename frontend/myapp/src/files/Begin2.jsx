@@ -202,7 +202,7 @@ const Begin2 = () => {
         navigate('/YSellerSalesPage');
         break;
       case 'TourismGovernor':
-        navigate('/TourismGovernorDashboard');
+        navigate('/HistoricalPlaceTG');
         break;
       case 'Admin':
         navigate('/AdminSalesPage');
@@ -466,23 +466,23 @@ const Begin2 = () => {
           localStorage.setItem("username", username);
           break;
         case "Advertiser":
-          navigate("/YAdvertiserDashboard");
+          navigate("/YAdvertiserSalesPage");
           localStorage.setItem("username", username);
           break;
         case "TourGuide":
-          navigate("/YTourGuideDashboard");
+          navigate("/YTourGuideSalesPage");
           localStorage.setItem("username", username);
           break;
         case "Seller":
-          navigate("/YSellerDashboard");
+          navigate("/YSellerSalesPage");
           localStorage.setItem("username", username);
           break;
         case "TourismGovernor":
-          navigate("/TourismGovernorDashboard");
+          navigate("/HistoricalPlaceTG");
           localStorage.setItem("username", username);
           break;
         case "Admin":
-          navigate("/YAdminDashboard");
+          navigate("/AdminSalesPage");
           localStorage.setItem("username", username);
           break;
         case "TransportationAdvertiser":
