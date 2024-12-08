@@ -169,7 +169,8 @@ function YAdvertiserSalesPage() {
           const [bookingsResponse, revenueResponse, monthRevenueResponse] = await Promise.all([
             axios.get('/api/getUsersWhoBookedActivity', { params: { username, name: title } }),
             axios.get('/api/getRevenueFromActivity', { params: { username, name: title } }),
-            axios.get('/api/getTouristsByActivityAndMonth', { params: { activityName: title, month: new Date().getMonth() + 1 } })
+            axios.get('/api/getTouristsByActivityAndMonth', { params: { activityName: title, month: new Date().getMonth() + 1 } }),
+            axios.get('/api/calculateRevenueForAdvertiser', { params: { username, month: new Date().getMonth() + 1 } }),
           ]);
 
           //console.log(bookingsResponse);
@@ -190,6 +191,60 @@ function YAdvertiserSalesPage() {
     }
   };
   
+  // const applyFilter = async () => {
+  //   const username = localStorage.getItem('username');
+  //   if (!username) {
+  //     alert('You need to log in first.');
+  //     return;
+  //   }
+  
+  //   try {
+  //     // Step 1: Fetch filtered itineraries
+  //     const response = await axios.get('/api/filterAdvertiserActivities', {
+  //       params: {
+  //         username,
+  //         date: filterDate || undefined, // Pass date if selected
+  //         month: filterMonth || undefined, // Pass month if selected
+  //       },
+  //     });
+  
+  //     const filteredItineraries = response.data;
+  //     console.log("Filtered Itineraries:", filteredItineraries);
+  
+  //     // Step 2: Fetch additional details for each itinerary
+  //     const detailedItineraries = await Promise.all(
+  //       filteredItineraries.map(async (itinerary) => {
+  //         const title = itinerary.Title;
+  //         console.log("Fetching details for itinerary:", title);
+  
+  //         const [bookingsResponse, revenueResponse, monthRevenueResponse] = await Promise.all([
+  //           axios.get('/api/getUsersWhoBookedActivity', { params: { username, title } }),
+  //           axios.get('/api/getRevenueFromActivity', { params: { username, title } }),
+  //           axios.get('/api/getAdvertisersByActivityAndMonth', {
+  //             params: { itineraryTitle: title, month: filterMonth || new Date().getMonth() + 1 },
+  //           }),
+  //         ]);
+  
+  //         return {
+  //           title,
+  //           totalTourists: bookingsResponse.data.numberOfUsersBooked,
+  //           totalRevenue: revenueResponse.data.totalRevenue,
+  //           currentMonthRevenue: monthRevenueResponse.data.totalTourists * itinerary.Price,
+  //         };
+  //       })
+  //     );
+  
+  //     console.log("Detailed Itineraries with Filter:", detailedItineraries);
+  
+  //     // Step 3: Update the state with the detailed data
+  //     setItinerariesData(detailedItineraries);
+  //     setIsFilterModalOpen(false); // Close the modal
+  //   } catch (error) {
+  //     console.error('Error filtering and fetching itinerary details:', error);
+  //     alert('Failed to filter itineraries. Please try again.');
+  //   }
+  // };
+  
   const applyFilter = async () => {
     const username = localStorage.getItem('username');
     if (!username) {
@@ -198,49 +253,47 @@ function YAdvertiserSalesPage() {
     }
   
     try {
-      // Step 1: Fetch filtered itineraries
-      const response = await axios.get('/api/filterAdvertiserActivities', {
-        params: {
-          username,
-          date: filterDate || undefined, // Pass date if selected
-          month: filterMonth || undefined, // Pass month if selected
-        },
+      // Fetch itineraries for the tour guide
+      const response = await axios.get(`/api/readAllActivities`, {
+        params: { AuthorUsername: username },
       });
   
-      const filteredItineraries = response.data;
-      console.log("Filtered Itineraries:", filteredItineraries);
+      const itineraries = response.data;
   
-      // Step 2: Fetch additional details for each itinerary
-      const detailedItineraries = await Promise.all(
-        filteredItineraries.map(async (itinerary) => {
+      // Process itineraries to include bookings and revenue
+      const updatedItineraries = await Promise.all(
+        itineraries.map(async (itinerary) => {
           const title = itinerary.Title;
-          console.log("Fetching details for itinerary:", title);
   
-          const [bookingsResponse, revenueResponse, monthRevenueResponse] = await Promise.all([
-            axios.get('/api/getUsersWhoBookedActivity', { params: { username, title } }),
+          let filterParams = { title }; // Base filter parameters
+          if (filterDate) {
+            filterParams.date = filterDate;
+          } else if (filterMonth) {
+            filterParams.month = filterMonth;
+          }
+  
+          // Fetch bookings and revenue data
+          const [revenueResponse, filterResponse, allMonthsTouristsResponse] = await Promise.all([
             axios.get('/api/getRevenueFromActivity', { params: { username, title } }),
-            axios.get('/api/getAdvertisersByActivityAndMonth', {
-              params: { itineraryTitle: title, month: filterMonth || new Date().getMonth() + 1 },
-            }),
+            axios.get('/api/calculateRevenueForActivity', { params: filterParams }),
+            axios.get('/api/getUsersWhoBookedActivity', { params: { username, title } })
           ]);
   
           return {
             title,
-            totalTourists: bookingsResponse.data.numberOfUsersBooked,
+            totalTourists: filterResponse.data.bookings || 0,
+            allMonthsTourists: allMonthsTouristsResponse.data.numberOfUsersBooked,
             totalRevenue: revenueResponse.data.totalRevenue,
-            currentMonthRevenue: monthRevenueResponse.data.totalTourists * itinerary.Price,
+            currentMonthRevenue: filterResponse.data.revenue || 0, // Assuming this comes from the API
           };
         })
       );
   
-      console.log("Detailed Itineraries with Filter:", detailedItineraries);
-  
-      // Step 3: Update the state with the detailed data
-      setItinerariesData(detailedItineraries);
+      setItinerariesData(updatedItineraries);
       setIsFilterModalOpen(false); // Close the modal
     } catch (error) {
-      console.error('Error filtering and fetching itinerary details:', error);
-      alert('Failed to filter itineraries. Please try again.');
+      console.error('Error fetching or calculating itinerary details:', error);
+      alert('Failed to fetch or update itineraries. Please try again.');
     }
   };
   
@@ -934,7 +987,7 @@ const handleAccountDeletion = async () => {
             <Typography variant="h4" sx={{ fontWeight: 'bold', mb: 2, color: '#192959', textAlign: 'left' }}>
                 Welcome back, {username}!
             </Typography>
-            <Typography variant="body1" sx={{ fontSize: '18px', lineHeight: '1.8', color: '#192959', textAlign: 'left' }}>
+            <Typography variant="body1" sx={{ fontSize: '24px', lineHeight: '1.8', color: '#192959', textAlign: 'left' }}>
                 Thank you for choosing Beyond Borders. Use your dashboard to track your itineraries,
                 explore new opportunities, and stay connected with the vibrant tourism ecosystem.
                 Let's create unforgettable experiences together!
@@ -1137,21 +1190,32 @@ const handleAccountDeletion = async () => {
       position: 'relative', // Required for sticky positioning
     }}
   >
-    <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+     <table style={{ width: '100%', borderCollapse: 'collapse' }}>
       <thead>
         <tr>
           <th style={styles.tableHeader}>Activity Title</th>
           <th style={styles.tableHeader}>Total # of Tourists</th>
+          <th style={styles.tableHeader}>
+            {`# of Tourists ${
+              filterDate
+                ? `(${new Date(filterDate).toLocaleDateString()})`
+                : filterMonth
+                ? `(${new Date(0, filterMonth - 1).toLocaleString('default', {
+                    month: 'long',
+                  })})`
+                : `(${new Date().toLocaleString('default', { month: 'long' })})`
+            }`}
+          </th>
           <th style={styles.tableHeader}>Total Revenue</th>
           <th style={styles.tableHeader}>
             {`Revenue ${
                 filterDate
-                ? `(Date: ${new Date(filterDate).toLocaleDateString()})`
+                ? `(${new Date(filterDate).toLocaleDateString()})`
                 : filterMonth
-                ? `(Month: ${new Date(0, filterMonth - 1).toLocaleString('default', {
+                ? `(${new Date(0, filterMonth - 1).toLocaleString('default', {
                     month: 'long',
                     })})`
-                : `(Month: ${new Date().toLocaleString('default', { month: 'long' })})`
+                : `(${new Date().toLocaleString('default', { month: 'long' })})`
             }`}
             </th>
 
@@ -1170,6 +1234,7 @@ const handleAccountDeletion = async () => {
       >
         {itinerary.title}
       </td>
+      <td style={styles.tableCell}>{itinerary.allMonthsTourists}</td>
       <td style={styles.tableCell}>{itinerary.totalTourists}</td>
       <td style={styles.tableCell}>${itinerary.totalRevenue.toLocaleString()}</td>
       <td style={styles.tableCell}>
@@ -1182,6 +1247,7 @@ const handleAccountDeletion = async () => {
     </table>
   </Box>
 </Box>
+
 
 
         </Box>
@@ -1215,25 +1281,43 @@ const handleAccountDeletion = async () => {
         textAlign: 'center',
       }}
     >
-      Itinerary Details
+      Activity Details
     </Typography>
     {selectedItinerary && (
       <table style={{ width: '100%', borderCollapse: 'collapse' }}>
         <thead>
           <tr>
-            <th style={styles.tableHeader}>Itinerary Title</th>
+            <th style={styles.tableHeader}>Activity Title</th>
             <th style={styles.tableHeader}>Total # of Tourists</th>
-            <th style={styles.tableHeader}>Total Revenue</th>
             <th style={styles.tableHeader}>
-              {`Revenue (${new Date().toLocaleString('default', {
-                month: 'long',
-              })})`}
+            {`# of Tourists ${
+              filterDate
+                ? `(${new Date(filterDate).toLocaleDateString()})`
+                : filterMonth
+                ? `(${new Date(0, filterMonth - 1).toLocaleString('default', {
+                    month: 'long',
+                  })})`
+                : `(${new Date().toLocaleString('default', { month: 'long' })})`
+            }`}
+          </th>
+          <th style={styles.tableHeader}>Total Revenue</th>
+          <th style={styles.tableHeader}>
+            {`Revenue ${
+                filterDate
+                ? `(${new Date(filterDate).toLocaleDateString()})`
+                : filterMonth
+                ? `(${new Date(0, filterMonth - 1).toLocaleString('default', {
+                    month: 'long',
+                    })})`
+                : `(${new Date().toLocaleString('default', { month: 'long' })})`
+            }`}
             </th>
           </tr>
         </thead>
         <tbody>
           <tr>
             <td style={styles.tableCell}>{selectedItinerary.title}</td>
+            <td style={styles.tableCell}>{selectedItinerary.allMonthsTourists}</td>
             <td style={styles.tableCell}>
               {selectedItinerary.totalTourists}
             </td>
@@ -1266,7 +1350,7 @@ const handleAccountDeletion = async () => {
           }}
         >
           <Typography variant="h6" sx={{ mb: 2 }}>
-            Filter Itineraries
+            Filter Activities
           </Typography>
 
           {/* Date Filter */}
@@ -1325,8 +1409,23 @@ const handleAccountDeletion = async () => {
         </Box>
       </Modal>
 
+      <Modal open={isProfileModalOpen} onClose={() => setIsProfileModalOpen(false)}>
+  <Box
+    sx={{
+      position: "absolute",
+      top: "50%",
+      left: "50%",
+      transform: "translate(-50%, -50%)",
+      width: 400,
+      bgcolor: "background.paper",
+      p: 4,
+      borderRadius: 1,
+      boxShadow: 24,
+    }}
+  >
+
 {/* Profile Modal */}
-<Modal open={isProfileModalOpen} onClose={() => setIsProfileModalOpen(false)}>
+{/* <Modal open={isProfileModalOpen} onClose={() => setIsProfileModalOpen(false)}>
         <Box
           sx={{
             position: 'absolute',
@@ -1339,7 +1438,7 @@ const handleAccountDeletion = async () => {
             borderRadius: 1,
             boxShadow: 24,
           }}
-        >
+        > */}
           <Box
   sx={{
     display: 'flex',
@@ -1855,7 +1954,7 @@ const styles = {
         width: '100%',
       },      
     revenueContainer: {
-        height: '235px',
+        height: '375px',
         backgroundColor: '#f3f4f6',
         color: '#192959',
         borderRadius: '15px',
