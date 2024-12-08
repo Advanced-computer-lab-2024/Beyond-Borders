@@ -459,40 +459,39 @@ const calculateSellerRevenue = async (req, res) => {
 const filterSellerProducts = async (req, res) => {
   const { username, name, date, month } = req.query;
 
-  // Ensure seller username is provided
   if (!username) {
     return res.status(400).json({ error: 'Seller username is required' });
   }
 
   try {
-    // Step 1: Find all products sold by the seller
-    const sellerProducts = await NewProduct.find({ Seller: username });
+    // Find products associated with the seller
+    const sellerProducts = await NewProduct.find({ Seller: new RegExp(`^${username}$`, "i") });
+    console.log("Seller Products Found:", sellerProducts);
 
     if (sellerProducts.length === 0) {
       return res.status(404).json({ message: 'No products found for this seller.' });
     }
 
-    // Extract product names for the seller
     const sellerProductNames = sellerProducts.map((product) => product.Name);
 
-    // Step 2: Build query dynamically for orders
+    // Build query for filtering orders based on the seller's products
     const query = {
       'productsPurchased.productName': { $in: sellerProductNames },
     };
 
     if (date) {
-      query.orderDate = new Date(date); // Exact match for the provided date
+      query.orderDate = new Date(date);
     }
 
     if (month) {
       const year = new Date().getFullYear();
-      const startOfMonth = new Date(year, month - 1, 1); // Start of the month
-      const endOfMonth = new Date(year, month, 0); // End of the month
-      query.orderDate = { $gte: startOfMonth, $lte: endOfMonth }; // Match within the month range
+      const startOfMonth = new Date(year, month - 1, 1);
+      const endOfMonth = new Date(year, month, 0);
+      query.orderDate = { $gte: startOfMonth, $lte: endOfMonth };
     }
 
-    // Step 3: Find orders matching the query
     const orders = await Order.find(query);
+    console.log("Orders Found:", orders);
 
     if (orders.length === 0) {
       return res.status(404).json({
@@ -502,14 +501,15 @@ const filterSellerProducts = async (req, res) => {
       });
     }
 
-    // Step 4: Filter products within the orders and calculate total revenue
     let totalRevenue = 0;
     const filteredProducts = [];
+
+    // Process each order and calculate revenue
     orders.forEach((order) => {
       order.productsPurchased.forEach((product) => {
         if (
           sellerProductNames.includes(product.productName) &&
-          (!name || product.productName.toLowerCase().includes(name.toLowerCase())) // Match product name if provided
+          (!name || product.productName.toLowerCase().includes(name.toLowerCase()))
         ) {
           const revenue = product.quantity * product.price;
           totalRevenue += revenue;
@@ -524,14 +524,153 @@ const filterSellerProducts = async (req, res) => {
       });
     });
 
-    // Step 5: Return filtered products and total revenue
+    if (filteredProducts.length === 0) {
+      return res.status(404).json({
+        totalRevenue: "0.00",
+        filteredProducts: [],
+        message: "No matching products found.",
+      });
+    }
+
+    // Respond with the filtered products and total revenue
     res.status(200).json({
       totalRevenue: totalRevenue.toFixed(2),
       filteredProducts,
     });
   } catch (error) {
-    console.error('Error filtering ordered products:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    console.error("Error filtering products for seller:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+
+const notifySellerOfOutOfStock = async (req, res) => {
+  try {
+    const { sellerUsername } = req.body; // Assume seller username is passed in the request body
+    if (!sellerUsername) {
+      return res.status(400).json({ error: "Seller username is required." });
+    }
+
+    const seller = await AcceptedSellerModel.findOne({ Username: sellerUsername });
+    if (!seller) {
+      return res.status(404).json({ error: "Seller not found." });
+    }
+
+    const products = await NewProduct.find({ Seller: sellerUsername, Quantity: 0 });
+    if (products.length === 0) {
+      return res.status(200).json({ message: "No products out of stock." });
+    }
+
+    const outOfStockMessages = products.map(
+      (product) => `Product "${product.Name}" is out of stock.`
+    );
+
+    seller.Notifications.push(
+      ...outOfStockMessages.map((msg) => ({
+        NotificationText: msg,
+      }))
+    );
+
+    await seller.save();
+
+    // Send email notification
+     const transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: 'malook25062003@gmail.com', // Your email
+        pass: 'sxvo feuu woie gpfn', // Your email password or app-specific password
+      },
+    });
+
+    const emailContent = `
+      <h1>Out-of-Stock Notification</h1>
+      <p>The following products are out of stock:</p>
+      <ul>
+        ${outOfStockMessages.map((msg) => `<li>${msg}</li>`).join("")}
+      </ul>
+    `;
+
+    await transporter.sendMail({
+      from: "BeyondBorders@gmail.com", // Replace with your email
+      to: seller.Email, // Use the admin's email from the database
+      subject: "Out-of-Stock Products Notification",
+      html: emailContent,
+    });
+
+    res.status(200).json({
+      message: "Out-of-stock notifications sent to admin successfully.",
+    });
+  } catch (error) {
+    console.error("Error notifying admin:", error);
+    res.status(500).json({ error: "An error occurred." });
+  }
+};
+
+const allNotificationsReadSeller = async (req, res) => {
+  try {
+    const { username } = req.body; // Assume seller username is passed in the request body
+    if (!username) {
+      return res.status(400).json({ error: "Username is required." });
+    }
+
+    const seller = await NewAcceptedSeller.findOne({ Username: username });
+    if (!seller) {
+      return res.status(404).json({ error: "Seller not found." });
+    }
+
+    if (!seller.Notifications || seller.Notifications.length === 0) {
+      return res.status(200).json({ message: "No notifications to mark as read." });
+    }
+
+    seller.Notifications.forEach((notification) => {
+      notification.Read = true;
+    });
+
+    await seller.save();
+
+    res.status(200).json({
+      message: "All notifications marked as read successfully.",
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+const areAllNotificationsReadSeller = async (req, res) => {
+  try {
+    const { username } = req.query;
+    if (!username) {
+      return res.status(400).json({ error: "Username is required." });
+    }
+
+    const seller = await NewAcceptedSeller.findOne({ Username: username }, "Notifications");
+    if (!seller) {
+      return res.status(404).json({ error: "Seller not found." });
+    }
+
+    const allRead = seller.Notifications.every((notification) => notification.Read);
+
+    res.status(200).json({ allRead });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+const getSellerNotifications = async (req, res) => {
+  try {
+    const { username } = req.query;
+    if (!username) {
+      return res.status(400).json({ error: "Username is required." });
+    }
+
+    const seller = await NewAcceptedSeller.findOne({ Username: username }, "Notifications");
+    if (!seller) {
+      return res.status(404).json({ error: "Seller not found." });
+    }
+
+    res.status(200).json({ notifications: seller.Notifications });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
   }
 };
 
@@ -543,4 +682,5 @@ const filterSellerProducts = async (req, res) => {
 
 
 
-module.exports = {readSellerProfile, updateSeller, editProductSeller, createNewProductSeller, searchProductSeller, filterProductByPriceSeller, sortProductsAscendingSeller, sortProductsDescendingSeller,viewProductsSeller,viewAllProductsSeller,loginSeller,getProductsBySeller, viewMyArchivedProductsSeller, requestDeleteAccountSeller, decrementLoginCount,calculateSellerRevenue,filterSellerProducts};
+module.exports = {readSellerProfile, updateSeller, editProductSeller, createNewProductSeller, searchProductSeller, filterProductByPriceSeller, sortProductsAscendingSeller, sortProductsDescendingSeller,viewProductsSeller,viewAllProductsSeller,loginSeller,getProductsBySeller, viewMyArchivedProductsSeller, requestDeleteAccountSeller, decrementLoginCount,calculateSellerRevenue,filterSellerProducts
+  ,notifySellerOfOutOfStock,allNotificationsReadSeller,areAllNotificationsReadSeller,getSellerNotifications};

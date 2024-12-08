@@ -2241,12 +2241,12 @@ const notifyAdminOfOutOfStock = async (req, res) => {
 
     await admin.save();
 
-    // Send email notification
-    const transporter = nodemailer.createTransport({
+   // Send email notification
+     const transporter = nodemailer.createTransport({
       service: "gmail",
       auth: {
-        user: "your-email@gmail.com", // Replace with your email
-        pass: "your-app-specific-password", // Replace with your email password or app-specific password
+        user: 'malook25062003@gmail.com', // Your email
+        pass: 'sxvo feuu woie gpfn', // Your email password or app-specific password
       },
     });
 
@@ -2260,7 +2260,7 @@ const notifyAdminOfOutOfStock = async (req, res) => {
 
     await transporter.sendMail({
       from: "BeyondBorders@gmail.com", // Replace with your email
-      to: admin.Email, // Use the admin's email from the database
+      to: "malook25062003@gmail.com", // Use the admin's email from the database
       subject: "Out-of-Stock Products Notification",
       html: emailContent,
     });
