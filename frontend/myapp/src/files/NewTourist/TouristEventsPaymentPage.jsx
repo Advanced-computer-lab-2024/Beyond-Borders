@@ -23,6 +23,10 @@ import { useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
 import { loadStripe } from "@stripe/stripe-js";
 import { Elements, CardElement, useStripe, useElements } from "@stripe/react-stripe-js";
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import CancelIcon from "@mui/icons-material/Cancel";
+import InputAdornment from "@mui/material/InputAdornment";
+
 const TouristEventsPaymentPage = () => {
   const [userInfo, setUserInfo] = useState({
     firstName: "",
@@ -60,31 +64,42 @@ const TouristEventsPaymentPage = () => {
   
   // Retrieve data from state
   const { type, name, totalCost } = location.state || {};
-  const applyPromoCode = async () => {
-    try {
-      // Make the API call to the backend with the promo code
-      const response = await axios.get('/applyPromoCode', { params: { promoCode } });
 
-      // If promo code is valid, apply discount and update UI
-      const { discountPercentage } = response.data;
-      console.log(discountPercentage);
-      setDiscount(discountPercentage);
-      console.log(totalCost);
-      const discountedAmount = totalCost * (1 - discountPercentage / 100);
-      setTotalAmount(discountedAmount); // Set the updated total amount after discount     
-      setPromoApplied(true);
-      setPromoCodeError(""); // Clear any previous errors
+  const applyPromoCode = async (code) => {
+  try {
+    // Make the API call to the backend with the promo code
+    const response = await axios.get('/applyPromoCode', { params: { promoCode: code } });
 
-    } catch (error) {
-      // Handle errors (invalid promo code or backend issues)
-      if (error.response && error.response.status === 404) {
-        alert("Invalid or expired promo code.");
-      } else {
-        alert("An error occurred. Please try again.");
-      }
-      setPromoApplied(false); // Reset promo applied state if there's an error
-    }
-  };
+    // Extract discount percentage from response
+    const { discountPercentage } = response.data;
+
+    // Update discount and total amount
+    setDiscount(discountPercentage);
+    const discountedAmount = totalCost * (1 - discountPercentage / 100);
+    setTotalAmount(discountedAmount);
+
+    // Show success state
+    setPromoApplied(true);
+    setPromoCodeError(""); // Clear any previous error
+  } catch (error) {
+    // Show error state
+    setPromoApplied(false); // Mark promo code as invalid
+    setDiscount(0); // Reset discount
+  }
+};
+
+const handlePromoCodeChange = (e) => {
+  const code = e.target.value;
+  setPromoCode(code);
+
+  if (code.trim()) {
+    applyPromoCode(code); // Call API on input change
+  } else {
+    setPromoApplied(null); // Reset state when input is empty
+    setDiscount(0); // Reset discount
+  }
+};
+
 
   const handlePayment = async () => {
     const touristUsername = localStorage.getItem("username");
@@ -447,47 +462,40 @@ const TouristEventsPaymentPage = () => {
           </Box>
       {/* Promo Code Input */}
       <Box sx={{ marginBottom: "20px" }}>
-        <TextField
-          label="PromoCode"
-          variant="outlined"
-          fullWidth
-          value={promoCode}
-          onChange={(e) => setPromoCode(e.target.value)}
-          sx={{
-            '& .MuiOutlinedInput-root': {
-              borderRadius: '10px',
-              backgroundColor: '#f9f9f9',
-              padding: '10px 12px',
-              borderColor: '#ccc',
-              '&:hover': {
-                borderColor: '#999',
-              },
-            },
-          }}
-        />
-      </Box>
-
-      {/* Apply Promo Code Button */}
-      <Box sx={{ marginBottom: "20px" }}>
-        <Button 
-          variant="contained" 
-          color="primary" 
-          onClick={applyPromoCode}
-          fullWidth
-          sx={{
-            borderRadius: '12px',
-            padding: '12px',
-            fontWeight: 'bold',
-            textTransform: 'none',
-            backgroundColor: '#192959', // Dark blue color
-            '&:hover': {
-              backgroundColor: '#33416b', // Darker green on hover
-            },
-          }}
-        >
-          Apply Promo Code
-        </Button>
-      </Box>
+  <Typography variant="h6" sx={{ fontWeight: "bold", marginBottom: "10px" }}>
+    Promo Code
+  </Typography>
+  <TextField
+    label="Enter Promo Code"
+    variant="outlined"
+    fullWidth
+    value={promoCode}
+    onChange={handlePromoCodeChange}
+    InputProps={{
+      endAdornment: (
+        <InputAdornment position="end">
+          {promoCode && promoApplied === true && (
+            <CheckCircleIcon sx={{ color: "green" }} />
+          )}
+          {promoCode && promoApplied === false && (
+            <CancelIcon sx={{ color: "red" }} />
+          )}
+        </InputAdornment>
+      ),
+    }}
+  />
+  {promoCode && promoApplied === true && (
+    <Typography variant="body2" sx={{ color: "green", marginTop: "5px" }}>
+      Promo code applied! You saved {discount}%.
+    </Typography>
+  )}
+  {promoCode && promoApplied === false && (
+    <Typography variant="body2" sx={{ color: "red", marginTop: "5px" }}>
+      Invalid or expired promo code.
+    </Typography>
+  )}
+</Box>
+  
             {/* Display Discount */}
             {discount > 0 && promoApplied &&(
         <Box sx={{ display: "flex", justifyContent: "space-between", marginBottom: "10px" }}>

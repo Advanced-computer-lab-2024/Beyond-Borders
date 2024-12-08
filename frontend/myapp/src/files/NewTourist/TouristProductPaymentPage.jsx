@@ -32,6 +32,9 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { loadStripe } from "@stripe/stripe-js";
 import { Elements, CardElement, useStripe, useElements } from "@stripe/react-stripe-js";
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import CancelIcon from "@mui/icons-material/Cancel";
+import InputAdornment from "@mui/material/InputAdornment";
 
 const steps = ["Shopping Cart", "Payment Details", "Payment Complete"];
 
@@ -80,44 +83,48 @@ const TouristProductPaymentPage = () => {
   );
   useEffect(() => {
     const fetchData = async () => {
-        try {
-          const username = localStorage.getItem("username");
-          if (!username) {
-            setError("User is not logged in.");
-            return;
-          }
-          const cartResponse = await axios.get("/api/getTouristCartDetails", {
-            params: { username },
-          });
-          setCartItems(cartResponse.data);
-  
-          // Fetch cart items
-          const total = cartResponse.data.reduce(
-            (total, item) => total + item.productDetails.Price * item.quantity,
-            0
-          );
-          setTotalAmount(total); // Set the initial total amount
-          totalCost = total;
-          // Fetch delivery addresses
-          const addressResponse = await axios.get("/viewDeliveryAddresses", {
-            params: { touristUsername: username },
-          });
-          setDeliveryAddresses(addressResponse.data.DeliveryAddresses);
-        } catch (err) {
-          console.error("Error fetching data:", err);
-          setError("Failed to fetch data.");
-        } finally {
-          setLoading(false);
+      try {
+        const username = localStorage.getItem("username");
+        if (!username) {
+          setError("User is not logged in.");
+          return;
         }
-      };
   
-      fetchData();
-    }, []);
+        // Fetch cart items
+        const cartResponse = await axios.get("/api/getTouristCartDetails", {
+          params: { username },
+        });
+        setCartItems(cartResponse.data);
+  
+        const total = cartResponse.data.reduce(
+          (total, item) => total + item.productDetails.Price * item.quantity,
+          0
+        );
+        setTotalAmount(total); // Update totalAmount state
+  
+        // Fetch delivery addresses
+        const addressResponse = await axios.get("/api/viewDeliveryAddresses", {
+          params: { touristUsername: username },
+        });
+  
+        console.log("Addresses: ", addressResponse.data.DeliveryAddresses);
+        setDeliveryAddresses(addressResponse.data.DeliveryAddresses);
+      } catch (err) {
+        console.error("Error fetching data:", err);
+        setError("Failed to fetch data.");
+      } finally {
+        setLoading(false);
+      }
+    };
+  
+    fetchData();
+  }, []);
+  
 
-    const applyPromoCode = async () => {
+    const applyPromoCode = async (code) => {
       try {
         const response = await axios.get("/applyPromoCode", {
-          params: { promoCode },
+          params: { promoCode: code },
         });
         const { discountPercentage } = response.data;
   
@@ -129,8 +136,18 @@ const TouristProductPaymentPage = () => {
         const newTotal = totalAmount * (1 - discountPercentage / 100);
         setTotalAmount(newTotal); // Update the total amount after discount
       } catch (error) {
-        alert("Invalid or expired promo code.");
-        setPromoApplied(false);
+        setPromoApplied(false); // Mark as invalid
+        setDiscount(0); // Reset discount
+      }
+    };
+    const handlePromoCodeChange = (e) => {
+      const code = e.target.value;
+      setPromoCode(code);
+  
+      if (code.trim()) {
+        applyPromoCode(code); // Call the API on every input change
+      } else {
+        setPromoApplied(null); // Reset status when the input is cleared
       }
     };
 
@@ -573,27 +590,41 @@ const TouristProductPaymentPage = () => {
             Order Summary
           </Typography>
           {/* Promo Code Section */}
-      <TextField
-        label="Promo Code"
-        variant="outlined"
-        fullWidth
-        value={promoCode}
-        onChange={(e) => setPromoCode(e.target.value)}
-        error={!!promoCodeError}
-        helperText={promoCodeError}
-      />
-     <Button 
-  onClick={applyPromoCode} 
-  variant="contained" 
-  sx={{
-    backgroundColor: '#192959', // MUI theme primary color
-    '&:hover': {
-      backgroundColor: '#33416b', // MUI theme primary dark color on hover
-    },
-  }}
->
-  Apply Promo Code
-</Button>
+          <Box sx={{ marginBottom: "20px" }}>
+  <Typography variant="h6" sx={{ fontWeight: "bold", marginBottom: "10px" }}>
+    Promo Code
+  </Typography>
+  <TextField
+    label="Enter Promo Code"
+    variant="outlined"
+    fullWidth
+    value={promoCode}
+    onChange={handlePromoCodeChange}
+    InputProps={{
+      endAdornment: (
+        <InputAdornment position="end">
+          {promoCode && promoApplied === true && (
+            <CheckCircleIcon sx={{ color: "green" }} />
+          )}
+          {promoCode && promoApplied === false && (
+            <CancelIcon sx={{ color: "red" }} />
+          )}
+        </InputAdornment>
+      ),
+    }}
+  />
+  {promoCode && promoApplied === true && (
+    <Typography variant="body2" sx={{ color: "green", marginTop: "5px" }}>
+      Promo code applied! You saved {discount}%.
+    </Typography>
+  )}
+  {promoCode && promoApplied === false && (
+    <Typography variant="body2" sx={{ color: "red", marginTop: "5px" }}>
+      Invalid or expired promo code.
+    </Typography>
+  )}
+</Box>
+  
 
       <Box>
   {/* Display Discount */}

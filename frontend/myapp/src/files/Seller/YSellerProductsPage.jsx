@@ -533,14 +533,14 @@ function YSellerProductsPage() {
                     <AttachMoneyIcon fontSize="small" sx={{ mr: 1 }} />
                     {editMode[product._id] ? (
                         <TextField
-                            value={editedProduct.Sales || 0}
+                            value={editedProduct.TotalPriceOfSales || 0}
                             onChange={(e) => handleInputChange(e, 'Total Price of Sales')}
                             sx={{ width: '50%', maxWidth: '600px', minWidth: '150px' }} // Adjust the width
                             size="small" // Smaller input size
                             disabled
                         />
                         ) : (
-                        `Total Price of Sales: ${product.TotalPriceofSales}`
+                        `Total Price of Sales: ${product.TotalPriceOfSales}`
                         )}
                     </Typography>
                     </Box>

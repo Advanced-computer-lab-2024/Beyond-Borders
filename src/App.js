@@ -470,7 +470,7 @@ app.post("/removeFromCart",removeFromCart);
 app.post("/changeProductQuantityInCart",changeProductQuantityInCart);
 app.post("/checkout",checkout);
 app.post("/addDeliveryAddress",addDeliveryAddress);
-app.get("/viewDeliveryAddresses",viewDeliveryAddresses);
+app.get("/api/viewDeliveryAddresses",viewDeliveryAddresses);
 app.put("/chooseDeliveryAddress",chooseDeliveryAddress);
 app.post("/payOrderWallet",payOrderWallet);
 app.post("/payOrderCash",payOrderCash);
