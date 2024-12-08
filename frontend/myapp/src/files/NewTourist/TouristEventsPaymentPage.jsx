@@ -21,7 +21,8 @@ import CreditCardIcon from "@mui/icons-material/CreditCard";
 import WalletIcon from "@mui/icons-material/AccountBalanceWallet";
 import { useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
-
+import { loadStripe } from "@stripe/stripe-js";
+import { Elements, CardElement, useStripe, useElements } from "@stripe/react-stripe-js";
 const TouristEventsPaymentPage = () => {
   const [userInfo, setUserInfo] = useState({
     firstName: "",
@@ -38,12 +39,7 @@ const TouristEventsPaymentPage = () => {
   const navigate = useNavigate();
   const [successDialogOpen, setSuccessDialogOpen] = useState(false); // Success message dialog state
   const [paymentLoading, setPaymentLoading] = useState(false); // Loading state for payment
-  const [cardInfo, setCardInfo] = useState({
-    cardNumber: "",
-    cardholderName: "",
-    expiryDate: "",
-    cvv: "",
-  });
+ 
   const [userInfoErrors, setUserInfoErrors] = useState({
     firstName: "",
     lastName: "",
@@ -52,12 +48,9 @@ const TouristEventsPaymentPage = () => {
     country: "",
   });
   
-  const [cardInfoErrors, setCardInfoErrors] = useState({
-    cardNumber: "",
-    cardholderName: "",
-    expiryDate: "",
-    cvv: "",
-  });
+  
+  const stripe = useStripe();
+  const elements = useElements();
   
   // Retrieve data from state
   const { type, name, totalCost } = location.state || {};
@@ -73,87 +66,61 @@ const TouristEventsPaymentPage = () => {
       alert("Please select a payment method.");
       return;
     }
-
-     // Reset errors
-  setUserInfoErrors({
-    firstName: "",
-    lastName: "",
-    email: "",
-    MobileNumber: "",
-    country: "",
-  });
-  setCardInfoErrors({
-    cardNumber: "",
-    cardholderName: "",
-    expiryDate: "",
-    cvv: "",
-  });
-
-  // Validate user info
-  let hasErrors = false;
-  const newUserInfoErrors = {};
-  if (!userInfo.firstName.trim()) {
-    newUserInfoErrors.firstName = "First name is required.";
-    hasErrors = true;
-  }
-  if (!userInfo.lastName.trim()) {
-    newUserInfoErrors.lastName = "Last name is required.";
-    hasErrors = true;
-  }
-  if (!userInfo.email.trim()) {
-    newUserInfoErrors.email = "Email is required.";
-    hasErrors = true;
-  }
-  if (!userInfo.MobileNumber.trim()) {
-    newUserInfoErrors.MobileNumber = "MobileNumber is required.";
-    hasErrors = true;
-  }
-  if (!userInfo.country.trim()) {
-    newUserInfoErrors.country = "Country is required.";
-    hasErrors = true;
-  }
-  setUserInfoErrors(newUserInfoErrors);
-
-  // Validate card info if payment method is Card
-  if (paymentMethod === "Card") {
-    const newCardInfoErrors = {};
-    if (!cardInfo.cardNumber.trim()) {
-      newCardInfoErrors.cardNumber = "Card number is required.";
+  
+    // Reset errors
+    setUserInfoErrors({
+      firstName: "",
+      lastName: "",
+      email: "",
+      MobileNumber: "",
+      country: "",
+    });
+   
+  
+    // Validate user info
+    let hasErrors = false;
+    const newUserInfoErrors = {};
+    if (!userInfo.firstName.trim()) {
+      newUserInfoErrors.firstName = "First name is required.";
       hasErrors = true;
     }
-    if (!cardInfo.cardholderName.trim()) {
-      newCardInfoErrors.cardholderName = "Cardholder name is required.";
+    if (!userInfo.lastName.trim()) {
+      newUserInfoErrors.lastName = "Last name is required.";
       hasErrors = true;
     }
-    if (!cardInfo.expiryDate.trim()) {
-      newCardInfoErrors.expiryDate = "Expiry date is required.";
+    if (!userInfo.email.trim()) {
+      newUserInfoErrors.email = "Email is required.";
       hasErrors = true;
     }
-    if (!cardInfo.cvv.trim()) {
-      newCardInfoErrors.cvv = "CVV is required.";
+    if (!userInfo.MobileNumber.trim()) {
+      newUserInfoErrors.MobileNumber = "Mobile Number is required.";
       hasErrors = true;
     }
-    setCardInfoErrors(newCardInfoErrors);
-  }
-
-  if (hasErrors) {
-    return; // Stop the payment process if there are errors
-  }
+    if (!userInfo.country.trim()) {
+      newUserInfoErrors.country = "Country is required.";
+      hasErrors = true;
+    }
+    setUserInfoErrors(newUserInfoErrors);
+  
+    if (hasErrors) {
+      return; // Stop the payment process if there are errors
+    }
   
     try {
       setPaymentLoading(true);
+  
       // Determine the endpoint based on the type
       const endpoint =
-            type === "historicalPlace"
-          ?  paymentMethod === "Wallet"
+        type === "historicalPlace"
+          ? paymentMethod === "Wallet"
             ? "/payHP"
             : "/payHPStripe"
           : type === "museum"
-          ?  paymentMethod === "Wallet"
+          ? paymentMethod === "Wallet"
             ? "/payMuseum"
             : "/payMuseumStripe"
           : type === "itinerary"
-         ? paymentMethod === "Wallet"
+          ? paymentMethod === "Wallet"
             ? "/payItinerary"
             : "/payItineraryStripe"
           : type === "activity"
@@ -167,31 +134,66 @@ const TouristEventsPaymentPage = () => {
         return;
       }
   
-      // Prepare the payload
-      const payload = {
-        touristUsername,
-        activityName: type === "activity" ? name : undefined,
-        museumName: type === "museum" ? name : undefined,
-        HPName: type === "historicalPlace" ? name : undefined,
-        ItineraryName: type === "itinerary" ? name : undefined,
-      };
+      // Wallet payment
+      if (paymentMethod === "Wallet") {
+        const payload = {
+          touristUsername,
+          activityName: type === "activity" ? name : undefined,
+          museumName: type === "museum" ? name : undefined,
+          HPName: type === "historicalPlace" ? name : undefined,
+          ItineraryName: type === "itinerary" ? name : undefined,
+        };
   
-      // Make the payment request
-      const response = await axios.put(endpoint, payload);
+        const response = await axios.put(endpoint, payload);
   
-      if (response.status === 200) {
-        setSuccessDialogOpen(true);
-        console.log(
-          `Points: ${response.data.Points}, Badge Level: ${response.data.BadgeLevelOfPoints}`
-        );
-        setPaymentLoading(false);
-        setSuccessDialogOpen(true);
-      } else {
-        alert(response.data.msg || "Failed to complete payment.");
+        if (response.status === 200) {
+          setSuccessDialogOpen(true);
+          console.log(`Points: ${response.data.Points}, Badge Level: ${response.data.BadgeLevelOfPoints}`);
+          setPaymentLoading(false);
+        } else {
+          alert(response.data.msg || "Failed to complete payment.");
+        }
+      }
+  
+      // Card payment using Stripe
+      if (paymentMethod === "Card") {
+        const cardElement = elements.getElement(CardElement);
+        const { paymentMethod: stripePaymentMethod, error } = await stripe.createPaymentMethod({
+          type: "card",
+          card: cardElement,
+        });
+  
+        if (error) {
+          console.error("Stripe error:", error);
+          alert(error.message);
+          setPaymentLoading(false);
+          return;
+        }
+  
+        const stripePayload = {
+          touristUsername,
+          paymentMethodId: stripePaymentMethod.id, // Include the payment method ID from Stripe
+          activityName: type === "activity" ? name : undefined,
+          museumName: type === "museum" ? name : undefined,
+          HPName: type === "historicalPlace" ? name : undefined,
+          ItineraryName: type === "itinerary" ? name : undefined,
+        };
+  
+        const stripeResponse = await axios.put(endpoint, stripePayload);
+  
+        if (stripeResponse.status === 200) {
+          setSuccessDialogOpen(true);
+          console.log(`Points: ${stripeResponse.data.Points}, Badge Level: ${stripeResponse.data.BadgeLevelOfPoints}`);
+          setPaymentLoading(false);
+        } else {
+          alert(stripeResponse.data.msg || "Failed to complete payment.");
+        }
       }
     } catch (error) {
       console.error("Error processing payment:", error);
       alert("An error occurred while processing the payment.");
+    } finally {
+      setPaymentLoading(false);
     }
   };
   
@@ -270,12 +272,12 @@ const TouristEventsPaymentPage = () => {
       label="Mobile Number *"
       variant="outlined"
       fullWidth
-      value={userInfo.confirmEmail}
+      value={userInfo.MobileNumber}
       onChange={(e) =>
-        setUserInfo({ ...userInfo, confirmEmail: e.target.value })
+        setUserInfo({ ...userInfo, MobileNumber: e.target.value })
       }
-      error={!!userInfoErrors.confirmEmail} // Highlight error
-      helperText={userInfoErrors.confirmEmail} // Show error message
+      error={!!userInfoErrors.MobileNumber} // Highlight error
+      helperText={userInfoErrors.MobileNumber} // Show error message
     />
     <TextField
       label="Country *"
@@ -328,55 +330,46 @@ const TouristEventsPaymentPage = () => {
             />
           </RadioGroup>
           {paymentMethod === "Card" && (
-            <Box sx={{ marginTop: "20px" }}>
-              <TextField
-      label="Card Number"
-      variant="outlined"
-      fullWidth
-      value={cardInfo.cardNumber}
-      onChange={(e) =>
-        setCardInfo({ ...cardInfo, cardNumber: e.target.value })
-      }
-      error={!!cardInfoErrors.cardNumber} // Highlight error
-      helperText={cardInfoErrors.cardNumber} // Show error message
-      sx={{ marginBottom: "20px" }}
-    />
-    <TextField
-      label="Cardholder Name"
-      variant="outlined"
-      fullWidth
-      value={cardInfo.cardholderName}
-      onChange={(e) =>
-        setCardInfo({ ...cardInfo, cardholderName: e.target.value })
-      }
-      error={!!cardInfoErrors.cardholderName} // Highlight error
-      helperText={cardInfoErrors.cardholderName} // Show error message
-      sx={{ marginBottom: "20px" }}
-    />
-    <Box sx={{ display: "flex", gap: "20px", marginBottom: "20px" }}>
-      <TextField
-        label="Expiry Date (MM/YY)"
-        variant="outlined"
-        value={cardInfo.expiryDate}
-        onChange={(e) =>
-          setCardInfo({ ...cardInfo, expiryDate: e.target.value })
-        }
-        error={!!cardInfoErrors.expiryDate} // Highlight error
-        helperText={cardInfoErrors.expiryDate} // Show error message
+  <Box sx={{ marginTop: "20px" }}>
+    <Typography
+      variant="h6"
+      sx={{
+        fontWeight: "bold",
+        marginBottom: "20px",
+        textAlign: "left", // Align text to the left
+      }}
+    >
+      Enter Card Details
+    </Typography>
+    <Box
+      sx={{
+        border: "1px solid #ccc",
+        borderRadius: "8px",
+        padding: "20px", // Increase padding for a bigger box
+        marginBottom: "20px",
+      }}
+    >
+      <CardElement
+        options={{
+          style: {
+            base: {
+              fontSize: "18px", // Increase font size for better readability
+              color: "#424770",
+              "::placeholder": {
+                color: "#aab7c4",
+              },
+            },
+            invalid: {
+              color: "#9e2146",
+            },
+          },
+        }}
       />
-      <TextField
-        label="CVV"
-        variant="outlined"
-        value={cardInfo.cvv}
-        onChange={(e) => setCardInfo({ ...cardInfo, cvv: e.target.value })}
-        error={!!cardInfoErrors.cvv} // Highlight error
-        helperText={cardInfoErrors.cvv} // Show error message
-      />
-              </Box>
-            </Box>
-          )}
-        </Box>
-        
+    </Box>
+  </Box>
+)}
+
+       </Box>
        
         {/* Summary Section */}
         <Box

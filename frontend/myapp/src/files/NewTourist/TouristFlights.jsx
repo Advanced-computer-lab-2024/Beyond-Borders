@@ -99,7 +99,7 @@ const [errorMessage, setErrorMessage] = useState('');
   const [directFlight, setDirectFlight] = useState(false); // Single state for the checkbox
   const [flightOffers, setFlightOffers] = useState([]);
   const [loading, setLoading] = useState(false);
-
+  const [marginTop, setMarginTop] = useState("350px"); 
 
   const [productsOpen, setProductsOpen] = useState(false);
   const [activitiesOpen, setActivitiesOpen] = useState(false);
@@ -128,6 +128,17 @@ const [errorMessage, setErrorMessage] = useState('');
     // Cleanup event listener on component unmount
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  useEffect(() => {
+    if (flightOffers.length > 0) {
+      setMarginTop("50px"); // Move the search box up when offers are fetched
+      const section = document.getElementById("flightOffersSection");
+      if (section) {
+        section.scrollIntoView({ behavior: "smooth" }); // Scroll to flight offers
+      }
+    }
+  }, [flightOffers]);
+  
 
   const fetchCityCode = async (cityName) => {
     try {
@@ -632,198 +643,205 @@ const [errorMessage, setErrorMessage] = useState('');
     <CircularProgress />
   </Box>
 )}
-  
-      {/* Search Box */}
-      <Box
-        sx={{
-          padding: '20px',
-  maxWidth: '90%',
-  margin: '0 auto',
-  backgroundColor: 'rgba(255, 255, 255, 0.2)', // Translucent white background
-  borderRadius: '10px',
-  boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.2)',
-  position: 'relative',
-  marginTop: flightOffers.length > 0 ? '20px' : '300px',
-  transition: 'margin-top 0.5s ease',
-  zIndex: 2,
-  backdropFilter: 'blur(5px)', 
-        }}
-      >
-       <Typography
-      variant="h5"
-      sx={{ marginBottom: '20px', color: '#192959', fontWeight: 'bold', textAlign: 'center' }}
-    >
-          Flights
-        </Typography>
-        <Box
-          sx={{
-            display: 'flex',
-            flexWrap: 'nowrap',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            gap: '10px',
-            marginBottom: '20px',
-          }}
-        >
-          <TextField
-            label="Origin"
-            variant="outlined"
-            value={origin}
-            onChange={(e) => setOrigin(e.target.value)}
-            sx={{ flex: '1 1 150px' }}
-          />
-          <TextField
-            label="Destination"
-            variant="outlined"
-            value={destination}
-            onChange={(e) => setDestination(e.target.value)}
-            sx={{ flex: '1 1 150px' }}
-          />
-          <TextField
-            label="Departure Date"
-            type="date"
-            value={departureDate}
-            onChange={(e) => setDepartureDate(e.target.value)}
-            InputLabelProps={{ shrink: true }}
-            sx={{ flex: '1 1 150px' }}
-          />
-          <TextField
-            label="Return Date"
-            type="date"
-            value={returnDate}
-            onChange={(e) => setReturnDate(e.target.value)}
-            InputLabelProps={{ shrink: true }}
-            sx={{ flex: '1 1 150px' }}
-          />
-          <TextField
-            label="Adults"
-            type="number"
-            value={adults}
-            onChange={(e) => setAdults(e.target.value)}
-            sx={{ flex: '1 1 100px' }}
-          />
-          <FormControlLabel
-            control={
-              <Checkbox
-                checked={directFlight}
-                onChange={(e) => setDirectFlight(e.target.checked)}
-                color="primary"
-              />
-            }
-            label="Direct"
-            sx={{ flex: '1 1 auto', whiteSpace: 'nowrap' }}
-          />
-          <Button
-            variant="contained"
-            sx={{
-              backgroundColor: '#192959',
-              color: '#fff',
-              '&:hover': {
-                backgroundColor: '#33416b',
-              },
-              height: '56px',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              padding: '0 16px',
-            }}
-            onClick={handleSearchFlights}
-          >
-            Search
-            <SearchIcon />
-          </Button>
-        </Box>
-        {errorMessage && (
-          <Typography color="error" sx={{ marginBottom: '20px' }}>
-            {errorMessage}
-          </Typography>
-        )}
-      </Box>
-      
-  
-{/* Flight Offers */}
+
 <Box
   sx={{
-    marginTop: '150px', // Adjust based on space requirement
-    width: '80%',
-    margin: '0 auto',
-    backdropFilter: 'blur(10px)',
+    width: "100%",
+    minHeight: "100vh", // Full viewport height
+    position: "relative",
+    display: "flex",
+    flexDirection: "column",
+    overflow: "hidden",
+    backgroundImage: "url('/images/plane11.jpg')", // Background image path
+    backgroundSize: "cover", // Ensures the image covers the entire container
+    backgroundPosition: "center", // Centers the image
+    backgroundRepeat: "no-repeat", // Prevents tiling
+    backgroundAttachment: "fixed", // Keeps the background fixed
   }}
 >
-  {flightOffers.length > 0 && (
-    <Box>
-      {flightOffers.map((flightGroup, groupIndex) => (
+  {/* Search Box */}
+  <Box
+    sx={{
+      padding: "20px",
+      maxWidth: "90%",
+      margin: "0 auto",
+      backgroundColor: "rgba(255, 255, 255, 0.8)", // Translucent white background
+      borderRadius: "10px",
+      boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.2)",
+      position: "relative",
+      marginTop: marginTop, // Dynamically adjusted margin
+      transition: "margin-top 0.5s ease", // Smooth transition
+      zIndex: 2,
+    }}
+  >
+    <Typography
+      variant="h5"
+      sx={{
+        marginBottom: "20px",
+        color: "#192959",
+        fontWeight: "bold",
+        textAlign: "center",
+      }}
+    >
+      Flights
+    </Typography>
+    <Box
+      sx={{
+        display: "flex",
+        flexWrap: "nowrap",
+        justifyContent: "space-between",
+        alignItems: "center",
+        gap: "10px",
+        marginBottom: "20px",
+      }}
+    >
+      <TextField
+        label="Origin"
+        variant="outlined"
+        value={origin}
+        onChange={(e) => setOrigin(e.target.value)}
+        sx={{ flex: "1 1 150px" }}
+      />
+      <TextField
+        label="Destination"
+        variant="outlined"
+        value={destination}
+        onChange={(e) => setDestination(e.target.value)}
+        sx={{ flex: "1 1 150px" }}
+      />
+      <TextField
+        label="Departure Date"
+        type="date"
+        value={departureDate}
+        onChange={(e) => setDepartureDate(e.target.value)}
+        InputLabelProps={{ shrink: true }}
+        sx={{ flex: "1 1 150px" }}
+      />
+      <TextField
+        label="Return Date"
+        type="date"
+        value={returnDate}
+        onChange={(e) => setReturnDate(e.target.value)}
+        InputLabelProps={{ shrink: true }}
+        sx={{ flex: "1 1 150px" }}
+      />
+      <TextField
+        label="Adults"
+        type="number"
+        value={adults}
+        onChange={(e) => setAdults(e.target.value)}
+        sx={{ flex: "1 1 100px" }}
+      />
+      <FormControlLabel
+        control={
+          <Checkbox
+            checked={directFlight}
+            onChange={(e) => setDirectFlight(e.target.checked)}
+            color="primary"
+          />
+        }
+        label="Direct"
+        sx={{ flex: "1 1 auto", whiteSpace: "nowrap" }}
+      />
+      <Button
+        variant="contained"
+        sx={{
+          backgroundColor: "#192959",
+          color: "#fff",
+          "&:hover": {
+            backgroundColor: "#33416b",
+          },
+          height: "56px",
+          display: "flex",
+          alignItems: "center",
+          gap: "8px",
+          padding: "0 16px",
+        }}
+        onClick={handleSearchFlights}
+      >
+        Search
+        <SearchIcon />
+      </Button>
+    </Box>
+    {errorMessage && (
+      <Typography color="error" sx={{ marginBottom: "20px" }}>
+        {errorMessage}
+      </Typography>
+    )}
+  </Box>
+
+  {/* Flight Offers Section */}
+  <Box
+    sx={{
+      marginTop: "150px",
+      width: "80%",
+      margin: "0 auto",
+      backdropFilter: "blur(10px)",
+    }}
+    id="flightOffersSection" // ID for scrolling
+  >
+    {flightOffers.length > 0 &&
+      flightOffers.map((flightGroup, groupIndex) => (
         <Box
           key={groupIndex}
           sx={{
-            marginTop: '50px',
-            backgroundColor: '#fff',
-            borderRadius: '10px',
-            boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.1)',
-            padding: '20px',
-            marginBottom: '50px', // Space between containers
+            marginTop: "50px",
+            backgroundColor: "#fff",
+            borderRadius: "10px",
+            boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.1)",
+            padding: "20px",
+            marginBottom: "50px",
           }}
         >
           {/* Outbound Flight */}
           <Typography
             variant="h5"
             sx={{
-              fontWeight: 'bold',
-              marginBottom: '20px',
-              textAlign: 'center',
+              fontWeight: "bold",
+              marginBottom: "20px",
+              textAlign: "center",
             }}
           >
-           
+            Outbound Flight
           </Typography>
-
-          <Box sx={{ marginBottom: '20px', width: '100%' }}>
-            <Typography
-              variant="h5"
-              sx={{
-                fontWeight: 'bold',
-                marginBottom: '10px',
-                textAlign: 'center',
-              }}
-            >
-              Outbound Flight
-            </Typography>
+          <Box sx={{ marginBottom: "20px", width: "100%" }}>
             {flightGroup[0].segments.map((segment, segmentIndex) => (
               <Box
                 key={segmentIndex}
                 sx={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  marginBottom: '20px',
-                  width: '100%',
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  marginBottom: "20px",
+                  width: "100%",
                 }}
               >
-                <FlightTakeoffIcon sx={{ marginRight: '10px', color: '#192959' }} />
-                <Box sx={{ textAlign: 'center' }}>
+                <FlightTakeoffIcon sx={{ marginRight: "10px", color: "#192959" }} />
+                <Box sx={{ textAlign: "center" }}>
                   <Typography>Departure: {segment.departure.iataCode}</Typography>
-                  <Typography>Terminal: {segment.departure.terminal || 'N/A'}</Typography>
+                  <Typography>Terminal: {segment.departure.terminal || "N/A"}</Typography>
                   <Typography>
                     Time: {new Date(segment.departure.at).toLocaleTimeString([], {
-                      hour: '2-digit',
-                      minute: '2-digit',
+                      hour: "2-digit",
+                      minute: "2-digit",
                     })}
                   </Typography>
                 </Box>
                 <Box
                   sx={{
-                    borderBottom: '2px solid #192959',
-                    margin: '0 20px',
-                    width: '40%',
+                    borderBottom: "2px solid #192959",
+                    margin: "0 20px",
+                    width: "40%",
                   }}
                 ></Box>
-                <FlightLandIcon sx={{ marginLeft: '10px', marginRight: '10px', color: '#192959' }} />
-                <Box sx={{ textAlign: 'center' }}>
+                <FlightLandIcon sx={{ marginLeft: "10px", marginRight: "10px", color: "#192959" }} />
+                <Box sx={{ textAlign: "center" }}>
                   <Typography>Arrival: {segment.arrival.iataCode}</Typography>
-                  <Typography>Terminal: {segment.arrival.terminal || 'N/A'}</Typography>
+                  <Typography>Terminal: {segment.arrival.terminal || "N/A"}</Typography>
                   <Typography>
                     Time: {new Date(segment.arrival.at).toLocaleTimeString([], {
-                      hour: '2-digit',
-                      minute: '2-digit',
+                      hour: "2-digit",
+                      minute: "2-digit",
                     })}
                   </Typography>
                 </Box>
@@ -832,99 +850,98 @@ const [errorMessage, setErrorMessage] = useState('');
           </Box>
 
           {/* Return Flight */}
-          <Box sx={{ marginBottom: '20px', width: '100%' }}>
-            <Typography
-              variant="h5"
-              sx={{
-                fontWeight: 'bold',
-                marginBottom: '10px',
-                textAlign: 'center',
-              }}
-            >
-              Return Flight
-            </Typography>
+          <Typography
+            variant="h5"
+            sx={{
+              fontWeight: "bold",
+              marginBottom: "20px",
+              textAlign: "center",
+            }}
+          >
+            Return Flight
+          </Typography>
+          <Box sx={{ marginBottom: "20px", width: "100%" }}>
             {flightGroup[1]?.segments.map((segment, segmentIndex) => (
               <Box
                 key={segmentIndex}
                 sx={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  marginBottom: '20px',
-                  width: '100%',
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  marginBottom: "20px",
+                  width: "100%",
                 }}
               >
-                <FlightTakeoffIcon sx={{ marginRight: '10px', color: '#192959' }} />
-                <Box sx={{ textAlign: 'center' }}>
+                <FlightTakeoffIcon sx={{ marginRight: "10px", color: "#192959" }} />
+                <Box sx={{ textAlign: "center" }}>
                   <Typography>Departure: {segment.departure.iataCode}</Typography>
-                  <Typography>Terminal: {segment.departure.terminal || 'N/A'}</Typography>
+                  <Typography>Terminal: {segment.departure.terminal || "N/A"}</Typography>
                   <Typography>
                     Time: {new Date(segment.departure.at).toLocaleTimeString([], {
-                      hour: '2-digit',
-                      minute: '2-digit',
+                      hour: "2-digit",
+                      minute: "2-digit",
                     })}
                   </Typography>
                 </Box>
                 <Box
                   sx={{
-                    borderBottom: '2px solid #192959',
-                    margin: '0 20px',
-                    width: '40%',
+                    borderBottom: "2px solid #192959",
+                    margin: "0 20px",
+                    width: "40%",
                   }}
                 ></Box>
-                <FlightLandIcon sx={{ marginLeft: '10px', marginRight: '10px', color: '#192959' }} />
-                <Box sx={{ textAlign: 'center' }}>
+                <FlightLandIcon sx={{ marginLeft: "10px", marginRight: "10px", color: "#192959" }} />
+                <Box sx={{ textAlign: "center" }}>
                   <Typography>Arrival: {segment.arrival.iataCode}</Typography>
-                  <Typography>Terminal: {segment.arrival.terminal || 'N/A'}</Typography>
+                  <Typography>Terminal: {segment.arrival.terminal || "N/A"}</Typography>
                   <Typography>
                     Time: {new Date(segment.arrival.at).toLocaleTimeString([], {
-                      hour: '2-digit',
-                      minute: '2-digit',
+                      hour: "2-digit",
+                      minute: "2-digit",
                     })}
                   </Typography>
                 </Box>
               </Box>
             ))}
           </Box>
-{/* Price and Book Now */}
-<Box
-  sx={{
-    display: 'flex',
-    justifyContent: 'flex-end', // Align content to the right
-    alignItems: 'center',
-    width: '100%',
-  }}
->
-  <Box sx={{ textAlign: 'center', marginRight: '10px' }}>
-    
-    <Typography
-      variant="h6"
-      sx={{
-        fontWeight: 'bold',
-        color: '#192959',
-      }}
-    >
-    {flightGroup[0].price} {flightGroup[0].currency}
-    </Typography>
-  </Box>
-  <Button
-    variant="contained"
-    sx={{
-      backgroundColor: '#192959',
-      color: '#fff',
-      '&:hover': { backgroundColor: '#33416b' },
-    }}
-    onClick={() => handleBookFlight(flightGroup[0].flightID)}
-  >
-    Book
-  </Button>
-</Box>
 
+          {/* Price and Book Button */}
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "flex-end",
+              alignItems: "center",
+              width: "100%",
+            }}
+          >
+            <Box sx={{ textAlign: "center", marginRight: "10px" }}>
+              <Typography
+                variant="h6"
+                sx={{
+                  fontWeight: "bold",
+                  color: "#192959",
+                }}
+              >
+                {flightGroup[0].price} {flightGroup[0].currency}
+              </Typography>
+            </Box>
+            <Button
+              variant="contained"
+              sx={{
+                backgroundColor: "#192959",
+                color: "#fff",
+                "&:hover": { backgroundColor: "#33416b" },
+              }}
+              onClick={() => handleBookFlight(flightGroup[0].flightID)}
+            >
+              Book
+            </Button>
+          </Box>
         </Box>
       ))}
-    </Box>
-  )}
+  </Box>
 </Box>
+
 
   
       {/* Collapsible Sidebar */}

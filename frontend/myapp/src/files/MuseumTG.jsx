@@ -25,7 +25,7 @@ import TagIcon from "@mui/icons-material/Label";
 import { useNavigate } from 'react-router-dom';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import SaveIcon from '@mui/icons-material/Save';
-
+import NotificationsIcon from '@mui/icons-material/Notifications';
 const MuseumTG = () => {
   const [museums, setMuseums] = useState([]);
   const [errorMessage, setErrorMessage] = useState("");
@@ -35,6 +35,80 @@ const MuseumTG = () => {
   const [isMuseumModalOpen, setIsMuseumModalOpen] = useState(false);
   const museumName = urlParams.get('name');
   const navigate = useNavigate();
+  const [tagName, setTagName] = useState('');
+  const [showTagForm, setShowTagForm] = useState(false);
+  const [responseMessage, setResponseMessage] = useState('');
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [newPassword, setNewPassword] = useState('');
+  const [passwordUpdateMessage, setPasswordUpdateMessage] = useState('');
+  const handleLogout = () => {
+    // Retrieve credentials from localStorage
+    const username = localStorage.getItem('username') || '';
+    const password = localStorage.getItem('password') || '';
+  
+    // Redirect to the login page with credentials autofilled
+    navigate('/login', { state: { username, password } });
+  };
+  
+  const toggleTagForm = () => {
+    setShowTagForm(!showTagForm);
+    setResponseMessage('');
+    setErrorMessage('');
+  };
+
+  const togglePasswordModal = () => {
+    setShowPasswordModal(!showPasswordModal);
+    setPasswordUpdateMessage('');
+    setErrorMessage('');
+  };
+
+  const handleTagFormSubmit = async (event) => {
+    event.preventDefault();
+
+    const formData = { NameOfHistoricalTags: tagName };
+
+    try {
+      const response = await fetch('/createHistoricalTag', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        setResponseMessage('Historical Tag added successfully!');
+        setTagName(''); // Reset the form
+      } else {
+        setErrorMessage(`Error: ${result.error}`);
+      }
+    } catch (error) {
+      setErrorMessage('An error occurred. Please try again.');
+    }
+  };
+  const handlePasswordFormSubmit = async (event) => {
+    event.preventDefault();
+
+    const username = localStorage.getItem('username');
+    const formData = { Username: username, newPassword };
+
+    try {
+      const response = await axios.put('/updateGovernorPassword', formData);
+
+      if (response.status === 200) {
+        setPasswordUpdateMessage('Password updated successfully!');
+        setNewPassword('');
+        togglePasswordModal();
+      } else {
+        setErrorMessage(`Error: ${response.data.error}`);
+      }
+    } catch (error) {
+      setErrorMessage('An error occurred while updating the password.');
+    }
+  };
+
   const [museumData, setMuseumData] = useState({
     name: '',
     description: '',
@@ -263,22 +337,81 @@ const MuseumTG = () => {
             Beyond Borders
           </Typography>
         </Box>
+        
+      
         <Box sx={styles.topMenuRight}>
-        <Box>
-            <Button
+        <Button
               sx={styles.menuButton}
               onClick={() => setIsMuseumModalOpen(true)}
             >
               Add New Museum
             </Button>
-            
-            <IconButton onClick={() => alert("Logged out!")} sx={styles.iconButton}>
-              <LogoutIcon />
-            </IconButton>
-          </Box>
+        <Button sx={styles.menuButton} onClick={toggleTagForm}>
+              Add New Historical Tag
+            </Button>
+            <Button sx={styles.menuButton} onClick={togglePasswordModal}>
+              Change Password
+            </Button>
+          <IconButton sx={styles.iconButton}>
+            <NotificationsIcon />
+          </IconButton>
+          <IconButton onClick={() => navigate('/')}sx={styles.iconButton}>
+            <LogoutIcon />
+          </IconButton>
         </Box>
       </Box>
-    
+      {/* Add Historical Tag Modal */}
+      <Modal open={showTagForm} onClose={toggleTagForm}>
+        <Box sx={styles.modalContent}>
+          <Typography variant="h6">Add New Historical Tag</Typography>
+          <form onSubmit={handleTagFormSubmit}>
+            <TextField
+              label="Tag Name"
+              value={tagName}
+              onChange={(e) => setTagName(e.target.value)}
+              fullWidth
+              required
+              sx={{ mt: 2, mb: 2 }}
+            />
+            <Button type="submit" variant="contained" sx={styles.actionButton}>
+              Add Tag
+            </Button>
+          </form>
+          {responseMessage && (
+            <Typography sx={{ color: 'green', mt: 2 }}>{responseMessage}</Typography>
+          )}
+          {errorMessage && (
+            <Typography sx={{ color: 'red', mt: 2 }}>{errorMessage}</Typography>
+          )}
+        </Box>
+      </Modal>
+  
+      {/* Change Password Modal */}
+      <Modal open={showPasswordModal} onClose={togglePasswordModal}>
+        <Box sx={styles.modalContent}>
+          <Typography variant="h6">Change Password</Typography>
+          <form onSubmit={handlePasswordFormSubmit}>
+            <TextField
+              label="New Password"
+              type="password"
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+              fullWidth
+              required
+              sx={{ mt: 2, mb: 2 }}
+            />
+            <Button type="submit" variant="contained" sx={styles.actionButton}>
+              Update Password
+            </Button>
+          </form>
+          {passwordUpdateMessage && (
+            <Typography sx={{ color: 'green', mt: 2 }}>{passwordUpdateMessage}</Typography>
+          )}
+          {errorMessage && (
+            <Typography sx={{ color: 'red', mt: 2 }}>{errorMessage}</Typography>
+          )}
+        </Box>
+      </Modal>
       {/* Collapsible Sidebar */}
       <Box
         sx={{
@@ -301,10 +434,6 @@ const MuseumTG = () => {
         >
           <HistoricalPlaceIcon sx={styles.icon} />
           {sidebarOpen && "Historical Places"}
-        </Button>
-        <Button onClick={() => navigate('/TourismGovernorDashboard')} sx={styles.sidebarButton}>
-          <DashboardIcon sx={styles.icon} />
-          {sidebarOpen && 'Back to Dashboard'}
         </Button>
       </Box>
 

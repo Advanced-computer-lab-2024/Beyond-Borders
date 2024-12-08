@@ -28,6 +28,7 @@ const OrderCounterModel = require('../Models/OrderCounter.js');
 const OrderModel = require('../Models/Orders.js');
 const UserOTPModel = require('../Models/UserOTP.js');
 const DeactivatedActivitiesModel = require('../Models/DeactivatedActivities.js');
+const PromoCodeModel = require('../Models/PromoCode.js');
 
 
 const { default: mongoose } = require('mongoose');
@@ -2849,11 +2850,11 @@ const payActivityByCard = async (req, res) => {
 
 
 const payActivityStripe = async (req, res) => {
-  const { touristUsername, activityName } = req.body;
+  const { touristUsername, activityName ,paymentMethodId} = req.body;
 
   try {
 
-    const paymentMethodId = "pm_card_visa";
+    //const paymentMethodId = "pm_card_visa";
     // Find the activity by name
     const activity = await ActivityModel.findOne({ Name: activityName });
     if (!activity) {
@@ -2871,7 +2872,7 @@ const payActivityStripe = async (req, res) => {
 
     // Process payment with Stripe
     const paymentIntent = await stripe.paymentIntents.create({
-      amount: Math.round(ticketPrice * 100), // Stripe uses the smallest currency unit (e.g., cents for USD, piastres for EGP)
+      amount: 100000, // Stripe uses the smallest currency unit (e.g., cents for USD, piastres for EGP)
       currency: 'usd', // Use EGP as the currency
       payment_method: paymentMethodId, // Payment method ID from the frontend
       confirm: true, // Automatically confirm the payment
@@ -3227,10 +3228,10 @@ const payItineraryByCard = async (req, res) => {
 };
 
 const payItineraryStripe = async (req, res) => {
-  const { touristUsername, ItineraryName } = req.body;
+  const { touristUsername, ItineraryName ,paymentMethodId} = req.body;
 
   try {
-    const paymentMethodId ="pm_card_visa";
+    //const paymentMethodId ="pm_card_visa";
     // Find the itinerary by name
     const itinerary = await ItineraryModel.findOne({ Title: ItineraryName });
     if (!itinerary) {
@@ -3565,10 +3566,10 @@ res.status(500).json({ error: error.message });
 };
 
 const payMuseumStripe = async (req, res) => {
-  const { touristUsername, museumName } = req.body;
+  const { touristUsername, museumName,paymentMethodId } = req.body;
 
   try {
-    const paymentMethodId = 'pm_card_visa'; // You can replace this with the actual PaymentMethod ID sent from the frontend
+    //const paymentMethodId = 'pm_card_visa'; // You can replace this with the actual PaymentMethod ID sent from the frontend
 
     // Find the museum by name
     const museum = await MuseumModel.findOne({ name: museumName });
@@ -3903,10 +3904,10 @@ const payHPByCard = async (req, res) => {
 };
 
 const payHPStripe = async (req, res) => {
-  const { touristUsername, HPName } = req.body;
+  const { touristUsername, HPName ,paymentMethodId} = req.body;
 
   try {
-    const paymentMethodId = 'pm_card_visa'; // Replace with actual PaymentMethod ID from the frontend
+    // paymentMethodId = 'pm_card_visa'; // Replace with actual PaymentMethod ID from the frontend
 
     // Find the historical place by name
     const hp = await HistoricalPlacesModel.findOne({ name: HPName });
@@ -4603,18 +4604,18 @@ const getItineraryDetails = async (req, res) => {
 
 
 function copyToClipboard(entityType, entityName) {
-  const baseUrl = 'http://localhost:8000';
- 
+  const baseUrl = 'http://localhost:3000';
+  const encodedQuery = encodeURIComponent(entityName);
   // Construct the URL based on the entity type and name
   let url;
   if (entityType === 'activity') {
-    url = `${baseUrl}/api/activity/details/${encodeURIComponent(entityName)}`;
+    url = `${baseUrl}/GuestActivity?search=${encodedQuery}`;
   } else if (entityType === 'historicalPlace') {
-    url = `${baseUrl}/api/historicalPlace/details/${encodeURIComponent(entityName)}`;
+    url = `${baseUrl}/GuestHP?search=${encodedQuery}`;
   } else if (entityType === 'museum') {
-    url = `${baseUrl}/api/museum/details/${encodeURIComponent(entityName)}`;
+    url = `${baseUrl}/GuestMuseum?search=${encodedQuery}`;
   } else if (entityType === 'itinerary') { // Added itinerary entity type
-    url = `${baseUrl}/api/itinerary/details/${encodeURIComponent(entityName)}`;
+    url = `${baseUrl}/GuestItinerary?search=${encodedQuery}`;
   } else {
     console.error('Invalid entity type');
     return;
@@ -6678,11 +6679,9 @@ const payOrderCash = async (req, res) => {
 
 
 const payOrderStripe = async (req, res) => {
-  const { touristUsername} = req.body;
+  const { touristUsername, paymentMethodId } = req.body; // Accept paymentMethodId from frontend
 
   try {
-
-    const paymentMethodId = "pm_card_visa";
     // Find the tourist by username
     const tourist = await TouristModel.findOne({ Username: touristUsername });
     if (!tourist) {
@@ -6721,19 +6720,19 @@ const payOrderStripe = async (req, res) => {
       }
     }
 
-    // Create a PaymentIntent with Stripe
+    // Create a PaymentIntent with Stripe using the paymentMethodId from the frontend
     const paymentIntent = await stripe.paymentIntents.create({
-      amount: Math.round(totalPrice * 100), // Amount in the smallest currency unit (e.g., piasters for EGP)
-      currency: 'usd', // Use EGP currency
-      payment_method: paymentMethodId, // Payment method ID from the frontend
-      confirm: true, // Automatically confirm the payment
+      amount: 100000, // Amount in cents
+      currency: 'usd', // Adjust as needed (e.g., 'egp')
+      payment_method: paymentMethodId,
+      confirm: true,
       automatic_payment_methods: {
         enabled: true,
         allow_redirects: 'never', // Disable redirect-based payment methods
-      },
+      }, // Automatically confirm the payment
     });
 
-    // Check if PaymentIntent was successful
+    // Check if the PaymentIntent was successful
     if (paymentIntent.status !== 'succeeded') {
       return res.status(400).json({ error: "Payment failed. Please try again." });
     }
@@ -6765,7 +6764,7 @@ const payOrderStripe = async (req, res) => {
       service: "gmail",
       auth: {
         user: "malook25062003@gmail.com",
-        pass: "sxvo feuu woie gpfn", 
+        pass: "sxvo feuu woie gpfn", // Replace with your email credentials
       },
     });
 
@@ -6780,12 +6779,12 @@ const payOrderStripe = async (req, res) => {
 
         Order Number: ${order.orderNumber}
         Order Date: ${order.orderDate.toLocaleDateString()}
-        Total Price: ${totalPrice.toFixed(2)} EGP
+        Total Price: $${totalPrice.toFixed(2)} USD
         Payment Method: Credit Card (via Stripe)
 
         Products Purchased:
         ${productsPurchased.map(
-          p => `- ${p.productName}: ${p.quantity} x ${p.price} = ${(p.quantity * p.price).toFixed(2)}`
+          p => `- ${p.productName}: ${p.quantity} x $${p.price.toFixed(2)} = $${(p.quantity * p.price).toFixed(2)}`
         ).join("\n")}
 
         Your order is now out for delivery!
@@ -7142,6 +7141,108 @@ const sendUpcomingEventNotifications = async () => {
     console.error("Error sending event reminders:", error);
   }
 };
+const sendNotificationWithPromoCode = async (req, res) => {
+  const today = new Date();
+  const todayStart = new Date(today.setHours(0, 0, 0, 0)); // Normalize to midnight
+  const todayDate = todayStart.getDate();
+  const todayMonth = todayStart.getMonth();
+
+  try {
+    const tourists = await TouristModel.find(); // Fetch all tourists
+
+    let promoCodeSent = false; // Track if any promo code was sent
+
+    for (const tourist of tourists) {
+      // Normalize the tourist's birthDate by setting it to midnight and removing time part
+      const birthDate = new Date(tourist.DoB);
+      birthDate.setHours(0, 0, 0, 0); // Remove the time part for a valid comparison
+
+      const birthDateDay = birthDate.getDate();
+      const birthDateMonth = birthDate.getMonth();
+
+      console.log(`Checking birthday for ${tourist.Username}: Birthdate = ${birthDate}`);
+
+      // Check if it's the tourist's birthday today (day and month comparison)
+      const isBirthdayToday = birthDateDay === todayDate && birthDateMonth === todayMonth;
+
+      if (isBirthdayToday) {
+        // Fetch an unused promo code that is active
+        const promoCode = await PromoCodeModel.findOneAndUpdate(
+          {
+            //used: false,
+            isActive: true,
+          },
+           // Mark the promo code as used
+          { new: true } // Return the updated promo code
+        );
+
+        if (!promoCode) {
+          console.log("No unused promo codes available for tourists.");
+          continue; // Skip this tourist if no promo code is available
+        }
+
+        // Send email notification to the tourist with the promo code
+        const transporter = nodemailer.createTransport({
+          service: "gmail",
+          auth: {
+            user: "malook25062003@gmail.com",
+            pass: "sxvo feuu woie gpfn", // Replace with correct password or use env variables
+          },
+        });
+
+        const mailOptions = {
+          from: "malook25062003@gmail.com",
+          to: tourist.Email,
+          subject: "🎉 Happy Birthday! Here’s a Special Gift for You 🎁",
+          text: `
+            Dear ${tourist.Username},
+
+            Happy Birthday from all of us at Beyond Borders! 🎉
+
+            To make your day extra special, we’ve prepared a unique promo code just for you:
+            ${promoCode.code}
+
+            Use this promo code during your next booking to enjoy a ${promoCode.discountPercentage}% discount.
+
+            Have an amazing birthday celebration!
+
+            Warm regards,
+            The Beyond Borders Team
+          `,
+        };
+
+        try {
+          // Send the email with the promo code
+          await transporter.sendMail(mailOptions);
+          console.log(`Birthday promo code sent to ${tourist.Email}`);
+
+          // Add the promo code to the tourist's notifications array
+          tourist.Notifications.push({
+            NotificationText: `Happy Birthday! You’ve received a special promo code: ${promoCode.code}`,
+            Read: false,
+          });
+
+          // Save the updated tourist document with the new notification
+          await tourist.save();
+          console.log(`Promo code notification added for ${tourist.Username}`);
+        } catch (emailError) {
+          console.error(`Failed to send birthday email to ${tourist.Email}:`, emailError);
+
+          // Rollback: Mark the promo code as unused if email fails
+          promoCode.used = false;
+          await promoCode.save();
+        }
+      }
+    }
+  } catch (error) {
+    console.error("Error sending birthday promo codes:", error);
+    res.status(500).json({ error: "An error occurred while sending birthday promo codes." });
+  }
+};
+
+
+
+
 
 
 
@@ -7623,4 +7724,4 @@ const viewBookedFlights = async (req, res) => {
 module.exports = {createTourist, getTourist, updateTourist, searchProductTourist, filterActivities, filterProductByPriceTourist, ActivityRating, sortProductsDescendingTourist, sortProductsAscendingTourist, ViewAllUpcomingActivities, ViewAllUpcomingMuseumEventsTourist, getMuseumsByTagTourist, getHistoricalPlacesByTagTourist, ViewAllUpcomingHistoricalPlacesEventsTourist,viewProductsTourist, sortActivitiesPriceAscendingTourist, sortActivitiesPriceDescendingTourist, sortActivitiesRatingAscendingTourist, sortActivitiesRatingDescendingTourist, loginTourist, ViewAllUpcomingItinerariesTourist, sortItinerariesPriceAscendingTourist, sortItinerariesPriceDescendingTourist, filterItinerariesTourist, ActivitiesSearchAll, ItinerarySearchAll, MuseumSearchAll, HistoricalPlacesSearchAll, ProductRating, createComplaint, getComplaintsByTouristUsername,ChooseActivitiesByCategoryTourist,bookActivity,bookItinerary,bookMuseum,bookHistoricalPlace, ratePurchasedProduct, addPurchasedProducts, reviewPurchasedProduct, addCompletedItinerary, rateTourGuide, commentOnTourGuide, rateCompletedItinerary, commentOnItinerary, addCompletedActivities, addCompletedMuseumEvents, addCompletedHPEvents, rateCompletedActivity, rateCompletedMuseum, rateCompletedHP, commentOnActivity, commentOnMuseum, commentOnHP,deleteBookedActivity,deleteBookedItinerary,deleteBookedMuseum,deleteBookedHP,payActivity,updateWallet,updatepoints,payItinerary,payMuseum,payHP,redeemPoints, convertEgp, fetchFlights,viewBookedItineraries, requestDeleteAccountTourist,convertCurr,getActivityDetails,getHistoricalPlaceDetails,getMuseumDetails,GetCopyLink, bookFlight
   ,fetchHotelsByCity, fetchHotels, bookHotel,bookTransportation,addPreferences, viewMyCompletedActivities, viewMyCompletedItineraries, viewMyCompletedMuseums, viewMyCompletedHistoricalPlaces,viewMyBookedActivities,viewMyBookedItineraries,viewMyBookedMuseums,viewMyBookedHistoricalPlaces,viewTourGuidesCompleted,viewAllTransportation, getItineraryDetails, viewPreferenceTags,viewPurchasedProducts,viewBookedActivities,viewMyBookedTransportation,addBookmark
 , payActivityByCard, payItineraryByCard, payMuseumByCard, payHPByCard, sendOtp, loginTouristOTP,viewBookmarks, addToWishList, viewMyWishlist, removeFromWishlist, addToCartFromWishlist, addToCart, removeFromCart, changeProductQuantityInCart, checkout, addDeliveryAddress, viewDeliveryAddresses,chooseDeliveryAddress,payOrderWallet,payOrderCash,viewOrderDetails,cancelOrder,cancelOrder,markOrdersAsDelivered,viewAllOrders,sendUpcomingEventNotifications,payOrderStripe
-,payItineraryStripe,payActivityStripe,payMuseumStripe,payHPStripe, fetchCityCode, checkIfInWishlist, getTourGuideComments,addNotificationSubscriberHP,addNotificationSubscriberMuseum,addNotificationSubscriberActivity,addNotificationSubscriberItinerary,allNotificationsTouristRead,areAllTouristNotificationsRead,getTouristNotifications, getTouristCartDetails,checkTouristSubscription, checkIfInBookmarkedEvents, removeFromBookmarkedEvents, viewBookedHotels, viewBookedFlights};
+,payItineraryStripe,payActivityStripe,payMuseumStripe,payHPStripe, fetchCityCode, checkIfInWishlist, getTourGuideComments,addNotificationSubscriberHP,addNotificationSubscriberMuseum,addNotificationSubscriberActivity,addNotificationSubscriberItinerary,allNotificationsTouristRead,areAllTouristNotificationsRead,getTouristNotifications, getTouristCartDetails,checkTouristSubscription, checkIfInBookmarkedEvents, removeFromBookmarkedEvents, viewBookedHotels, viewBookedFlights,sendNotificationWithPromoCode};

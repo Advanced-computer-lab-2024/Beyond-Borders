@@ -54,6 +54,8 @@ import AddShoppingCartIcon from '@mui/icons-material/AddShoppingCart'; // For th
 import BookmarkIcon from '@mui/icons-material/Bookmark';
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
+import { useLocation } from "react-router-dom";
+
 import axios from 'axios';
 
 function TouristAllProducts() {
@@ -74,7 +76,7 @@ function TouristAllProducts() {
   const [productsOpen, setProductsOpen] = useState(false);
   const [complaintsOpen, setComplaintsOpen] = useState(false);
   //search bar
-  const [searchQuery, setSearchQuery] = useState(''); // Search query state
+  //const [searchQuery, setSearchQuery] = useState(''); // Search query state
   //filter activities
   const [filterModalOpen, setFilterModalOpen] = useState(false);
   const [filterInputs, setFilterInputs] = useState({
@@ -106,6 +108,11 @@ const [isLoadingCart, setIsLoadingCart] = useState(false);
 const [wishlistData, setWishlistData] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isWishlistOpen, setIsWishlistOpen] = useState(false);
+  const location = useLocation();
+
+  const queryParams = new URLSearchParams(location.search);
+const initialSearchQuery = queryParams.get('search') || ''; 
+const [searchQuery, setSearchQuery] = useState(initialSearchQuery);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -141,7 +148,12 @@ const [wishlistData, setWishlistData] = useState([]);
     return () => window.removeEventListener('scroll', handleScroll);
   }, [searchQuery]); // Depend on `searchQuery` to refetch activities when it changes
 
-
+  useEffect(() => {
+    // Trigger search logic if the search query exists
+    if (initialSearchQuery) {
+      searchProducts(initialSearchQuery);
+    }
+  }, [initialSearchQuery]); 
   useEffect(() => {
     if (currency !== 'EGP') {
       convertActivityPrices();
