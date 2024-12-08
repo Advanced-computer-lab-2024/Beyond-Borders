@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Button, Typography, IconButton,Tooltip, TextField, InputAdornment, Modal,MenuItem,Select,FormControl,InputLabel,} from '@mui/material';
+import { Box, Button,Drawer,Avatar, Typography, IconButton,Tooltip, TextField, InputAdornment,CircularProgress, Modal,MenuItem,Select,FormControl,InputLabel,} from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import MenuIcon from '@mui/icons-material/Menu';
 import NotificationsIcon from '@mui/icons-material/Notifications';
@@ -15,6 +15,7 @@ import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import StarIcon from '@mui/icons-material/Star';
+import ShoppingBagIcon from '@mui/icons-material/ShoppingBag';
 import StarBorderIcon from '@mui/icons-material/StarBorder';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
@@ -48,6 +49,11 @@ import LanguageIcon from '@mui/icons-material/Language';
 import AddShoppingCartIcon from '@mui/icons-material/AddShoppingCart'; // For the shopping cart icon
 import BookmarkIcon from '@mui/icons-material/Bookmark';
 import StarHalfIcon from '@mui/icons-material/StarHalf';
+import CloseIcon from '@mui/icons-material/Clear';
+import DeleteIcon from '@mui/icons-material/Delete';
+import RemoveIcon from '@mui/icons-material/Remove';
+import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
+import ShoppingCartCheckoutIcon from '@mui/icons-material/ShoppingCartCheckout';
 
 import axios from 'axios';
 
@@ -68,6 +74,7 @@ function TouristPurchasedProducts() {
   const [transportationOpen, setTransportationOpen] = useState(false);
   const [productsOpen, setProductsOpen] = useState(false);
   const [complaintsOpen, setComplaintsOpen] = useState(false);
+  const [isLoadingCart, setIsLoadingCart] = useState(false);
   //search bar
   const [searchQuery, setSearchQuery] = useState(''); // Search query state
   //filter activities
@@ -93,11 +100,18 @@ const [currency, setCurrency] = useState('EGP'); // Default currency is EGP
 const [expanded, setExpanded] = React.useState({});
 const [wishlistStatus, setWishlistStatus] = useState({});
 const [wishlist, setWishlist] = useState([]); 
-
+const [cartData, setCartData] = useState([]);
+const [isCartSidebarOpen, setIsCartSidebarOpen] = useState(false);
+const [isLoading, setIsLoading] = useState(false);
+const [isWishlistOpen, setIsWishlistOpen] = useState(false);
+const [wishlistData, setWishlistData] = useState([]);
 const [commentModalOpen, setCommentModalOpen] = useState(false);
 const [currentActivityId, setCurrentActivityId] = useState(null);
 const [commentText, setCommentText] = useState('');
 const [showAverageRating, setShowAverageRating] = useState({}); // Track which activity shows average rating
+const [loading, setLoading] = useState(true);
+const [flightsOpen, setFlightsOpen] = useState(false); // Manage the dropdown state for Flights
+const [hotelsOpen, setHotelsOpen] = useState(false); // Manage the dropdown state for Hotels
 
   const navigate = useNavigate();
 
@@ -199,6 +213,38 @@ const [showAverageRating, setShowAverageRating] = useState({}); // Track which a
       throw error;
     }
   };
+
+
+  const updateProductQuantity = async (productName, newQuantity) => {
+    if (newQuantity <= 0) {
+      alert("Quantity must be greater than zero.");
+      return;
+    }
+  
+    try {
+      const touristUsername = localStorage.getItem("username"); // Assuming tourist's username is stored in localStorage
+      const response = await axios.post("/changeProductQuantityInCart", {
+        touristUsername,
+        productName,
+        amount: newQuantity,
+      });
+  
+      // Update the cart data with the new response
+      setCartData((prevCartData) => 
+        prevCartData.map((item) =>
+          item.productDetails.Name === productName
+            ? { ...item, quantity: newQuantity }
+            : item
+        )
+      );
+    } catch (error) {
+      console.error("Error updating product quantity:", error);
+      alert("Failed to update product quantity.");
+    }
+  };
+
+
+  
   
   const handleToggleWishlist = async (productName, productId) => {
     const isInWishlist = wishlist[productId];
@@ -245,6 +291,7 @@ const [showAverageRating, setShowAverageRating] = useState({}); // Track which a
 
 
 const fetchProducts = async () => {
+  setLoading(true); // Set loading to true before starting the fetch
     try {
       const username = localStorage.getItem('username'); // Retrieve the logged-in username
   
@@ -262,6 +309,54 @@ const fetchProducts = async () => {
       setProducts(purchasedProducts); // Set the products state with the fetched data
     } catch (error) {
       console.error('Error fetching purchased products:', error);
+    }
+    finally {
+      setLoading(false); // Set loading to false after the fetch
+    }
+  };
+
+
+  const fetchCartData = async () => {
+    const username = localStorage.getItem('username');
+    if (!username) {
+      alert('You need to log in first.');
+      return;
+    }
+  
+    try {
+      setIsLoadingCart(true);
+      const response = await axios.get('/api/getTouristCartDetails', {
+        params: { username },
+      });
+      setCartData(response.data);
+      setIsLoadingCart(false);
+    } catch (error) {
+      console.error('Error fetching cart data:', error);
+      alert('Failed to load cart data.');
+      setIsLoadingCart(false);
+    }
+  };
+
+  const toggleCartSidebar = () => {
+    setIsCartSidebarOpen(!isCartSidebarOpen);
+    if (!isCartSidebarOpen) {
+      fetchCartData();
+    }
+  };
+  
+  const removeProductFromCart = async (productName) => {
+    try {
+      const touristUsername = localStorage.getItem("username");
+      await axios.post("/removeFromCart", {
+        touristUsername,
+        productName,
+      });
+  
+      // Re-fetch the updated cart data
+      fetchCartData();
+    } catch (error) {
+      console.error("Error removing product from cart:", error);
+      alert("Failed to remove product from cart.");
     }
   };
   
@@ -528,6 +623,107 @@ const fetchProducts = async () => {
       alert(error.response?.data?.msg || 'Failed to submit rating.');
     }
   };
+
+  const fetchWishlist = async () => {
+    const touristUsername = localStorage.getItem("username"); // Replace with your username logic
+    setIsLoading(true);
+    try {
+      const response = await axios.get("/api/viewMyWishlist", {
+        params: { touristUsername },
+      });
+  
+      if (response.status === 200 && response.data.WishList) {
+        setWishlistData(response.data.WishList);
+      } else {
+        setWishlistData([]); // Clear the wishlist if the response is not valid
+        console.warn("Unexpected response format:", response);
+      }
+    } catch (error) {
+      console.error("Error fetching wishlist:", error);
+      setWishlistData([]); // Clear wishlist on error
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleRemoveFromWishlist = async (productName) => {
+    const touristUsername = localStorage.getItem("username"); // Assuming the username is stored in localStorage
+    if (!touristUsername) {
+      alert("You need to log in first.");
+      return;
+    }
+  
+    try {
+      // Call the backend to remove the item
+      const response = await axios.post("/removeFromWishlist", {
+        touristUsername,
+        productName,
+      });
+  
+      if (response.status === 200) {
+        // Fetch the updated wishlist after successful removal
+        fetchWishlist();
+      } else {
+        alert("Failed to remove the product from wishlist.");
+      }
+    } catch (error) {
+      console.error("Error removing product from wishlist:", error);
+      alert("Failed to remove product from wishlist.");
+    }
+  };
+
+  // Trigger fetching the wishlist data when the drawer opens
+  const handleDrawerOpen = () => {
+    if (!isWishlistOpen) return;
+    fetchWishlist();
+  }
+
+
+
+  
+  const toggleWishlistDrawer = () => {
+    setIsWishlistOpen(!isWishlistOpen);
+    if (!isWishlistOpen) {
+      fetchWishlist(); // Fetch wishlist data when opening the drawer
+    }
+  };
+
+
+  
+
+
+  const handleAddToCartFromWishlist = async (productName) => {
+    const touristUsername = localStorage.getItem("username");
+    try {
+      // Send request to add the product to the cart and remove from wishlist
+      const response = await fetch("/addToCartFromWishlist", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          touristUsername, // Replace with the actual logged-in user's username
+          productName: productName,
+        }),
+      });
+  
+      const data = await response.json();
+  
+      if (response.ok) {
+        // Fetch the updated wishlist data after adding the product to the cart
+        fetchWishlist();
+  
+        // Optionally, you can fetch the cart data too
+        // fetchCartData();
+  
+        console.log(data.msg);
+      } else {
+        console.error(data.error || "Failed to add product to cart.");
+      }
+    } catch (error) {
+      console.error("Error adding product to cart:", error);
+    }
+  };
   
   const renderAverageRating = (averageRating) => {
     const fullStars = Math.floor(averageRating);
@@ -691,69 +887,452 @@ const fetchProducts = async () => {
 </Box>
         </Box>
         <Box sx={styles.topMenuRight}>
-        <Button
-         sx={{
-         ...styles.menuButton,
-         '&:hover': {
-         backgroundColor: '#e6e7ed', // Background color on hover
-            color: '#192959',           // Text color on hover
-        },
-        }}
-        startIcon={<AccountCircleIcon />}
-        >
-        My Profile
-        </Button>
-        <Tooltip title="Notifications" arrow>
-        <IconButton
-            sx={{
-            ...styles.menuButton,
-            
-            '&:hover': {
-                backgroundColor: '#e6e7ed', // Lighter hover background
-            color: '#192959',           // Text color on hover
-
-            },
-            width: '40px', // Ensure square icon button
-            height: '40px',
-            }}
-        >
-            <NotificationsNoneOutlinedIcon />
-        </IconButton>
-        </Tooltip>
+        
+        
         <Tooltip title="Shopping Cart" arrow>
+  {/* Shopping Cart Button */}
   <IconButton
+        onClick={toggleCartSidebar}
+        sx={{
+          ...styles.menuButton,
+          '&:hover': {
+            backgroundColor: '#e6e7ed',
+            color: '#192959',
+          },
+          width: '40px',
+          height: '40px',
+        }}
+      >
+        <ShoppingCartOutlinedIcon />
+      </IconButton>
+</Tooltip>
+{/* Cart Sidebar */}
+<Drawer
+  anchor="right"
+  open={isCartSidebarOpen}
+  onClose={toggleCartSidebar}
+  sx={{ zIndex: 1300 }}
+>
+  <Box
+    sx={{
+      width: 400,
+      p: 3,
+      backgroundColor: "#f9f9f9",
+      height: "100%",
+      display: "flex",
+      flexDirection: "column",
+      justifyContent: "space-between",
+    }}
+  >
+    {/* Header */}
+    <Box>
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          mb: 3,
+        }}
+      >
+        <Typography
+          variant="h6"
+          sx={{ color: "#192959", fontWeight: "bold" }}
+        >
+          My Cart
+        </Typography>
+        <IconButton onClick={toggleCartSidebar}>
+          <CloseIcon />
+        </IconButton>
+      </Box>
+
+      {/* Cart Items */}
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          gap: 2,
+          maxHeight: "calc(100vh - 170px)", // Adjust height to reduce gap
+          overflowY: "auto", // Enable scrolling for long lists
+        }}
+      >
+        {isLoadingCart ? (
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              height: "100%",
+            }}
+          >
+            <CircularProgress />
+          </Box>
+        ) : cartData.length > 0 ? (
+          cartData.map((item, index) => (
+            <Box
+              key={index}
+              sx={{
+                display: "flex",
+                gap: 2,
+                p: 2,
+                backgroundColor: "#ffffff",
+                borderRadius: 2,
+                boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
+                position: "relative",
+                alignItems: "center",
+              }}
+            >
+              {/* Remove Icon */}
+              <Tooltip title="Remove Product" arrow>
+                <IconButton
+                  onClick={() => removeProductFromCart(item.productDetails.Name)}
+                  sx={{
+                    color: "#192959", // Dark grey color
+                    position: "absolute",
+                    top: 8,
+                    right: 8,
+                    transition: "background-color 0.3s",
+                    "&:hover": {
+                      backgroundColor: "rgba(85, 85, 85, 0.1)", // Background on hover
+                    },
+                  }}
+                >
+                  <DeleteIcon />
+                </IconButton>
+              </Tooltip>
+
+              {/* Product Image */}
+              <Avatar
+                variant="square"
+                src={item.productDetails?.Picture || "/placeholder.jpg"}
+                alt={item.productDetails?.Name || "Product"}
+                sx={{
+                  width: 80,
+                  height: 80,
+                  borderRadius: 2,
+                  flexShrink: 0,
+                }}
+              />
+
+              {/* Product Details */}
+              <Box sx={{ flex: 1, position: "relative" }}>
+                <Typography
+                  variant="subtitle1"
+                  sx={{
+                    fontWeight: "bold",
+                    color: "#333",
+                    mb: 0.5,
+                    whiteSpace: "nowrap",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                  }}
+                >
+                  {item.productDetails?.Name}
+                </Typography>
+                <Typography
+                  variant="body2"
+                  color="textSecondary"
+                  sx={{ mb: 1 }}
+                >
+                  EGP {item.productDetails?.Price?.toFixed(2)}
+                </Typography>
+
+                {/* Quantity Controls */}
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 1,
+                  }}
+                >
+                  <IconButton
+                    onClick={() =>
+                      updateProductQuantity(
+                        item.productDetails?.Name,
+                        item.quantity - 1
+                      )
+                    }
+                    size="small"
+                    sx={{
+                      width: 24,
+                      height: 24,
+                      backgroundColor: "#e0e0e0",
+                      "&:hover": {
+                        backgroundColor: "#d0d0d0",
+                      },
+                    }}
+                  >
+                    <RemoveIcon fontSize="small" />
+                  </IconButton>
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      fontWeight: "bold",
+                      color: "#333",
+                      paddingX: 1,
+                      fontSize: "14px",
+                    }}
+                  >
+                    {item.quantity}
+                  </Typography>
+                  <IconButton
+                    onClick={() =>
+                      updateProductQuantity(
+                        item.productDetails?.Name,
+                        item.quantity + 1
+                      )
+                    }
+                    size="small"
+                    sx={{
+                      width: 24,
+                      height: 24,
+                      backgroundColor: "#e0e0e0",
+                      "&:hover": {
+                        backgroundColor: "#d0d0d0",
+                      },
+                    }}
+                  >
+                    <AddIcon fontSize="small" />
+                  </IconButton>
+                </Box>
+
+                {/* Total Price */}
+                <Typography
+                  variant="body2"
+                  sx={{
+                    fontWeight: "bold",
+                    color: "#192959",
+                    position: "absolute",
+                    bottom: 8,
+                    right: 8,
+                  }}
+                >
+                  Total: EGP{" "}
+                  {(item.productDetails?.Price * item.quantity || 0).toFixed(2)}
+                </Typography>
+              </Box>
+            </Box>
+          ))
+        ) : (
+          <Typography
+            variant="body2"
+            sx={{ textAlign: "center", color: "#555" }}
+          >
+            Your cart is empty.
+          </Typography>
+        )}
+      </Box>
+    </Box>
+
+    {/* Footer */}
+    <Box sx={{ mt: 1 }}>
+      <Typography
+        variant="h6"
+        sx={{
+          textAlign: "right",
+          color: "#192959",
+          fontWeight: "bold",
+          mb: 2,
+        }}
+      >
+        Total: EGP{" "}
+        {cartData
+          .reduce(
+            (total, item) =>
+              total + item.productDetails?.Price * item.quantity,
+            0
+          )
+          .toFixed(2)}
+      </Typography>
+      <Button
+        variant="contained"
+        fullWidth
+        sx={{
+          backgroundColor: "#192959",
+          color: "white",
+          fontWeight: "bold",
+          "&:hover": {
+            backgroundColor: "#3a4a90",
+          },
+        }}
+        onClick={() => navigate("/TouristProductPaymentPage")}
+      >
+        Checkout
+      </Button>
+    </Box>
+  </Box>
+</Drawer>
+
+<Tooltip title="Wishlist" arrow>
+  <IconButton
+    onClick={toggleWishlistDrawer}
     sx={{
       ...styles.menuButton,
-      
       '&:hover': {
-        backgroundColor: '#e6e7ed', // Lighter hover background
-      color: '#192959',           // Text color on hover
-
+        backgroundColor: '#e6e7ed',
+        color: '#192959',
       },
-      width: '40px', // Ensure square icon button
+      width: '40px',
       height: '40px',
     }}
   >
-    <ShoppingCartOutlinedIcon />
+    <FavoriteBorderIcon />
   </IconButton>
 </Tooltip>
-<Tooltip title="Wishlist" arrow>
-            <IconButton
-                sx={{
-                ...styles.menuButton,
-                
-                '&:hover': {
-                    backgroundColor: '#e6e7ed', // Lighter hover background
-                color: '#192959',           // Text color on hover
 
-                },
-                width: '40px', // Ensure square icon button
-                height: '40px',
+<Drawer
+  anchor="right"
+  open={isWishlistOpen}
+  onClose={toggleWishlistDrawer}
+  sx={{ zIndex: 1300 }}
+>
+  <Box
+    sx={{
+      width: 400,
+      p: 3,
+      backgroundColor: "#f9f9f9",
+      height: "100%",
+      display: "flex",
+      flexDirection: "column",
+    }}
+  >
+    {/* Header */}
+    <Box
+      sx={{
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center",
+        mb: 2,
+      }}
+    >
+      <Typography
+        variant="h6"
+        sx={{ color: "#192959", fontWeight: "bold" }}
+      >
+        My Wishlist
+      </Typography>
+      <IconButton onClick={toggleWishlistDrawer}>
+        <CloseIcon />
+      </IconButton>
+    </Box>
+
+    {/* Wishlist Items */}
+    <Box
+      sx={{
+        display: "flex",
+        flexDirection: "column",
+        gap: 2,
+        flexGrow: 1,
+        overflowY: "auto",
+      }}
+    >
+      {isLoading ? (
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            height: "100%",
+          }}
+        >
+          <CircularProgress />
+        </Box>
+      ) : wishlistData.length > 0 ? (
+        wishlistData.map((item, index) => (
+          <Box
+            key={index}
+            sx={{
+              display: "flex",
+              gap: 2,
+              p: 2,
+              backgroundColor: "#ffffff",
+              borderRadius: 2,
+              boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
+              alignItems: "center",
+              position: "relative",
+            }}
+          >
+            {/* Product Image */}
+            <Avatar
+              variant="square"
+              src={item.Picture || "/placeholder.jpg"}
+              alt={item.Name || "Product"}
+              sx={{
+                width: 80,
+                height: 80,
+                borderRadius: 2,
+                flexShrink: 0,
+              }}
+            />
+
+            {/* Product Details */}
+            <Box sx={{ flex: 1 }}>
+              <Typography
+                variant="subtitle1"
+                sx={{
+                  fontWeight: "bold",
+                  color: "#333",
+                  mb: 0.5,
+                  whiteSpace: "nowrap",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
                 }}
-            >
-    <BookmarkBorderOutlinedIcon/>
-  </IconButton>
-</Tooltip>
+              >
+                {item.Name}
+              </Typography>
+              <Typography
+                variant="body2"
+                color="textSecondary"
+                sx={{ mb: 1 }}
+              >
+                EGP {item.Price?.toFixed(2)}
+              </Typography>
+            </Box>
+
+            {/* Icons: Add to Cart and Remove */}
+            <Box sx={{ display: "flex", gap: 1 }}>
+              <Tooltip title="Move to Cart" arrow>
+                <IconButton
+                  sx={{
+                    color: "#192959",
+                    transition: "background-color 0.3s",
+                    "&:hover": {
+                      backgroundColor: "rgba(76, 175, 80, 0.1)",
+                    },
+                  }}
+                  onClick={() => handleAddToCartFromWishlist(item.Name)}
+                >
+                  <ShoppingCartCheckoutIcon />
+                </IconButton>
+              </Tooltip>
+
+              <Tooltip title="Remove from Wishlist" arrow>
+                <IconButton
+                  sx={{
+                    color: "#192959",
+                    transition: "background-color 0.3s",
+                    "&:hover": {
+                      backgroundColor: "rgba(85, 85, 85, 0.1)",
+                    },
+                  }}
+                  onClick={() => handleRemoveFromWishlist(item.Name)}
+                >
+                  <DeleteIcon />
+                </IconButton>
+              </Tooltip>
+            </Box>
+          </Box>
+        ))
+      ) : (
+        <Typography
+          variant="body2"
+          sx={{ textAlign: "center", color: "#555" }}
+        >
+          Your wishlist is empty.
+        </Typography>
+      )}
+    </Box>
+  </Box>
+</Drawer>
 <Tooltip title="Logout" arrow>
             <IconButton
                 sx={{
@@ -767,6 +1346,7 @@ const fetchProducts = async () => {
                 width: '40px', // Ensure square icon button
                 height: '40px',
                 }}
+                onClick={() => navigate('/')}
             >
     <LogoutIcon />
   </IconButton>
@@ -774,8 +1354,8 @@ const fetchProducts = async () => {
         </Box>
       </Box>
 
-      {/* Collapsible Sidebar */}
-      <Box
+       {/* Collapsible Sidebar */}
+   <Box
         sx={{
           ...styles.sidebar,
           width: sidebarOpen ? '280px' : '60px',
@@ -783,14 +1363,128 @@ const fetchProducts = async () => {
         onMouseEnter={() => setSidebarOpen(true)}
         onMouseLeave={() => setSidebarOpen(false)}
       >
-        <Button onClick={() => navigate('/TouristFlights')} sx={styles.sidebarButton}>
-          <FlightIcon sx={styles.icon} />
-          {sidebarOpen && 'Flights'}
-        </Button>
-        <Button onClick={() => navigate('/TouristHotels')} sx={styles.sidebarButton}>
-          <BedIcon sx={styles.icon} />
-          {sidebarOpen && 'Hotels'}
-        </Button>
+        <Box>
+  {/* Flights Button */}
+  <Button
+    onClick={() => setFlightsOpen(!flightsOpen)} // Toggle dropdown for flights
+    sx={styles.sidebarButton}
+  >
+    <FlightIcon sx={styles.icon} /> {/* Flights Icon */}
+    {sidebarOpen && (
+      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+        Flights
+        {flightsOpen ? (
+          <KeyboardArrowUpIcon sx={{ fontSize: '18px', marginLeft: '5px' }} />
+        ) : (
+          <KeyboardArrowDownIcon sx={{ fontSize: '18px', marginLeft: '5px' }} />
+        )}
+      </Box>
+    )}
+  </Button>
+  
+  {/* Dropdown Menu */}
+  {flightsOpen && (
+    <Box sx={{ display: 'flex', flexDirection: 'column', marginLeft: sidebarOpen ? '20px' : '0px' }}>
+     
+      {/* Find Flights */}
+      <Button
+        onClick={() => navigate('/TouristFlights')}
+        sx={{
+          ...styles.sidebarButton,
+          fontSize: '14px',
+          paddingLeft: sidebarOpen ? '20px' : '10px',
+          padding: '5px 20px',
+        }}
+      >
+        <SearchIcon sx={{ fontSize: '18px', marginRight: '10px' }} /> {/* Icon for Find Flights */}
+        {sidebarOpen && 'Find Flights'}
+      </Button>
+       {/* Booked Flights */}
+       <Button
+        onClick={() => navigate('/TouristBookedFlights')}
+        sx={{
+          ...styles.sidebarButton,
+          fontSize: '14px',
+          paddingLeft: sidebarOpen ? '20px' : '10px',
+          padding: '5px 20px',
+        }}
+      >
+        <EventAvailableIcon sx={{ fontSize: '18px', marginRight: '10px' }} /> {/* Icon for Booked */}
+        {sidebarOpen && 'Booked'}
+      </Button>
+      
+    </Box>
+    
+  )}
+</Box>
+
+
+<Box>
+  {/* Hotels Dropdown */}
+  <Button
+    onClick={() => setHotelsOpen(!hotelsOpen)}
+    sx={styles.sidebarButton}
+  >
+    <BedIcon sx={styles.icon} />
+    {sidebarOpen && (
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          width: "100%",
+        }}
+      >
+        Hotels
+        {hotelsOpen ? (
+          <KeyboardArrowUpIcon sx={{ fontSize: "18px", marginLeft: "5px" }} />
+        ) : (
+          <KeyboardArrowDownIcon sx={{ fontSize: "18px", marginLeft: "5px" }} />
+        )}
+      </Box>
+    )}
+  </Button>
+  {hotelsOpen && (
+    <Box
+      sx={{
+        display: "flex",
+        flexDirection: "column",
+        marginLeft: sidebarOpen ? "20px" : "0px",
+      }}
+    >
+     
+      <Button
+        onClick={() => navigate("/TouristHotels")}
+        sx={{
+          ...styles.sidebarButton,
+          fontSize: "14px",
+          paddingLeft: sidebarOpen ? "20px" : "10px",
+          padding: "5px 20px",
+        }}
+      >
+        <SearchIcon sx={{ fontSize: "18px", marginRight: "10px" }} />
+        {sidebarOpen && "Find Hotels"}
+      </Button>
+      <Button
+        onClick={() => navigate("/TouristBookedHotels")}
+        sx={{
+          ...styles.sidebarButton,
+          fontSize: "14px",
+          paddingLeft: sidebarOpen ? "20px" : "10px",
+          padding: "5px 20px",
+        }}
+      >
+        <EventAvailableIcon sx={{ fontSize: "18px", marginRight: "10px" }} />
+        {sidebarOpen && "Reservations"}
+      </Button>
+    </Box>
+  )}
+</Box>
+
+
+      
+
+       
         <Box>
   <Button
     onClick={() => setProductsOpen(!productsOpen)} // Toggle dropdown for products
@@ -840,24 +1534,52 @@ const fetchProducts = async () => {
     </Box>
   )}
 </Box>
-        {/* Activities Dropdown */}
+
+         {/* Activities Dropdown */}
         <Box>
         <Button
-            onClick={() => setActivitiesOpen(!activitiesOpen)}
-            sx={styles.sidebarButton}
-        >
-            <LocalActivityIcon sx={styles.icon} />
-            {sidebarOpen && (
-            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
-                Activities
-                {activitiesOpen ? (
-                <KeyboardArrowUpIcon sx={{ fontSize: '18px', marginLeft: '5px' }} />
-                ) : (
-                <KeyboardArrowDownIcon sx={{ fontSize: '18px', marginLeft: '5px' }} />
-                )}
-            </Box>
-            )}
-        </Button>
+  onClick={async () => {
+    try {
+      // First, toggle the activities open/close state
+      setActivitiesOpen(!activitiesOpen);
+
+      // Get the username from localStorage
+      const username = localStorage.getItem('username');
+
+      if (!username) {
+        alert('User not logged in.');
+        return;
+      }
+
+      // Call the `addCompletedActivities` function via an API request
+      const response = await axios.put('/addCompletedActivities', { touristUsername: username });
+
+      if (response.status === 200) {
+        // Handle success, maybe show a success message or update local state
+        //alert('Completed activities updated successfully!');
+      } else {
+        //alert('Failed to update completed activities.');
+      }
+    } catch (error) {
+      console.error('Error updating completed activities:', error);
+      alert('An error occurred while updating completed activities.');
+    }
+  }}
+  sx={styles.sidebarButton}
+>
+  <LocalActivityIcon sx={styles.icon} />
+  {sidebarOpen && (
+    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+      Activities
+      {activitiesOpen ? (
+        <KeyboardArrowUpIcon sx={{ fontSize: '18px', marginLeft: '5px' }} />
+      ) : (
+        <KeyboardArrowDownIcon sx={{ fontSize: '18px', marginLeft: '5px' }} />
+      )}
+    </Box>
+  )}
+</Button>
+
         {activitiesOpen && (
             <Box sx={{ display: 'flex', flexDirection: 'column', marginLeft: sidebarOpen ? '20px' : '0px' }}>
             <Button
@@ -887,7 +1609,7 @@ const fetchProducts = async () => {
                 </Button>
 
                 <Button
-                onClick={() => navigate('/my-booked-activities')}
+                onClick={() => navigate('/TouristBookedActivities')}
                 sx={{
                     ...styles.sidebarButton,
                     fontSize: '14px',
@@ -902,24 +1624,52 @@ const fetchProducts = async () => {
             </Box>
         )}
         </Box>
-               {/* Itineraries Dropdown */}
+
+       {/* Itineraries Dropdown */}
 <Box>
-  <Button
-    onClick={() => setItinerariesOpen(!itinerariesOpen)} // Toggle dropdown for itineraries
-    sx={styles.sidebarButton}
-  >
-    <MapIcon sx={styles.icon} />
-    {sidebarOpen && (
-      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
-        Itineraries
-        {itinerariesOpen ? (
-          <KeyboardArrowUpIcon sx={{ fontSize: '18px', marginLeft: '5px' }} />
-        ) : (
-          <KeyboardArrowDownIcon sx={{ fontSize: '18px', marginLeft: '5px' }} />
-        )}
-      </Box>
-    )}
-  </Button>
+<Button
+  onClick={async () => {
+    try {
+      // Toggle the itineraries dropdown open/close
+      setItinerariesOpen(!itinerariesOpen);
+
+      // Get the username from localStorage
+      const username = localStorage.getItem('username');
+
+      if (!username) {
+        alert('User not logged in.');
+        return;
+      }
+
+      // Call the `addCompletedItinerary` function via an API request
+      const response = await axios.put('/addCompletedItinerary', { touristUsername: username });
+
+      if (response.status === 200) {
+        // Handle success, maybe show a success message or update local state
+        //alert('Completed itineraries updated successfully!');
+      } else {
+        //alert('Failed to update completed itineraries.');
+      }
+    } catch (error) {
+      console.error('Error updating completed itineraries:', error);
+      alert('An error occurred while updating completed itineraries.');
+    }
+  }}
+  sx={styles.sidebarButton}
+>
+  <MapIcon sx={styles.icon} />
+  {sidebarOpen && (
+    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+      Itineraries
+      {itinerariesOpen ? (
+        <KeyboardArrowUpIcon sx={{ fontSize: '18px', marginLeft: '5px' }} />
+      ) : (
+        <KeyboardArrowDownIcon sx={{ fontSize: '18px', marginLeft: '5px' }} />
+      )}
+    </Box>
+  )}
+</Button>
+
   {itinerariesOpen && (
     <Box sx={{ display: 'flex', flexDirection: 'column', marginLeft: sidebarOpen ? '20px' : '0px' }}>
       <Button
@@ -935,7 +1685,7 @@ const fetchProducts = async () => {
         {sidebarOpen && 'Upcoming '}
       </Button>
       <Button
-        onClick={() => navigate('/completed-itineraries')}
+        onClick={() => navigate('/TouristCompletedItineraries')}
         sx={{
           ...styles.sidebarButton,
           fontSize: '14px',
@@ -947,7 +1697,7 @@ const fetchProducts = async () => {
         {sidebarOpen && 'Completed '}
       </Button>
       <Button
-        onClick={() => navigate('/my-booked-itineraries')}
+        onClick={() => navigate('/TouristBookedItineraries')}
         sx={{
           ...styles.sidebarButton,
           fontSize: '14px',
@@ -963,22 +1713,49 @@ const fetchProducts = async () => {
 </Box>
 {/* Historical Places Dropdown */}
 <Box>
-  <Button
-    onClick={() => setHistoricalPlacesOpen(!historicalPlacesOpen)} // Toggle dropdown for historical places
-    sx={styles.sidebarButton}
-  >
-    <ChurchIcon sx={styles.icon} />
-    {sidebarOpen && (
-      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
-        Historical Places
-        {historicalPlacesOpen ? (
-          <KeyboardArrowUpIcon sx={{ fontSize: '18px', marginLeft: '5px' }} />
-        ) : (
-          <KeyboardArrowDownIcon sx={{ fontSize: '18px', marginLeft: '5px' }} />
-        )}
-      </Box>
-    )}
-  </Button>
+<Button
+  onClick={async () => {
+    try {
+      // Toggle the historical places dropdown open/close
+      setHistoricalPlacesOpen(!historicalPlacesOpen);
+
+      // Get the username from localStorage
+      const username = localStorage.getItem('username');
+
+      if (!username) {
+        alert('User not logged in.');
+        return;
+      }
+
+      // Call the `addCompletedHPEvents` function via an API request
+      const response = await axios.put('/addCompletedHPEvents', { touristUsername: username });
+
+      if (response.status === 200) {
+        // Handle success, maybe show a success message or update local state
+        //alert('Historical Place events updated successfully!');
+      } else {
+        //alert('Failed to update historical place events.');
+      }
+    } catch (error) {
+      console.error('Error updating historical place events:', error);
+      alert('An error occurred while updating historical place events.');
+    }
+  }}
+  sx={styles.sidebarButton}
+>
+  <ChurchIcon sx={styles.icon} />
+  {sidebarOpen && (
+    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+      Historical Places
+      {historicalPlacesOpen ? (
+        <KeyboardArrowUpIcon sx={{ fontSize: '18px', marginLeft: '5px' }} />
+      ) : (
+        <KeyboardArrowDownIcon sx={{ fontSize: '18px', marginLeft: '5px' }} />
+      )}
+    </Box>
+  )}
+</Button>
+
   {historicalPlacesOpen && (
     <Box sx={{ display: 'flex', flexDirection: 'column', marginLeft: sidebarOpen ? '20px' : '0px' }}>
       <Button
@@ -1006,7 +1783,7 @@ const fetchProducts = async () => {
         {sidebarOpen && 'Visited '}
       </Button>
       <Button
-        onClick={() => navigate('/saved-historical-places')}
+        onClick={() => navigate('/TouristBookedHP')}
         sx={{
           ...styles.sidebarButton,
           fontSize: '14px',
@@ -1017,26 +1794,56 @@ const fetchProducts = async () => {
         <EventAvailableIcon sx={{ fontSize: '18px', marginRight: '10px' }} />
         {sidebarOpen && 'Booked '}
       </Button>
+      
     </Box>
   )}
 </Box>
+
+
 <Box>
-  <Button
-    onClick={() => setMuseumsOpen(!museumsOpen)} // Toggle dropdown for museums
-    sx={styles.sidebarButton}
-  >
-    <AccountBalanceIcon sx={styles.icon} /> {/* Suitable icon for Museums */}
-    {sidebarOpen && (
-      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
-        Museums
-        {museumsOpen ? (
-          <KeyboardArrowUpIcon sx={{ fontSize: '18px', marginLeft: '5px' }} />
-        ) : (
-          <KeyboardArrowDownIcon sx={{ fontSize: '18px', marginLeft: '5px' }} />
-        )}
-      </Box>
-    )}
-  </Button>
+<Button
+  onClick={async () => {
+    try {
+      // Toggle the museums dropdown open/close
+      setMuseumsOpen(!museumsOpen);
+
+      // Get the username from localStorage
+      const username = localStorage.getItem('username');
+
+      if (!username) {
+        alert('User not logged in.');
+        return;
+      }
+
+      // Call the `addCompletedMuseumEvents` function via an API request
+      const response = await axios.put('/addCompletedMuseumEvents', { touristUsername: username });
+
+      if (response.status === 200) {
+        // Handle success, maybe show a success message or update local state
+        //alert('Museum events updated successfully!');
+      } else {
+        //alert('Failed to update museum events.');
+      }
+    } catch (error) {
+      console.error('Error updating museum events:', error);
+      alert('An error occurred while updating museum events.');
+    }
+  }}
+  sx={styles.sidebarButton}
+>
+  <AccountBalanceIcon sx={styles.icon} /> {/* Suitable icon for Museums */}
+  {sidebarOpen && (
+    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+      Museums
+      {museumsOpen ? (
+        <KeyboardArrowUpIcon sx={{ fontSize: '18px', marginLeft: '5px' }} />
+      ) : (
+        <KeyboardArrowDownIcon sx={{ fontSize: '18px', marginLeft: '5px' }} />
+      )}
+    </Box>
+  )}
+</Button>
+
   {museumsOpen && (
     <Box sx={{ display: 'flex', flexDirection: 'column', marginLeft: sidebarOpen ? '20px' : '0px' }}>
       {/* Upcoming Museums */}
@@ -1069,7 +1876,7 @@ const fetchProducts = async () => {
       
       {/* Saved Museums */}
       <Button
-        onClick={() => navigate('/saved-museums')}
+        onClick={() => navigate('/TouristBookedMuseum')}
         sx={{
           ...styles.sidebarButton,
           fontSize: '14px',
@@ -1083,6 +1890,9 @@ const fetchProducts = async () => {
     </Box>
   )}
 </Box>
+
+
+
 <Box>
   <Button
     onClick={() => setTransportationOpen(!transportationOpen)} // Toggle dropdown for transportation
@@ -1104,7 +1914,7 @@ const fetchProducts = async () => {
     <Box sx={{ display: 'flex', flexDirection: 'column', marginLeft: sidebarOpen ? '20px' : '0px' }}>
       {/* Available Transportation */}
       <Button
-        onClick={() => navigate('/available-transportation')}
+        onClick={() => navigate('/TouristAllTransportation')}
         sx={{
           ...styles.sidebarButton,
           fontSize: '14px',
@@ -1118,7 +1928,7 @@ const fetchProducts = async () => {
       
       {/* Booked Transportation */}
       <Button
-        onClick={() => navigate('/booked-transportation')}
+        onClick={() => navigate('/TouristBookedTransportation')}
         sx={{
           ...styles.sidebarButton,
           fontSize: '14px',
@@ -1130,64 +1940,43 @@ const fetchProducts = async () => {
         {sidebarOpen && 'Booked '}
       </Button>
     </Box>
-  )}
-</Box>
-<Box>
-  <Button
-    onClick={() => setComplaintsOpen(!complaintsOpen)} // Toggle dropdown for complaints
-    sx={styles.sidebarButton}
-  >
-    <AssignmentIcon sx={styles.icon} /> {/* Complaints Icon */}
-    {sidebarOpen && (
-      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
-        Complaints
-        {complaintsOpen ? (
-          <KeyboardArrowUpIcon sx={{ fontSize: '18px', marginLeft: '5px' }} />
-        ) : (
-          <KeyboardArrowDownIcon sx={{ fontSize: '18px', marginLeft: '5px' }} />
-        )}
-      </Box>
-    )}
-  </Button>
-  {complaintsOpen && (
-    <Box sx={{ display: 'flex', flexDirection: 'column', marginLeft: sidebarOpen ? '20px' : '0px' }}>
-      {/* View All Complaints */}
-      <Button
-        onClick={() => navigate('/view-all-complaints')}
-        sx={{
-          ...styles.sidebarButton,
-          fontSize: '14px',
-          paddingLeft: sidebarOpen ? '20px' : '10px',
-          padding: '5px 20px',
-        }}
-      >
-        <AddIcon sx={{ fontSize: '18px', marginRight: '10px' }} />
-        {sidebarOpen && 'File Complaint'}
-      </Button>
-      
-      {/* My Submitted Complaints */}
-      <Button
-        onClick={() => navigate('/my-submitted-complaints')}
-        sx={{
-          ...styles.sidebarButton,
-          fontSize: '14px',
-          paddingLeft: sidebarOpen ? '20px' : '10px',
-          padding: '5px 20px',
-        }}
-      >
-        <FeedbackIcon sx={{ fontSize: '18px', marginRight: '10px' }} /> {/* Feedback Icon */}
-        {sidebarOpen && 'My Complaints'}
-      </Button>
-    </Box>
     
   )}
-  <Button onClick={() => navigate('/NewTouristHomePage')} sx={styles.sidebarButton}>
+</Box>
+<Button onClick={() => navigate('/TouristComplaints')} sx={styles.sidebarButton}>
+          <AssignmentIcon sx={styles.icon} />
+          {sidebarOpen && 'Complaints'}
+        </Button>
+        <Button onClick={() => navigate('/TouristSavedEvents')} sx={styles.sidebarButton}>
+          <BookmarkIcon sx={styles.icon} />
+          {sidebarOpen && 'Saved Events'}
+        </Button>
+
+        <Button
+  onClick={async () => {
+    try {
+      // Call the markOrdersAsDelivered function via an API request
+      await axios.put('/markOrdersAsDelivered'); // Assuming your API route is '/markOrdersAsDelivered'
+      
+      // Navigate to the orders page after successfully marking orders as delivered
+      navigate('/TouristOrders');
+    } catch (error) {
+      console.error('Error marking orders as delivered:', error);
+      alert('Failed to update orders. Please try again.');
+    }
+  }}
+  sx={styles.sidebarButton}
+>
+  <ShoppingBagIcon sx={styles.icon} />
+  {sidebarOpen && 'Orders'}
+</Button>
+<Button onClick={() => navigate('/NewTouristHomePage')} sx={styles.sidebarButton}>
           <DashboardIcon sx={styles.icon} />
           {sidebarOpen && 'Back to Dashboard'}
         </Button>
-</Box>
-      </Box>
 
+
+</Box>
 
 
 
@@ -1498,7 +2287,12 @@ const fetchProducts = async () => {
 
 
       <Box sx={styles.activitiesContainer}>
-  {products.length > 0 ? (
+      {loading ? (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+        {/* Circular Progress for loading */}
+        <CircularProgress />
+      </Box>
+    ) : products.length > 0 ? (
     products.map((product, index) => (
       <Box key={index} sx={{ marginBottom: '20px' }}>
         {/* Your activity card code */}
