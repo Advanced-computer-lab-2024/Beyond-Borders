@@ -58,6 +58,32 @@ Below is the list of technologies and frameworks used in the Beyond-Borders proj
 - **Git and GitHub**: For version control and project collaboration.
 
 This stack provides a robust and scalable foundation for the Beyond-Borders platform, enabling seamless integration of backend and frontend components.
+### Key Features
+
+Plan your dream vacation effortlessly with our all-in-one travel platform. Whether you’re exploring historic landmarks, relaxing on beaches, or planning family-friendly adventures, our app combines all the tools you need for a seamless experience.
+
+- **Customized Travel Planning**:  
+  Design your perfect trip by choosing preferences like historic sites, adventure, events, and budget-friendly activities.
+
+- **Hassle-Free Booking**:  
+  Book flights, hotels, and transportation directly within the app through trusted third-party integrations—quick, secure, and without redirects.
+
+- **Budget-Friendly Recommendations**:  
+  Receive activity suggestions tailored to your remaining budget after booking flights and accommodations, including transportation costs for stress-free planning.
+
+- **Discover Hidden Gems**:  
+  Explore unique activities, museums, and historical places, complete with ticket prices and step-by-step directions.
+
+- **Instant Notifications**:  
+  Stay informed with real-time alerts for your upcoming bookings, events, and activities via in-app notifications and email updates.
+
+- **Expert Tour Guides & Custom Itineraries**:  
+  Access expert-guided tours or create your own personalized itineraries with detailed activity breakdowns for a tailored adventure.
+
+- **Exclusive In-App Gift Shop**:  
+  Shop for products and locally sourced items directly from our app to create lasting memories of your trip.
+
+Start your next adventure with us, and let our platform transform how you explore the world by putting everything you need at your fingertips!
 
 ## Code Snippets
 
