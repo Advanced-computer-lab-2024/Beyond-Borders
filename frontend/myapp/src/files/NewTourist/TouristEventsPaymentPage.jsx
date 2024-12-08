@@ -87,7 +87,9 @@ const TouristEventsPaymentPage = () => {
     setDiscount(0); // Reset discount
   }
 };
-
+const goBack = () => {
+  navigate(-1); // Navigate to the previous page
+};
 const handlePromoCodeChange = (e) => {
   const code = e.target.value;
   setPromoCode(code);
@@ -257,6 +259,28 @@ const handlePromoCodeChange = (e) => {
         margin: "0 auto",
       }}
     >
+      <button
+  onClick={goBack}
+  style={{
+    position: 'absolute',
+    top: '20px',
+    left: '20px',
+    backgroundColor: 'transparent',
+    color: '#192959', // Blue color for text and border
+    border: '2px solid #192959',
+    padding: '10px 20px',
+    borderRadius: '30px', // Rounded border
+    fontSize: '16px',
+    fontWeight: 'bold',
+    cursor: 'pointer',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '10px', // Space between the arrow and text
+    transition: 'all 0.3s ease', // Smooth transition for hover effects
+  }}
+>
+  <span style={{ fontSize: '20px' }}>←</span> Back
+</button>
       {/* Stepper for Navigation */}
       <Stepper activeStep={activeStep} alternativeLabel sx={{ marginBottom: "20px" }}>
         {["Tickets", "Payment Details", "Confirmation"].map((label, index) => (
