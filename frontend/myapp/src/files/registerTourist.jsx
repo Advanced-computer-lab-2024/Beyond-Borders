@@ -64,7 +64,8 @@ const RegisterTourist = () => {
       sx={{
         maxWidth: '600px',
         margin: 'auto',
-        background: '#fff',
+        //background: '#fff',
+        backgroundColor: 'rgba(255, 255, 255, 0.7)',
         padding: '20px',
         borderRadius: '5px',
         boxShadow: '0 0 10px rgba(0, 0, 0, 0.1)',
