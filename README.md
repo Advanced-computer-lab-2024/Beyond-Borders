@@ -58,6 +58,216 @@ Below is the list of technologies and frameworks used in the Beyond-Borders proj
 - **Git and GitHub**: For version control and project collaboration.
 
 This stack provides a robust and scalable foundation for the Beyond-Borders platform, enabling seamless integration of backend and frontend components.
+
+## Code Snippets
+
+### Backend Implementation: Create Activity
+
+```javascript
+const createNewActivity = async (req, res) => {
+    const { AdvertiserName, Name, Date, Time, SpecialDiscount, BookingOpen, Price, Location, Category, Tags } = req.body;
+
+    try {
+        const existingCategory = await NewActivityCategoryModel.findOne({ NameOfCategory: Category });
+        if (!existingCategory) {
+            return res.status(400).json({ error: "Selected category does not exist!" });
+        }
+
+        const existingTags = await TagsModel.find({ NameOfTags: { $in: Tags } });
+        if (existingTags.length !== Tags.length) {
+            return res.status(400).json({ error: "One or more tags do not exist!" });
+        }
+
+        const newActivity = await ActivityModel.create({
+            AdvertiserName, Name, Date, Time, SpecialDiscount, BookingOpen, Price, 
+            Rating: 0, Location, Category, Tags, Comments: [], RatingCount: 0
+        });
+
+        res.status(200).json({ msg: "New activity is created!", activity: newActivity });
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+};
+```
+## App.js:
+```javascript
+app.post("/api/createNewActivity", createNewActivity);
+```
+## Frontend Implementation:
+```javascript
+const handleCreateActivitySubmit = async (e) => {
+    e.preventDefault();
+  
+    try {
+      const tagsArray = newActivityData.Tags.split(',').map((tag) => tag.trim());
+  
+      const activityToSubmit = {
+        AdvertiserName: localStorage.getItem('username'),
+        Name: newActivityData.Name,
+        Date: newActivityData.Date,
+        Time: newActivityData.Time,
+        SpecialDiscount: newActivityData.SpecialDiscount,
+        BookingOpen: newActivityData.BookingOpen,
+        Price: newActivityData.Price,
+        Location: newActivityData.Location,
+        Category: newActivityData.Category,
+        Tags: tagsArray,
+      };
+  
+      const response = await axios.post('/api/createNewActivity', activityToSubmit);
+  
+      alert(response.data.msg);
+      setIsActivityModalOpen(false);
+      fetchActivities(); // Refresh activities after creation
+      setNewActivityData({
+        Name: '',
+        Date: '',
+        Time: '',
+        SpecialDiscount: '',
+        BookingOpen: false,
+        Price: '',
+        Location: '',
+        Category: '',
+        Tags: [],
+      });
+    } catch (error) {
+      setActivityErrorMessage(
+        error.response?.data?.error || 'An error occurred. Please try again.'
+      );
+    }
+  };
+
+```
+```javascript
+<Modal open={isActivityModalOpen} onClose={() => setIsActivityModalOpen(false)}>
+  <Box
+    sx={{
+      position: "absolute",
+      top: "50%",
+      left: "50%",
+      transform: "translate(-50%, -50%)",
+      width: "90%", // Adjusted for smaller screens
+      maxWidth: "600px",
+      maxHeight: "90vh", // Limit height to viewport height
+      overflowY: "auto", // Enable vertical scrolling
+      bgcolor: "background.paper",
+      borderRadius: "10px",
+      boxShadow: 24,
+      p: 4,
+    }}
+  >
+    <Typography variant="h4" align="center" sx={{ marginBottom: "20px" }}>
+      Create New Activity
+    </Typography>
+    <form onSubmit={handleCreateActivitySubmit}>
+      <TextField
+        fullWidth
+        margin="normal"
+        label="Activity Name"
+        name="Name"
+        value={newActivityData.Name}
+        onChange={handleActivityInputChange}
+        required
+      />
+      <TextField
+        fullWidth
+        margin="normal"
+        label="Date"
+        name="Date"
+        type="date"
+        value={newActivityData.Date}
+        onChange={handleActivityInputChange}
+        InputLabelProps={{ shrink: true }}
+        required
+      />
+      <TextField
+        fullWidth
+        margin="normal"
+        label="Time"
+        name="Time"
+        type="time"
+        value={newActivityData.Time}
+        onChange={handleActivityInputChange}
+        required
+      />
+      <TextField
+        fullWidth
+        margin="normal"
+        label="Special Discount"
+        name="SpecialDiscount"
+        value={newActivityData.SpecialDiscount}
+        onChange={handleActivityInputChange}
+      />
+      <FormControlLabel
+        control={
+          <Switch
+            name="BookingOpen"
+            checked={newActivityData.BookingOpen}
+            onChange={handleActivityInputChange}
+          />
+        }
+        label="Booking Open"
+      />
+      <TextField
+        fullWidth
+        margin="normal"
+        label="Price (USD)"
+        name="Price"
+        type="number"
+        value={newActivityData.Price}
+        onChange={handleActivityInputChange}
+        required
+      />
+      <TextField
+        fullWidth
+        margin="normal"
+        label="Location"
+        name="Location"
+        value={newActivityData.Location}
+        onChange={handleActivityInputChange}
+        required
+      />
+      <TextField
+        fullWidth
+        margin="normal"
+        label="Category"
+        name="Category"
+        value={newActivityData.Category}
+        onChange={handleActivityInputChange}
+        required
+      />
+      <TextField
+        fullWidth
+        margin="normal"
+        label="Tags (comma-separated)"
+        name="Tags"
+        value={newActivityData.Tags}
+        onChange={handleActivityInputChange}
+      />
+      {activityErrorMessage && (
+        <Typography color="error" sx={{ marginBottom: "10px" }}>
+          {activityErrorMessage}
+        </Typography>
+      )}
+      <Button
+        type="submit"
+        variant="contained"
+        sx={{
+          backgroundColor: "#192959",
+          color: "white",
+          padding: "10px",
+          borderRadius: "4px",
+          width: "100%",
+          "&:hover": { backgroundColor: "#4b5a86" },
+          marginTop: "20px",
+        }}
+      >
+        Create Activity
+      </Button>
+    </form>
+  </Box>
+</Modal>
+```
 ### How to Use
 
 Follow these steps to use the Beyond-Borders platform:
