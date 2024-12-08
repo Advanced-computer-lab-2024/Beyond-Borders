@@ -268,7 +268,9 @@ const TouristProductPaymentPage = () => {
           alert(err.response?.data?.error || "An error occurred. Please try again.");
         }
       };
-
+      const goBack = () => {
+        navigate(-1); // Navigate to the previous page
+      };
   const handleAddNewAddress = async () => {
     try {
       const username = localStorage.getItem("username");
@@ -301,6 +303,28 @@ const TouristProductPaymentPage = () => {
 
   return (
     <Box sx={{ padding: "20px", maxWidth: "1200px", margin: "0 auto" }}>
+      <button
+  onClick={goBack}
+  style={{
+    position: 'absolute',
+    top: '20px',
+    left: '20px',
+    backgroundColor: 'transparent',
+    color: '#192959', // Blue color for text and border
+    border: '2px solid #192959',
+    padding: '10px 20px',
+    borderRadius: '30px', // Rounded border
+    fontSize: '16px',
+    fontWeight: 'bold',
+    cursor: 'pointer',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '10px', // Space between the arrow and text
+    transition: 'all 0.3s ease', // Smooth transition for hover effects
+  }}
+>
+  <span style={{ fontSize: '20px' }}>←</span> Back
+</button>
       <Typography variant="h4" sx={{ fontWeight: "bold", marginBottom: "20px" }}>
         Checkout
       </Typography>
