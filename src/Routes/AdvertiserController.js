@@ -935,18 +935,18 @@ const calculateCurrentMonthRevenueForAdvertiser = async (req, res) => {
 };
 
 const calculateRevenueForAdvertiser = async (req, res) => {
-  const { username, date, month } = req.query;
+  const { activityName, date, month } = req.query;
 
-  if (!username || (!date && !month)) {
-    return res.status(400).json({ error: 'Advertiser username and either date or month are required.' });
+  if (!activityName || (!date && !month)) {
+    return res.status(400).json({ error: 'Activity name and either date or month are required.' });
   }
 
   try {
-    // Step 1: Find all activities created by the advertiser
-    const activities = await ActivityModel.find({ AdvertiserName: username });
+    // Step 1: Find the activity by its name
+    const activity = await ActivityModel.findOne({ Name: activityName });
 
-    if (!activities.length) {
-      return res.status(404).json({ error: 'No activities found for this advertiser.' });
+    if (!activity) {
+      return res.status(404).json({ error: 'Activity not found.' });
     }
 
     // Step 2: Prepare date filters based on input
@@ -971,39 +971,28 @@ const calculateRevenueForAdvertiser = async (req, res) => {
       };
     }
 
-    // Step 3: Find all tourists who booked activities from this advertiser within the date range
-    const activityNames = activities.map(activity => activity.Name); // Get all activity names
+    // Step 3: Find all tourists who booked this activity within the date or month range
     const tourists = await TouristModel.find({
-      'BookedActivities.activityName': { $in: activityNames },
+      'BookedActivities.activityName': activityName,
       'BookedActivities.booked': true,
       ...dateFilter,
     });
 
     // Step 4: Calculate total revenue
-    const revenue = tourists.reduce((total, tourist) => {
-      const bookings = tourist.BookedActivities.filter(
-        booking => activityNames.includes(booking.activityName) && booking.booked
-      );
-
-      const activityRevenue = bookings.reduce((sum, booking) => {
-        const activity = activities.find(act => act.Name === booking.activityName);
-        return activity ? sum + activity.Price : sum;
-      }, 0);
-
-      return total + activityRevenue;
-    }, 0);
+    const revenue = tourists.length * activity.Price;
 
     // Step 5: Respond with the calculated revenue
     res.status(200).json({
-      advertiserUsername: username,
+      ActivityName:activityName,
       revenue,
       bookings: tourists.length,
     });
   } catch (error) {
-    console.error('Error calculating advertiser revenue:', error);
+    console.error('Error calculating activity revenue:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 };
+
 
 
 

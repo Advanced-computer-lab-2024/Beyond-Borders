@@ -30,5 +30,18 @@ Our code follows a clean and consistent coding style to ensure maintainability a
 - **Error Handling**: Backend APIs include robust error handling to address edge cases and provide meaningful feedback to users.
 - **Consistent Variable Naming**: Variable names are written in `camelCase` to maintain consistency.
 
-
-
+### Screenshots
+#### Login Page
+![login](src/screenshots/login.png)
+#### Tourist Home Page
+![Tourist Home Page](src/screenshots/touristHomePage.PNG)
+#### Activities Page
+![Activities Page](src/screenshots/activities.PNG)
+#### Events Payment Page
+![Activities Pay Page](src/screenshots/activityPay1.PNG)
+![Activities Pay Page](src/screenshots/activityPay2.PNG)
+![Activities Pay Page](src/screenshots/activityPay3.PNG)
+#### Flights API Search
+![Flights Page](src/screenshots/flights.PNG)
+#### Flights API Search Results
+![Flights Page](src/screenshots/flights2.PNG)
