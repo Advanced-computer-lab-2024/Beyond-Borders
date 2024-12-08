@@ -661,7 +661,7 @@ const [errorMessage, setErrorMessage] = useState('');
         padding: '20px',
   maxWidth: '90%',
   margin: '0 auto',
-  backgroundColor: 'rgba(255, 255, 255, 0.2)', // Translucent white background
+  backgroundColor: 'rgba(255, 255, 255, 0.9)', // Translucent white background
   borderRadius: '10px',
   boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.2)',
   position: 'relative',
@@ -753,19 +753,7 @@ const [errorMessage, setErrorMessage] = useState('');
     {hotelOffers.map((hotel, index) => (
       <Box
         key={index}
-        sx={{
-          backgroundColor: "#f9f9f9",
-          padding: "15px",
-          marginBottom: "20px",
-          borderRadius: "8px",
-          boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.1)",
-          position: "relative", // Position relative for the Book button
-          display: "flex", // Use flex for two-column layout
-          justifyContent: "space-between", // Space between the columns
-          minHeight:"220px",
-          
-          gap: "20px",
-        }}
+        sx={styles.hotelOffer}
       >
         {/* Left Column */}
         <Box sx={{ flex: "1", display: "flex", flexDirection: "column", gap: "10px" }}>
@@ -2187,7 +2175,25 @@ const styles = {
     minHeight: '100vh',
     backgroundColor: '#e6e7ed',
     color: '#192959',
+    backgroundImage: 'url(/images/hotelpic.jpg)', // Replace with the actual path to your image
+    backgroundSize: 'cover', // Ensure the image covers the entire container
+    backgroundPosition: 'center', // Center the image
+    backgroundRepeat: 'no-repeat', // Prevent the image from repeating
+    backgroundAttachment: 'fixed', // Keeps the background fixed while scrolling
   },
+  hotelOffer: {
+    backgroundColor: 'rgba(255, 255, 255, 0.9)', // Slightly translucent white background
+    padding: '15px',
+    marginBottom: '20px',
+    borderRadius: '8px',
+    boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.1)',
+    position: 'relative',
+    display: 'flex', // Use flex for two-column layout
+    justifyContent: 'space-between',
+    minHeight: '220px',
+    gap: '20px',
+  },
+  
   overlay: {
     position: 'fixed',
     top: 0,
