@@ -912,10 +912,11 @@ return (
     padding: '20px',
     backgroundColor: '#f3f4f6',
     minHeight: '100vh',
-    marginLeft: sidebarOpen ? '280px' : '60px',
+    marginLeft: sidebarOpen ? '300px' : '80px',
     transition: 'margin-left 0.3s ease',
     alignItems: 'center',
     justifyContent: 'flex-start',
+    transform: 'translateY(10px)', // Slightly moved up
   }}
 >
   {/* Row Container for Bar Chart and Pie Chart */}
@@ -923,26 +924,26 @@ return (
     sx={{
       display: 'flex',
       justifyContent: 'space-between',
-      gap: '20px',
+      gap: '30px', // Adjusted gap for better spacing
       width: '100%',
-      maxWidth: '1600px', // Maximum width for layout
-      marginTop: '30px',
+      maxWidth: '1700px', // Increased width for charts
+      marginTop: '20px', // Slightly reduced margin from the top
     }}
   >
-{/* User Statistics Container */}
+    {/* User Statistics Container */}
 <Box
   sx={{
-    width: '60%', // Increased width of the container
+    width: '65%', // Wider container
     backgroundColor: '#ffffff',
     borderRadius: '8px',
-    padding: '20px',
+    padding: '15px',
     boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.1)',
-    height: '450px', // Adjusted height
+    height: '400px', // Adjusted height to match Pie Chart
     display: 'flex',
     flexDirection: 'column',
   }}
 >
-  <Box sx={{ display: 'flex', alignItems: 'center', marginBottom: '20px' }}>
+  <Box sx={{ display: 'flex', alignItems: 'center', marginBottom: '15px' }}>
     <Typography variant="h6" sx={{ marginRight: '10px', color: '#333333', fontWeight: 'bold' }}>
       User Statistics
     </Typography>
@@ -975,10 +976,42 @@ return (
       ))}
     </Menu>
   </Box>
-  <Box sx={{ width: '100%', height: '350px' }}>
+
+  {/* Bar Chart Adjusted to Match Pie Chart Height */}
+  <Box sx={{ width: '100%', height: '300px' }}> {/* Adjusted height */}
     <Bar
       data={chartData}
-      options={{ responsive: true, plugins: { legend: { display: true } } }}
+      options={{
+        responsive: true,
+        maintainAspectRatio: false, // Allows flexible resizing
+        plugins: {
+          legend: {
+            display: true,
+          },
+        },
+        scales: {
+          x: {
+            grid: {
+              display: false, // Optional: Remove grid lines for cleaner look
+            },
+            ticks: {
+              font: {
+                size: 12, // Adjust label font size
+              },
+            },
+          },
+          y: {
+            grid: {
+              color: '#e0e0e0', // Optional: Light grey grid lines
+            },
+            ticks: {
+              font: {
+                size: 12, // Adjust label font size
+              },
+            },
+          },
+        },
+      }}
     />
   </Box>
 </Box>
@@ -986,12 +1019,12 @@ return (
 {/* App Revenue Container */}
 <Box
   sx={{
-    width: '40%', // Increased width
+    width: '35%', // Adjusted width to balance with Bar Chart
     backgroundColor: '#ffffff',
     borderRadius: '8px',
-    padding: '20px',
+    padding: '15px',
     boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.1)',
-    height: '450px', // Adjusted height
+    height: '400px', // Same height as Bar Chart
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
@@ -1001,7 +1034,7 @@ return (
   <Typography variant="h6" sx={{ marginBottom: '10px', color: '#333333', fontWeight: 'bold' }}>
     App Revenue
   </Typography>
-  <Box sx={{ width: '350px', height: '350px' }}> {/* Increased size */}
+  <Box sx={{ width: '300px', height: '300px' }}> {/* Adjusted size */}
     <Pie data={pieChartData} options={pieChartOptions} />
   </Box>
   <Typography
@@ -1014,100 +1047,103 @@ return (
       : revenueData.totalAppRevenue}
   </Typography>
 </Box>
-</Box>
-
-
-{/* Table for Admin Products */}
-<Box
-  sx={{
-    backgroundColor: '#ffffff',
-    borderRadius: '8px',
-    padding: '20px',
-    marginTop: '30px',
-    width: '100%',
-    maxWidth: '1600px', // Match the combined width of the charts
-    boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.1)',
-  }}
->
-  <Typography variant="h6" sx={{ marginBottom: '10px', color: '#192959' }}>
-    Filtered Admin Products
-  </Typography>
-
-  {/* Filter Controls */}
-  <Box sx={{ display: 'flex', gap: '20px', marginBottom: '20px' }}>
-    <TextField
-      label="Product Name"
-      variant="outlined"
-      size="small"
-      value={adminProductFilters.name}
-      onChange={(e) => setAdminProductFilters({ ...adminProductFilters, name: e.target.value })}
-    />
-    <TextField
-      label="Order Date"
-      type="date"
-      variant="outlined"
-      size="small"
-      value={adminProductFilters.date}
-      onChange={(e) => setAdminProductFilters({ ...adminProductFilters, date: e.target.value })}
-      InputLabelProps={{ shrink: true }}
-    />
-    <TextField
-      label="Month"
-      type="number"
-      variant="outlined"
-      size="small"
-      value={adminProductFilters.month}
-      onChange={(e) => setAdminProductFilters({ ...adminProductFilters, month: e.target.value })}
-      InputProps={{ inputProps: { min: 1, max: 12 } }}
-    />
-    <Button variant="contained" color="primary" onClick={fetchAdminFilteredProducts}>
-      Apply Filters
-    </Button>
   </Box>
 
-  {/* Table */}
-  {loadingAdminProducts ? (
-    <Typography>Loading products...</Typography>
-  ) : filteredAdminProducts.length > 0 ? (
-    <Box sx={{ overflowX: 'auto' }}>
-      <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-        <thead>
-          <tr style={{ backgroundColor: '#192959', color: '#ffffff' }}>
-            <th style={{ padding: '10px', border: '1px solid #cccccc', color: '#333333' }}>Product Name</th>
-            <th style={{ padding: '10px', border: '1px solid #cccccc', color: '#333333' }}>Quantity</th>
-            <th style={{ padding: '10px', border: '1px solid #cccccc', color: '#333333' }}>Price</th>
-            <th style={{ padding: '10px', border: '1px solid #cccccc', color: '#333333' }}>Order Date</th>
-            <th style={{ padding: '10px', border: '1px solid #cccccc', color: '#333333' }}>Revenue</th>
-          </tr>
-        </thead>
-        <tbody>
-          {filteredAdminProducts.map((product, index) => (
-            <tr key={index} style={{ backgroundColor: index % 2 === 0 ? '#f3f4f6' : '#ffffff' }}>
-              <td style={{ padding: '10px', border: '1px solid #cccccc', color: '#333333' }}>{product.productName}</td>
-              <td style={{ padding: '10px', border: '1px solid #cccccc', color: '#333333' }}>{product.quantity}</td>
-              <td style={{ padding: '10px', border: '1px solid #cccccc', color: '#333333' }}>${product.price}</td>
-              <td style={{ padding: '10px', border: '1px solid #cccccc', color: '#333333' }}>
-                {new Date(product.orderDate).toLocaleDateString()}
-              </td>
-              <td style={{ padding: '10px', border: '1px solid #cccccc', color: '#333333' }}>${product.revenue}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </Box>
-  ) : (
-    <Typography>{filterErrorAdminProducts || 'No filtered products available.'}</Typography>
-  )}
-
-  {/* Total Revenue */}
-  <Typography
-    variant="h6"
-    sx={{ marginTop: '20px', fontWeight: 'bold', color: '#192959' }}
+  {/* Table for Admin Products */}
+  <Box
+    sx={{
+      backgroundColor: '#ffffff',
+      borderRadius: '8px',
+      padding: '15px',
+      marginTop: '30px', // Slightly reduced margin to move the table up
+      width: '98%', // Increased table width
+      maxWidth: '1700px', // Match the combined width of the charts
+      boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.1)',
+    }}
   >
-    Total Revenue: ${parseFloat(totalAdminRevenue).toFixed(2)}
-  </Typography>
-</Box>
+    <Typography variant="h6" sx={{ marginBottom: '10px', color: '#192959' }}>
+      Filtered Admin Products
+    </Typography>
 
+    {/* Filter Controls */}
+    <Box sx={{ display: 'flex', gap: '15px', marginBottom: '15px' }}>
+      <TextField
+        label="Product Name"
+        variant="outlined"
+        size="small"
+        value={adminProductFilters.name}
+        onChange={(e) => setAdminProductFilters({ ...adminProductFilters, name: e.target.value })}
+      />
+      <TextField
+        label="Order Date"
+        type="date"
+        variant="outlined"
+        size="small"
+        value={adminProductFilters.date}
+        onChange={(e) => setAdminProductFilters({ ...adminProductFilters, date: e.target.value })}
+        InputLabelProps={{ shrink: true }}
+      />
+      <TextField
+        label="Month"
+        type="number"
+        variant="outlined"
+        size="small"
+        value={adminProductFilters.month}
+        onChange={(e) => setAdminProductFilters({ ...adminProductFilters, month: e.target.value })}
+        InputProps={{ inputProps: { min: 1, max: 12 } }}
+      />
+      <Button variant="contained" color="primary" onClick={fetchAdminFilteredProducts}>
+        Apply Filters
+      </Button>
+    </Box>
+
+    {/* Table */}
+    {loadingAdminProducts ? (
+      <Typography>Loading products...</Typography>
+    ) : filteredAdminProducts.length > 0 ? (
+      <Box sx={{ overflowX: 'auto', overflowY: 'scroll', maxHeight: '250px' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+          <thead>
+            <tr style={{ backgroundColor: '#192959', color: '#ffffff' }}>
+              <th style={{ padding: '10px', border: '1px solid #cccccc', color: '#ffffff' }}>Product Name</th>
+              <th style={{ padding: '10px', border: '1px solid #cccccc', color: '#ffffff' }}>Quantity</th>
+              <th style={{ padding: '10px', border: '1px solid #cccccc', color: '#ffffff' }}>Price</th>
+              <th style={{ padding: '10px', border: '1px solid #cccccc', color: '#ffffff' }}>Order Date</th>
+              <th style={{ padding: '10px', border: '1px solid #cccccc', color: '#ffffff' }}>Revenue</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filteredAdminProducts.map((product, index) => (
+              <tr key={index} style={{ backgroundColor: index % 2 === 0 ? '#f3f4f6' : '#ffffff' }}>
+                <td style={{ padding: '10px', border: '1px solid #cccccc', color: '#333333' }}>{product.productName}</td>
+                <td style={{ padding: '10px', border: '1px solid #cccccc', color: '#333333' }}>{product.quantity}</td>
+                <td style={{ padding: '10px', border: '1px solid #cccccc', color: '#333333' }}>${product.price}</td>
+                <td style={{ padding: '10px', border: '1px solid #cccccc', color: '#333333' }}>
+                  {new Date(product.orderDate).toLocaleDateString()}
+                </td>
+                <td style={{ padding: '10px', border: '1px solid #cccccc', color: '#333333' }}>${product.revenue}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </Box>
+    ) : (
+      <Typography>{filterErrorAdminProducts || 'No filtered products available.'}</Typography>
+    )}
+
+    {/* Total Revenue */}
+    <Typography
+      variant="h6"
+      sx={{
+        marginTop: '15px',
+        fontWeight: 'bold',
+        color: '#192959',
+        textAlign: 'center',
+      }}
+    >
+      Total Revenue: ${parseFloat(totalAdminRevenue || 0).toFixed(2)}
+    </Typography>
+  </Box>
 </Box>
 
 
