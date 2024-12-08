@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Button, Typography, IconButton,Tooltip, TextField, InputAdornment, Modal,MenuItem,Select,FormControl,InputLabel,Divider} from '@mui/material';
+import { Box, Button, Typography, IconButton,Tooltip, TextField, InputAdornment, Modal,MenuItem,Select,FormControl,InputLabel,Divider,CircularProgress} from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import MenuIcon from '@mui/icons-material/Menu';
 import NotificationsIcon from '@mui/icons-material/Notifications';
@@ -50,6 +50,7 @@ import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
 import ShoppingBagIcon from '@mui/icons-material/ShoppingBag';
 import BookmarkIcon from '@mui/icons-material/Bookmark';
 
+
 import axios from 'axios';
 
 function TouristCompletedMuseums() {
@@ -98,6 +99,7 @@ const [commentText, setCommentText] = useState('');
 const [showAverageRating, setShowAverageRating] = useState({}); // Track which activity shows average rating
 const [flightsOpen, setFlightsOpen] = useState(false); // Manage the dropdown state for Flights
 const [hotelsOpen, setHotelsOpen] = useState(false); // Manage the dropdown state for Hotels
+const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -173,6 +175,7 @@ const [hotelsOpen, setHotelsOpen] = useState(false); // Manage the dropdown stat
 
   // Fetch completed museums
 const fetchMuseums = async () => {
+  setLoading(true); // Set loading to true before starting the fetch
     try {
       const username = localStorage.getItem('username'); // Assuming username is stored in localStorage
       if (!username) {
@@ -189,6 +192,9 @@ const fetchMuseums = async () => {
       setMuseums(response.data);
     } catch (error) {
       console.error('Error fetching completed museums:', error);
+    }
+    finally {
+      setLoading(false); // Set loading to false after the fetch
     }
   };
   
@@ -643,18 +649,7 @@ const fetchMuseums = async () => {
 </Box>
         </Box>
         <Box sx={styles.topMenuRight}>
-        <Button
-         sx={{
-         ...styles.menuButton,
-         '&:hover': {
-         backgroundColor: '#e6e7ed', // Background color on hover
-            color: '#192959',           // Text color on hover
-        },
-        }}
-        startIcon={<AccountCircleIcon />}
-        >
-        My Profile
-        </Button>
+       
        
 <Tooltip title="Logout" arrow>
             <IconButton
@@ -669,6 +664,7 @@ const fetchMuseums = async () => {
                 width: '40px', // Ensure square icon button
                 height: '40px',
                 }}
+                onClick={() => navigate('/')}
             >
     <LogoutIcon />
   </IconButton>
@@ -1620,7 +1616,12 @@ const fetchMuseums = async () => {
 
 
       <Box sx={styles.activitiesContainer}>
-  {museums.length > 0 ? (
+      {loading ? (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+        {/* Circular Progress for loading */}
+        <CircularProgress />
+      </Box>
+    ) : museums.length > 0 ? (
     museums.map((museum, index) => (
       <Box key={index} sx={{ marginBottom: '20px' }}>
         {/* Your activity card code */}

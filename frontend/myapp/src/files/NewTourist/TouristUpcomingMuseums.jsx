@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Button, Typography, IconButton,Tooltip, TextField, InputAdornment, Modal,MenuItem,Select,FormControl,InputLabel,Divider} from '@mui/material';
+import { Box, Button, Typography, IconButton,Tooltip, TextField, InputAdornment, Modal,MenuItem,Select,FormControl,InputLabel,Divider,CircularProgress} from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import MenuIcon from '@mui/icons-material/Menu';
 import NotificationsIcon from '@mui/icons-material/Notifications';
@@ -101,6 +101,7 @@ const initialSearchQuery = queryParams.get('search') || '';
 const [searchQuery, setSearchQuery] = useState(initialSearchQuery);
 const [flightsOpen, setFlightsOpen] = useState(false); // Manage the dropdown state for Flights
 const [hotelsOpen, setHotelsOpen] = useState(false); // Manage the dropdown state for Hotels
+const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -213,6 +214,7 @@ const [hotelsOpen, setHotelsOpen] = useState(false); // Manage the dropdown stat
   
 
   const fetchMuseums = async () => {
+    setLoading(true); // Set loading to true before starting the fetch
     try {
       const response = await axios.get("/api/ViewAllUpcomingMuseumEventsTourist");
       const fetchedMuseums = response.data;
@@ -228,6 +230,9 @@ const [hotelsOpen, setHotelsOpen] = useState(false); // Manage the dropdown stat
       setMuseums(fetchedMuseums); // Set museums state
     } catch (error) {
       console.error("Error fetching museums:", error);
+    }
+    finally {
+      setLoading(false); // Set loading to false after the fetch
     }
   };
   
@@ -538,69 +543,7 @@ const [hotelsOpen, setHotelsOpen] = useState(false); // Manage the dropdown stat
 </Box>
         </Box>
         <Box sx={styles.topMenuRight}>
-        <Button
-         sx={{
-         ...styles.menuButton,
-         '&:hover': {
-         backgroundColor: '#e6e7ed', // Background color on hover
-            color: '#192959',           // Text color on hover
-        },
-        }}
-        startIcon={<AccountCircleIcon />}
-        >
-        My Profile
-        </Button>
-        <Tooltip title="Notifications" arrow>
-        <IconButton
-            sx={{
-            ...styles.menuButton,
-            
-            '&:hover': {
-                backgroundColor: '#e6e7ed', // Lighter hover background
-            color: '#192959',           // Text color on hover
-
-            },
-            width: '40px', // Ensure square icon button
-            height: '40px',
-            }}
-        >
-            <NotificationsNoneOutlinedIcon />
-        </IconButton>
-        </Tooltip>
-        <Tooltip title="Shopping Cart" arrow>
-  <IconButton
-    sx={{
-      ...styles.menuButton,
       
-      '&:hover': {
-        backgroundColor: '#e6e7ed', // Lighter hover background
-      color: '#192959',           // Text color on hover
-
-      },
-      width: '40px', // Ensure square icon button
-      height: '40px',
-    }}
-  >
-    <ShoppingCartOutlinedIcon />
-  </IconButton>
-</Tooltip>
-<Tooltip title="Wishlist" arrow>
-            <IconButton
-                sx={{
-                ...styles.menuButton,
-                
-                '&:hover': {
-                    backgroundColor: '#e6e7ed', // Lighter hover background
-                color: '#192959',           // Text color on hover
-
-                },
-                width: '40px', // Ensure square icon button
-                height: '40px',
-                }}
-            >
-    <FavoriteBorderIcon/>
-  </IconButton>
-</Tooltip>
 <Tooltip title="Logout" arrow>
             <IconButton
                 sx={{
@@ -614,6 +557,7 @@ const [hotelsOpen, setHotelsOpen] = useState(false); // Manage the dropdown stat
                 width: '40px', // Ensure square icon button
                 height: '40px',
                 }}
+                onClick={() => navigate('/')}
             >
     <LogoutIcon />
   </IconButton>
@@ -1669,7 +1613,12 @@ const [hotelsOpen, setHotelsOpen] = useState(false); // Manage the dropdown stat
 
 
       <Box sx={styles.activitiesContainer}>
-  {museums.length > 0 ? (
+      {loading ? (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+        {/* Circular Progress for loading */}
+        <CircularProgress />
+      </Box>
+    ) : museums.length > 0 ? (
     museums.map((museum, index) => (
       <Box key={index} sx={{ marginBottom: '20px' }}>
         {/* Your activity card code */}
