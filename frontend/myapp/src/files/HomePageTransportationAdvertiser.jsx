@@ -173,18 +173,26 @@ function HomePageTransportationAdvertiser() {
   
   const fetchTransportations = async () => {
     try {
-      const response = await axios.get('/api/viewAllTransportation', { params: { AuthorUsername: username } });
-      const transportationsWithTags = response.data.map((transportations) => ({
-        ...transportations,
+      const username = localStorage.getItem('username');
+      const response = await axios.get('/api/viewMyTransportations', {
+        params: { advertiserName: username }, // Use the `advertiserName` query parameter
+      });
+  
+      // Extract transportations from the API response
+      const transportationsWithTags = response.data.transportations.map((transportation) => ({
+        ...transportation,
       }));
+  
       setTransportations(transportationsWithTags);
     } catch (error) {
       console.error('Error fetching transportations:', error);
     }
   };
+  
   useEffect(() => {
     fetchTransportations();
   }, []);
+  
 
 
 
