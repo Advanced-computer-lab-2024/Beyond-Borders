@@ -61,6 +61,31 @@ This stack provides a robust and scalable foundation for the Beyond-Borders plat
 ### How to Use
 
 Follow these steps to use the Beyond-Borders platform:
+#### Guest
+1. **Login as a Guest**:
+   - On the login page, select the **Continue as Guest** option.
+   - You will be redirected to the **Guest Homepage**.
+
+2. **Guest Homepage**:
+   - The homepage provides a top bar containing :
+     - **Register Now Button**:
+       - Click this button to go to the registration page.
+       - On the registration page, you can choose to register as one of the following:
+         - **Tourist**
+         - **Tour Guide**
+         - **Advertiser**
+         - **Transportation Advertiser**
+         - **Seller**
+
+3. **Navigation**:
+   - The platform includes a **side navigation bar** with buttons for the following features:
+     - **Activities**: Explore upcoming activities available.
+     - **Itineraries**: View upcoming itineraries.
+     - **Museums**: Discover upcoming museum events and exhibitions.
+     - **Historical Places**: Find and view details about upcoming events at historical landmarks.
+   - Click on any button to be redirected to the corresponding page for more information.
+
+The guest experience is designed to provide a preview of what the platform offers, while also encouraging registration for a more personalized and feature-rich experience.
 #### Tourist
 
 1. **Login**:
