@@ -6578,7 +6578,7 @@ const chooseDeliveryAddress = async (req, res) => {
 // };
 
 const payOrderWallet = async (req, res) => {
-  const { touristUsername } = req.body;
+  const { touristUsername,promoCode} = req.body;
 
   try {
     const tourist = await TouristModel.findOne({ Username: touristUsername });
@@ -6620,6 +6620,23 @@ const payOrderWallet = async (req, res) => {
     if (tourist.Wallet < totalPrice) {
       return res.status(400).json({ error: "Insufficient wallet funds." });
     }
+    if (promoCode) {
+      const promo = await PromoCodeModel.findOne({ code: promoCode, isActive: true });
+      if (!promo) {
+        return res.status(400).json({ error: "Invalid or expired promo code." });
+      }
+
+      const discount = (totalPrice * promo.discountPercentage) / 100;
+      totalPrice -= discount; // Apply discount to the total price
+
+      // Deactivate the promo code after it's used
+      await PromoCodeModel.updateOne(
+        { code: promoCode },
+        { $set: { isActive: false } } // Mark the promo code as used
+      );
+    }
+    
+    
 
     tourist.Wallet -= totalPrice;
 
@@ -6691,7 +6708,7 @@ const payOrderWallet = async (req, res) => {
 };
 
 const payOrderCash = async (req, res) => {
-  const { touristUsername } = req.body;
+  const { touristUsername,promoCode } = req.body;
 
   try {
     const tourist = await TouristModel.findOne({ Username: touristUsername });
@@ -6729,6 +6746,22 @@ const payOrderCash = async (req, res) => {
         tourist.purchasedProducts.push({ productName: product.Name, quantity, totalSales: price });
       }
     }
+    if (promoCode) {
+      const promo = await PromoCodeModel.findOne({ code: promoCode, isActive: true });
+      if (!promo) {
+        return res.status(400).json({ error: "Invalid or expired promo code." });
+      }
+
+      const discount = (totalPrice * promo.discountPercentage) / 100;
+      totalPrice -= discount; // Apply discount to the total price
+
+      // Deactivate the promo code after it's used
+      await PromoCodeModel.updateOne(
+        { code: promoCode },
+        { $set: { isActive: false } } // Mark the promo code as used
+      );
+    }
+    
 
     const orderCounter = await OrderCounterModel.findOneAndUpdate(
       { name: "orderNumber" },
@@ -6799,7 +6832,7 @@ const payOrderCash = async (req, res) => {
 
 
 const payOrderStripe = async (req, res) => {
-  const { touristUsername, paymentMethodId } = req.body; // Accept paymentMethodId from frontend
+  const { touristUsername, paymentMethodId,promoCode } = req.body; // Accept paymentMethodId from frontend
 
   try {
     // Find the tourist by username
@@ -6838,6 +6871,21 @@ const payOrderStripe = async (req, res) => {
       } else {
         tourist.purchasedProducts.push({ productName: product.Name, quantity, totalSales: price });
       }
+    }
+    if (promoCode) {
+      const promo = await PromoCodeModel.findOne({ code: promoCode, isActive: true });
+      if (!promo) {
+        return res.status(400).json({ error: "Invalid or expired promo code." });
+      }
+
+      const discount = (totalPrice * promo.discountPercentage) / 100;
+      totalPrice -= discount; // Apply discount to the total price
+
+      // Deactivate the promo code after it's used
+      await PromoCodeModel.updateOne(
+        { code: promoCode },
+        { $set: { isActive: false } } // Mark the promo code as used
+      );
     }
 
     // Create a PaymentIntent with Stripe using the paymentMethodId from the frontend

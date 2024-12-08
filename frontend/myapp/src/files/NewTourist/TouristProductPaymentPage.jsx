@@ -51,6 +51,12 @@ const TouristProductPaymentPage = () => {
   const [paymentLoading, setPaymentLoading] = useState(false); // Loading state for payment
   const navigate = useNavigate();
   const stripe = useStripe();
+  const [totalAmount, setTotalAmount] = useState(0); // Total amount with discount if applied
+  const [promoCode, setPromoCode] = useState(""); // State for promo code
+  const [promoApplied, setPromoApplied] = useState(false); // Flag for promo code applied
+  const [discount, setDiscount] = useState(0);
+  const [promoCodeError, setPromoCodeError] = useState(""); // Error state for promo code
+
   const elements = useElements();
   const [userInfo, setUserInfo] = useState({
     firstName: "",
@@ -68,7 +74,10 @@ const TouristProductPaymentPage = () => {
   
  
   const [activeStep, setActiveStep] = useState(1); // Set the active step (index-based)
-
+  const totalCost = cartItems.reduce(
+    (total, item) => total + item.productDetails.Price * item.quantity,
+    0
+  );
   useEffect(() => {
     const fetchData = async () => {
         try {
@@ -77,13 +86,18 @@ const TouristProductPaymentPage = () => {
             setError("User is not logged in.");
             return;
           }
-  
-          // Fetch cart items
           const cartResponse = await axios.get("/api/getTouristCartDetails", {
             params: { username },
           });
           setCartItems(cartResponse.data);
   
+          // Fetch cart items
+          const total = cartResponse.data.reduce(
+            (total, item) => total + item.productDetails.Price * item.quantity,
+            0
+          );
+          setTotalAmount(total); // Set the initial total amount
+          totalCost = total;
           // Fetch delivery addresses
           const addressResponse = await axios.get("/viewDeliveryAddresses", {
             params: { touristUsername: username },
@@ -99,6 +113,26 @@ const TouristProductPaymentPage = () => {
   
       fetchData();
     }, []);
+
+    const applyPromoCode = async () => {
+      try {
+        const response = await axios.get("/applyPromoCode", {
+          params: { promoCode },
+        });
+        const { discountPercentage } = response.data;
+  
+        // Apply the discount
+        setDiscount(discountPercentage);
+        setPromoApplied(true);
+  
+        // Recalculate total after applying the discount
+        const newTotal = totalAmount * (1 - discountPercentage / 100);
+        setTotalAmount(newTotal); // Update the total amount after discount
+      } catch (error) {
+        alert("Invalid or expired promo code.");
+        setPromoApplied(false);
+      }
+    };
 
     const handleCompletePayment = async () => {
 
@@ -181,12 +215,16 @@ const TouristProductPaymentPage = () => {
       //const username = localStorage.getItem("username");
        paymentResponse = await axios.post("/payOrderStripe", {
         touristUsername: username,
-        paymentMethodId: paymentMethod.id, // Pass the PaymentMethod ID
+        paymentMethodId: paymentMethod.id, 
+        promoCode: promoCode, // Add the promoCode to the payload
+        // Pass the PaymentMethod ID
       });
           } else if (paymentMethod === "Cash") {
-            paymentResponse = await axios.post("/payOrderCash", { touristUsername: username });
+            paymentResponse = await axios.post("/payOrderCash", { touristUsername: username,  promoCode: promoCode, // Add the promoCode to the payload
+            });
           } else if (paymentMethod === "Wallet") {
-            paymentResponse = await axios.post("/payOrderWallet", { touristUsername: username });
+            paymentResponse = await axios.post("/payOrderWallet", { touristUsername: username,  promoCode: promoCode, // Add the promoCode to the payload
+            });
           }
     
           if (!paymentResponse || paymentResponse.status !== 200) {
@@ -249,6 +287,7 @@ const TouristProductPaymentPage = () => {
       <Typography variant="h4" sx={{ fontWeight: "bold", marginBottom: "20px" }}>
         Checkout
       </Typography>
+      
 
       {/* Stepper */}
       <Stepper activeStep={activeStep} alternativeLabel sx={{ marginBottom: "20px" }}>
@@ -533,6 +572,51 @@ const TouristProductPaymentPage = () => {
           <Typography variant="h5" sx={{ fontWeight: "bold", marginBottom: "20px"}}>
             Order Summary
           </Typography>
+          {/* Promo Code Section */}
+      <TextField
+        label="Promo Code"
+        variant="outlined"
+        fullWidth
+        value={promoCode}
+        onChange={(e) => setPromoCode(e.target.value)}
+        error={!!promoCodeError}
+        helperText={promoCodeError}
+      />
+     <Button 
+  onClick={applyPromoCode} 
+  variant="contained" 
+  sx={{
+    backgroundColor: '#192959', // MUI theme primary color
+    '&:hover': {
+      backgroundColor: '#33416b', // MUI theme primary dark color on hover
+    },
+  }}
+>
+  Apply Promo Code
+</Button>
+
+      <Box>
+  {/* Display Discount */}
+  {discount > 0 && promoApplied && (
+    <Box sx={{ display: "flex", justifyContent: "space-between", marginBottom: "10px" }}>
+      <Typography variant="body1" sx={{ fontWeight: "bold" }}>
+        Discount Applied
+      </Typography>
+      <Typography variant="body1">{`EGP ${(totalCost * (discount / 100)).toFixed(2)}`}</Typography>
+    </Box>
+  )}
+
+  {/* Display Updated Total */}
+  {promoApplied && (
+    <Box sx={{ display: "flex", justifyContent: "space-between", marginBottom: "10px" }}>
+      <Typography variant="body1" sx={{ fontWeight: "bold" }}>
+        Final Total
+      </Typography>
+      <Typography variant="body1">{`EGP ${totalAmount.toFixed(2)}`}</Typography>
+    </Box>
+  )}
+</Box>
+
           <List>
             {cartItems.map((item, index) => (
               <ListItem
@@ -579,16 +663,12 @@ const TouristProductPaymentPage = () => {
             ))}
           </List>
           <Divider sx={{ marginY: "20px" }} />
-          <Typography
-            variant="h6"
-            sx={{ fontWeight: "bold", marginBottom: "20px"}}
-          >
-            Total: EGP {cartItems.reduce(
-              (total, item) =>
-                total + item.productDetails.Price * item.quantity,
-              0
-            )}
-          </Typography>
+          <Typography variant="h6">
+        Total: EGP {promoApplied ? totalAmount.toFixed(2) : cartItems.reduce(
+          (total, item) => total + item.productDetails.Price * item.quantity,
+          0
+        ).toFixed(2)}
+      </Typography>
           <Button
             variant="contained"
             fullWidth
