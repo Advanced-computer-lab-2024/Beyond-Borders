@@ -1330,7 +1330,7 @@ return (
           {errorMessage && <Typography color="error" sx={{ mb: 2 }}>{errorMessage}</Typography>}
           <Button
             variant="contained"
-            onClick={handleAddAdmin}
+            onClick={handlePasswordChange}
             fullWidth
             sx={styles.actionButton}
           >Save New Password</Button>
