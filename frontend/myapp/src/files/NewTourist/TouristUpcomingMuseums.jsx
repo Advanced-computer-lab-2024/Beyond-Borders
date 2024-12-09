@@ -1504,7 +1504,7 @@ const [loading, setLoading] = useState(true);
 
    {/* Bookmark Button */}
  <Tooltip
-      title={bookmarkStatuses[museum._id] ? 'Remove Bookmark' : 'Add to Bookmark'}
+      title={bookmarkStatuses[museum._id] ? 'Unsave Event' : 'Save Event'}
       arrow
     >
       <IconButton
