@@ -1389,7 +1389,7 @@ const [loading, setLoading] = useState(true);
             <Box
               sx={{
                 ...styles.infoContainer,
-                backgroundColor: '#b3b8c8',
+                backgroundColor: '#f3f4f6',
               }}
             >
               <Typography variant="body2" sx={{ fontWeight: 'bold' }}>

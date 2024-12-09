@@ -1642,7 +1642,7 @@ sx={{
         {hp.dateOfEvent ? new Date(hp.dateOfEvent).toLocaleDateString() : 'N/A'}
       </Typography>
       <Box sx={{ ...styles.quickFacts, marginTop: '10px' /* Added spacing above quick facts */ }}>
-      <Box sx={{ ...styles.infoContainer, backgroundColor: '#b3b8c8'  }}>
+      <Box sx={{ ...styles.infoContainer, backgroundColor: '#f3f4f6'  }}>
                     <Typography variant="body2" sx={{ fontWeight: 'bold' }}>Tags:</Typography>
                     <Typography variant="body2">{hp.Tags.join(', ')}</Typography>
                   </Box>
@@ -1877,7 +1877,7 @@ sx={{
             <Box
               sx={{
                 ...styles.infoContainer,
-                backgroundColor: '#b3b8c8',
+                backgroundColor: '#f3f4f6',
               }}
             >
               <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
