@@ -25,6 +25,7 @@ import DoneAllIcon from '@mui/icons-material/DoneAll';
 import axios from 'axios';
 
 
+
 ChartJS.register(BarElement, Tooltip, Legend, CategoryScale, LinearScale);
 
 
@@ -42,8 +43,12 @@ function AdminSalesPage() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [showManageAccessDropdown, setShowManageAccessDropdown] = useState(false);
   const [addAdminModal, setAddAdminModal] = useState(false);
+  const [addPromoModal, setAddpromoModal] = useState(false);
   const [addTourismGovModal, setAddTourismGovModal] = useState(false);
   const [adminUsername, setAdminUsername] = useState('');
+  const [discountPercentage, setdiscountPercentage] = useState('');
+  const [promoCode, setPromoCode] = useState('');
+  const [isActive, setisActive] = useState(true);
   const [adminPassword, setAdminPassword] = useState('');
   const [confirmAdminPassword, setConfirmAdminPassword] = useState('');
   const [govUsername, setGovUsername] = useState('');
@@ -62,7 +67,7 @@ function AdminSalesPage() {
   const [confirmDeleteDialog, setConfirmDeleteDialog] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
   const [requestToDelete, setRequestToDelete] = useState(null); // For confirmation dialog
-
+  const [successMessage, setSuccessMessage] = useState('');
   
   const [currentView, setCurrentView] = useState('Advertisers');
   
@@ -247,6 +252,46 @@ useEffect(() => {
     }
   };
 
+ // Handle Promo Code Submission
+ const handleAddPromoCode = async () => {
+  // Validation
+  if (!promoCode) {
+    setErrorMessage("Please enter a promo code to continue.");
+    return;
+  }
+  if (!discountPercentage) {
+    setErrorMessage("Please enter a discount percentage to continue.");
+    return;
+  }
+  if (isNaN(discountPercentage) || discountPercentage <= 0 || discountPercentage > 100) {
+    setErrorMessage("Discount percentage must be a valid number between 0 and 100.");
+    return;
+  }
+
+  try {
+    // API request to backend
+    const response = await axios.post('/createPromo', {
+      code: promoCode,
+      discountPercentage: parseFloat(discountPercentage),
+      isActive,
+    });
+
+    if (response.status === 201) {
+      alert('Promo code added successfully!');
+      setAddpromoModal(false); // Close modal on success
+      setPromoCode('');
+      setdiscountPercentage('');
+      setisActive(true);
+      resetAddPromoModal();
+    } else {
+      setErrorMessage('Failed to add promo code.');
+    }
+  } catch (error) {
+    console.error('Error adding promo code:', error);
+    setErrorMessage('Failed to add promo code. Please try again.');
+  }
+};
+
   const handleAddTourismGov = async () => {
     if (!govPassword) {
       setErrorMessage("Please enter a username to continue.");
@@ -296,6 +341,13 @@ useEffect(() => {
     setErrorMessage('');
   };
 
+  // Reset function for Add Promo Modal
+  const resetAddPromoModal = () => {
+    setdiscountPercentage('');
+    setPromoCode('');
+    setisActive(true);  
+    setErrorMessage('');
+  };
   // Reset function for Add Tourism Governor Modal
   const resetAddTourismGovModal = () => {
     setGovUsername('');
@@ -864,6 +916,8 @@ return (
                 <Button onClick={() => setAddTourismGovModal(true)} sx={styles.dropdownItem}>Add Tourism Governor</Button>
                 <Button onClick={openToggleRequestsModal} sx={styles.dropdownItem}>Requests</Button>
                 <Button onClick={() => setDeleteRequestsModal(true)} sx={styles.dropdownItem}> Delete Requests</Button>
+                <Button onClick={() => setAddpromoModal(true)} sx={styles.dropdownItem}>Add Promocode</Button>
+
               </Box>
             )}
           </Box>
@@ -1335,6 +1389,35 @@ return (
             fullWidth
             sx={styles.actionButton}
           >Add Admin</Button>
+        </Box>
+      </Modal>
+
+ {/* Add Promocode Modal */}
+ <Modal open={addPromoModal} onClose={() => {setAddpromoModal(false); resetAddPromoModal();}}>
+        <Box sx={styles.modalContent}>
+          <Typography variant="h6" gutterBottom>Add Promocode</Typography>
+          <TextField
+            label="Promocode"
+            fullWidth
+            value={promoCode}
+            onChange={(e) => setPromoCode(e.target.value)}
+            sx={{ mb: 2 }}
+          />
+          <TextField
+            label="Discount Percentage"
+            type='number'
+            fullWidth
+            value={discountPercentage}
+            onChange={(e) => setdiscountPercentage(e.target.value)}
+            sx={{ mb: 2 }}
+          />
+          {errorMessage && <Typography color="error" sx={{ mb: 2 }}>{errorMessage}</Typography>}
+          <Button
+            variant="contained"
+            onClick={handleAddPromoCode}
+            fullWidth
+            sx={styles.actionButton}
+          >Add Promocode</Button>
         </Box>
       </Modal>
 
