@@ -433,28 +433,29 @@ function YAdminProductsPage() {
       alt="Product"
       style={styles.productImage}
     />
-    {editMode[product._id] && (
-      <>
-        <Box
-          sx={styles.editIconOverlay}
-          onClick={() => document.getElementById(`file-input-${product._id}`).click()}
-        >
-          <EditIcon />
-        </Box>
-        <input
-          id={`file-input-${product._id}`}
-          type="file"
-          accept="image/*"
-          style={styles.hiddenInput}
-          onChange={(e) =>
-            setEditedProduct((prev) => ({
-              ...prev,
-              Picture: e.target.files[0],
-            }))
-          }
-        />
-      </>
-    )}
+   {!viewArchived && editMode[product._id] && (
+  <>
+    <Box
+      sx={styles.editIconOverlay}
+      onClick={() => document.getElementById(`file-input-${product._id}`).click()}
+    >
+      <EditIcon />
+    </Box>
+    <input
+      id={`file-input-${product._id}`}
+      type="file"
+      accept="image/*"
+      style={styles.hiddenInput}
+      onChange={(e) =>
+        setEditedProduct((prev) => ({
+          ...prev,
+          Picture: e.target.files[0],
+        }))
+      }
+    />
+  </>
+)}
+
   </Box>
 
   {/* Vertical Line */}
@@ -622,25 +623,28 @@ function YAdminProductsPage() {
                 </Box>
                 
                  {/* Edit/Save Button */}
-                    <Box sx={styles.productActions}>
-                    {editMode[product._id] ? (
-                        <IconButton
-                        onClick={() => handleSaveClick(product._id)}
-                        title="Save Changes"
-                        sx={styles.actionButton}
-                        >
-                        <SaveIcon />
-                        </IconButton>
-                    ) : (
-                        <IconButton
-                        onClick={() => handleEditClick(product)}
-                        title="Edit Product"
-                        sx={styles.actionButton}
-                        >
-                        <EditIcon />
-                        </IconButton>
-                    )}
-                    </Box>
+                 {!viewArchived && (
+  <Box sx={styles.productActions}>
+    {editMode[product._id] ? (
+      <IconButton
+        onClick={() => handleSaveClick(product._id)}
+        title="Save Changes"
+        sx={styles.actionButton}
+      >
+        <SaveIcon />
+      </IconButton>
+    ) : (
+      <IconButton
+        onClick={() => handleEditClick(product)}
+        title="Edit Product"
+        sx={styles.actionButton}
+      >
+        <EditIcon />
+      </IconButton>
+    )}
+  </Box>
+)}
+
 
                 </Box>
 
