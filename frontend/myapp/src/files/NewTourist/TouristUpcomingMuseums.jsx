@@ -1389,7 +1389,7 @@ const [loading, setLoading] = useState(true);
             <Box
               sx={{
                 ...styles.infoContainer,
-                backgroundColor: '#b3b8c8',
+                backgroundColor: '#f3f4f6',
               }}
             >
               <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
@@ -1504,7 +1504,7 @@ const [loading, setLoading] = useState(true);
 
    {/* Bookmark Button */}
  <Tooltip
-      title={bookmarkStatuses[museum._id] ? 'Remove Bookmark' : 'Add to Bookmark'}
+      title={bookmarkStatuses[museum._id] ? 'Unsave Event' : 'Save Event'}
       arrow
     >
       <IconButton

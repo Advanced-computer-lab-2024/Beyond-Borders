@@ -121,7 +121,7 @@ const [formData, setFormData] = useState({
     ticketPriceNative: '',
     ticketPriceStudent: '',
     tag: '',
-    BookingOpen:''
+    BookingOpen:false
   });
   const [errors, setErrors] = useState({
     name: '',
@@ -176,22 +176,20 @@ const [formData, setFormData] = useState({
       formErrors.tag = 'Tags must be comma-separated and non-empty';
       isValid = false;
     }
-    if (!formData.BookingOpen) {
-      formErrors.BookingOpen = 'Booking Open is required';
-      isValid = false;
-    }
+   
     setErrors(formErrors);
     return isValid;
   };
   const handleChange = (e) => {
-    const { name, checked } = e.target; // Use 'checked' instead of 'value'
+    const { name, value, type, checked } = e.target;
   
-    // Update the state with the new boolean value of BookingOpen
+    // For switch, use 'checked' to update the value in the form data
     setFormData((prev) => ({
       ...prev,
-      [name]: checked, // 'checked' will be either true or false
+      [name]: type === 'checkbox' ? checked : value, // Handle switch for 'BookingOpen'
     }));
   };
+  
   
   const AuthorUsername = localStorage.getItem('username');
   const handleSubmit = async (e) => {
@@ -219,6 +217,7 @@ const [formData, setFormData] = useState({
 
       if (response.status === 201) {
         alert('Historical place created successfully!');
+        fetchHistoricalPlacesByAuthor();  // Refresh the list of historical places
         navigate('/HistoricalPlaceTg');
       } else {
         alert('Error: ${response.data.error}');
@@ -729,7 +728,7 @@ const [formData, setFormData] = useState({
         required
       />
       <Typography variant="h6" align="left" sx={{ marginBottom: "0px" }}>
-        Ticket Prices in USD($):
+        Ticket Prices :
       </Typography>
       <TextField
         fullWidth

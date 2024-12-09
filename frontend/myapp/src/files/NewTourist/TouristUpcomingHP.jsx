@@ -1731,7 +1731,7 @@ const navigate = useNavigate();
 
    {/* Bookmark Button */}
  <Tooltip
-      title={bookmarkStatuses[hp._id] ? 'Remove Bookmark' : 'Add to Bookmark'}
+      title={bookmarkStatuses[hp._id] ? 'Unsave Event' : 'Save Event'}
       arrow
     >
       <IconButton
