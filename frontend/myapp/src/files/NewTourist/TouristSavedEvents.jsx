@@ -388,7 +388,7 @@ const [loading, setLoading] = useState(true);
   
   
 
-  const renderRating = (activityId, userRating, averageRating, handleRatingClick) => {
+  const renderRating = (activityId, userRating, averageRating, handleRatingClick, readonly = false) => {
     const displayRating = userRating || averageRating || 0; // Use user rating first, then average
     const fullStars = Math.floor(displayRating);
     const halfStars = displayRating > fullStars ? 1 : 0;
@@ -412,8 +412,8 @@ const [loading, setLoading] = useState(true);
         {[...Array(fullStars)].map((_, index) => (
           <StarIcon
             key={`full-${index}`}
-            sx={{ fontSize: '32px', cursor: 'pointer', color: '#192959' }}
-            onClick={() => handleRatingClick(activityId, index + 1)}
+            sx={{ fontSize: '32px', cursor: readonly ? 'default' : 'pointer', color: '#192959' }}
+            onClick={readonly ? undefined : () => handleRatingClick(activityId, index + 1)} // Disable click if readonly
           />
         ))}
   
@@ -421,8 +421,8 @@ const [loading, setLoading] = useState(true);
         {[...Array(halfStars)].map((_, index) => (
           <StarHalfIcon
             key={`half-${index}`}
-            sx={{ fontSize: '32px', cursor: 'pointer', color: '#192959' }}
-            onClick={() => handleRatingClick(activityId, fullStars + 1)}
+            sx={{ fontSize: '32px', cursor: readonly ? 'default' : 'pointer', color: '#192959' }}
+            onClick={readonly ? undefined : () => handleRatingClick(activityId, fullStars + 1)} // Disable click if readonly
           />
         ))}
   
@@ -430,13 +430,14 @@ const [loading, setLoading] = useState(true);
         {[...Array(emptyStars)].map((_, index) => (
           <StarBorderIcon
             key={`empty-${index}`}
-            sx={{ fontSize: '32px', cursor: 'pointer', color: '#192959' }}
-            onClick={() => handleRatingClick(activityId, fullStars + index + 1)}
+            sx={{ fontSize: '32px', cursor: readonly ? 'default' : 'pointer', color: '#192959' }}
+            onClick={readonly ? undefined : () => handleRatingClick(activityId, fullStars + index + 1)} // Disable click if readonly
           />
         ))}
       </Box>
     );
   };
+  
   const renderTourGuideRating = (itineraryName, authorUsername, tourGuideRating, handleRatingClick) => {
     const fullStars = Math.floor(tourGuideRating || 0);
     const halfStars = tourGuideRating > fullStars ? 1 : 0;
@@ -1460,45 +1461,45 @@ const [loading, setLoading] = useState(true);
             </Box>
           </Box>
           <Box sx={styles.activityRating}>
-{renderRating(
-activity._id,
-activity.userRating,
-activity.Rating,
-handleRatingClick
-)}
+  {renderRating(
+    activity._id,
+    activity.userRating,
+    activity.Rating,
+    handleRatingClick,
+    true // Make the rating non-editable
+  )}
 
-{/* Reserve space for the Add Comment button */}
-<Box
-sx={{
-  height: '24px', // Fixed height to prevent shifting
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'flex-start',
-  //marginTop: '20px', // Adjust spacing below stars
-}}
->
-{activity.showCommentButton && (
-  <Button
-    variant="text"
-    onClick={() => {
-      setCurrentActivityId(activity._id);
-      setCommentModalOpen(true);
-    }}
-    startIcon={<AddIcon />}
+  {/* Reserve space for the Add Comment button */}
+  <Box
     sx={{
-      fontSize: '14px', // Smaller font size
-      padding: '2px 6px', // Compact padding
-      color: '#192959',
-      textTransform: 'none', // Keep the case unchanged
-      '&:hover': {
-        backgroundColor: 'rgba(25, 41, 89, 0.1)', // Hover background
-      },
+      height: '24px', // Fixed height to prevent shifting
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'flex-start',
     }}
   >
-    Add Comment
-  </Button>
-)}
-</Box>
+    {activity.showCommentButton && (
+      <Button
+        variant="text"
+        onClick={() => {
+          setCurrentActivityId(activity._id);
+          setCommentModalOpen(true);
+        }}
+        startIcon={<AddIcon />}
+        sx={{
+          fontSize: '14px', // Smaller font size
+          padding: '2px 6px', // Compact padding
+          color: '#192959',
+          textTransform: 'none', // Keep the case unchanged
+          '&:hover': {
+            backgroundColor: 'rgba(25, 41, 89, 0.1)', // Hover background
+          },
+        }}
+      >
+        Add Comment
+      </Button>
+    )}
+  </Box>
 </Box>
 
 
@@ -1710,8 +1711,9 @@ sx={{
   {renderRating(
     hp._id,           // Pass hp._id for historical place
     hp.userRating,    // Use userRating for the user-specific rating
-    hp.Ratings,        // Overall rating for the historical place
-    handleRatingClick // Rating click handler
+    hp.Ratings,       // Overall rating for the historical place
+    handleRatingClick, // Rating click handler
+    true // Set this to 'true' to make the rating non-editable
   )}
 
   {/* Reserve space for the Add Comment button */}
@@ -1721,7 +1723,6 @@ sx={{
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'flex-start',
-      //marginTop: '20px', // Adjust spacing below stars
     }}
   >
     {hp.showCommentButton && (
@@ -1747,6 +1748,7 @@ sx={{
     )}
   </Box>
 </Box>
+
           
          
   
@@ -1957,7 +1959,8 @@ sx={{
             museum._id,
             museum.userRating,
             museum.Ratings,
-            handleRatingClick
+            handleRatingClick,
+            true
           )}
 
           {/* Reserve space for the Add Comment button */}
@@ -2070,20 +2073,9 @@ fontSize: '18px',
 alignItems: 'center',
 cursor: 'pointer',
 transition: 'all 0.3s ease', // Smooth transition for hover effects
-'&:hover': {
- //fontWeight: 'bold', // Make text bold on hover
- textDecoration: 'underline', // Underline text on hover
- color: '#192959', // Optional: Change color on hover
-},
+
 }}
-onClick={() => {
-setSelectedTourGuide({
- username: itinerary.AuthorUsername,
- itineraryName: itinerary.Title,
- rating: itinerary.tourGuideRating || 0, // Pass current rating
-});
-setIsModalOpen(true);
-}}
+
 >
 <PersonIcon fontSize="small" sx={{ mr: 1 }} />
 {itinerary.AuthorUsername}
@@ -2179,7 +2171,8 @@ sx={{
        itinerary._id,
        itinerary.userRating,
        itinerary.Ratings,
-       handleRatingClick
+       handleRatingClick,
+       true
      )}
 
      {/* Reserve space for the Add Comment button */}
@@ -2704,6 +2697,14 @@ const styles = {
     display: 'flex',
     alignItems: 'center',
     gap: 2,
+  },
+  museumRating: {
+    position: 'absolute',
+    bottom: '60px',
+    right: '60px',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '10px',
   },
   iconButton: {
     color: '#e6e7ed',  // Initial color
