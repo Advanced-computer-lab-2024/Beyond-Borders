@@ -9,7 +9,8 @@ const Order = require('../Models/Orders.js');
 
 const { default: mongoose } = require('mongoose');
 
-
+const path = require('path');
+const fs = require('fs');
 const readSellerProfile = async (req, res) => {
   try {
     const { username } = req.query;
@@ -156,9 +157,9 @@ const createNewProductSeller = async (req, res) => {
   
       // Replace the picture if a new one is uploaded
       if (req.file) {
-        const oldPicturePath = path.join(__dirname, "..", existingProduct.Picture);
+        const oldPicturePath = path.join(__dirname, "..",existingProduct.Picture);
         if (fs.existsSync(oldPicturePath)) {
-          fs.unlinkSync(oldPicturePath);
+          fs.unlinkSync(oldPicturePath); // Delete the old file
         }
         updateFields.Picture = `/uploads/${req.file.filename}`;
       }
@@ -170,9 +171,10 @@ const createNewProductSeller = async (req, res) => {
         { new: true }
       );
   
-      res.status(200).json({ msg: "Product updated successfully!", product: updatedProduct });
+      res.status(200).json(updatedProduct);
     } catch (error) {
-      res.status(500).json({ error: error.message });
+      console.error("Error editing product:", error);
+      res.status(500).json({ error: "Failed to edit product" });
     }
   };
   

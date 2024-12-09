@@ -239,9 +239,9 @@ function YSellerProductsPage() {
       });
   
       alert("Product updated successfully!");
-      fetchProducts(); // Refresh product list
       setEditMode((prev) => ({ ...prev, [productId]: false }));
       setEditedProduct({});
+      fetchProducts(); // Refresh product list
     } catch (error) {
       console.error("Error updating product:", error);
       alert(error.response?.data?.error || "Failed to update product.");
