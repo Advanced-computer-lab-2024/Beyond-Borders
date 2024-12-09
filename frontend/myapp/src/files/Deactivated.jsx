@@ -512,7 +512,7 @@ const [itineraryToDeactivate, setItineraryToDeactivate] = useState(null);
           <MapIcon sx={styles.icon} />
           {sidebarOpen && 'My Itineraries'}
         </Button>
-        <Button onClick={() => navigate('/YTourGuideDashboard')} sx={styles.sidebarButton}>
+        <Button onClick={() => navigate('/YTourGuideSalesPage')} sx={styles.sidebarButton}>
           <DashboardIcon sx={styles.icon} />
           {sidebarOpen && 'Back to Dashboard'}
         </Button>

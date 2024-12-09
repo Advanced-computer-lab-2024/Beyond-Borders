@@ -951,7 +951,7 @@ const saveActivity = async (activity) => {
       <TextField
         fullWidth
         margin="normal"
-        label="Price (USD)"
+        label="Price"
         name="Price"
         type="number"
         value={newActivityData.Price}
