@@ -1201,7 +1201,7 @@ const [isModalOpen, setIsModalOpen] = useState(false); // Modal state
       <TextField
         fullWidth
         margin="normal"
-        label="Price (USD)"
+        label="Price"
         name="price"
         type="number"
         value={itineraryData.price}

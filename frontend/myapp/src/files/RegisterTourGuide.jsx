@@ -51,7 +51,7 @@ const RegisterTourGuide = () => {
       if (response.status === 200) {
         setResponseMessage("Tour Guide registered successfully!");
         setTimeout(() => {
-          window.location.href = "/loginTourGuide";
+          window.location.href = "/";
         }, 2000);
       } else {
         setResponseMessage(

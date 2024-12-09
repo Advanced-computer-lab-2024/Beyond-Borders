@@ -48,7 +48,7 @@ const RegisterSeller = () => {
       if (response.status === 200) {
         setResponseMessage("Seller registered successfully!");
         setTimeout(() => {
-          window.location.href = "/loginSeller";
+          window.location.href = "/";
         }, 2000);
       } else {
         setResponseMessage(

@@ -42,7 +42,7 @@ const RegisterTourist = () => {
 
         // Redirect after 2 seconds
         setTimeout(() => {
-          window.location.href = `/loginTourist`; // Redirect to login page
+          window.location.href = `/`; // Redirect to login page
         }, 2000);
       } else {
         setResponseMessage(`Error: ${result.error || 'Failed to register tourist.'}`);

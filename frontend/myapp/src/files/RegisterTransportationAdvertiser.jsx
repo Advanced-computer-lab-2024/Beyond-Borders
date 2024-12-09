@@ -34,7 +34,7 @@ const RegisterTransportationAdvertiser = () => {
       if (response.status === 200) {
         setResponseMessage('Transportation Advertiser registered successfully!');
         setTimeout(() => {
-          window.location.href = '/loginTransportationAdvertiser';
+          window.location.href = '/';
         }, 2000);
       } else {
         setResponseMessage(`Error: ${result.error || 'Failed to register transportation advertiser.'}`);

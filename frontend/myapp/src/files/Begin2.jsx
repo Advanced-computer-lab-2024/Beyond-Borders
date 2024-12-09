@@ -729,7 +729,7 @@ const Begin2 = () => {
         {/* Forgot Password and Register Links */}
         <Box sx={{ marginTop: '20px' }}>
           
-          <p>
+          {/* <p>
            Login for nowww{' '}
             <Link
               to="/login"
@@ -739,7 +739,7 @@ const Begin2 = () => {
             >
               login Now
             </Link>
-          </p>
+          </p> */}
         </Box>
 
         {/* Forgot Password and Register Links */}

@@ -50,7 +50,7 @@ const RegisterAdvertiser = () => {
       if (response.status === 200) {
         setResponseMessage("Advertiser registered successfully!");
         setTimeout(() => {
-          window.location.href = "/loginAdvertiser";
+          window.location.href = "/";
         }, 2000);
       } else {
         setResponseMessage(

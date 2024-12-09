@@ -8,7 +8,7 @@ import RegisterTourGuide from './RegisterTourGuide';
 import RegisterSeller from './registerSeller';
 import RegisterAdvertiser from './RegisterAdvertiser';
 import RegisterTransportationAdvertiser from './RegisterTransportationAdvertiser';
-
+import { useNavigate } from "react-router-dom";
 const registrationTypes = [
   { label: 'Tourist' },
   { label: 'Tour Guide' },
@@ -21,7 +21,7 @@ const New = () => {
   const [text, setText] = useState(''); // Animated text state
   const fullText = 'Welcome to Beyond Borders!'; // Full text to display
   const [value, setValue] = useState(0); // Active tab value
-
+  const navigate = useNavigate();
   useEffect(() => {
     let index = 0; // Start index for animation
     const interval = setInterval(() => {
@@ -39,6 +39,9 @@ const New = () => {
   const handleChange = (event, newValue) => {
     setValue(newValue); // Update active tab value
   };
+  const goBack = () => {
+    navigate(-1); // Navigate to the previous page
+  };
 
   return (
     <Box
@@ -54,6 +57,28 @@ const New = () => {
       backgroundPosition: 'center',
     }}
     >
+      <button
+  onClick={goBack}
+  style={{
+    position: 'absolute',
+    top: '20px',
+    left: '20px',
+    backgroundColor: 'transparent',
+    color: '#192959', // Blue color for text and border
+    border: '2px solid #192959',
+    padding: '10px 20px',
+    borderRadius: '30px', // Rounded border
+    fontSize: '16px',
+    fontWeight: 'bold',
+    cursor: 'pointer',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '10px', // Space between the arrow and text
+    transition: 'all 0.3s ease', // Smooth transition for hover effects
+  }}
+>
+  <span style={{ fontSize: '20px' }}>←</span> Back
+</button>
      
       {/* Welcome Message */}
       <Box
