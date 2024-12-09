@@ -909,7 +909,7 @@ const [isModalOpen, setIsModalOpen] = useState(false); // Modal state
                 key={tagIndex}
                 sx={{
                   ...styles.tag,
-                  backgroundColor: activity.flagged ? '#cccfda' : '#cccfda',
+                  backgroundColor: activity.flagged ? '#f3f4f6' : '#f3f4f6',
                   color: activity.flagged ? '#192959' : '#192959',
                 }}
               >
