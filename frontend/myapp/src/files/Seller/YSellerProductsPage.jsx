@@ -239,9 +239,9 @@ function YSellerProductsPage() {
       });
   
       alert("Product updated successfully!");
-      fetchProducts(); // Refresh product list
       setEditMode((prev) => ({ ...prev, [productId]: false }));
       setEditedProduct({});
+      fetchProducts(); // Refresh product list
     } catch (error) {
       console.error("Error updating product:", error);
       alert(error.response?.data?.error || "Failed to update product.");
@@ -608,25 +608,30 @@ function YSellerProductsPage() {
                 </Box>
              
               {/* Edit/Save Button */}
-                    <Box sx={styles.productActions}>
-                    {editMode[product._id] ? (
-                        <IconButton
-                        onClick={() => handleSaveClick(product._id)}
-                        title="Save Changes"
-                        sx={styles.actionButton}
-                        >
-                        <SaveIcon />
-                        </IconButton>
-                    ) : (
-                        <IconButton
-                        onClick={() => handleEditClick(product)}
-                        title="Edit Product"
-                        sx={styles.actionButton}
-                        >
-                        <EditIcon />
-                        </IconButton>
-                    )}
-                    </Box>
+              {!viewArchived && (
+  <Box sx={styles.productActions}>
+    {editMode[product._id] ? (
+      <IconButton
+        onClick={() => handleSaveClick(product._id)}
+        title="Save Changes"
+        sx={styles.actionButton}
+      >
+        <SaveIcon />
+      </IconButton>
+    ) : (
+      <IconButton
+        onClick={() => handleEditClick(product)}
+        title="Edit Product"
+        sx={styles.actionButton}
+      >
+        <EditIcon />
+      </IconButton>
+    )}
+  </Box>
+)}
+
+
+                  
 
                 </Box>
 
