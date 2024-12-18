@@ -1,0 +1,250 @@
+{
+	"info": {
+		"_postman_id": "b8559d37-565b-44cb-b0ae-49bcc0234af9",
+		"name": "Test Routes",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "38573557"
+	},
+	"item": [
+		{
+			"name": "calculateSellerRevenue",
+			"request": {
+				"method": "GET",
+				"header": []
+			},
+			"response": []
+		},
+		{
+			"name": "filterAdminProducts",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8000/api/filterAdminProducts?username=jj",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"filterAdminProducts"
+					],
+					"query": [
+						{
+							"key": "username",
+							"value": "jj"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "getOrderedProductsBySeller",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8000/api/getOrderedProductsBySeller?sellerUsername=jj",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"getOrderedProductsBySeller"
+					],
+					"query": [
+						{
+							"key": "sellerUsername",
+							"value": "jj"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "getTotalUsersByMonth",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8000/api/getTotalUsersByMonth?month=11",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"getTotalUsersByMonth"
+					],
+					"query": [
+						{
+							"key": "month",
+							"value": "11"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "viewAdvertiserDocument",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8000/api/viewAdvertiserDocument?Username=advertiser321",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"viewAdvertiserDocument"
+					],
+					"query": [
+						{
+							"key": "Username",
+							"value": "advertiser321"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "AdvertiserProfile",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8000/api/AdvertiserProfile?username=testAA",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"AdvertiserProfile"
+					],
+					"query": [
+						{
+							"key": "username",
+							"value": "testAA"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "viewBookedActivities",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8000/api/viewBookedActivities?touristUsername=janaa",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"viewBookedActivities"
+					],
+					"query": [
+						{
+							"key": "touristUsername",
+							"value": "janaa"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "viewAllProductsSeller",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8000/api/viewAllProductsSeller",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"viewAllProductsSeller"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "payItinerary",
+			"request": {
+				"method": "GET",
+				"header": []
+			},
+			"response": []
+		},
+		{
+			"name": "fetchHotelsByCity",
+			"request": {
+				"method": "GET",
+				"header": []
+			},
+			"response": []
+		},
+		{
+			"name": "getTouristCartDetails",
+			"request": {
+				"method": "GET",
+				"header": []
+			},
+			"response": []
+		},
+		{
+			"name": "viewMyWishlist",
+			"request": {
+				"method": "GET",
+				"header": []
+			},
+			"response": []
+		},
+		{
+			"name": "viewBookedHotels",
+			"request": {
+				"method": "GET",
+				"header": []
+			},
+			"response": []
+		},
+		{
+			"name": "addDeliveryAddress",
+			"request": {
+				"method": "GET",
+				"header": []
+			},
+			"response": []
+		},
+		{
+			"name": "fetchFlights",
+			"request": {
+				"method": "GET",
+				"header": []
+			},
+			"response": []
+		}
+	]
+}
