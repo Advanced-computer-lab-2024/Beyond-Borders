@@ -78,17 +78,14 @@ Plan your dream vacation effortlessly with our all-in-one travel platform. Wheth
 - **Hassle-Free Booking**:  
   Book flights, hotels, and transportation directly within the app through trusted third-party integrations—quick, secure, and without redirects.
 
-- **Budget-Friendly Recommendations**:  
-  Receive activity suggestions tailored to your remaining budget after booking flights and accommodations, including transportation costs for stress-free planning.
-
 - **Discover Hidden Gems**:  
   Explore unique activities, museums, and historical places, complete with ticket prices and step-by-step directions.
 
 - **Instant Notifications**:  
   Stay informed with real-time alerts for your upcoming bookings, events, and activities via in-app notifications and email updates.
 
-- **Expert Tour Guides & Custom Itineraries**:  
-  Access expert-guided tours or create your own personalized itineraries with detailed activity breakdowns for a tailored adventure.
+- **Expert Tour Guides**:  
+  Access expert-guided tours with detailed activity breakdowns for a tailored adventure.
 
 - **Exclusive In-App Gift Shop**:  
   Shop for products and locally sourced items directly from our app to create lasting memories of your trip.
@@ -332,7 +329,11 @@ Example JSON payload:
   "Tags": ["Cultural", "Romantic", "Historical"]
 }
 ```
+### Postman Collection
 
+To test the APIs used in the Beyond-Borders project, you can import the following Postman collection:
+
+- **Download Postman Collection**: ![TestRoutes](src/screenshots/TestRoutes.json)
 ### Installation
 
 Follow these steps to set up the project locally:
@@ -376,7 +377,7 @@ npm install
 # Start the frontend development server
 npm start
 ```
-### API References
+### APIs and Keys
 
 Below are the APIs used in the Beyond-Borders project:
 
@@ -403,6 +404,52 @@ Below are the APIs used in the Beyond-Borders project:
     `pk_test_51QLqHGP7Sjm96OcqAOCQWfQuEwmMBxXj7hieiaUq1Q0m4qd0xaW9xi2GwrQbTb89OHEXUoIyhuAP29EhDlNYXYlC00HnsADGB1`
 
 > **Note**: The secret key should be kept private and used only in server-side code to maintain security. Avoid exposing it in frontend code or public repositories.
+### API References
+- **GET Products by Seller API**: Fetches a list of products created by a specific seller. Requires the seller's username as a query parameter.
+  [http://localhost:8000/api/getProductsBySeller](http://localhost:8000/api/getProductsBySeller)
+
+- **GET View Archived Products by Seller API**: Fetches a list of archived products for a specific seller. Requires the seller's username as a query parameter.
+  [http://localhost:8000/api/viewMyArchivedProductsSeller](http://localhost:8000/api/viewMyArchivedProductsSeller)
+
+- **POST Archive Product API**: Archives a product, making it invisible to customers. Requires the product's ID in the request body.
+  [http://localhost:8000/api/archiveProduct](http://localhost:8000/api/archiveProduct)
+
+- **POST Unarchive Product API**: Unarchives a product, making it visible to customers again. Requires the product's ID in the request body.
+  [http://localhost:8000/api/unarchiveProduct](http://localhost:8000/api/unarchiveProduct)
+
+- **GET Sort Products in Ascending Order API**: Retrieves a list of products sorted in ascending order by price.
+  [http://localhost:8000/api/sortProductsAscendingAdmin](http://localhost:8000/api/sortProductsAscendingAdmin)
+
+- **PUT Edit Product API**: Updates the details of a product, including price, quantity, and description. Requires the product's ID and updated fields in the request body.
+  [http://localhost:8000/api/editProductSeller](http://localhost:8000/api/editProductSeller)
+
+- **POST Add Product API**: Creates a new product listing for the seller. Requires the product's details (e.g., name, price, quantity, and description) in the request body.
+  [http://localhost:8000/api/addProductSeller](http://localhost:8000/api/addProductSeller)
+
+- **GET View Seller Profile API**:Fetches the profile information of the seller. Requires the seller's username as a query parameter.
+  [http://localhost:8000/api/readSellerProfile](http://localhost:8000/api/readSellerProfile)
+
+- **PUT Update Seller Profile API**: Updates the seller's profile information
+  [http://localhost:8000/api/updateSeller](http://localhost:8000/api/updateSeller)
+
+- **GET View All Products API**: Fetches a list of all products created by all sellers.
+  [http://localhost:8000/api/viewAllProductsSeller](http://localhost:8000/api/viewAllProductsSeller)
+  
+- **GET Search Products API**: Searches for products by name. Requires the product name as a query parameter.
+  [http://localhost:8000/api/viewProductsSeller](http://localhost:8000/api/viewProductsSeller)
+
+- **GET Filter Products by Price API**: Filters products based on a price range.
+  [http://localhost:8000/api/filterProductByPriceSeller](http://localhost:8000/api/filterProductByPriceSeller)
+
+- **POST Request Account Deletion API**: Submits a request to delete the seller's account.
+  [http://localhost:8000/api/requestDeleteAccountSeller](http://localhost:8000/api/requestDeleteAccountSeller)
+
+- **GET Apply Promo Code API**: Validates and applies a promo code. Requires the promo code as a query parameter.
+  [http://localhost:8000/applyPromoCode](http://localhost:8000/applyPromoCode)
+
+- **Pay for Historical Place API-Stripe**:  Processes payments for historical places. 
+  [http://localhost:8000/payHPStripe](http://localhost:8000/payHPStripe)
+  
 
 ### How to Use
 
