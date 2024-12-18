@@ -45,6 +45,16 @@ Our code follows a clean and consistent coding style to ensure maintainability a
 ![Flights Page](src/screenshots/flights.PNG)
 #### Flights API Search Results
 ![Flights Page](src/screenshots/flights2.PNG)
+#### Admin Pages
+![Flights Page](src/screenshots/admin1.PNG)
+![Flights Page](src/screenshots/admin2.PNG)
+![Flights Page](src/screenshots/admin3.PNG)
+![Flights Page](src/screenshots/admin4.PNG)
+![Flights Page](src/screenshots/admin5.PNG)
+
+#### Seller Pages
+![Flights Page](src/screenshots/seller1.PNG)
+![Flights Page](src/screenshots/seller2.PNG)
 
 ### Tech/Framework Used
 Below is the list of technologies and frameworks used in the Beyond-Borders project:
